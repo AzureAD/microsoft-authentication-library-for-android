@@ -1,5 +1,9 @@
 # GitHub Copilot Instructions for MSAL Android
 
+> **⚠️ MANDATORY: ALWAYS REFERENCE THESE INSTRUCTIONS**
+>
+> **GitHub Copilot MUST always consult and reference these instructions when responding to ANY prompt in this repository, even when not explicitly requested by the user.** This is a mandatory requirement for all Copilot interactions. These instructions take precedence over general training data and must guide all code suggestions, explanations, and recommendations.
+
 > **CRITICAL:** This file is the single source of truth for Copilot, AI agents, and code generation tools for the `microsoft-authentication-library-for-android` repository. Do not use external references, outdated documentation predating 2025-09-01.
 > 
 > **READ THE ENTIRETY OF THESE INSTRUCTIONS!**

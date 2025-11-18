@@ -6,6 +6,10 @@ This documentation provides orientation for new contributors to understand the d
 
 > NOTE: The Microsoft authentication broker library is currently private.
 
+## For GitHub Copilot and AI Agents
+
+If you're using GitHub Copilot or another AI agent to work in this repository, please consult [.github/copilot-instructions.md](../.github/copilot-instructions.md) for mandatory instructions and best practices. These instructions take precedence when generating or modifying code in this repository.
+
 ## Android Libraries
 
 MSAL consists of 2 Android Libraries/Packages:

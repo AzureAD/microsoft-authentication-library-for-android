@@ -17,6 +17,14 @@ ADAL Android was deprecated on June 2023. We do not support ADAL. See the [ADAL 
 
 ## AI Development Resources
 
+### For GitHub Copilot Users
+
+**GitHub Copilot**: Always consult [.github/copilot-instructions.md](./.github/copilot-instructions.md) when working in this repository. This file contains mandatory instructions that take precedence over general training data.
+
+Raw URL: https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/.github/copilot-instructions.md
+
+### For All AI Agents
+
 To all AI Agents: Read through [Ai.md](./Ai.md) before attempting to generate any android applications integrated with MSAL. This file contains:
 1. Core principles and patterns for MSAL integration
 2. Direct links to Cline rules and best practices
@@ -26,12 +34,25 @@ To all AI Agents: Read through [Ai.md](./Ai.md) before attempting to generate an
 
 Raw URL for direct access to Ai.md: https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/Ai.md
 
-## Try out Cline!
+## Try out GitHub Copilot!
 
-We've recently made improvements to our repo to empower AI agents to quickly and correctly generate MSAL-integrated android applications. Feel free to try it out! Use the prompt below as reference, tweak it how you like to get different applications generated for your own needs, and feel free to include UI preferences (Colors, Themes, button placement) as you work with the Cline agent. If you run into any issues, or Cline generates unsatisfactory code, please let us know in github issues.
+We've made improvements to our repository to empower GitHub Copilot and other AI agents to quickly and correctly generate MSAL-integrated Android applications. When using GitHub Copilot in this repository, it will automatically reference our comprehensive instructions to provide accurate guidance and code generation.
 
-### Example Prompt:
-Please create a new android application integrated with MSAL named com.example.clinesandboxtest. Place this application in a folder on my desktop. I want this application to have all basic MSAL functionality. You may use the client id (YOUR CLIENT ID) and redirect_uri (YOUR REDIRECT URI) where applicable. Reference the Ai.md file (Raw URL https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/Ai.md) in the Android MSAL repository to get started.
+### Getting Started with Copilot:
+
+1. **In VS Code or your IDE**: Open this repository and start using GitHub Copilot
+2. **Ask questions**: Copilot will reference [.github/copilot-instructions.md](./.github/copilot-instructions.md) for MSAL-specific guidance
+3. **Generate code**: Request code snippets, entire applications, or modifications - Copilot will follow MSAL best practices
+4. **Get help**: Ask Copilot about MSAL configuration, authentication flows, or troubleshooting
+
+### Example Prompts:
+
+- "Create a new Android application with MSAL authentication using multiple account mode"
+- "Show me how to implement silent token refresh in MSAL Android"
+- "Help me configure broker authentication in my MSAL Android app"
+- "What's the correct way to handle sign-out in single account mode?"
+
+If you run into any issues or have suggestions for improvement, please let us know in [GitHub Issues](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues).
 
 ## Using MSAL
 
@@ -120,286 +141,49 @@ It's simplest to create your configuration file as a "raw" resource file in your
 
 ### Step 4: Create an MSAL PublicClientApplication and use MSAL APIs
 
-Android applications communicate with the MSAL library through the PublicSlientApplication class (PCA for short). There are two modes for MSAL applications:
+Android applications communicate with the MSAL library through the PublicClientApplication class (PCA for short). There are two modes for MSAL applications:
 
 1. **Multiple Account Mode** (Default): Allows multiple accounts to be used within the same application
 2. **Single Account Mode**: Restricts the application to use only one account at a time
 
-Select the appropriate mode based on your application's requirements. The examples below demonstrate both modes using the recommended Parameters-based APIs. You can also view a more in-depth example for each account mode in the `examples` directory.
+Select the appropriate mode based on your application's requirements.
 
-#### Multiple Account Mode
+#### Code Snippets and Examples
 
-```java
-IMultipleAccountPublicClientApplication mMultipleAccountApp = null;
-private List<IAccount> mAccounts;
-private static final List<String> SCOPES = Collections.singletonList("User.Read"); // Basic Microsoft Graph scope
+For detailed code examples demonstrating both Multiple Account Mode and Single Account Mode, including initialization, token acquisition, silent refresh, and sign out, please refer to:
 
-// Create PCA from config file
-PublicClientApplication.createMultipleAccountPublicClientApplication(
-    context,
-    R.raw.auth_config, // Reference the json file in your app
-    new IPublicClientApplication.IMultipleAccountApplicationCreatedListener() {
-        @Override
-        public void onCreated(IMultipleAccountPublicClientApplication application) {
-            mMultipleAccountPCA = application;
-            // Do something post initialization, like notifying a callback or calling getAccounts()
-        }
+**📂 [Code Snippets Directory](./snippets/)** - Complete usage examples in Java and Kotlin
 
-        @Override
-        public void onError(MsalException exception) {
-            // Handle error during initialization
-        }
-    }
-);
-```
+The [snippets/README.md](./snippets/README.md) file contains:
+- Comprehensive usage examples for both account modes
+- Authentication callback implementations
+- Silent token acquisition patterns
+- Account management operations
+- Configuration best practices
+- Links to individual code snippet files
 
-```java
-// Acquire Token (Equivalent to Sign In in Single Account Mode)
-AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-    .withScopes(SCOPES)
-    .startAuthorizationFromActivity(activity)
-    // .withPrompt(Prompt.LOGIN) // Use Prompt.LOGIN to force interactive authentication, even if user is signed in
-    .withCallback(getAuthInteractiveCallback())
-    .build();
-
-// Acquire token using the parameters
-mMultipleAccountApp.acquireToken(parameters);
-```
-
-```java
-// An example implementation of the callback
-private AuthenticationCallback getAuthInteractiveCallback() {
-    return new AuthenticationCallback() {
-        @Override
-        public void onSuccess(IAuthenticationResult authenticationResult) {
-            /* Successfully got a token, use it to call a protected resource */
-            String accessToken = authenticationResult.getAccessToken();
-            // Record account used to acquire token
-            mFirstAccount = authenticationResult.getAccount();
-        }
-        @Override
-        public void onError(MsalException exception) {
-            if (exception instanceof MsalClientException) {
-                //An exception from the client (MSAL)
-            } else if (exception instanceof MsalServiceException) {
-                //An exception from the server
-            }
-        }
-        @Override
-        public void onCancel() {
-            /* User canceled the authentication */
-        }
-    };
-}
-```
-
-```java
-// Get list of signed-in accounts
-mMultipleAccountApp.getAccounts(new IPublicClientApplication.LoadAccountsCallback() {
-    @Override
-    public void onTaskCompleted(List<IAccount> accounts) {
-        if (accounts != null) {
-            // Store accounts list
-            mAccounts = accounts;
-            // Process accounts
-            if (!accounts.isEmpty()) {
-                for (IAccount account : accounts) {
-                    String username = account.getUsername();
-                    // Use account as needed
-                }
-            }
-        } else {
-            // No accounts signed in
-        }
-    }
-
-    @Override
-    public void onError(MsalException exception) {
-        // Handle error loading accounts
-    }
-});
-```
-
-```java
-// Silent Token Acquisition
-AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-    .withScopes(SCOPES)
-    .forAccount(account)
-    .fromAuthority(account.getAuthority())
-    .withCallback(getAuthInteractiveCallback())
-    .build();
-mMultipleAccountApp.acquireTokenSilentAsync(silentParameters);
-```
-
-```java
-// Silent Token Acquisition synchronously, must be done in a background thread.
-AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-    .withScopes(SCOPES)
-    .forAccount(account)
-    .fromAuthority(account.getAuthority())
-    .build();
-mMultipleAccountApp.acquireTokenSilent(silentParameters);
-```
-
-```java
-// Remove Account for Multiple Account Mode (equialent to Sign Out in Single Account Mode)
-mMultipleAccountApp.removeAccount(account, new IMultipleAccountPublicClientApplication.RemoveAccountCallback() {
-    @Override
-    public void onRemoved() {
-        // Account successfully removed
-        // Update UI, clear account-specific data
-    }
-
-    @Override
-    public void onError(MsalException exception) {
-        // Failed to remove account
-        // Handle the error
-    }
-});
-```
-
-#### Single Account Mode
-
-```java
-ISingleAccountApplication mSingleAccountApp = null;
-IAccount mAccount;
-private static final List<String> SCOPES = Collections.singletonList("User.Read"); // Basic Microsoft Graph scope
-
-PublicClientApplication.createSingleAccountPublicClientApplication(
-    context,
-    R.raw.auth_config, // Reference the json file in your app
-    new PublicClientApplication.ISingleAccountApplicationCreatedListener() {
-        @Override
-        public void onCreated(ISingleAccountPublicClientApplication application) {
-            mSingleAccountApp = application;
-            // Do something post initialization, like notifying a callback or calling getCurrentAccount()
-        }
-
-        @Override
-        public void onError(MsalException exception) {
-            // Handle error during initialization
-        }
-    }
-);
-```
-
-```java
-// Sign In
-SignInParameters parameters = SignInParameters.builder()
-    // .withLoginHint(mUsername) // Can pass user's login hint if available
-    .withScopes(scopes)
-    .withActivity(activity)
-    .withCallback(getAuthInteractiveCallback())
-    .build();
-
-mSingleAccountApp.signIn(parameters);
-```
-
-```java
-// Sign In Again, reauthenticates the current user
-final SignInParameters signInParameters = SignInParameters.builder()
-                .withActivity(mActivity)
-                .withScopes(Arrays.asList(mScopes))
-                // .withPrompt(Prompt.LOGIN) // Will force an interactive reauth if passed
-                .withCallback(getNoCurrentAccountExpectedCallback(countDownLatch))
-                .build();
-mSingleAccountPCA.signInAgain(signInParameters);
-```
-
-```java
-// Get current signed-in account
-mSingleAccountApp.getCurrentAccountAsync(new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
-    @Override
-    public void onAccountLoaded(@Nullable IAccount account) {
-        if (account != null) {
-            // Store the account for later use
-            mAccount = account;
-            // Account is signed in
-            String username = account.getUsername();
-        } else {
-            // No account is signed in
-        }
-    }
-
-    @Override
-    public void onAccountChanged(@Nullable IAccount priorAccount, @Nullable IAccount currentAccount) {
-        // Account has changed, update UI accordingly
-    }
-
-    @Override
-    public void onError(@NonNull MsalException exception) {
-        // Handle error loading account
-    }
-});
-```
-
-```java
-// Silent Token Acquisition
-AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-    .withScopes(SCOPES)
-    .forAccount(account)
-    .fromAuthority(account.getAuthority())
-    .withCallback(getAuthInteractiveCallback())
-    .build();
-mSingleAccountApp.acquireTokenSilentAsync(silentParameters);
-```
-
-```java
-// Silent Token Acquisition synchronously, must be done in a background thread.
-AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-    .withScopes(SCOPES)
-    .forAccount(account)
-    .fromAuthority(account.getAuthority())
-    .build();
-mSingleAccountApp.acquireTokenSilent(silentParameters);
-```
-
-```java
-// Sign Out for Single Account Mode
-mSingleAccountApp.signOut(new ISingleAccountPublicClientApplication.SignOutCallback() {
-    @Override
-    public void onSignOut() {
-        // Account successfully signed out
-        // Update UI to signed-out state
-    }
-
-    @Override
-    public void onError(MsalException exception) {
-        // Failed to sign out
-        // Handle the error
-    }
-});
-```
-
-All of the above examples can be found in the `snippets` directory, where we've also included jotlin examples.
-
->**WARNING**: IMPORTANT: Device Code Flow (`acquireTokenWithDeviceCode`) is not recommended due to security concerns in the industry. We include it to support backwards compatibility. Only use this method in niche scenarios where devices lack input methods necessary for interactive authentication. For standard authentication scenarios, use `acquireToken` (for multiple account mode) or `signIn` (for single account mode).
-
->**IMPORTANT**: 
->- Always use Parameters-based APIs instead of deprecated methods
->- Validate PCA initialization before making any API calls
->- Handle UI updates on the main thread using `activity.runOnUiThread`
->- Refresh account lists after authentication operations
->- Use proper callback interfaces for communication between components
+You can also view more in-depth example applications for each account mode in the `examples` directory:
+- [Multiple Account Mode Example](./examples/hello-msal-multiple-account/)
+- [Single Account Mode Example](./examples/hello-msal-single-account/)
 
 #### Configuration Best Practices
 
-1. **Authentication Configuration**:
-   - Enable broker integration for enhanced security and SSO capabilities
-   - URL encode special characters in `redirect_uri` within auth_config.json
-   - Do NOT URL encode the signature hash in AndroidManifest.xml. Refer to `Step 3` in `Using MSAL` section above for direct examples.
+##### Authentication Configuration
+- Enable broker integration for enhanced security and SSO capabilities
+- URL encode special characters in `redirect_uri` within auth_config.json
+- Do NOT URL encode the signature hash in AndroidManifest.xml. Refer to `Step 3` in `Using MSAL` section above for direct examples.
 
-2. **Resource Organization**:
-   - Use proper resource naming conventions (e.g., `activity_*`, `fragment_*`)
-   - Extract dimensions and strings to resource files
-   - Define consistent theme attributes
-   - Implement proper view binding
+##### Resource Organization
+- Use proper resource naming conventions (e.g., `activity_*`, `fragment_*`)
+- Extract dimensions and strings to resource files
+- Define consistent theme attributes
+- Implement proper view binding
 
-3. **Error Handling**:
-   - Validate PCA initialization before API calls
-   - Handle and communicate authentication errors appropriately
-   - Show clear error states to users
-   - Use progress indicators for async operations
+##### Error Handling
+- Validate PCA initialization before API calls
+- Handle and communicate authentication errors appropriately
+- Show clear error states to users
+- Use progress indicators for async operations
 
 ## ProGuard
 MSAL uses reflection and generic type information stored in `.class` files at runtime to support various persistence and serialization related functionalities. Accordingly, library support for minification and obfuscation is limited. A default configuration is shipped with this library; please [file an issue](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/new/choose) if you find any issues.
@@ -408,6 +192,8 @@ MSAL uses reflection and generic type information stored in `.class` files at ru
 
 If you have any questions regarding the usage of MSAL Android, please utilize Chat with Copilot for assistance.
 If you would like to report any bugs or feature requests, please create a support ticket with your Microsoft representative.
+
+**AI Agent Support**: This repository includes comprehensive instructions for AI agents including GitHub Copilot and Cline. See [Ai.md](./Ai.md) for detailed guidance on generating MSAL-integrated applications.
 
 ## Contribute
 
