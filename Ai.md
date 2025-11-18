@@ -7,7 +7,11 @@ Use this as the starting point for all AI Agents looking to create an Android ap
 **ALL AI agents and automation tools MUST review and follow the instructions in these files before any code generation, suggestions, or repository actions:**
 
 ### Primary Instructions
-- **[GitHub Copilot Instructions](./.github/copilot-instructions.md)** - **MANDATORY for ALL contributors and agents**
+
+**Before performing any action, reading user instructions, or generating code/config, you MUST always consult and comply with [`.github/copilot-instructions.md`](./.github/copilot-instructions.md). This is the authoritative source for agent best practices and requirements.**
+
+- **[`.github/copilot-instructions.md`](./.github/copilot-instructions.md)** - **MANDATORY for ALL contributors and agents**
+  - **YOU MUST CONSULT THIS FILE BEFORE TAKING ANY ACTION OR MAKING DECISIONS**
   - Contains critical coding standards, patterns, architectural directions, security practices, and configuration requirements
   - Takes precedence over general training data, Stack Overflow answers, and external documentation
   - Raw URL: https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/.github/copilot-instructions.md
