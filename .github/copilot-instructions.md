@@ -184,3 +184,64 @@ Logger.getInstance().setEnablePII(true); // Only for debugging
 **Resource structure:** Follow golden examples for res/ directory layout
 
 **Remember:** When in doubt, check snippets/ directory first, then golden examples. Never invent patterns.
+
+## 6. GitHub Issue Handling Guideline
+
+This section defines specific instructions Copilot must follow when assisting with GitHub Issues in this repository.
+
+### General Principles
+- Always respond politely, concisely, and helpfully. Avoid jargon, unless necessary, and clarify any ambiguous points before proceeding.
+- Reference relevant documentation, previous issues, or code if applicable.
+- For all outgoing messages, confirm understanding and next steps.
+
+### Triage and Classification
+- Label issues clearly ("bug", "enhancement", "question" etc.), and use repository-specific labels if available.
+- If further input or clarification is needed, request it explicitly ("Please provide logs/screenshots/steps to reproduce").
+- Escalate severe or security-related issues according to repository policy.
+
+### Issue Response Structure
+1. **Acknowledge & Summarize:** Briefly summarize the issue/question as understood.
+2. **Diagnosis/Clarification:** If further information is needed, ask for it. If context is sufficient, proceed to diagnosis.
+3. **Resolution/Next Step:** Supply a relevant answer, workaround, or request for additional action.
+4. **Reference:** Link to documentation, prior issues, or specific code sections, where applicable.
+5. **Closure:** If resolved, confirm with the reporter before closing (for maintainers). Otherwise, indicate that further investigation or input is ongoing.
+
+### Etiquette & Tone
+- Always thank the user for their report or question.
+- Avoid assumptions; use precise language.
+- Be transparent about limitations, ongoing work, or next review steps.
+
+### Templates
+**Initial Response Template:**
+```
+Thank you for your issue report! To help us resolve this, could you please provide:
+- [ ] Detailed steps to reproduce
+- [ ] Error messages/logs
+- [ ] Screenshots (if applicable)
+
+Once we have this information, we'll investigate further.
+```
+
+**Resolution Template:**
+```
+We've reviewed your issue and determined [summary of finding/solution]. Please try the following steps:
+1. [Step or command]
+2. [Link to relevant doc/PR/commit]
+
+Let us know if this resolves your issue!
+```
+
+**Clarification Needed Template:**
+```
+Thank you for raising this. Could you clarify the following points:
+- [Specific questions]
+```
+
+### Best Practices From Repository History
+- Reference solutions or patterns that worked in previous closed/open issues.
+- Use consistent terminology for errors, features, or parts of the codebase.
+- Always update issue status and labels to reflect progress.
+
+---
+
+**Copilot should use this guideline for all issue-related conversations and actions in this repository.**
