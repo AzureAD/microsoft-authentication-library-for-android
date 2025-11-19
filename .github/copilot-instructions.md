@@ -57,6 +57,8 @@
 - URL encode signature hash in AndroidManifest.xml / Must URL encode in auth_config.json
 
 **ALWAYS:**
+- Respond politely, concisely, and helpfully to all user prompts. Avoid jargon unless necessary, and clarify any ambiguous points before proceeding
+- Reference relevant documentation, previous issues, or code when applicable to provide context and support
 - Use parameters-based APIs from [`snippets/`](../snippets/) directory
 - Default to multiple account mode unless specified
 - Enable broker integration (`broker_redirect_uri_registered: true`)
