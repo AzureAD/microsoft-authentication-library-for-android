@@ -87,7 +87,6 @@ public class AcquireTokenFragment extends Fragment {
     private Button mAddNgcMfaClaimButton;
     private Switch mEnablePII;
     private Switch mForceRefresh;
-    private Switch mEnableNewBrokerDiscovery;
     private Switch mAllowSignInFromOtherDevice;
 
     private Button mClearActiveBrokerDiscoveryCache;
@@ -203,18 +202,8 @@ public class AcquireTokenFragment extends Fragment {
                 AndroidPlatformComponentsFactory.createFromContext(getContext()).getStorageSupplier()
         );
 
-        mEnableNewBrokerDiscovery = view.findViewById(R.id.enableBrokerDiscovery);
         mCachedActiveBrokerName = view.findViewById(R.id.cachedActiveBrokerName);
         mClearActiveBrokerDiscoveryCache = view.findViewById(R.id.clearActiveBrokerDiscoveryCache);
-
-        mEnableNewBrokerDiscovery.setChecked(BrokerDiscoveryClientFactory.isNewBrokerDiscoveryEnabled());
-        mEnableNewBrokerDiscovery.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton v, boolean value) {
-                BrokerDiscoveryClientFactory.setNewBrokerDiscoveryEnabled(value);
-                setActiveBrokerTextFromCache();
-            }
-        });
 
         mClearActiveBrokerDiscoveryCache.setOnClickListener(new View.OnClickListener() {
             @Override
