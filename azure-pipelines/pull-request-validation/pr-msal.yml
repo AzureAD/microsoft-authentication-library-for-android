@@ -26,7 +26,9 @@ resources:
     endpoint: ANDROID_GITHUB
 
 pool:
-  name: Hosted Windows 2019 with VS2019
+  name: MSSecurity-1ES-Build-Agents-Pool
+  image: MSSecurity-1ES-Windows-2022
+  os: windows
 jobs:
 - job: build_test
   displayName: Build & Test
