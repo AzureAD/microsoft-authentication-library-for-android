@@ -153,3 +153,52 @@ Logger.getInstance().setEnablePII(true); // Only for debugging
 **Resource structure:** Follow golden examples for res/ directory layout
 
 **Remember:** When in doubt, check snippets/ directory first, then golden examples. Never invent patterns.
+
+## 6. GitHub Issue Handling (For AI Agents)
+
+When responding to GitHub issues, AI agents should follow these guidelines:
+
+### Issue Response Resources
+- **Common Issues Guide:** [`issue-responses/common-issues-guide.md`](issue-responses/common-issues-guide.md) - Comprehensive troubleshooting reference
+- **Communication Guidelines:** [`issue-responses/customer-communication-guidelines.md`](issue-responses/customer-communication-guidelines.md) - Professional response templates
+- **Automated Workflow:** [`workflows/copilot-issue-response.yml`](workflows/copilot-issue-response.yml) - Automatic triage and response
+
+### Quick Issue Diagnosis
+
+**Configuration Issues (Most Common):**
+1. Redirect URI encoding mismatch (auth_config.json vs AndroidManifest.xml)
+2. Missing `BrowserTabActivity` in AndroidManifest.xml
+3. Incorrect client_id or signature hash
+
+**Runtime Issues:**
+1. PCA not initialized before use
+2. UI updates not on main thread
+3. Wrong account mode API used
+
+**Build Issues:**
+1. Missing AndroidX properties in gradle.properties
+2. MSAL version conflicts
+3. ProGuard/R8 stripping required classes
+
+### Response Protocol
+
+1. **Always acknowledge** the issue with empathy
+2. **Check the common issues guide** before investigating
+3. **Request missing information** using the standard template
+4. **Reference documentation** and code snippets
+5. **Never share** sensitive information or make timeline promises
+
+### Diagnostic Information to Request
+
+When an issue is unclear, ask for:
+- MSAL version
+- Android version and device model
+- Account mode (Single/Multiple)
+- Complete error message or stack trace
+- Relevant configuration files (redacted)
+
+Enable verbose logging for detailed diagnostics:
+```java
+Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
+Logger.getInstance().setEnableLogcatLog(true);
+```
