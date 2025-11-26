@@ -211,8 +211,8 @@ List<String> scopes = Arrays.asList("User.Read", "Mail.Read");
 // ❌ INCORRECT - Don't include resource prefix for MS Graph
 List<String> scopes = Arrays.asList("https://graph.microsoft.com/User.Read");
 
-// ✅ CORRECT for custom APIs
-List<String> scopes = Arrays.asList("api://YOUR_API_CLIENT_ID/access_as_user");
+// ✅ CORRECT for custom APIs (use your API's application/client ID)
+List<String> scopes = Arrays.asList("api://YOUR_API_APPLICATION_CLIENT_ID/access_as_user");
 ```
 
 ---

@@ -110,7 +110,7 @@ Thank you for reaching out! Based on your description, this appears to be a conf
 - The signature hash in `AndroidManifest.xml` must NOT be URL-encoded
 - Ensure your Azure App Registration matches your configuration
 
-Please try these changes and let us know if the issue persists. You can find more details in our [configuration guide](../copilot-instructions.md).
+Please try these changes and let us know if the issue persists. You can find more details in our [configuration template](../../auth_config.template.json).
 ```
 
 ### Code Example Response

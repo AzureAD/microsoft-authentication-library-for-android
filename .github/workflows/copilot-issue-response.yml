@@ -250,9 +250,11 @@ jobs:
             
       - name: Post Comment
         uses: actions/github-script@v7
+        env:
+          RESPONSE_CONTENT: ${{ steps.generate_response.outputs.response }}
         with:
           script: |
-            const response = `${{ steps.generate_response.outputs.response }}`;
+            const response = process.env.RESPONSE_CONTENT;
             
             await github.rest.issues.createComment({
               owner: context.repo.owner,
@@ -286,20 +288,20 @@ jobs:
               additionalGuidance.push({
                 title: 'Redirect URI Configuration',
                 message: `This might be a redirect URI encoding issue. Remember:\n` +
-                         `- \`auth_config.json\`: redirect_uri must be **URL encoded**\n` +
+                         `- \`auth_config.json\`: signature hash in redirect_uri must be **URL encoded**\n` +
                          `- \`AndroidManifest.xml\`: signature hash must be **NOT URL encoded**\n\n` +
-                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md#11-redirect-uri-encoding-mismatch) for details.`
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md) for details.`
               });
             }
             
-            // AADSTS errors
-            const aadstsMatch = content.match(/aadsts\d+/i);
+            // AADSTS errors (typically 5-6 digit codes)
+            const aadstsMatch = content.match(/aadsts\d{5,6}/i);
             if (aadstsMatch) {
               const errorCode = aadstsMatch[0].toUpperCase();
               additionalGuidance.push({
                 title: `${errorCode} Error Detected`,
                 message: `I noticed you're encountering an ${errorCode} error. ` +
-                         `Check our [AADSTS Error Reference](.github/issue-responses/common-issues-guide.md#21-aadsts-error-codes) for common causes and solutions.`
+                         `Check our [Common Issues Guide](.github/issue-responses/common-issues-guide.md) for AADSTS error codes and solutions.`
               });
             }
             
@@ -311,7 +313,7 @@ jobs:
                          `- \`broker_redirect_uri_registered: true\` in auth_config.json\n` +
                          `- Microsoft Authenticator or Company Portal is installed\n` +
                          `- Your signature hash matches Azure App Registration\n\n` +
-                         `See our [Broker Integration Guide](.github/issue-responses/common-issues-guide.md#4-broker-integration-issues).`
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md) for broker integration details.`
               });
             }
             
@@ -342,7 +344,7 @@ jobs:
                          `1. Initialize PCA asynchronously before use\n` +
                          `2. Check for null before calling MSAL methods\n` +
                          `3. Handle initialization errors\n\n` +
-                         `See our [Runtime Crashes Guide](.github/issue-responses/common-issues-guide.md#61-pca-not-initialized).`
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md) for initialization patterns.`
               });
             }
             
