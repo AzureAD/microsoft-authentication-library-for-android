@@ -348,6 +348,106 @@ jobs:
               });
             }
             
+            // R8/ProGuard issues
+            if (content.includes('r8') || content.includes('proguard') || content.includes('minify') || 
+                content.includes('missing class') || content.includes('dontwarn') ||
+                content.includes('edu.umd.cs.findbugs') || content.includes('com.google.crypto.tink')) {
+              additionalGuidance.push({
+                title: 'R8/ProGuard Configuration',
+                message: `This looks like a code shrinking/obfuscation issue. ` +
+                         `Add these rules to your \`proguard-rules.pro\`:\n\n` +
+                         `\`\`\`proguard\n` +
+                         `-keep class com.microsoft.identity.** { *; }\n` +
+                         `-keep class com.nimbusds.** { *; }\n` +
+                         `-dontwarn edu.umd.cs.findbugs.annotations.**\n` +
+                         `-dontwarn com.google.crypto.tink.**\n` +
+                         `-dontwarn net.jcip.annotations.**\n` +
+                         `\`\`\`\n\n` +
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md#53-proguardr8-issues) for complete R8 configuration.`
+              });
+            }
+            
+            // AADB2C90080 - expired grant
+            if (content.includes('aadb2c90080') || (content.includes('grant') && content.includes('expired'))) {
+              additionalGuidance.push({
+                title: 'Expired Grant / AADB2C90080',
+                message: `This error indicates the refresh token has expired. ` +
+                         `To handle this:\n` +
+                         `1. Remove the account from cache before re-authenticating\n` +
+                         `2. Fall back to interactive authentication\n` +
+                         `3. Consider adjusting token lifetime settings in Azure B2C\n\n` +
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md#82-aadb2c90080---expired-grant-error) for details.`
+              });
+            }
+            
+            // Silent token issues
+            if (content.includes('acquiretokensilent') && (content.includes('fail') || content.includes('error') || content.includes('no cached accounts'))) {
+              additionalGuidance.push({
+                title: 'Silent Token Acquisition',
+                message: `Silent token acquisition failures are common when:\n` +
+                         `- No cached token is available\n` +
+                         `- Refresh token has expired\n` +
+                         `- User consent is required for new scopes\n\n` +
+                         `Always implement fallback to interactive authentication:\n` +
+                         `\`\`\`java\n` +
+                         `if (exception instanceof MsalUiRequiredException) {\n` +
+                         `    // Fall back to interactive\n` +
+                         `    acquireTokenInteractively();\n` +
+                         `}\n` +
+                         `\`\`\`\n\n` +
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md#8-silent-token-refresh-issues) for more patterns.`
+              });
+            }
+            
+            // display-mask dependency issue
+            if (content.includes('display-mask') || (content.includes('failed to resolve') && content.includes('microsoft.device'))) {
+              additionalGuidance.push({
+                title: 'display-mask Dependency',
+                message: `The \`display-mask\` library requires a specific Maven repository. ` +
+                         `Add this to your \`settings.gradle\`:\n\n` +
+                         `\`\`\`gradle\n` +
+                         `maven {\n` +
+                         `    url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1'\n` +
+                         `}\n` +
+                         `\`\`\`\n\n` +
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md#54-display-mask-dependency-resolution) for details.`
+              });
+            }
+            
+            // Android 15 / SDK 35 issues
+            if (content.includes('android 15') || content.includes('sdk 35') || content.includes('api 35') ||
+                (content.includes('edge') && content.includes('display'))) {
+              additionalGuidance.push({
+                title: 'Android 15 Compatibility',
+                message: `Android 15 (SDK 35) introduces new behaviors that may affect MSAL:\n` +
+                         `- Edge-to-edge display is enabled by default\n` +
+                         `- Package visibility restrictions are stricter\n\n` +
+                         `Make sure to:\n` +
+                         `1. Update to the latest MSAL version\n` +
+                         `2. Update Microsoft Authenticator to the latest version\n` +
+                         `3. Handle system bar insets properly in your theme\n\n` +
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md#63-android-15-edge-to-edge-display-issues) for details.`
+              });
+            }
+            
+            // B2C specific issues
+            if (content.includes('b2c') && (content.includes('error') || content.includes('fail') || content.includes('not working'))) {
+              additionalGuidance.push({
+                title: 'Azure AD B2C Configuration',
+                message: `For B2C integrations, ensure:\n` +
+                         `1. Authority URL follows the format: \`https://{tenant}.b2clogin.com/{tenant}.onmicrosoft.com/{policy}\`\n` +
+                         `2. Your policy name is included in the authority\n` +
+                         `3. You're using the correct account for the policy when calling acquireTokenSilent\n\n` +
+                         `Example authority configuration:\n` +
+                         `\`\`\`json\n` +
+                         `"authorities": [{\n` +
+                         `    "type": "B2C",\n` +
+                         `    "authority_url": "https://contoso.b2clogin.com/contoso.onmicrosoft.com/B2C_1_signin"\n` +
+                         `}]\n` +
+                         `\`\`\``
+              });
+            }
+            
             // Post additional guidance if patterns detected
             if (additionalGuidance.length > 0) {
               let comment = `## 💡 Potential Solutions Detected\n\n`;

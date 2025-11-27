@@ -14,6 +14,8 @@ This guide provides AI agents and support staff with a comprehensive reference f
 6. [Runtime Crashes](#6-runtime-crashes)
 7. [Single vs Multiple Account Mode Issues](#7-single-vs-multiple-account-mode-issues)
 8. [Silent Token Refresh Issues](#8-silent-token-refresh-issues)
+9. [Diagnostic Information to Request](#diagnostic-information-to-request)
+10. [Additional Resources](#additional-resources)
 
 ---
 
@@ -120,8 +122,12 @@ Add the BrowserTabActivity to your AndroidManifest.xml:
 | AADSTS50079 | MFA enrollment required | User must enroll in MFA |
 | AADSTS65001 | Consent required | User or admin hasn't consented to the app |
 | AADSTS70002 | Invalid client secret | Update or regenerate client credentials |
+| AADSTS70043 | Refresh token expired due to sign-in frequency | Implement interactive login fallback |
 | AADSTS700016 | Application not found | Verify client_id is correct |
 | AADSTS90010 | Tenant not found | Verify tenant_id or use "common" for multi-tenant apps |
+| AADSTS9002313 | Invalid request, malformed | Check authority URL format and token endpoint |
+| AADSTS900384 | JWT signature validation failed | Verify authority URL matches your cloud (e.g., .us for Government) |
+| AADB2C90080 | Grant expired | Refresh token expired, need interactive login |
 
 **How to Find AADSTS Codes:**
 Enable verbose logging to capture the full error:
@@ -260,6 +266,71 @@ keytool -exportcert -alias YOUR_KEY_ALIAS -keystore YOUR_KEYSTORE.jks | openssl 
 
 ---
 
+### 4.3 Broker Communication Failure on Android 15
+
+**Symptoms:**
+- `BrokerCommunicationException: Failed to get result from Broker Content Provider, cursor is null`
+- `android.accounts.AuthenticatorException: bind failure`
+- Error: `Failed to find provider info for com.azure.authenticator.microsoft.identity.broker`
+- Works on older Android versions but fails on Android 15
+
+**Root Cause:**
+Android 15 has stricter package visibility requirements that can prevent MSAL from communicating with the broker app (see GitHub issue #2232).
+
+**Solution:**
+1. Ensure Microsoft Authenticator is up to date
+2. Force stop and restart the Authenticator app
+3. If issue persists, clear Authenticator app data and re-add accounts
+4. Consider updating to the latest MSAL version which may have fixes for Android 15 compatibility
+
+---
+
+### 4.4 Broker Authentication Hangs or Gets Stuck
+
+**Symptoms:**
+- Authenticator app opens but spinner runs indefinitely
+- Authentication never completes after entering credentials
+- App hangs after broker is killed or force stopped
+- No callback received from broker
+
+**Root Cause:**
+When the Authenticator app is killed during authentication, MSAL may not receive a proper cancellation signal, leaving the interactive session stuck (see GitHub issues #1396, #1997).
+
+**Solution:**
+1. If stuck, restart both apps (yours and Authenticator)
+2. Implement a timeout for interactive authentication:
+```java
+// Add a reasonable timeout handler
+new Handler(Looper.getMainLooper()).postDelayed(() -> {
+    if (authenticationInProgress) {
+        showError("Authentication timed out. Please try again.");
+        authenticationInProgress = false;
+    }
+}, 120000); // 2 minute timeout
+```
+3. Update to the latest MSAL version which has improved broker handling
+
+---
+
+### 4.5 Company Portal / Intune Integration Issues
+
+**Symptoms:**
+- Certificate-based authentication fails with Company Portal
+- Phone freezes when selecting certificates
+- "Company Portal isn't responding" message
+- Works in browser but not in Office apps
+
+**Root Cause:**
+Issues with Intune Company Portal's certificate storage or conditional access policies (see GitHub issue #2157).
+
+**Solution:**
+1. Update Company Portal to the latest version
+2. Re-enroll the device in Intune if problems persist
+3. Verify conditional access policies are correctly configured
+4. For certificate issues, ensure the certificate is properly installed in the work profile
+
+---
+
 ## 5. Build and Dependency Issues
 
 ### 5.1 AndroidX Compatibility
@@ -311,13 +382,64 @@ android {
 - App works in debug but crashes in release
 - ClassNotFoundException at runtime
 - Serialization/deserialization failures
+- R8 build fails with "Missing classes detected" error
+- Errors mentioning `edu.umd.cs.findbugs.annotations`, `com.google.crypto.tink`, or `net.jcip.annotations`
+
+**Root Cause:**
+MSAL has dependencies on optional classes that R8 cannot resolve during minification. This is a known recurring issue (see GitHub issues #1677, #2076, #2289, #2355).
 
 **Solution:**
-Add to your `proguard-rules.pro`:
+Add these rules to your `proguard-rules.pro`:
 ```proguard
+# MSAL core classes
 -keep class com.microsoft.identity.** { *; }
 -keep class com.nimbusds.** { *; }
+
+# Required for R8 compatibility
+-dontwarn com.google.crypto.tink.subtle.Ed25519Sign$KeyPair
+-dontwarn com.google.crypto.tink.subtle.Ed25519Sign
+-dontwarn com.google.crypto.tink.subtle.Ed25519Verify
+-dontwarn com.google.crypto.tink.subtle.X25519
+-dontwarn com.google.crypto.tink.subtle.XChaCha20Poly1305
+-dontwarn edu.umd.cs.findbugs.annotations.NonNull
+-dontwarn edu.umd.cs.findbugs.annotations.Nullable
+-dontwarn edu.umd.cs.findbugs.annotations.SuppressFBWarnings
+-dontwarn net.jcip.annotations.**
 -dontwarn com.nimbusds.**
+```
+
+For MSAL 6.0.0+ or 7.0.0+, you may also need:
+```gradle
+// Add Tink and SpotBugs annotations if R8 errors persist
+implementation("com.google.crypto.tink:tink:1.17.0") {
+    exclude group: 'com.google.protobuf'
+}
+implementation 'com.github.spotbugs:spotbugs-annotations:4.9.3'
+```
+
+---
+
+### 5.4 display-mask Dependency Resolution
+
+**Symptoms:**
+- `Failed to resolve: com.microsoft.device.display:display-mask:0.3.0`
+- Build fails when adding MSAL dependency
+
+**Root Cause:**
+The `display-mask` library is hosted in a Microsoft-specific Maven repository that may not be included in your project's repository list (see GitHub issue #1027, #1720).
+
+**Solution:**
+Add the Microsoft Maven repository to your `settings.gradle`:
+```gradle
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven {
+            url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1'
+        }
+    }
+}
 ```
 
 ---
@@ -382,6 +504,99 @@ public void onSuccess(IAuthenticationResult authenticationResult) {
         showMessage("Sign in successful!");
     });
 }
+```
+
+---
+
+### 6.3 Android 15 Edge-to-Edge Display Issues
+
+**Symptoms:**
+- Action bar overlaps content in the MSAL WebView on Android 15
+- Login form is partially unreadable
+- UI elements appear behind system bars
+
+**Root Cause:**
+Android 15 (SDK 35) enables edge-to-edge display by default, which affects MSAL's internal activities (see GitHub issues #2204, #2341).
+
+**Solution:**
+1. Update to the latest MSAL version which may include fixes
+2. If using custom themes, ensure proper insets handling:
+```xml
+<style name="Theme.MyApp" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+</style>
+```
+3. Consider using browser-based authentication (`authorization_user_agent: "BROWSER"`) as a workaround
+
+---
+
+### 6.4 Fragment Transaction Errors
+
+**Symptoms:**
+- `IllegalStateException: FragmentManager is already executing transactions`
+- `No stored state. Unable to handle response`
+- Authentication spinner runs indefinitely when using `withFragment()`
+
+**Root Cause:**
+Using `withFragment()` in `AcquireTokenParameters` can cause issues with fragment lifecycle timing (see GitHub issue #1725).
+
+**Solution:**
+1. Avoid using `withFragment()` if possible - use `startAuthorizationFromActivity()` instead:
+```java
+// ✅ RECOMMENDED
+AcquireTokenParameters params = new AcquireTokenParameters.Builder()
+    .startAuthorizationFromActivity(requireActivity())
+    .withScopes(SCOPES)
+    .withCallback(callback)
+    .build();
+```
+
+2. If you must use `withFragment()`, ensure the fragment is fully resumed:
+```java
+@Override
+public void onResume() {
+    super.onResume();
+    // Only initiate authentication when fragment is fully ready
+    if (pendingAuthentication) {
+        startAuthentication();
+    }
+}
+```
+
+---
+
+### 6.5 ANR (Application Not Responding) Issues
+
+**Symptoms:**
+- App freezes during MSAL operations
+- ANR dialog appears
+- Main thread blocked waiting for lock
+
+**Root Cause:**
+MSAL performs network operations that can block the main thread if configuration or cloud discovery takes too long (see GitHub issue #1952).
+
+**Solution:**
+1. Never initialize PCA on the main thread during startup:
+```java
+// ❌ DON'T DO THIS
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    // This can cause ANR
+    mPCA = PublicClientApplication.createSingleAccountPublicClientApplication(this, R.raw.auth_config);
+}
+
+// ✅ DO THIS INSTEAD
+Executors.newSingleThreadExecutor().execute(() -> {
+    PublicClientApplication.createSingleAccountPublicClientApplication(
+        context,
+        R.raw.auth_config,
+        callback
+    );
+});
+```
+
+2. Use the async initialization methods
 ```
 
 ---
@@ -473,6 +688,112 @@ mPCA.acquireTokenSilent(params);
 
 ---
 
+### 8.2 AADB2C90080 - Expired Grant Error
+
+**Symptoms:**
+- `MsalUiRequiredException: AADB2C90080: The provided grant has expired`
+- Error occurs after refresh token expiry
+- User can log in interactively, but subsequent silent calls still fail
+- Error shows old token timestamps even after fresh interactive login
+
+**Root Cause:**
+This is a common B2C issue where the refresh token has expired due to sign-in frequency policies or token lifetime settings. After interactive login, stale cache entries may still be used (see GitHub issues #1004, #1216, #2043, #2257).
+
+**Solution:**
+1. Clear the account before re-authenticating:
+```java
+// When AADB2C90080 occurs, remove the account first
+mPCA.removeAccount(account, new IMultipleAccountPublicClientApplication.RemoveAccountCallback() {
+    @Override
+    public void onRemoved() {
+        // Now do interactive login
+        acquireTokenInteractively();
+    }
+
+    @Override
+    public void onError(MsalException exception) {
+        // Handle error
+    }
+});
+```
+
+2. For B2C, configure appropriate token lifetimes in Azure Portal
+3. Consider implementing proactive token refresh before expiration
+
+---
+
+### 8.3 No Cached Accounts Found
+
+**Symptoms:**
+- `MsalClientException: No cached accounts found for the supplied homeAccountId and clientId`
+- Silent authentication fails even though user previously signed in
+- Account list appears empty after app restart
+
+**Root Cause:**
+This can occur with B2C accounts, External ID tenants, or when there's a mismatch between the account's home tenant and the realm (see GitHub issues #1779, #2172).
+
+**Solution:**
+1. Verify you're using the correct account from `getAccounts()`:
+```java
+mPCA.getAccounts(new IPublicClientApplication.LoadAccountsCallback() {
+    @Override
+    public void onTaskCompleted(List<IAccount> accounts) {
+        if (accounts.isEmpty()) {
+            // No cached accounts, need interactive login
+            acquireTokenInteractively();
+            return;
+        }
+        // Find the right account for your policy/authority
+        for (IAccount account : accounts) {
+            if (accountMatchesPolicy(account)) {
+                acquireTokenSilently(account);
+                return;
+            }
+        }
+    }
+});
+```
+
+2. For B2C, ensure you're using the correct policy name and authority:
+```java
+AcquireTokenSilentParameters params = new AcquireTokenSilentParameters.Builder()
+    .fromAuthority(getAuthorityFromPolicyName("B2C_1_signin"))
+    .withScopes(scopes)
+    .forAccount(account)
+    .build();
+```
+
+---
+
+### 8.4 Silent Token Performance Issues
+
+**Symptoms:**
+- `acquireTokenSilent` takes 100-1000ms even when token is cached
+- Network calls made during cache lookup
+- Slow app startup due to token acquisition
+
+**Root Cause:**
+Silent token acquisition involves validation and potential network operations even when returning cached tokens (see GitHub issue #2097).
+
+**Solution:**
+1. Cache the access token in your app for immediate use
+2. Only call `acquireTokenSilent` when you need to refresh:
+```java
+// Check if your locally cached token is still valid
+if (localToken != null && !isTokenExpired(localToken)) {
+    useToken(localToken);
+    return;
+}
+
+// Only then call MSAL
+mPCA.acquireTokenSilent(params);
+```
+
+3. Use token expiration time to proactively refresh before expiry
+```
+
+---
+
 ## Diagnostic Information to Request
 
 When an issue isn't covered above, ask the user for:
@@ -499,6 +820,34 @@ Logger.getInstance().setEnableLogcatLog(true);
 - [Code Snippets](../../snippets/) - Reference implementations
 - [Golden Examples](../../examples/) - Complete working applications
 - [Configuration Template](../../auth_config.template.json) - Full configuration options
+
+---
+
+## Referenced GitHub Issues
+
+This guide was compiled from analysis of common issues reported in this repository. The following issues were particularly influential in shaping this documentation:
+
+### R8/ProGuard Issues
+- [#1677](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1677) - Missing classes when R8 minify is enabled
+- [#2076](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/2076) - Missing classes detected while running R8
+- [#2289](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/2289) - Android MSAL 6.0.0 + obfuscation issues
+- [#2355](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/2355) - R8 minification fails on net.jcip.annotations
+
+### Silent Token/Refresh Issues
+- [#1004](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1004) - AADB2C90080: The provided grant has expired
+- [#1216](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1216) - MsalExceptionAdapter.java line 64
+- [#1779](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1779) - No cached accounts found for the supplied homeAccountId
+- [#2043](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/2043) - Error on MsalExceptionAdapter.java line 73
+- [#2172](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/2172) - External ID - acquireTokenSilentAsync - No cached accounts
+- [#2257](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/2257) - acquireTokenSilentAsync fails with AADB2C90080
+
+### Broker Issues
+- [#1952](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1952) - ANR as main thread waits for the lock in IO thread
+- [#1842](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1842) - Android 13 background broker issues
+
+### Dependency Issues
+- [#1027](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1027) - Failed to resolve: com.microsoft.device.display:display-mask:0.3.0
+- [#1720](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1720) - Azure Active Directory's library display-mask error
 
 ---
 
