@@ -14,8 +14,6 @@ This guide provides AI agents and support staff with a comprehensive reference f
 6. [Runtime Crashes](#6-runtime-crashes)
 7. [Single vs Multiple Account Mode Issues](#7-single-vs-multiple-account-mode-issues)
 8. [Silent Token Refresh Issues](#8-silent-token-refresh-issues)
-9. [Diagnostic Information to Request](#diagnostic-information-to-request)
-10. [Additional Resources](#additional-resources)
 
 ---
 
@@ -790,7 +788,6 @@ mPCA.acquireTokenSilent(params);
 ```
 
 3. Use token expiration time to proactively refresh before expiry
-```
 
 ---
 
