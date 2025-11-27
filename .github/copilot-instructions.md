@@ -74,7 +74,7 @@ mPCA.acquireTokenSilentAsync(scopes, account, authority, callback);  // ❌ Depr
 ```gradle
 // build.gradle (app level)
 minSdk 24, targetSdk 35, compileSdk 35
-implementation "com.microsoft.identity.client:msal:7.+"
+implementation "com.microsoft.identity.client:msal:8.+"
 ```
 
 ```properties
@@ -144,7 +144,7 @@ Logger.getInstance().setEnablePII(true); // Only for debugging
 - [ ] `auth_config.json` in `res/raw/` with URL-encoded redirect_uri
 - [ ] AndroidManifest.xml with non-URL-encoded signature hash in intent-filter
 - [ ] Required permissions: `INTERNET`, `ACCESS_NETWORK_STATE`
-- [ ] MSAL 7.+ dependency in build.gradle
+- [ ] MSAL 8.+ dependency in build.gradle
 - [ ] AndroidX enabled in gradle.properties
 
 ### Template Usage

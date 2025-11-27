@@ -2,6 +2,8 @@
 
 This guide provides AI agents and support staff with a comprehensive reference for diagnosing and resolving common MSAL Android issues. Use this guide when responding to GitHub issues.
 
+> **Note:** This guide was compiled from analysis of 250+ GitHub issues (both open and closed) from the MSAL Android repository. Issues have been grouped by category to provide consolidated solutions for related problems.
+
 ---
 
 ## Table of Contents
@@ -14,6 +16,9 @@ This guide provides AI agents and support staff with a comprehensive reference f
 6. [Runtime Crashes](#6-runtime-crashes)
 7. [Single vs Multiple Account Mode Issues](#7-single-vs-multiple-account-mode-issues)
 8. [Silent Token Refresh Issues](#8-silent-token-refresh-issues)
+9. [Network and Cloud Discovery Issues](#9-network-and-cloud-discovery-issues)
+10. [WebView and Browser Issues](#10-webview-and-browser-issues)
+11. [Azure AD B2C Specific Issues](#11-azure-ad-b2c-specific-issues)
 
 ---
 
@@ -358,7 +363,7 @@ android.enableJetifier=true
 Use the latest MSAL version:
 ```gradle
 dependencies {
-    implementation "com.microsoft.identity.client:msal:7.+"
+    implementation "com.microsoft.identity.client:msal:8.+"
 }
 ```
 
@@ -791,6 +796,296 @@ mPCA.acquireTokenSilent(params);
 
 ---
 
+## 9. Network and Cloud Discovery Issues
+
+### 9.1 Unable to Perform Cloud Discovery
+
+**Symptoms:**
+- `MsalClientException: Unable to perform cloud discovery`
+- `UnknownHostException: Unable to resolve host "login.microsoftonline.com"`
+- Authentication fails on certain network conditions
+
+**Root Cause:**
+This error occurs when MSAL cannot reach Microsoft's cloud discovery endpoints due to network issues, VPN configurations, proxy settings, or DNS problems (see GitHub issues #1568, #1765, #1696, #1723, #1663).
+
+**Solution:**
+1. Verify network connectivity to Microsoft endpoints:
+```java
+// Check network availability before MSAL calls
+ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+```
+
+2. For VPN/proxy environments:
+   - Ensure `login.microsoftonline.com` and `login.live.com` are accessible
+   - Configure proxy settings in the device's WiFi settings
+   - For emulators, ensure proper proxy configuration in Android Studio
+
+3. Handle cloud discovery failures gracefully:
+```java
+@Override
+public void onError(MsalException exception) {
+    if (exception.getMessage().contains("Unable to perform cloud discovery")) {
+        showError("Network connection required. Please check your internet connection.");
+    }
+}
+```
+
+---
+
+### 9.2 Power Optimization / Doze Mode Issues
+
+**Symptoms:**
+- `MsalClientException: Connection is not available to refresh token because power optimization is enabled`
+- Silent token refresh fails when device is in doze mode
+- Token refresh works when app is in foreground but fails in background
+
+**Root Cause:**
+Android's power optimization features (Doze mode, App Standby) restrict network access for apps running in the background (see GitHub issue #1766).
+
+**Solution:**
+1. Request exemption from battery optimization for critical apps:
+```java
+if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+    PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+    if (!pm.isIgnoringBatteryOptimizations(getPackageName())) {
+        Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+        intent.setData(Uri.parse("package:" + getPackageName()));
+        startActivity(intent);
+    }
+}
+```
+
+2. Perform token refresh when the app is in the foreground
+3. Cache tokens appropriately and refresh proactively before they expire
+
+---
+
+### 9.3 SSL/TLS Certificate Issues
+
+**Symptoms:**
+- `SSLHandshakeException: Chain validation failed`
+- `CertificateException: Chain validation failed`
+- "Response is unreliable: its validity interval is out-of-date"
+
+**Root Cause:**
+Device clock is incorrect, certificate chain is incomplete, or OCSP response has expired (see GitHub issue #1568).
+
+**Solution:**
+1. Verify device date/time is correct (automatic date/time should be enabled)
+2. For development, ensure you're not intercepting HTTPS traffic incorrectly
+3. Update to the latest MSAL version which includes updated certificate handling
+
+---
+
+## 10. WebView and Browser Issues
+
+### 10.1 Custom Tab / Browser Issues
+
+**Symptoms:**
+- "Chrome browser not found" error
+- Authentication fails with non-Chrome browsers
+- Login page doesn't open or crashes
+
+**Root Cause:**
+MSAL requires a compatible browser for authentication. Not all browsers support Custom Tabs correctly (see GitHub issues #1591, #1626, #1509).
+
+**Solution:**
+1. Add browser safelist to your `auth_config.json` if needed:
+```json
+{
+  "browser_safelist": [
+    {
+      "browser_package_name": "com.android.chrome",
+      "browser_signature_hashes": ["7fmduHKTdHHrlMvldlEqAIlSfii1tl35bxj1OXN5Ve8c4lU6URVu4xtSHc3BVZxS6WWJnxMDhIfQN0N0K2NDJg=="]
+    }
+  ]
+}
+```
+
+2. For devices without Chrome, consider using WebView mode:
+```json
+{
+  "authorization_user_agent": "WEBVIEW"
+}
+```
+
+**Note:** WebView mode does not support social identity provider logins (Google, Facebook). Use DEFAULT or BROWSER for those scenarios.
+
+---
+
+### 10.2 Authorization Flow Cancellation
+
+**Symptoms:**
+- `MsalClientException: Sdk cancelled the auth flow as the app launched a new interactive auth request`
+- `MsalClientException: Unable to complete authorization as there is no interactive call in progress`
+- Authentication fails when "Don't keep activities" is enabled
+
+**Root Cause:**
+Multiple simultaneous authentication requests, activity destruction during auth flow, or improper handling of auth state (see GitHub issues #1561, #1562).
+
+**Solution:**
+1. Track authentication state to prevent multiple simultaneous requests:
+```java
+private AtomicBoolean authenticationInProgress = new AtomicBoolean(false);
+
+public void signIn() {
+    if (!authenticationInProgress.compareAndSet(false, true)) {
+        Log.w(TAG, "Authentication already in progress");
+        return;
+    }
+    
+    AcquireTokenParameters params = new AcquireTokenParameters.Builder()
+        .withCallback(new AuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult result) {
+                authenticationInProgress.set(false);
+                // Handle success
+            }
+            
+            @Override
+            public void onError(MsalException exception) {
+                authenticationInProgress.set(false);
+                // Handle error
+            }
+            
+            @Override
+            public void onCancel() {
+                authenticationInProgress.set(false);
+                // Handle cancellation
+            }
+        })
+        .build();
+    mPCA.acquireToken(params);
+}
+```
+
+2. For "Don't keep activities" issues, use `singleTask` launch mode:
+```xml
+<activity
+    android:name=".AuthActivity"
+    android:launchMode="singleTask">
+```
+
+---
+
+### 10.3 WebView SSO Issues
+
+**Symptoms:**
+- User has to re-authenticate in WebView after MSAL sign-in
+- SSO doesn't work between native MSAL and WebView content
+- Different sessions between MSAL and app WebViews
+
+**Root Cause:**
+MSAL and WebView use different cookie stores. The authentication session in MSAL is not automatically shared with app WebViews (see GitHub issue #1582).
+
+**Solution:**
+1. Use the access token from MSAL to authenticate API calls from WebView
+2. For web content requiring SSO, consider using the system browser instead of embedded WebView
+3. Pass authentication tokens to web content via URL parameters or headers (securely)
+
+---
+
+## 11. Azure AD B2C Specific Issues
+
+### 11.1 B2C Token Refresh Failures
+
+**Symptoms:**
+- `AADB2C90080: The provided grant has expired`
+- Silent token acquisition fails after some time
+- Works with interactive login but fails on subsequent silent calls
+
+**Root Cause:**
+B2C refresh tokens have different lifetime policies than standard Azure AD. Additionally, there can be cache mismatches between policies (see GitHub issues #1004, #1216, #2043, #2257, #1547).
+
+**Solution:**
+1. Clear the account before re-authenticating on refresh token expiry:
+```java
+@Override
+public void onError(MsalException exception) {
+    if (exception.getMessage().contains("AADB2C90080")) {
+        // Remove the account and force interactive login
+        mPCA.removeAccount(account, new RemoveAccountCallback() {
+            @Override
+            public void onRemoved() {
+                acquireTokenInteractively();
+            }
+            
+            @Override
+            public void onError(MsalException e) {
+                // Handle error
+            }
+        });
+    }
+}
+```
+
+2. Configure appropriate token lifetimes in Azure B2C portal
+3. Match the authority URL exactly when acquiring tokens silently
+
+---
+
+### 11.2 B2C Policy Mismatch
+
+**Symptoms:**
+- "No cached accounts found for the supplied homeAccountId"
+- Account from one policy not found when using another
+- Silent acquisition fails even after successful interactive login
+
+**Root Cause:**
+B2C accounts are specific to the policy used during sign-in. Using a different policy or authority URL for silent acquisition will fail to find the cached account (see GitHub issues #1779, #1567, #1598).
+
+**Solution:**
+1. Match the policy name in silent token requests:
+```java
+// Helper to get the B2C policy from an account
+private String getB2CPolicyNameFromAccount(IAccount account) {
+    // Extract policy from account.getClaims() or account.getAuthority()
+}
+
+// Use matching authority for silent acquisition
+AcquireTokenSilentParameters params = new AcquireTokenSilentParameters.Builder()
+    .fromAuthority(getAuthorityFromPolicyName(policyName))
+    .withScopes(scopes)
+    .forAccount(account)
+    .build();
+```
+
+2. Store the policy name used during interactive login
+3. Search for accounts matching the desired policy before silent acquisition
+
+---
+
+### 11.3 B2C Custom Claims Issues
+
+**Symptoms:**
+- Claims null or missing after authentication
+- `account.getClaims()` returns null for federated users
+- ID token doesn't contain expected custom claims
+
+**Root Cause:**
+For B2C with federated identity providers, claims may not be returned if not configured in the user flow or custom policy (see GitHub issue #1491).
+
+**Solution:**
+1. Configure claims in Azure B2C user flow or custom policy
+2. Add required claims as application claims in B2C
+3. For federated users, ensure claims passthrough is configured
+4. Check both ID token and access token for claims:
+```java
+@Override
+public void onSuccess(IAuthenticationResult result) {
+    // Check ID token claims
+    Map<String, ?> claims = result.getAccount().getClaims();
+    
+    // If claims are in access token, decode it
+    String accessToken = result.getAccessToken();
+    // Decode JWT to access claims
+}
+```
+
+---
+
 ## Diagnostic Information to Request
 
 When an issue isn't covered above, ask the user for:
@@ -822,10 +1117,12 @@ Logger.getInstance().setEnableLogcatLog(true);
 
 ## Referenced GitHub Issues
 
-This guide was compiled from analysis of common issues reported in this repository. The following issues were particularly influential in shaping this documentation:
+This guide was compiled from analysis of 250+ common issues reported in this repository. The following issues were particularly influential in shaping this documentation:
 
 ### R8/ProGuard Issues
+- [#1540](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1540) - Google Play reporting "Unsafe cipher mode" for StorageHelper
 - [#1677](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1677) - Missing classes when R8 minify is enabled
+- [#1695](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1695) - Defined multiple times when R8 minify is enabled
 - [#2076](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/2076) - Missing classes detected while running R8
 - [#2289](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/2289) - Android MSAL 6.0.0 + obfuscation issues
 - [#2355](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/2355) - R8 minification fails on net.jcip.annotations
@@ -833,18 +1130,71 @@ This guide was compiled from analysis of common issues reported in this reposito
 ### Silent Token/Refresh Issues
 - [#1004](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1004) - AADB2C90080: The provided grant has expired
 - [#1216](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1216) - MsalExceptionAdapter.java line 64
+- [#1505](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1505) - Account set on silent operation parameters is NULL
+- [#1547](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1547) - Missing clear docs on B2C token refresh
+- [#1699](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1699) - AcquireTokenSilently gives old access token
 - [#1779](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1779) - No cached accounts found for the supplied homeAccountId
+- [#1790](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1790) - acquireTokenSilentAsync does not refresh the account token
 - [#2043](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/2043) - Error on MsalExceptionAdapter.java line 73
+- [#2097](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/2097) - Silent token acquisition performance issues
 - [#2172](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/2172) - External ID - acquireTokenSilentAsync - No cached accounts
 - [#2257](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/2257) - acquireTokenSilentAsync fails with AADB2C90080
 
 ### Broker Issues
-- [#1952](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1952) - ANR as main thread waits for the lock in IO thread
+- [#1396](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1396) - Broker authentication hangs
+- [#1570](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1570) - COMPANY_PORTAL_REQUIRED error
+- [#1737](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1737) - MSAL login failed with Company Portal auto enrollment
 - [#1842](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1842) - Android 13 background broker issues
+- [#1952](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1952) - ANR as main thread waits for the lock in IO thread
+- [#1997](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1997) - Broker activity destroyed
+- [#2026](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/2026) - Broker issues on Android 14
+- [#2157](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/2157) - Company Portal / Intune integration issues
+- [#2232](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/2232) - Broker communication failure on Android 15
 
-### Dependency Issues
+### Configuration and Dependency Issues
 - [#1027](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1027) - Failed to resolve: com.microsoft.device.display:display-mask:0.3.0
+- [#1531](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1531) - Generating signature hash for Google Play signing
+- [#1543](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1543) - Google Play Internal Testing error with App Store signing
+- [#1550](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1550) - Signature Hash with Google Play Signing
+- [#1590](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1590) - BrowserTabActivity is missing
+- [#1648](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1648) - "Are you trying to connect to" prompt
 - [#1720](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1720) - Azure Active Directory's library display-mask error
+- [#1722](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1722) - Multiple apps listening for URL scheme
+
+### Network and Cloud Discovery Issues
+- [#1568](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1568) - Unable to perform cloud discovery on Android 12
+- [#1663](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1663) - io_error after migrating
+- [#1696](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1696) - Unable to open BrowserTabActivity with VPN
+- [#1723](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1723) - Unable to perform cloud discovery on API >21
+- [#1765](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1765) - Unable to perform cloud discovery - UnknownHostException
+- [#1766](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1766) - Cannot refresh token due to power optimization
+
+### WebView and Browser Issues
+- [#1509](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1509) - Support for Mi Browser
+- [#1561](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1561) - Sdk cancelled the auth flow
+- [#1562](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1562) - Unable to complete authorization
+- [#1581](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1581) - withFragment does not work
+- [#1582](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1582) - SSO is asking for login again in WebView
+- [#1591](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1591) - Chrome is the only option
+- [#1626](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1626) - Chrome browser not found error for Android 11
+- [#1734](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1734) - authorization_user_agent stuck at webview
+
+### B2C Specific Issues
+- [#1491](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1491) - Claims data is null for federated users
+- [#1567](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1567) - No cached accounts for B2C
+- [#1598](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1598) - No cached accounts found for homeAccountId
+- [#1749](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1749) - Invalid JSON 'claims' value encountered
+
+### Android 15/SDK 35 Issues
+- [#2204](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/2204) - Edge-to-edge display issues
+- [#2341](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/2341) - Android 15 compatibility
+
+### Runtime and Crash Issues
+- [#1539](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1539) - Service not registered: CustomTabsManager
+- [#1631](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1631) - BrokerActivity destroyed indefinitely
+- [#1725](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1725) - Fragment transaction errors
+- [#1764](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1764) - Failed resolution of io/opentelemetry/api/trace/Span
+- [#1792](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/1792) - Crash after Activity.onMAMCreate()
 
 ---
 

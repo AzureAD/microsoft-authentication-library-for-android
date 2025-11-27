@@ -49,7 +49,7 @@ Add to your app's build.gradle:
 
 ```gradle
 dependencies {
-    implementation 'com.microsoft.identity.client:msal:6.+' // Always use latest version (currently 6.+)
+    implementation 'com.microsoft.identity.client:msal:8.+' // Always use latest version (currently 8.+)
 }
 ```
 
