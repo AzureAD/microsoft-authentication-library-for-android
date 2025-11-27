@@ -811,10 +811,14 @@ This error occurs when MSAL cannot reach Microsoft's cloud discovery endpoints d
 **Solution:**
 1. Verify network connectivity to Microsoft endpoints:
 ```java
-// Check network availability before MSAL calls
+// Check network availability before MSAL calls (API 29+)
 ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+Network activeNetwork = cm.getActiveNetwork();
+if (activeNetwork != null) {
+    NetworkCapabilities capabilities = cm.getNetworkCapabilities(activeNetwork);
+    boolean isConnected = capabilities != null && 
+        capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
+}
 ```
 
 2. For VPN/proxy environments:
@@ -966,6 +970,7 @@ public void signIn() {
 <activity
     android:name=".AuthActivity"
     android:launchMode="singleTask">
+</activity>
 ```
 
 ---
