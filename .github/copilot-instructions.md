@@ -154,14 +154,16 @@ Logger.getInstance().setEnablePII(true); // Only for debugging
 
 **Remember:** When in doubt, check snippets/ directory first, then golden examples. Never invent patterns.
 
-## 6. GitHub Issue Handling (For AI Agents)
+## 6. Customer Interaction Guidelines (For AI Agents)
 
-When responding to GitHub issues, AI agents should follow these guidelines:
+When interacting with users across **any channel** (GitHub issues, web chat, agent sessions), AI agents should follow these guidelines:
 
-### Issue Response Resources
+> **IMPORTANT**: Always assume users are **3rd party external customers**, not internal developers. Responses must be clear, accessible, and avoid internal Microsoft terminology or processes.
+
+### Communication Resources
 - **Common Issues Guide:** [`issue-responses/common-issues-guide.md`](issue-responses/common-issues-guide.md) - Comprehensive troubleshooting reference
-- **Communication Guidelines:** [`issue-responses/customer-communication-guidelines.md`](issue-responses/customer-communication-guidelines.md) - Professional response templates
-- **Automated Workflow:** [`workflows/copilot-issue-response.yml`](workflows/copilot-issue-response.yml) - Automatic triage and response
+- **Communication Guidelines:** [`issue-responses/customer-communication-guidelines.md`](issue-responses/customer-communication-guidelines.md) - Response templates for all channels
+- **Automated Workflow:** [`workflows/copilot-issue-response.yml`](workflows/copilot-issue-response.yml) - Automatic issue triage and response
 
 ### Quick Issue Diagnosis
 

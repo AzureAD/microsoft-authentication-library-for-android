@@ -1,16 +1,102 @@
-# Customer Communication Guidelines for GitHub Issues
+# Customer Communication Guidelines for MSAL Android
 
-This document provides guidelines for AI agents and team members when responding to MSAL Android GitHub issues. Professional, helpful, and empathetic communication builds trust and helps resolve issues efficiently.
+This document provides guidelines for AI agents and team members when responding to MSAL Android users across **all interaction channels**, including GitHub issues, web chat, and agent sessions. Professional, helpful, and empathetic communication builds trust and helps resolve issues efficiently.
+
+> **IMPORTANT**: Always assume that any user interacting with GitHub Copilot or AI agents about the MSAL Android repository is a **3rd party external customer**, not an internal developer. Responses must be clear, accessible, and avoid assumptions about the user's familiarity with internal Microsoft processes or deep authentication expertise.
 
 ---
 
 ## Table of Contents
 
-1. [Communication Principles](#communication-principles)
-2. [Response Templates](#response-templates)
-3. [Issue Triage Guidelines](#issue-triage-guidelines)
-4. [Escalation Procedures](#escalation-procedures)
-5. [What NOT to Do](#what-not-to-do)
+1. [Interaction Channels](#interaction-channels)
+2. [Audience Assumptions](#audience-assumptions)
+3. [Communication Principles](#communication-principles)
+4. [Response Templates](#response-templates)
+5. [Issue Triage Guidelines](#issue-triage-guidelines)
+6. [Escalation Procedures](#escalation-procedures)
+7. [What NOT to Do](#what-not-to-do)
+
+---
+
+## Interaction Channels
+
+These guidelines apply to **all** channels where users interact with MSAL Android support:
+
+### GitHub Issues
+- Users report bugs, request features, or ask questions
+- Responses are public and permanent
+- Follow issue templates and labeling conventions
+
+### Web Chat (GitHub Copilot Chat)
+- Users ask questions in real-time via Copilot
+- Focus on immediate, actionable answers
+- Keep responses concise but complete
+- Provide code examples when helpful
+
+### Agent Sessions (Copilot Workspace, CLI)
+- Users may be actively implementing MSAL
+- Provide working code that follows current best practices
+- Always use Parameters-based APIs (MSAL 8.+)
+- Reference golden examples from the repository
+
+### General Principles Across All Channels
+
+| Principle | Application |
+|-----------|-------------|
+| Clarity | Use plain language; avoid jargon unless explained |
+| Completeness | Provide all necessary context and steps |
+| Accuracy | Verify code and links before sharing |
+| Respect | Treat every question as valid and important |
+
+---
+
+## Audience Assumptions
+
+### Who Are Our Users?
+
+**Always assume users are 3rd party external customers:**
+
+- **Mobile app developers** integrating authentication into Android apps
+- **Enterprise developers** building line-of-business applications
+- **Independent developers** creating apps for the Play Store
+- **Consultants** implementing solutions for clients
+
+### What NOT to Assume
+
+| Don't Assume | Instead |
+|--------------|---------|
+| User knows Azure AD internals | Explain authentication concepts clearly |
+| User has read all documentation | Provide relevant links and summaries |
+| User understands OAuth2/OIDC deeply | Explain token flows when relevant |
+| User has access to internal tools | Only reference public resources |
+| User is familiar with Microsoft terminology | Define terms like "broker," "claims," "scopes" |
+
+### Adjust Complexity Based on Context
+
+**For beginners:**
+- Provide step-by-step instructions
+- Include complete code examples
+- Explain the "why" behind recommendations
+- Link to getting-started guides
+
+**For experienced developers:**
+- Focus on the specific issue
+- Provide targeted solutions
+- Reference API documentation
+- Offer optimization suggestions
+
+### Key Vocabulary to Define
+
+When using these terms, include a brief explanation if context suggests the user may be unfamiliar:
+
+| Term | Plain Language Explanation |
+|------|---------------------------|
+| Broker | The Microsoft Authenticator app or Company Portal that handles sign-in securely |
+| Silent token acquisition | Getting a new access token without prompting the user to sign in |
+| Claims | Information about the user included in the token |
+| Scopes | Permissions your app is requesting |
+| Redirect URI | The URL Azure sends the user back to after sign-in |
+| PCA | Public Client Application - the main MSAL object for mobile apps |
 
 ---
 
@@ -52,12 +138,27 @@ Thank you for reporting this issue! We appreciate you taking the time to help us
 
 I'm looking into this now and will provide an update shortly. In the meantime, could you please provide:
 
-1. **MSAL Version**: (e.g., 7.1.0)
+1. **MSAL Version**: (e.g., 8.0.0)
 2. **Android Version**: (Device API level)
 3. **Account Mode**: (Single or Multiple)
 4. **Complete error message or stack trace**
 
 This information will help us diagnose the issue more quickly.
+```
+
+### Quick Web Chat Response
+
+Use this format when responding to questions in web chat or agent sessions:
+
+```markdown
+**Quick Answer**: [Direct answer to the question]
+
+**Example**:
+```java
+// [Minimal working code example]
+```
+
+**Learn More**: [Link to relevant documentation or example]
 ```
 
 ### Requesting More Information
@@ -318,17 +419,46 @@ If you believe this is an MSAL Android issue, please provide additional details 
 
 ## Quality Checklist
 
-Before responding to any issue, verify:
+Before responding in **any channel**, verify:
 
+### All Channels
 - [ ] Tone is professional and empathetic
-- [ ] Response is clear and actionable
-- [ ] Code examples follow current API patterns
-- [ ] Links are valid and relevant
+- [ ] Response is clear and accessible to 3rd party developers
+- [ ] Technical terms are explained when needed
+- [ ] Code examples follow current API patterns (MSAL 8.+)
+- [ ] Links are valid and point to public resources
 - [ ] No sensitive information is exposed
 - [ ] Response addresses the actual question
+
+### GitHub Issues Specific
 - [ ] Appropriate labels are applied
 - [ ] Follow-up is planned if needed
+- [ ] Issue template requirements are met
+
+### Web Chat / Agent Session Specific
+- [ ] Response is concise and actionable
+- [ ] Code is immediately usable
+- [ ] Golden examples are referenced when appropriate
 
 ---
 
-*These guidelines are maintained by the MSAL Android team. For questions about specific situations, consult with the team lead.*
+## Channel-Specific Tips
+
+### Web Chat Best Practices
+
+1. **Be direct** - Users expect quick answers
+2. **Lead with the solution** - Don't bury the answer in context
+3. **Provide runnable code** - Make copy-paste work
+4. **Offer follow-up** - "Would you like me to explain X further?"
+
+### Agent Session Best Practices
+
+1. **Understand the context** - Review what the user is building
+2. **Provide complete implementations** - Not just snippets
+3. **Follow repository patterns** - Use snippets/ directory as reference
+4. **Validate before suggesting** - Ensure code compiles
+5. **Consider edge cases** - Handle errors appropriately
+
+---
+
+*These guidelines are maintained by the MSAL Android team and apply to all interaction channels. For questions about specific situations, consult with the team lead.*
