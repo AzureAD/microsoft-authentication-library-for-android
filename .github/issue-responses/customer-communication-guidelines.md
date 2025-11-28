@@ -111,13 +111,15 @@ When using these terms, include a brief explanation if context suggests the user
 
 ### Response Time Expectations
 
-| Issue Type | Initial Response Target | Full Resolution Target |
-|------------|------------------------|------------------------|
-| Security Issue | 4 hours | As soon as possible |
-| Production Blocker | 24 hours | 3 business days |
-| Bug Report | 48 hours | Varies by complexity |
-| Feature Request | 72 hours | Backlog prioritization |
-| Question | 48 hours | Immediate if possible |
+> **Note for AI Agents**: AI agents should respond immediately when an issue is created or reopened. The targets below are for human team members when manual follow-up is needed.
+
+| Issue Type | AI Agent Response | Human Follow-up Target |
+|------------|-------------------|------------------------|
+| Security Issue | Immediate | 4 hours |
+| Production Blocker | Immediate | 24 hours |
+| Bug Report | Immediate | 48 hours |
+| Feature Request | Immediate | Backlog prioritization |
+| Question | Immediate | 48 hours if needed |
 
 ### Key Communication Guidelines
 
@@ -138,7 +140,7 @@ Thank you for reporting this issue! We appreciate you taking the time to help us
 
 I'm looking into this now and will provide an update shortly. In the meantime, could you please provide:
 
-1. **MSAL Version**: (e.g., 8.0.0)
+1. **MSAL Version**: (e.g., 8.1.0)
 2. **Android Version**: (Device API level)
 3. **Account Mode**: (Single or Multiple)
 4. **Complete error message or stack trace**
