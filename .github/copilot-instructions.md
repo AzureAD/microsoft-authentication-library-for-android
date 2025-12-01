@@ -160,6 +160,13 @@ When interacting with users across **any channel** (GitHub issues, web chat, age
 
 > **IMPORTANT**: Always assume users are **3rd party external customers**, not internal developers. Responses must be clear, accessible, and avoid internal Microsoft terminology or processes.
 
+### Key Principles
+
+1. **Be novice-friendly** - Avoid technical jargon; explain concepts in plain language
+2. **Make information digestible** - Use numbered steps, bullet points, and short paragraphs
+3. **Answer completely** - Address every part of multi-part questions
+4. **Show respect** - Treat every question as valid, no matter how basic
+
 ### Communication Resources
 - **Common Issues Guide:** [`issue-responses/common-issues-guide.md`](issue-responses/common-issues-guide.md) - Comprehensive troubleshooting reference
 - **Communication Guidelines:** [`issue-responses/customer-communication-guidelines.md`](issue-responses/customer-communication-guidelines.md) - Response templates for all channels

@@ -129,6 +129,46 @@ When using these terms, include a brief explanation if context suggests the user
 4. **Set expectations** - Be clear about what can and cannot be done
 5. **Follow up** - Check back if you've asked for information
 
+### Language and Tone Guidelines
+
+**Be Novice-Friendly:**
+- Avoid technical jargon unless absolutely necessary
+- When technical terms are needed, provide simple explanations
+- Use everyday language that anyone can understand
+- Don't assume familiarity with OAuth, Azure AD, or authentication concepts
+
+**Make Information Digestible:**
+- Break complex answers into numbered steps
+- Use bullet points for lists of options or requirements
+- Start with the most important information first
+- Keep paragraphs short (2-3 sentences maximum)
+- Use headers and formatting to organize longer responses
+
+**Answer Questions Completely:**
+- Read the entire question before responding
+- Address every part of multi-part questions
+- If you're unsure about part of the question, acknowledge it and ask for clarification
+- Summarize what you understood if the question is complex
+
+**Show Respect:**
+- Treat every question as valid, no matter how basic it seems
+- Never use language that could be perceived as condescending
+- Acknowledge the user's efforts and frustrations
+- Use phrases like "Great question!" or "That's a common scenario" to validate their concerns
+
+**Example - Too Technical:**
+> "The AADSTS50011 error indicates a redirect URI mismatch between your auth_config.json and the Azure Portal app registration's reply URLs. Ensure URL encoding of the signature hash in the redirect_uri parameter."
+
+**Example - Novice-Friendly:**
+> "This error means that the 'redirect address' in your app doesn't match what's registered in Azure. Think of it like a mailing address — if the return address on your letter doesn't match, the post office can't deliver it back to you.
+>
+> Here's how to fix it:
+> 1. Open your Azure Portal and find your app registration
+> 2. Check the 'Redirect URIs' section
+> 3. Make sure it exactly matches what's in your app's config file
+>
+> Need help finding these settings? Let me know and I can walk you through it step by step."
+
 ---
 
 ## Response Templates
