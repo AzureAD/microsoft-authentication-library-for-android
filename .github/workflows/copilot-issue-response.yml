@@ -198,7 +198,7 @@ jobs:
               if (needsInfo) {
                 response += `To help us investigate this issue, please provide the following information:\n\n`;
                 response += `**Required Information:**\n`;
-                response += `- [ ] MSAL version (e.g., 7.1.0)\n`;
+                response += `- [ ] MSAL version (e.g., 8.1.0)\n`;
                 response += `- [ ] Android version and device model\n`;
                 response += `- [ ] Account mode (Single or Multiple)\n`;
                 response += `- [ ] Complete error message or stack trace\n`;
