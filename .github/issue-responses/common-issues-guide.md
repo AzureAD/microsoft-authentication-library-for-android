@@ -420,6 +420,8 @@ implementation("com.google.crypto.tink:tink:1.17.0") {
 implementation 'com.github.spotbugs:spotbugs-annotations:4.9.3'
 ```
 
+> **💡 Recommendation:** We strongly recommend upgrading to the latest MSAL version (8.+) whenever possible. Newer versions include improved ProGuard/R8 rules, better dependency management, and fixes for many common build issues. Only stay on an older version if you have a specific compatibility requirement that prevents upgrading.
+
 ---
 
 ### 5.4 display-mask Dependency Resolution
