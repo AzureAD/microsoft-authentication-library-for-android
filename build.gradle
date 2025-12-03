@@ -11,8 +11,8 @@ buildscript {
             name "vsts-maven-adal-android"
             url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
             credentials {
-                username project.vstsUsername
-                password project.vstsPassword
+                username project.ext.vstsUsername
+                password project.ext.vstsPassword
             }
         }
     }
