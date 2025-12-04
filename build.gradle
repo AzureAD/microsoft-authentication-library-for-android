@@ -7,6 +7,15 @@ buildscript {
 
     repositories {
         google()
+        maven {
+            // msazure and aria are consumed via upstream sources of the AndroidADAL feed.
+            name "vsts-maven-adal-android"
+            url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
+            credentials {
+                username System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") : project.findProperty("vstsUsername")
+                password System.getenv("ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
+            }
+        }
     }
 
     dependencies {
