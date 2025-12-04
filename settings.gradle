@@ -1,8 +1,7 @@
 pluginManagement {
-     // Note: Since our plugin references the android plugin we need to include google() and mavenCentral() here.
+     // Note: Since our plugin references the android plugin we need to include google() here.
      repositories {
          google()
-         mavenCentral()
          gradlePluginPortal()
      }
  }
