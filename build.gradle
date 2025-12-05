@@ -8,9 +8,9 @@ buildscript {
     repositories {
         google()
         maven {
-            // msazure and aria are consumed via upstream sources of the AndroidADAL feed.
+            // msazure and aria are consumed via upstream sources of the NewAndroid feed.
             name "vsts-maven-adal-android"
-            url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
+            url "https://identitydivision.pkgs.visualstudio.com/_packaging/NewAndroid/maven/v1"
             credentials {
                 username System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") : project.findProperty("vstsUsername")
                 password System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
@@ -26,16 +26,11 @@ buildscript {
 
 allprojects {
     repositories {
-        google()
+//        google()
         mavenLocal()
-        // Adding here because Travis cannot access AndroidADAL feed.
-        maven {
-            url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1'
-            name 'Duo-SDK-Feed'
-        }
         maven {
             name "vsts-maven-adal-android"
-            url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
+            url "https://identitydivision.pkgs.visualstudio.com/_packaging/NewAndroid/maven/v1"
             credentials {
                 username project.vstsUsername
                 password project.vstsPassword
