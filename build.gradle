@@ -9,7 +9,7 @@ buildscript {
         google()
         maven {
             // msazure and aria are consumed via upstream sources of the NewAndroid feed.
-            name "vsts-maven-adal-android"
+            name "vsts-maven-new-android"
             url "https://identitydivision.pkgs.visualstudio.com/_packaging/NewAndroid/maven/v1"
             credentials {
                 username System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") : project.findProperty("vstsUsername")
@@ -29,7 +29,7 @@ allprojects {
         google()
         mavenLocal()
         maven {
-            name "vsts-maven-adal-android"
+            name "vsts-maven-new-android"
             url "https://identitydivision.pkgs.visualstudio.com/_packaging/NewAndroid/maven/v1"
             credentials {
                 username project.vstsUsername
