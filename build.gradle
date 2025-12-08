@@ -1,6 +1,6 @@
 // Load credentials for VSTS Maven
 project.ext.vstsUsername = System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") : project.findProperty("vstsUsername")
-project.ext.vstsPassword = System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
+project.ext.vstsMavenAccessToken = System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
 
 buildscript {
     apply from: rootProject.file("gradle/versions.gradle")
@@ -33,7 +33,7 @@ allprojects {
             url "https://identitydivision.pkgs.visualstudio.com/_packaging/NewAndroid/maven/v1"
             credentials {
                 username project.vstsUsername
-                password project.vstsPassword
+                password project.vstsMavenAccessToken
             }
         }
     }
