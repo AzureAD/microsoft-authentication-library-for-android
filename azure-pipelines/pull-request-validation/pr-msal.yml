@@ -40,6 +40,10 @@ jobs:
     clean: true
     submodules: recursive
     persistCredentials: True
+  - bash: |
+      echo "##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_USERNAME]VSTS"
+      echo "##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(System.AccessToken)"
+    displayName: 'Set VSTS Fields in Environment'
   - template: azure-pipelines/templates/steps/automation-cert.yml@common
   - task: JavaToolInstaller@0
     displayName: Use Java 17
@@ -84,11 +88,10 @@ jobs:
     clean: true
     submodules: recursive
     persistCredentials: True
-  - task: CmdLine@1
-    displayName: Set Office MVN Access Token in Environment
-    inputs:
-      filename: echo
-      arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(System.AccessToken)'
+  - bash: |
+      echo "##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_USERNAME]VSTS"
+      echo "##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(System.AccessToken)"
+    displayName: 'Set VSTS Fields in Environment'
   - task: Gradle@3
     displayName: Lint Local debug
     inputs:
