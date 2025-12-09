@@ -80,6 +80,8 @@ jobs:
   - template: azure-pipelines/templates/steps/spotbugs.yml@common
     parameters:
       project: msal
+      vstsUsernameVariable: ENV_VSTS_MVN_ANDROID_MSAL_USERNAME
+      vstsAccessTokenVariable: ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN
 - job: lint
   displayName: Lint
   cancelTimeoutInMinutes: 1
