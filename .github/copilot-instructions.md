@@ -188,6 +188,7 @@ When interacting with users across **any channel** (GitHub issues, web chat, age
 - **Common Issues Guide:** [`issue-responses/common-issues-guide.md`](issue-responses/common-issues-guide.md) - Comprehensive troubleshooting reference
 - **Communication Guidelines:** [`issue-responses/customer-communication-guidelines.md`](issue-responses/customer-communication-guidelines.md) - Response templates for all channels
 - **Automated Workflow:** [`workflows/copilot-issue-response.yml`](workflows/copilot-issue-response.yml) - Automatic issue triage and response
+- **Microsoft Identity Error Codes:** [Official Error Reference](https://learn.microsoft.com/en-us/entra/identity-platform/reference-error-codes) - Use as authoritative source for AADSTS error meanings
 
 ### Quick Issue Diagnosis
 

@@ -118,6 +118,8 @@ Add the BrowserTabActivity to your AndroidManifest.xml:
 
 **Common AADSTS Errors and Solutions:**
 
+> **📖 Official Reference:** For complete error code definitions and guidance, see [Microsoft Identity Platform Error Codes](https://learn.microsoft.com/en-us/entra/identity-platform/reference-error-codes).
+
 | Error Code | Description | Solution |
 |------------|-------------|----------|
 | AADSTS50011 | Redirect URI mismatch | Verify redirect URI matches Azure App Registration exactly (including encoding) |
