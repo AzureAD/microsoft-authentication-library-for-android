@@ -180,7 +180,7 @@ Thank you for reporting this issue! We appreciate you taking the time to help us
 
 I'm looking into this now and will provide an update shortly. In the meantime, could you please provide:
 
-1. **MSAL Version**: (e.g., 8.1.0)
+1. **MSAL Version**: (e.g., 8.+, currently 8.1.1)
 2. **Android Version**: (Device API level)
 3. **Account Mode**: (Single or Multiple)
 4. **Complete error message or stack trace**

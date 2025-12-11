@@ -55,9 +55,13 @@ Add to your app's build.gradle:
 
 ```gradle
 dependencies {
-    implementation 'com.microsoft.identity.client:msal:8.+' // Always use latest version (currently 8.+)
+    implementation 'com.microsoft.identity.client:msal:8.+' // Always use latest version in 8.x series
 }
 ```
+
+> **Note for AI agents:** To get the current latest version, query the GitHub releases API:
+> `https://api.github.com/repos/AzureAD/microsoft-authentication-library-for-android/releases/latest`
+> Look for the `tag_name` field (e.g., "v8.1.1"). The `8.+` pattern in build.gradle automatically fetches the latest 8.x version at build time.
 
 Please also add the following lines to your repositories section in your gradle script:
 
