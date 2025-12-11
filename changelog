@@ -4,6 +4,10 @@ vNext
 ----------
 - [MINOR] Remove MavenCentral repository from build.gradle files (#2413)
 
+Version 8.1.1
+----------
+- [PATCH] Update common @23.1.1
+
 Version 8.1.0
 ----------
 - [PATCH] Update common @23.1.0
