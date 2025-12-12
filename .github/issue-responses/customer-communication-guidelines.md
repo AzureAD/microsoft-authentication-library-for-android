@@ -91,7 +91,7 @@ When using these terms, include a brief explanation if context suggests the user
 
 | Term | Plain Language Explanation |
 |------|---------------------------|
-| Broker | The Microsoft Authenticator app or Company Portal that handles sign-in securely |
+| Broker | The Microsoft Authenticator app, Company Portal, or Link to Windows that handles sign-in securely |
 | Silent token acquisition | Getting a new access token without prompting the user to sign in |
 | Claims | Information about the user included in the token |
 | Scopes | Permissions your app is requesting |

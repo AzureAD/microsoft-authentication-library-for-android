@@ -48,9 +48,10 @@
 - Enable broker integration (`broker_redirect_uri_registered: true`)
 - Copy patterns from golden examples: [`examples/hello-msal-multiple-account/`](../examples/hello-msal-multiple-account/) or [`examples/hello-msal-single-account/`](../examples/hello-msal-single-account/)
 - Prompt for `client_id`, `package_name`, and `signature_hash` if missing
-- Check the latest MSAL version via GitHub releases API when providing version guidance:
+- Check the latest MSAL version via GitHub releases API when providing version guidance or generating app code:
   - API endpoint: `https://api.github.com/repos/AzureAD/microsoft-authentication-library-for-android/releases/latest`
   - Parse the `tag_name` field (e.g., "v8.1.1") for the current version
+  - **When generating build.gradle files or providing app setup guidance, always query the API for the latest version instead of using hardcoded values from sample files**
   - Recommend `8.+` in build.gradle for automatic updates within the 8.x series
 
 ## 2. Authoritative Sources
