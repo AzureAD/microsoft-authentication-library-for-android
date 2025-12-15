@@ -11,7 +11,7 @@ This document validates that the MSAL Android repository follows all GitHub Copi
 
 | Requirement | Status | Location | Notes |
 |------------|--------|----------|-------|
-| Copilot instructions file | ✅ Complete | `.github/copilot-instructions.md` | 235 lines, comprehensive |
+| Copilot instructions file | ✅ Complete | `.github/copilot-instructions.md` | 236 lines, comprehensive |
 | File naming convention | ✅ Correct | `.github/copilot-instructions.md` | Follows GitHub convention |
 | Clear instructions | ✅ Excellent | Throughout file | Well-structured with 6 major sections |
 | Code examples | ✅ Present | `snippets/` directory | Java and Kotlin examples |
