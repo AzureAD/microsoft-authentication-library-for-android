@@ -70,7 +70,7 @@
     <string name="pop_client_claims">PoP client claims</string>
     <string name="trust_debug_broker">DebugBroker?</string>
     <string name="enable_new_broker_discovery">Enable New Broker Discovery</string>
-    <string name="clear_active_broker_cache">Clear Active Broker Cache</string>
+    <string name="clear_active_broker_cache">Clear</string>
     <string name="current_cached_active_broker">Cached Active Broker</string>
     <string name="none">None</string>
 
