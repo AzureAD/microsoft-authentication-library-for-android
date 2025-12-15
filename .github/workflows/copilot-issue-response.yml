@@ -1,0 +1,470 @@
+# GitHub Copilot Issue Response Workflow
+#
+# This workflow uses GitHub Copilot to automatically triage and respond to new issues.
+# It analyzes the issue content and provides helpful initial responses based on common patterns.
+#
+# Prerequisites:
+# - Copilot must be enabled for the repository
+# - The workflow requires write access to issues
+#
+# Note: This is a template for integration with GitHub Copilot. Manual review of responses
+# is recommended before enabling automatic posting in production.
+
+name: Copilot Issue Triage
+
+on:
+  issues:
+    types: [opened, reopened]
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+  contents: read
+
+# Prevent multiple simultaneous runs for the same issue
+concurrency:
+  group: issue-triage-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  # Initial triage and labeling
+  triage:
+    name: Triage New Issue
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues' && github.event.action == 'opened'
+    outputs:
+      issue_type: ${{ steps.classify.outputs.type }}
+      priority: ${{ steps.classify.outputs.priority }}
+      needs_info: ${{ steps.classify.outputs.needs_info }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Classify Issue
+        id: classify
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const title = issue.title.toLowerCase();
+            const body = (issue.body || '').toLowerCase();
+            const content = title + ' ' + body;
+            
+            // Classify issue type
+            let issueType = 'question';
+            let priority = 'p3-low';
+            let needsInfo = true;
+            
+            // Bug indicators
+            const bugKeywords = ['bug', 'crash', 'error', 'exception', 'fail', 'broken', 'not working', 'issue'];
+            if (bugKeywords.some(kw => content.includes(kw))) {
+              issueType = 'bug';
+              priority = 'p2-medium';
+            }
+            
+            // Feature request indicators
+            const featureKeywords = ['feature', 'request', 'enhancement', 'add support', 'would be nice', 'suggestion'];
+            if (featureKeywords.some(kw => content.includes(kw))) {
+              issueType = 'feature-request';
+              priority = 'p3-low';
+            }
+            
+            // Security indicators - high priority
+            const securityKeywords = ['security', 'vulnerability', 'cve', 'exploit', 'attack'];
+            if (securityKeywords.some(kw => content.includes(kw))) {
+              issueType = 'security';
+              priority = 'p0-critical';
+            }
+            
+            // Production/blocker indicators - high priority
+            const criticalKeywords = ['production', 'blocker', 'urgent', 'critical', 'asap', 'blocking'];
+            if (criticalKeywords.some(kw => content.includes(kw))) {
+              priority = 'p1-high';
+            }
+            
+            // Check if required info is present
+            const hasVersion = /msal.*\d+\.\d+/.test(content) || /version.*\d+\.\d+/.test(content);
+            const hasError = content.includes('error') || content.includes('exception') || content.includes('stacktrace');
+            const hasSteps = content.includes('steps') || content.includes('reproduce') || content.includes('1.') || content.includes('step 1');
+            
+            if (hasVersion && (hasError || issueType !== 'bug')) {
+              needsInfo = false;
+            }
+            
+            core.setOutput('type', issueType);
+            core.setOutput('priority', priority);
+            core.setOutput('needs_info', needsInfo);
+            
+            console.log(`Issue classified as: ${issueType}, Priority: ${priority}, Needs info: ${needsInfo}`);
+
+      - name: Apply Labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueType = '${{ steps.classify.outputs.type }}';
+            const priority = '${{ steps.classify.outputs.priority }}';
+            const needsInfo = '${{ steps.classify.outputs.needs_info }}' === 'true';
+            
+            const labels = [issueType, priority];
+            
+            if (needsInfo) {
+              labels.push('needs-more-info');
+            }
+            
+            // Check which labels exist and create if needed
+            for (const label of labels) {
+              try {
+                await github.rest.issues.getLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: label
+                });
+              } catch (e) {
+                // Label doesn't exist, create it
+                const labelColors = {
+                  'bug': 'd73a4a',
+                  'feature-request': 'a2eeef',
+                  'question': 'd876e3',
+                  'security': 'b60205',
+                  'p0-critical': 'b60205',
+                  'p1-high': 'ff6b6b',
+                  'p2-medium': 'fbca04',
+                  'p3-low': '0e8a16',
+                  'needs-more-info': 'fbca04'
+                };
+                
+                try {
+                  await github.rest.issues.createLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    name: label,
+                    color: labelColors[label] || '666666'
+                  });
+                } catch (createError) {
+                  console.log(`Could not create label ${label}: ${createError.message}`);
+                }
+              }
+            }
+            
+            // Add labels to issue
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: labels
+            });
+
+  # Generate initial response based on issue classification
+  respond:
+    name: Generate Response
+    needs: triage
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Generate Response
+        id: generate_response
+        uses: actions/github-script@v7
+        env:
+          ISSUE_TYPE: ${{ needs.triage.outputs.issue_type }}
+          PRIORITY: ${{ needs.triage.outputs.priority }}
+          NEEDS_INFO: ${{ needs.triage.outputs.needs_info }}
+        with:
+          script: |
+            const fs = require('fs');
+            const issueType = process.env.ISSUE_TYPE;
+            const priority = process.env.PRIORITY;
+            const needsInfo = process.env.NEEDS_INFO === 'true';
+            const issue = context.payload.issue;
+            
+            let response = '';
+            
+            // Base acknowledgment
+            response = `Thank you for opening this issue! We appreciate you taking the time to help improve MSAL Android.\n\n`;
+            
+            // Handle security issues differently
+            if (issueType === 'security') {
+              response += `⚠️ **Security Notice**\n\n`;
+              response += `For security issues, please report them through our [security reporting process](https://github.com/AzureAD/microsoft-authentication-library-for-android#security-reporting) rather than public GitHub issues.\n\n`;
+              response += `This helps protect all users while we investigate and address the concern. Our security team will respond promptly through the proper channels.\n\n`;
+              response += `If this is not a security vulnerability but a general question about security features, please clarify and we'll be happy to help!\n`;
+            }
+            // Bug reports
+            else if (issueType === 'bug') {
+              if (needsInfo) {
+                response += `To help us investigate this issue, please provide the following information:\n\n`;
+                response += `**Required Information:**\n`;
+                response += `- [ ] MSAL version (e.g., 8.+, currently 8.1.1)\n`;
+                response += `- [ ] Android version and device model\n`;
+                response += `- [ ] Account mode (Single or Multiple)\n`;
+                response += `- [ ] Complete error message or stack trace\n`;
+                response += `- [ ] Steps to reproduce the issue\n\n`;
+                response += `**Optional but Helpful:**\n`;
+                response += `- [ ] Your \`auth_config.json\` (with \`client_id\` redacted)\n`;
+                response += `- [ ] Verbose logs (see below)\n\n`;
+                response += `<details>\n<summary>How to enable verbose logging</summary>\n\n`;
+                response += `\`\`\`java\n`;
+                response += `Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);\n`;
+                response += `Logger.getInstance().setEnableLogcatLog(true);\n`;
+                response += `\`\`\`\n</details>\n\n`;
+              }
+              
+              response += `In the meantime, you might find helpful information in our:\n`;
+              response += `- [Common Issues Guide](.github/issue-responses/common-issues-guide.md)\n`;
+              response += `- [Configuration Template](auth_config.template.json)\n`;
+              response += `- [Code Snippets](snippets/) for correct API usage\n\n`;
+            }
+            // Feature requests
+            else if (issueType === 'feature-request') {
+              response += `We've added this to our backlog for review. Feature requests help us prioritize improvements!\n\n`;
+              response += `A few questions that might help us understand your needs better:\n`;
+              response += `- What problem are you trying to solve?\n`;
+              response += `- Are there any workarounds you're currently using?\n`;
+              response += `- How critical is this for your application?\n\n`;
+            }
+            // Questions
+            else {
+              response += `I'll do my best to help! While we look into this, here are some resources that might be useful:\n\n`;
+              response += `- [MSAL Android Documentation](https://github.com/AzureAD/microsoft-authentication-library-for-android)\n`;
+              response += `- [Code Snippets](snippets/) - Examples for common operations\n`;
+              response += `- [Configuration Guide](auth_config.template.json)\n`;
+              response += `- [Golden Examples](examples/) - Complete working applications\n\n`;
+              
+              if (needsInfo) {
+                response += `To better assist you, please provide:\n`;
+                response += `- MSAL version you're using\n`;
+                response += `- What you're trying to accomplish\n`;
+                response += `- Any error messages you're seeing\n\n`;
+              }
+            }
+            
+            // Standard footer
+            response += `---\n`;
+            response += `*This is an automated response. A team member will review your issue soon.*\n`;
+            
+            core.setOutput('response', response);
+            
+      - name: Post Comment
+        uses: actions/github-script@v7
+        env:
+          RESPONSE_CONTENT: ${{ steps.generate_response.outputs.response }}
+        with:
+          script: |
+            const response = process.env.RESPONSE_CONTENT;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: response
+            });
+
+  # Handle common patterns in issue content for immediate guidance
+  pattern_detection:
+    name: Detect Common Patterns
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues' && github.event.action == 'opened'
+    
+    steps:
+      - name: Analyze Issue Content
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const body = issue.body || '';
+            const title = issue.title || '';
+            const content = (title + ' ' + body).toLowerCase();
+            
+            let additionalGuidance = [];
+            
+            // Check for common error patterns
+            
+            // Redirect URI issues
+            if (content.includes('redirect') && (content.includes('mismatch') || content.includes('error') || content.includes('invalid'))) {
+              additionalGuidance.push({
+                title: 'Redirect URI Configuration',
+                message: `This might be a redirect URI encoding issue. Remember:\n` +
+                         `- \`auth_config.json\`: signature hash in redirect_uri must be **URL encoded**\n` +
+                         `- \`AndroidManifest.xml\`: signature hash must be **NOT URL encoded**\n\n` +
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md) for details.`
+              });
+            }
+            
+            // AADSTS errors (typically 5-6 digit codes)
+            const aadstsMatch = content.match(/aadsts\d{5,6}/i);
+            if (aadstsMatch) {
+              const errorCode = aadstsMatch[0].toUpperCase();
+              additionalGuidance.push({
+                title: `${errorCode} Error Detected`,
+                message: `I noticed you're encountering an ${errorCode} error. ` +
+                         `Check our [Common Issues Guide](.github/issue-responses/common-issues-guide.md) for AADSTS error codes and solutions.`
+              });
+            }
+            
+            // Broker issues
+            if (content.includes('broker') || content.includes('authenticator') || content.includes('company portal')) {
+              additionalGuidance.push({
+                title: 'Broker Integration',
+                message: `For broker-related issues, ensure:\n` +
+                         `- \`broker_redirect_uri_registered: true\` in auth_config.json\n` +
+                         `- Microsoft Authenticator or Company Portal is installed\n` +
+                         `- Your signature hash matches Azure App Registration\n\n` +
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md) for broker integration details.`
+              });
+            }
+            
+            // Deprecated API usage
+            if (content.includes('acquiretoken(activity') || content.includes('acquiretokensilentasync')) {
+              additionalGuidance.push({
+                title: 'Deprecated API Usage',
+                message: `It looks like you might be using deprecated MSAL APIs. ` +
+                         `Please use the Parameters-based APIs instead:\n\n` +
+                         `\`\`\`java\n` +
+                         `// Use this instead\n` +
+                         `AcquireTokenParameters params = new AcquireTokenParameters.Builder()\n` +
+                         `    .withScopes(SCOPES)\n` +
+                         `    .withCallback(callback)\n` +
+                         `    .build();\n` +
+                         `mPCA.acquireToken(params);\n` +
+                         `\`\`\`\n\n` +
+                         `See our [Code Snippets](snippets/) for more examples.`
+              });
+            }
+            
+            // PCA initialization issues
+            if (content.includes('null') && (content.includes('pca') || content.includes('publicclientapplication'))) {
+              additionalGuidance.push({
+                title: 'PCA Initialization',
+                message: `This might be related to PublicClientApplication initialization. ` +
+                         `Make sure to:\n` +
+                         `1. Initialize PCA asynchronously before use\n` +
+                         `2. Check for null before calling MSAL methods\n` +
+                         `3. Handle initialization errors\n\n` +
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md) for initialization patterns.`
+              });
+            }
+            
+            // R8/ProGuard issues
+            if (content.includes('r8') || content.includes('proguard') || content.includes('minify') || 
+                content.includes('missing class') || content.includes('dontwarn') ||
+                content.includes('edu.umd.cs.findbugs') || content.includes('com.google.crypto.tink')) {
+              additionalGuidance.push({
+                title: 'R8/ProGuard Configuration',
+                message: `This looks like a code shrinking/obfuscation issue. ` +
+                         `Add these rules to your \`proguard-rules.pro\`:\n\n` +
+                         `\`\`\`proguard\n` +
+                         `-keep class com.microsoft.identity.** { *; }\n` +
+                         `-keep class com.nimbusds.** { *; }\n` +
+                         `-dontwarn edu.umd.cs.findbugs.annotations.**\n` +
+                         `-dontwarn com.google.crypto.tink.**\n` +
+                         `-dontwarn net.jcip.annotations.**\n` +
+                         `\`\`\`\n\n` +
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md#53-proguardr8-issues) for complete R8 configuration.`
+              });
+            }
+            
+            // AADB2C90080 - expired grant
+            if (content.includes('aadb2c90080') || (content.includes('grant') && content.includes('expired'))) {
+              additionalGuidance.push({
+                title: 'Expired Grant / AADB2C90080',
+                message: `This error indicates the refresh token has expired. ` +
+                         `To handle this:\n` +
+                         `1. Remove the account from cache before re-authenticating\n` +
+                         `2. Fall back to interactive authentication\n` +
+                         `3. Consider adjusting token lifetime settings in Azure B2C\n\n` +
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md#82-aadb2c90080---expired-grant-error) for details.`
+              });
+            }
+            
+            // Silent token issues
+            if (content.includes('acquiretokensilent') && (content.includes('fail') || content.includes('error') || content.includes('no cached accounts'))) {
+              additionalGuidance.push({
+                title: 'Silent Token Acquisition',
+                message: `Silent token acquisition failures are common when:\n` +
+                         `- No cached token is available\n` +
+                         `- Refresh token has expired\n` +
+                         `- User consent is required for new scopes\n\n` +
+                         `Always implement fallback to interactive authentication:\n` +
+                         `\`\`\`java\n` +
+                         `if (exception instanceof MsalUiRequiredException) {\n` +
+                         `    // Fall back to interactive\n` +
+                         `    acquireTokenInteractively();\n` +
+                         `}\n` +
+                         `\`\`\`\n\n` +
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md#8-silent-token-refresh-issues) for more patterns.`
+              });
+            }
+            
+            // display-mask dependency issue
+            if (content.includes('display-mask') || (content.includes('failed to resolve') && content.includes('microsoft.device'))) {
+              additionalGuidance.push({
+                title: 'display-mask Dependency',
+                message: `The \`display-mask\` library requires a specific Maven repository. ` +
+                         `Add this to your \`settings.gradle\`:\n\n` +
+                         `\`\`\`gradle\n` +
+                         `maven {\n` +
+                         `    url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1'\n` +
+                         `}\n` +
+                         `\`\`\`\n\n` +
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md#54-display-mask-dependency-resolution) for details.`
+              });
+            }
+            
+            // Android 15 / SDK 35 issues
+            if (content.includes('android 15') || content.includes('sdk 35') || content.includes('api 35') ||
+                (content.includes('edge') && content.includes('display'))) {
+              additionalGuidance.push({
+                title: 'Android 15 Compatibility',
+                message: `Android 15 (SDK 35) introduces new behaviors that may affect MSAL:\n` +
+                         `- Edge-to-edge display is enabled by default\n` +
+                         `- Package visibility restrictions are stricter\n\n` +
+                         `Make sure to:\n` +
+                         `1. Update to the latest MSAL version\n` +
+                         `2. Update Microsoft Authenticator to the latest version\n` +
+                         `3. Handle system bar insets properly in your theme\n\n` +
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md#63-android-15-edge-to-edge-display-issues) for details.`
+              });
+            }
+            
+            // B2C specific issues
+            if (content.includes('b2c') && (content.includes('error') || content.includes('fail') || content.includes('not working'))) {
+              additionalGuidance.push({
+                title: 'Azure AD B2C Configuration',
+                message: `For B2C integrations, ensure:\n` +
+                         `1. Authority URL follows the format: \`https://{tenant}.b2clogin.com/{tenant}.onmicrosoft.com/{policy}\`\n` +
+                         `2. Your policy name is included in the authority\n` +
+                         `3. You're using the correct account for the policy when calling acquireTokenSilent\n\n` +
+                         `Example authority configuration:\n` +
+                         `\`\`\`json\n` +
+                         `"authorities": [{\n` +
+                         `    "type": "B2C",\n` +
+                         `    "authority_url": "https://contoso.b2clogin.com/contoso.onmicrosoft.com/B2C_1_signin"\n` +
+                         `}]\n` +
+                         `\`\`\``
+              });
+            }
+            
+            // Post additional guidance if patterns detected
+            if (additionalGuidance.length > 0) {
+              let comment = `## 💡 Potential Solutions Detected\n\n`;
+              comment += `Based on your issue description, I noticed some patterns that might help:\n\n`;
+              
+              for (const guidance of additionalGuidance) {
+                comment += `### ${guidance.title}\n\n`;
+                comment += `${guidance.message}\n\n`;
+              }
+              
+              comment += `---\n`;
+              comment += `*These are automated suggestions. Please let us know if any of these apply to your situation.*`;
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
