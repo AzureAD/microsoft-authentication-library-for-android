@@ -1,0 +1,34 @@
+##
+# Workflow: release-integration auto PR
+# Purpose: When a `release-integration/*` branch is created, automatically
+#          open a pull request targeting `dev` to integrate release changes.
+##
+name: Auto PR to dev for release-integration branches
+
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+  create:
+
+jobs:
+  create-pr:
+    if: >
+      github.event.ref_type == 'branch' &&
+      startsWith(github.event.ref, 'release-integration/') &&
+      vars.ENABLE_RELEASE_AUTOMATION == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Create Pull Request
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh pr create \
+          --base dev \
+          --head "${{ github.event.ref }}" \
+          --title "Auto PR: ${{ github.event.ref }} → dev" \
+          --body "This is an automated pull request created to integrate release changes into **dev**. Triggered when the branch **${{ github.event.ref }}** was published."

@@ -1,0 +1,50 @@
+##
+# Workflow: release-fix auto PR
+# Purpose: When a `release-fix/*` branch is created, automatically
+#          open a pull request targeting the corresponding `release/<version>` branch.
+# Maintainer: Android Team - Release Engineering
+# Docs: See repository CONTRIBUTING.md for release process guidance
+##
+name: Auto PR to merge release-fix branches into release
+
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+  create:
+
+jobs:
+  create-pr:
+    if: >
+      github.event.ref_type == 'branch' &&
+      startsWith(github.event.ref, 'release-fix/') &&
+      vars.ENABLE_RELEASE_AUTOMATION == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compute target release version
+        id: compute_version
+        run: |
+          BRANCH_NAME="${{ github.event.ref }}"
+          if [[ "$BRANCH_NAME" =~ ^release-fix/(.+)$ ]]; then
+            VERSION="${BASH_REMATCH[1]}"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "Computed version: $VERSION"
+          else
+            echo "Failed to compute version from branch: $BRANCH_NAME"
+            exit 1
+          fi
+
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --base "release/${{ steps.compute_version.outputs.version }}" \
+            --head "${{ github.event.ref }}" \
+            --title "Auto PR: ${{ github.event.ref }} → release/${{ steps.compute_version.outputs.version }}" \
+            --body "This is an automated pull request created to integrate release changes into release/${{ steps.compute_version.outputs.version }}. Triggered when the branch ${{ github.event.ref }} was published."
