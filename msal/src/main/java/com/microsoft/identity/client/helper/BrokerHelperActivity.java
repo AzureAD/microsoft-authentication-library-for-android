@@ -8,6 +8,7 @@ import android.util.Log;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
+import androidx.core.view.WindowCompat;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.broker.PackageHelper;
@@ -45,6 +46,12 @@ public class BrokerHelperActivity extends Activity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Opt out of edge-to-edge display for compatibility with androidx.activity:activity:1.12.0+
+        // This prevents blank WebView rendering when user's activity extends ComponentActivity
+        // with automatic edge-to-edge enforcement
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
+        
         setContentView(R.layout.broker_helper);
 
         mPackageName = findViewById(R.id.txtPackageName);

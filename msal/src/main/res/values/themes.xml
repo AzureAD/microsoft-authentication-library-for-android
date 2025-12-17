@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Theme for MSAL redirect handling activities that should not use edge-to-edge display.
+        These activities are temporary redirect handlers and don't need edge-to-edge layouts.
+        
+        The windowOptOutEdgeToEdgeEnforcement attribute opts out of edge-to-edge enforcement
+        on Android 15 (API 35). This is needed because:
+        - androidx.activity:activity:1.12.0+ enforces edge-to-edge automatically
+        - Android 15+ enforces edge-to-edge for apps targeting SDK 35+
+        - WebView content in redirect activities can render blank when edge-to-edge is active
+        
+        Note: This opt-out is temporary and will be removed in Android 16. Activities also
+        programmatically set WindowCompat.setDecorFitsSystemWindows(window, true) for forward
+        compatibility.
+    -->
+    <style name="MsalRedirectActivity" parent="@android:style/Theme.Translucent.NoTitleBar">
+        <!-- Opt out of edge-to-edge enforcement for Android 15 (API 35) -->
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+    </style>
+</resources>

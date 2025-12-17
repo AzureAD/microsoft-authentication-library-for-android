@@ -35,6 +35,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import androidx.core.view.WindowCompat;
+
 import com.microsoft.identity.common.internal.providers.oauth2.CurrentTaskBrowserAuthorizationFragment;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.common.logging.Logger;
@@ -77,6 +79,11 @@ public final class CurrentTaskBrowserTabActivity extends Activity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Opt out of edge-to-edge display for compatibility with androidx.activity:activity:1.12.0+
+        // This prevents blank WebView rendering when user's activity extends ComponentActivity
+        // with automatic edge-to-edge enforcement
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
 
         final String methodTag = TAG + ":onCreate";
         final String response = getIntent().getDataString();
