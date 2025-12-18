@@ -658,7 +658,7 @@ Invalid (must suppress):
 Apply these instructions AND standard Java/Kotlin/Android secure, performant, and maintainable coding practices.
 Flag real security, correctness, concurrency, performance, or API stability issues even if not explicitly listed here.
 Do NOT flag style-only differences, speculative improvements, or untouched legacy unless the new change introduces risk.
-Always cite specific code and give a minimal, actionable fix; use an assumption disclaimer if uncertain about High severity risks..**
+Always cite specific code and give a minimal, actionable fix; use an assumption disclaimer if uncertain about High severity risks.**
 
 #### 7.B.1 What NOT To Do
 - Don’t flag unchanged legacy code unless the modification directly interacts with it AND introduces risk.
