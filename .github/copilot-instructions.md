@@ -537,7 +537,6 @@ Recommendations:
 - For Kotlin files ensure proper Kotlin nullability.
 - Only comment on code touched by the PR.
 - Never suggest adding `@NonNull` to a Kotlin property or parameter, as Kotlin already enforces nullability at the type level.
-- 
 --------------------------------------------------------------------------------
 
 ### 7.14 High-Impact Diff Triggers (MSAL)
