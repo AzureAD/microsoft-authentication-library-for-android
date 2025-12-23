@@ -2,6 +2,10 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+
+Version 0.1.9-RC1
+----------
+- [PATCH] Update common @0.1.9-RC1
 - [MINOR] Remove MavenCentral repository from build.gradle files (#2413)
 
 Version 8.1.1
