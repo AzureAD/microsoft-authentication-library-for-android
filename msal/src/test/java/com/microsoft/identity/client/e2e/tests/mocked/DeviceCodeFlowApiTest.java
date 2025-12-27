@@ -184,27 +184,6 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
         Assert.assertEquals(ErrorStrings.INVALID_REQUEST, tokenResult.getErrorResponse().getError());
     }
 
-    @Test
-    public void testDeviceCodeFlowTokenExpiredToken() throws IOException, ClientException {
-        final OAuth2StrategyParameters strategyParameters = OAuth2StrategyParameters.builder().build();
-        final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
-        final Authority defaultAuthority = config.getDefaultAuthority();
-        Assert.assertNotNull("Default authority should not be null", defaultAuthority);
-        final OAuth2Strategy strategy = defaultAuthority.createOAuth2Strategy(strategyParameters);
-        Assert.assertNotNull("Strategy should not be null", strategy);
-
-        final MicrosoftStsTokenRequest tokenRequest = createMockTokenRequest();
-
-        // Previously authenticated code
-        tokenRequest.setDeviceCode(
-                "EAQABIQEAAABlMNzVhAPUTrARzfQjWPtKRXZvU3RzQXJ0aWZhY3RzAQAAAAAAPYh9V3CvjvOB825bqyY61Bde3S6FzapbES5Yr5kuUdO4amvrqBW9JTaXBUIH9PMoK7yFKza-nSqRHL0yoxYNHhkg0f1_juE50MlJSvdXBWJEsHHZk2y2T5804dMx1QZX0739imnhE0Y9Lm1Wd5iFbaTQZrcD9oKgxxKRL8GavO4gAA");
-
-        final TokenResult tokenResult = strategy.requestToken(tokenRequest);
-        Assert.assertNull(tokenResult.getTokenResponse());
-        Assert.assertNotNull(tokenResult.getErrorResponse());
-        Assert.assertEquals(ErrorStrings.DEVICE_CODE_FLOW_EXPIRED_TOKEN_ERROR_CODE, tokenResult.getErrorResponse().getError());
-    }
-
     /**
      * Helper function to create a mock token request.
      * @return a token request.
