@@ -67,16 +67,15 @@ jobs:
             let isVeryOld = false;
             let versionReleaseDate = null;
             
-            // Try multiple patterns: v8.1.1, 8.1.1, msal:8.1.1, version 8.1.1
+            // Try multiple patterns: v8.1.1, msal:8.1.1, version 8.1.1 (no fallback to avoid false positives)
             const versionPatterns = [
               /v(\d+\.\d+\.\d+)/i,
               /msal[:\s]+(\d+\.\d+\.\d+)/i,
-              /version[:\s]+(\d+\.\d+\.\d+)/i,
-              /(\d+\.\d+\.\d+)/
+              /version[:\s]+(\d+\.\d+\.\d+)/i
             ];
             
             for (const pattern of versionPatterns) {
-              const match = (issue.title + ' ' + issue.body).match(pattern);
+              const match = content.match(pattern);
               if (match && match[1]) {
                 msalVersion = match[1];
                 console.log(`Found MSAL version: ${msalVersion}`);
@@ -87,15 +86,18 @@ jobs:
             // If version found, check its age
             if (msalVersion) {
               try {
-                // Fetch all releases to find the version
-                const releases = await github.rest.repos.listReleases({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  per_page: 100
-                });
+                // Fetch all releases using pagination to avoid 100-item limit
+                const releases = await github.paginate(
+                  github.rest.repos.listReleases,
+                  {
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    per_page: 100
+                  }
+                );
                 
                 // Find the matching release
-                const matchingRelease = releases.data.find(r => 
+                const matchingRelease = releases.find(r => 
                   r.tag_name === `v${msalVersion}` || r.tag_name === msalVersion
                 );
                 
@@ -259,6 +261,18 @@ jobs:
             const versionReleaseDate = process.env.VERSION_RELEASE_DATE;
             const issue = context.payload.issue;
             
+            // Fetch latest version dynamically
+            let latestVersion = '8.+'; // Fallback
+            try {
+              const latestRelease = await github.rest.repos.getLatestRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo
+              });
+              latestVersion = latestRelease.data.tag_name.replace(/^v/, '');
+            } catch (error) {
+              console.log('Could not fetch latest version, using fallback');
+            }
+            
             let response = '';
             let labelExplanations = [];
             
@@ -271,7 +285,7 @@ jobs:
               response += `I've applied the \`very-old-msal\` label because version **${msalVersion}** (released ${versionReleaseDate}) is more than 1.5 years old and is no longer supported.\n\n`;
               response += `**Microsoft MSAL Android supports versions released within the last 1.5 years.**\n\n`;
               response += `**Required Action - Please Upgrade:**\n`;
-              response += `1. Update to the latest version (currently **8.1.1**) - see [releases](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases)\n`;
+              response += `1. Update to the latest version (currently **${latestVersion}**) - see [releases](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases)\n`;
               response += `2. Review the [migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-android#migration) for breaking changes\n`;
               response += `3. Test your app with the new version\n`;
               response += `4. If the issue persists with the latest version, please reopen with updated details\n\n`;
@@ -300,7 +314,7 @@ jobs:
             }
             
             // Add label explanations section if any
-            if (labelExplanations.length > 0 && !isVeryOld) {
+            if (labelExplanations.length > 0) {
               response += `**Labels Applied:**\n`;
               for (const explanation of labelExplanations) {
                 response += `- ${explanation}\n`;
@@ -607,7 +621,7 @@ jobs:
     if: |
       github.event_name == 'issue_comment' && 
       github.event.action == 'created' &&
-      contains(github.event.comment.body, 'PING-COPILOT:')
+      (contains(github.event.comment.body, 'PING-COPILOT:') || contains(github.event.comment.body, 'ping-copilot:'))
     
     steps:
       - name: Checkout repository
@@ -620,8 +634,8 @@ jobs:
           script: |
             const comment = context.payload.comment.body;
             
-            // Extract the text after PING-COPILOT:
-            const match = comment.match(/PING-COPILOT:\s*(.+)/i);
+            // Extract the text after PING-COPILOT: (supports multi-line)
+            const match = comment.match(/PING-COPILOT:\s*([\s\S]+)/i);
             if (match && match[1]) {
               const userRequest = match[1].trim();
               core.setOutput('user_request', userRequest);
@@ -641,6 +655,18 @@ jobs:
             const userRequest = process.env.USER_REQUEST;
             const issue = context.payload.issue;
             
+            // Fetch latest version dynamically
+            let latestVersion = '8.+'; // Fallback
+            try {
+              const latestRelease = await github.rest.repos.getLatestRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo
+              });
+              latestVersion = latestRelease.data.tag_name.replace(/^v/, '');
+            } catch (error) {
+              console.log('Could not fetch latest version, using fallback');
+            }
+            
             // Build response acknowledging the follow-up
             let response = `Thanks for the follow-up! I'll analyze your request: "${userRequest}"\n\n`;
             
@@ -649,22 +675,25 @@ jobs:
             const issueBody = issue.body || '';
             const content = (issueTitle + ' ' + issueBody).toLowerCase();
             
-            // Try to detect version in the original issue
-            let msalVersion = null;
-            const versionPatterns = [
-              /v(\d+\.\d+\.\d+)/i,
-              /msal[:\s]+(\d+\.\d+\.\d+)/i,
-              /version[:\s]+(\d+\.\d+\.\d+)/i,
-              /(\d+\.\d+\.\d+)/
-            ];
-            
-            for (const pattern of versionPatterns) {
-              const match = (issueTitle + ' ' + issueBody).match(pattern);
-              if (match && match[1]) {
-                msalVersion = match[1];
-                break;
+            // Helper function to detect MSAL version
+            function detectMsalVersion(text) {
+              const versionPatterns = [
+                /v(\d+\.\d+\.\d+)/i,
+                /msal[:\s]+(\d+\.\d+\.\d+)/i,
+                /version[:\s]+(\d+\.\d+\.\d+)/i
+              ];
+              
+              for (const pattern of versionPatterns) {
+                const match = text.match(pattern);
+                if (match && match[1]) {
+                  return match[1];
+                }
               }
+              return null;
             }
+            
+            // Try to detect version in the original issue
+            let msalVersion = detectMsalVersion(content);
             
             // Provide contextual guidance based on request
             const requestLower = userRequest.toLowerCase();
@@ -672,7 +701,7 @@ jobs:
             // Check for upgrade-related questions
             if (requestLower.includes('upgrade') || requestLower.includes('updated') || requestLower.includes('new version')) {
               response += `Great that you're upgrading! Here's what you need to know:\n\n`;
-              response += `**Latest Version:** 8.1.1 ([release notes](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v8.1.1))\n\n`;
+              response += `**Latest Version:** ${latestVersion} ([release notes](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v${latestVersion}))\n\n`;
               response += `**Upgrade Steps:**\n`;
               response += `1. Update your \`build.gradle\`:\n`;
               response += `\`\`\`gradle\n`;

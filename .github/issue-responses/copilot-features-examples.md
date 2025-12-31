@@ -2,6 +2,8 @@
 
 This document provides comprehensive examples of the new Copilot agent features introduced in 2025 for MSAL Android issue triage and response.
 
+> **Note:** Version numbers in examples (e.g., "8.1.1", "v6.0.1") are illustrative. The actual workflow dynamically fetches the latest version from the GitHub Releases API. Dates like "May 2025" are example placeholders - actual responses use real release dates from the API.
+
 ## Table of Contents
 1. [Version-Aware Triage](#version-aware-triage)
 2. [Label Transparency](#label-transparency)

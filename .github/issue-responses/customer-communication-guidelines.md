@@ -406,9 +406,10 @@ We recommend using `8.+` for automatic patch updates within the 8.x series.
 - Compare release `published_at` date with current date
 - If older than **548 days (1.5 years)**, apply `very-old-msal` label
 
-**Current Support Status (as of Dec 2025):**
-- ✅ Supported: v7.0.0+ (released Aug 2025 onwards)
-- ❌ Unsupported: v6.x and earlier (released July 2025 and earlier)
+**Current Support Status (example relative to reference date):**
+- ✅ Supported: Versions released within the last 1.5 years (548 days)
+- ❌ Unsupported: Versions released more than 1.5 years ago
+- Query the releases API to determine which specific versions are currently supported
 
 ### Label Transparency
 

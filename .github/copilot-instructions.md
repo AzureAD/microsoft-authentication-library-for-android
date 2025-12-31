@@ -261,7 +261,7 @@ When a version is older than 1.5 years:
   Microsoft MSAL Android supports versions released within the last 1.5 years.
   
   **Next Steps:**
-  1. Upgrade to the latest version (currently 8.1.1) - see [releases](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases)
+  1. Upgrade to the latest version - see [releases](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases)
   2. Review the [migration guide](link) for breaking changes between versions
   3. Test your app with the new version
   4. If the issue persists with the latest version, please reopen this issue with updated details
@@ -277,9 +277,9 @@ When a version is older than 1.5 years:
 - If the user confirms upgrade resolves the issue, close the issue
 
 **4. Current Version Examples:**
-- Latest: v8.1.1 (Dec 2025)
-- Supported: v7.0.0+ (Aug 2025 - within 1.5 years)
-- Unsupported: v6.x and earlier (July 2025 and earlier - beyond 1.5 years)
+- Query the GitHub Releases API to determine current latest version and supported versions
+- Supported: Versions released within the last 1.5 years (548 days)
+- Unsupported: Versions released more than 1.5 years ago
 
 ### Label Transparency
 
