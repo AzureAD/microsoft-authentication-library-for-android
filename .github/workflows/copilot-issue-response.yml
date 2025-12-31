@@ -336,7 +336,7 @@ jobs:
                 if (needsInfo) {
                   response += `To help us investigate this issue, please provide the following information:\n\n`;
                   response += `**Required Information:**\n`;
-                  response += `- [ ] MSAL version (e.g., 8.+, currently 8.1.1)\n`;
+                  response += `- [ ] MSAL version (e.g., 8.+, currently ${latestVersion})\n`;
                   response += `- [ ] Android version and device model\n`;
                   response += `- [ ] Account mode (Single or Multiple)\n`;
                   response += `- [ ] Complete error message or stack trace\n`;
@@ -765,7 +765,7 @@ jobs:
               response += `- [Golden Examples](https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/dev/examples)\n\n`;
               
               if (msalVersion) {
-                response += `**Note:** You mentioned version ${msalVersion}. The latest version is 8.1.1.\n\n`;
+                response += `**Note:** You mentioned version ${msalVersion}. The latest version is ${latestVersion}.\n\n`;
               }
             }
             
@@ -775,7 +775,7 @@ jobs:
             
             if (labelNames.includes('very-old-msal')) {
               response += `⚠️ **Important:** This issue is labeled \`very-old-msal\`, indicating you're using an unsupported version. `;
-              response += `Please upgrade to the latest version (8.1.1) before further troubleshooting.\n\n`;
+              response += `Please upgrade to the latest version (${latestVersion}) before further troubleshooting.\n\n`;
             }
             
             // Footer with another PING-COPILOT reminder
