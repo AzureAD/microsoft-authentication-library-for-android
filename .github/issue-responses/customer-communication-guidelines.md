@@ -371,13 +371,9 @@ If you believe this is an MSAL Android issue, please provide additional details 
 
 ## New Features for AI Agents (2025)
 
+> **Note:** For detailed implementation guidelines on version-aware triage, label transparency, and PING-COPILOT, see [`.github/copilot-instructions.md`](../copilot-instructions.md) sections 6.1-6.3. This section provides communication templates and examples.
+
 ### Version-Aware Triage
-
-When responding to issues, always check the MSAL version:
-
-**Detecting Versions:**
-- Parse version numbers from issue title/body (e.g., "v8.1.1", "msal:8.0.2", "version 7.1.0")
-- Request version if not mentioned
 
 **Unsupported Version Response Template:**
 
@@ -389,7 +385,7 @@ I've applied the `very-old-msal` label because version **X.X.X** (released [DATE
 **Microsoft MSAL Android supports versions released within the last 1.5 years.**
 
 **Required Action - Please Upgrade:**
-1. Update to the latest version (currently **8.1.1**) - see [releases](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases)
+1. Update to the latest version - see [releases](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases)
 2. Review the [migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-android#migration) for breaking changes
 3. Test your app with the new version
 4. If the issue persists with the latest version, please reopen with updated details
@@ -400,16 +396,6 @@ implementation "com.microsoft.identity.client:msal:8.+"
 ```
 We recommend using `8.+` for automatic patch updates within the 8.x series.
 ```
-
-**Version Age Calculation:**
-- Query GitHub releases API: `https://api.github.com/repos/AzureAD/microsoft-authentication-library-for-android/releases`
-- Compare release `published_at` date with current date
-- If older than **548 days (1.5 years)**, apply `very-old-msal` label
-
-**Current Support Status (example relative to reference date):**
-- ✅ Supported: Versions released within the last 1.5 years (548 days)
-- ❌ Unsupported: Versions released more than 1.5 years ago
-- Query the releases API to determine which specific versions are currently supported
 
 ### Label Transparency
 
@@ -456,7 +442,7 @@ To help us investigate...
 
 ### PING-COPILOT Follow-Up Mechanism
 
-Since direct bot mentions are not supported, users can trigger follow-up analysis with:
+> **Note:** For detailed implementation guidelines, see [`.github/copilot-instructions.md`](../copilot-instructions.md) section 6.3. This section provides communication templates.
 
 **Special Phrase:** `PING-COPILOT: <question or request>`
 
@@ -470,14 +456,6 @@ PING-COPILOT: <your question or request>
 ```
 
 The Copilot agent will analyze your comment and provide updated guidance based on the full issue context.
-```
-
-**PING-COPILOT Usage Examples:**
-```
-PING-COPILOT: I upgraded to v8.1.1 but still seeing the redirect URI error
-PING-COPILOT: Can you explain how to implement broker fallback?
-PING-COPILOT: Does this error mean I need to update my Azure app registration?
-PING-COPILOT: What are the steps to migrate from v6.2 to v8.1?
 ```
 
 **Follow-Up Response Template:**
@@ -498,20 +476,6 @@ PING-COPILOT: <your question>
 ---
 *Automated follow-up response. A team member will review the full conversation.*
 ```
-
-**When Responding to PING-COPILOT:**
-1. ✅ Acknowledge the follow-up request
-2. ✅ Review entire issue thread for context
-3. ✅ Address the specific question/request
-4. ✅ Reference previous responses for consistency
-5. ✅ Include PING-COPILOT reminder at end
-6. ✅ Consider issue labels (e.g., if `very-old-msal`, remind them to upgrade)
-
-**Benefits:**
-- Users can get immediate clarification without opening new issues
-- Maintains conversation context in one place
-- Reduces noise from multiple related issues
-- Provides iterative guidance as users troubleshoot
 
 ---
 
