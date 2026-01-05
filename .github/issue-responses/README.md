@@ -24,14 +24,6 @@ Guidelines for professional and effective communication when responding to GitHu
 - Quality checklist
 - **NEW (2025):** Version-aware triage, label transparency, and PING-COPILOT follow-up mechanism
 
-### [copilot-features-examples.md](copilot-features-examples.md) ⭐ NEW
-Comprehensive examples demonstrating the new Copilot agent features:
-- **Version-aware triage:** Automatic detection of unsupported MSAL versions (>1.5 years old)
-- **Label transparency:** Clear explanations for every label applied
-- **PING-COPILOT mechanism:** User-triggered follow-up analysis for iterative support
-- Real-world scenarios and expected responses
-- Testing guidelines
-
 ## Automated Issue Response
 
 The repository includes a GitHub Actions workflow ([../workflows/copilot-issue-response.yml](../workflows/copilot-issue-response.yml)) that:
@@ -58,7 +50,6 @@ The repository includes a GitHub Actions workflow ([../workflows/copilot-issue-r
 2. Ensure templates remain current with API changes
 3. Monitor automated responses for accuracy
 4. Escalate security issues through proper channels
-5. **NEW:** Review `copilot-features-examples.md` for understanding automated triage behavior
 
 ### For Users
 - **Need follow-up help?** Comment with `PING-COPILOT: <your question>` to trigger additional Copilot analysis
