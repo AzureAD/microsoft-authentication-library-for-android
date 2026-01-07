@@ -22,26 +22,26 @@ Guidelines for professional and effective communication when responding to GitHu
 - Issue triage guidelines
 - Escalation procedures
 - Quality checklist
-- **NEW (2025):** Version-aware triage, label transparency, and PING-COPILOT follow-up mechanism
+- Version-aware triage, label transparency, and PING-COPILOT follow-up mechanism (added December 2025)
 
 ## Automated Issue Response
 
 The repository includes a GitHub Actions workflow ([../workflows/copilot-issue-response.yml](../workflows/copilot-issue-response.yml)) that:
-- Automatically triages new issues
-- Applies appropriate labels (bug, feature-request, question, priority, very-old-msal, triage-issue)
-- Posts initial acknowledgment and guidance with label explanations
-- Detects common error patterns and provides targeted help
-- **NEW:** Detects and responds to PING-COPILOT follow-up comments
-- **NEW:** Identifies unsupported MSAL versions and provides upgrade guidance
+1. Automatically triages new issues
+2. Applies appropriate labels (bug, feature-request, question, priority, very-old-msal, triage-issue)
+3. Posts initial acknowledgment and guidance with label explanations
+4. Detects common error patterns and provides targeted help
+5. Detects and responds to PING-COPILOT follow-up comments (added December 2025)
+6. Identifies unsupported MSAL versions and provides upgrade guidance (added December 2025)
 
 ## Usage
 
 ### For AI Agents
 1. Reference `common-issues-guide.md` when analyzing issue descriptions
 2. Use templates from `customer-communication-guidelines.md` for responses
-3. **NEW:** Always check MSAL version and apply version-aware triage rules
-4. **NEW:** Include label explanations in every response
-5. **NEW:** Add PING-COPILOT trigger instructions to initial responses
+3. Always check MSAL version and apply version-aware triage rules (added December 2025)
+4. Include label explanations in every response (added December 2025)
+5. Add PING-COPILOT trigger instructions to initial responses (added December 2025)
 6. Follow the diagnostic checklist to request necessary information
 7. Link to relevant documentation and code snippets
 
