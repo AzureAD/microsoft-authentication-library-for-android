@@ -235,6 +235,167 @@ Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
 Logger.getInstance().setEnableLogcatLog(true);
 ```
 
+### Version-Aware Triage
+
+When triaging GitHub issues, always check the MSAL version reported by the user:
+
+**1. Version Detection:**
+- Parse version numbers from issue title/body (e.g., "v8.1.1", "8.0.2", "version 6.2.0", "msal:7.0.0")
+- If version is not mentioned, request it as critical diagnostic information
+
+**2. Version Age Determination:**
+- Query the GitHub releases API to get the published date of the reported version
+- API endpoint: `https://api.github.com/repos/AzureAD/microsoft-authentication-library-for-android/releases`
+- Compare the version's `published_at` date with the current date
+- Calculate age: if older than **1.5 years (548 days)**, consider it unsupported
+
+**3. Very Old Version Response:**
+When a version is older than 1.5 years:
+- Apply the `very-old-msal` label
+- **Explain the label:** "I've applied the `very-old-msal` label because version X.X.X was released on [date], which is more than 1.5 years ago."
+- Primary response should inform the user:
+  ```
+  ⚠️ **Unsupported MSAL Version**
+  
+  The version you're using (X.X.X, released [date]) is no longer supported. 
+  Microsoft MSAL Android supports versions released within the last 1.5 years.
+  
+  **Next Steps:**
+  1. Upgrade to the latest version - see [releases](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases)
+  2. Review the [migration guide](link) for breaking changes between versions
+  3. Test your app with the new version
+  4. If the issue persists with the latest version, please reopen this issue with updated details
+  
+  **To upgrade:**
+  ```gradle
+  implementation "com.microsoft.identity.client:msal:8.+"
+  ```
+  
+  We recommend using `8.+` for automatic patch updates within the 8.x series.
+  ```
+- Do not invest significant time troubleshooting; focus on upgrade guidance
+- If the user confirms upgrade resolves the issue, close the issue
+
+**4. Current Version Examples:**
+- Query the GitHub Releases API to determine current latest version and supported versions
+- Supported: Versions released within the last 1.5 years (548 days)
+- Unsupported: Versions released more than 1.5 years ago
+
+### Label Transparency
+
+**Always explain labeling decisions in your response.** Users should understand why a label was applied.
+
+**Required Explanations by Label:**
+
+1. **`bug` label:**
+   - "I've labeled this as a `bug` because [specific reason: crash on API call / unexpected behavior / error in documented functionality]"
+   - Example: "I've labeled this as a `bug` because the redirect URI validation is failing despite correct configuration, which indicates a potential issue in the library."
+
+2. **`very-old-msal` label:**
+   - "I've applied the `very-old-msal` label because your version (X.X.X) was released on [date], which is more than 1.5 years ago and is no longer supported."
+   - Always include the release date and calculation context
+
+3. **`triage-issue` label:**
+   - "I've added the `triage-issue` label because this issue [requires code investigation / may need a library fix / appears to be a potential bug in MSAL core]"
+   - Specify what aspect needs engineering review
+   - Example: "I've added the `triage-issue` label because the broker communication failure you're experiencing may require investigation of the IPC implementation in the library."
+
+4. **`needs-more-info` label:**
+   - "I've added the `needs-more-info` label because we need [specific information] to diagnose the issue."
+   - List exactly what information is needed
+
+5. **`question` label:**
+   - "I've labeled this as a `question` because you're asking about [how to implement X / whether Y is supported / clarification on Z]"
+
+6. **`feature-request` label:**
+   - "I've labeled this as a `feature-request` because you're proposing [new functionality / enhancement / API addition]"
+
+**When to Use `triage-issue` Label:**
+
+Apply the `triage-issue` label when:
+- The issue may require a code fix in the MSAL library itself
+- The problem cannot be resolved through configuration or usage changes alone
+- There's evidence of a library bug (e.g., null pointer in MSAL code, unexpected API behavior)
+- The issue requires deeper investigation of MSAL internals
+- The problem affects the public SDK API contract or behavior
+
+Do NOT apply `triage-issue` for:
+- User configuration errors (redirect URI, client_id, etc.)
+- Misuse of MSAL APIs (deprecated methods, wrong patterns)
+- Issues clearly resolvable with documentation/examples
+- Questions about how to use MSAL correctly
+- Issues in user application code (not MSAL library code)
+
+**Example Response with Label Transparency:**
+```
+Thank you for reporting this issue!
+
+I've added the `triage-issue` label because the silent token acquisition is failing 
+even with valid cached tokens, which suggests a potential issue in MSAL's cache 
+retrieval logic that our engineering team should investigate.
+
+I've also labeled this as a `bug` because the documented behavior states that 
+acquireTokenSilent should succeed when valid tokens exist, but your logs show 
+it's returning an error instead.
+
+In the meantime, could you provide...
+```
+
+### User-Triggered Follow-Up Mechanism
+
+Since direct bot mentions (@copilot) are not supported in issue comments, users can trigger follow-up Copilot analysis using a special phrase.
+
+**Special Phrase:** `PING-COPILOT: <question or request>`
+
+**How It Works:**
+1. When a user comments with `PING-COPILOT:` followed by their question/request
+2. The Copilot workflow automatically detects this phrase and responds
+3. The agent analyzes the full issue context + new comment and provides updated guidance
+
+**Examples:**
+```
+PING-COPILOT: I upgraded to v8.1.1 but still seeing the redirect URI error
+PING-COPILOT: Can you explain how to implement broker fallback?
+PING-COPILOT: Does this error mean I need to update my Azure app registration?
+```
+
+**Include in Every Initial Response:**
+At the end of every initial issue response, include:
+```
+---
+
+**Need further assistance?** You can trigger a follow-up analysis by commenting:
+```
+PING-COPILOT: <your question or request>
+```
+
+The Copilot agent will analyze your comment and provide updated guidance based on the full issue context.
+```
+
+**When Responding to PING-COPILOT:**
+1. Acknowledge the follow-up request
+2. Review the entire issue thread for context
+3. Address the specific question/request in the PING-COPILOT comment
+4. Reference previous responses to maintain consistency
+5. Include the follow-up trigger reminder again at the end
+
+**Example Follow-Up Response:**
+```
+Thanks for the follow-up! I see you've upgraded to v8.1.1 but are still experiencing 
+the redirect URI error.
+
+Based on your previous logs and the new information, let's verify...
+
+[detailed response]
+
+---
+
+**Need more help?** You can trigger another follow-up by commenting:
+```
+PING-COPILOT: <your question>
+```
+```
+
 ## 7. Copilot PR Review & Domain Instructions (MSAL Android)
 
 This section contains MSAL Android-specific code review and domain instructions for AI agents performing PR reviews and code suggestions. 
