@@ -22,28 +22,39 @@ Guidelines for professional and effective communication when responding to GitHu
 - Issue triage guidelines
 - Escalation procedures
 - Quality checklist
+- Version-aware triage, label transparency, and PING-COPILOT follow-up mechanism (added December 2025)
 
 ## Automated Issue Response
 
 The repository includes a GitHub Actions workflow ([../workflows/copilot-issue-response.yml](../workflows/copilot-issue-response.yml)) that:
-- Automatically triages new issues
-- Applies appropriate labels (bug, feature-request, question, priority)
-- Posts initial acknowledgment and guidance
-- Detects common error patterns and provides targeted help
+1. Automatically triages new issues
+2. Applies appropriate labels (bug, feature-request, question, priority, very-old-msal, triage-issue)
+3. Posts initial acknowledgment and guidance with label explanations
+4. Detects common error patterns and provides targeted help
+5. Detects and responds to PING-COPILOT follow-up comments (added December 2025)
+6. Identifies unsupported MSAL versions and provides upgrade guidance (added December 2025)
 
 ## Usage
 
 ### For AI Agents
 1. Reference `common-issues-guide.md` when analyzing issue descriptions
 2. Use templates from `customer-communication-guidelines.md` for responses
-3. Follow the diagnostic checklist to request necessary information
-4. Link to relevant documentation and code snippets
+3. Always check MSAL version and apply version-aware triage rules (added December 2025)
+4. Include label explanations in every response (added December 2025)
+5. Add PING-COPILOT trigger instructions to initial responses (added December 2025)
+6. Follow the diagnostic checklist to request necessary information
+7. Link to relevant documentation and code snippets
 
 ### For Team Members
 1. Review and update these guides as new common issues emerge
 2. Ensure templates remain current with API changes
 3. Monitor automated responses for accuracy
 4. Escalate security issues through proper channels
+
+### For Users
+- **Need follow-up help?** Comment with `PING-COPILOT: <your question>` to trigger additional Copilot analysis
+- The agent will analyze your question in the context of the entire issue thread
+- You can use PING-COPILOT multiple times as needed
 
 ## Related Resources
 

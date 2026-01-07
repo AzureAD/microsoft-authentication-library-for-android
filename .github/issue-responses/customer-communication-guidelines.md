@@ -369,6 +369,116 @@ If you believe this is an MSAL Android issue, please provide additional details 
 
 ---
 
+## New Features for AI Agents (2025)
+
+> **Note:** For detailed implementation guidelines on version-aware triage, label transparency, and PING-COPILOT, see [`.github/copilot-instructions.md`](../copilot-instructions.md) sections 6.1-6.3. This section provides communication templates and examples.
+
+### Version-Aware Triage
+
+**Unsupported Version Response Template:**
+
+```markdown
+⚠️ **Unsupported MSAL Version Detected**
+
+I've applied the `very-old-msal` label because version **X.X.X** (released [DATE]) is more than 1.5 years old and is no longer supported.
+
+**Microsoft MSAL Android supports versions released within the last 1.5 years.**
+
+**Required Action - Please Upgrade:**
+1. Update to the latest version - see [releases](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases)
+2. Review the [migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-android#migration) for breaking changes
+3. Test your app with the new version
+4. If the issue persists with the latest version, please reopen with updated details
+
+**To upgrade, update your build.gradle:**
+```gradle
+implementation "com.microsoft.identity.client:msal:8.+"
+```
+We recommend using `8.+` for automatic patch updates within the 8.x series.
+```
+
+### Label Transparency
+
+**Always explain why labels are applied.** Include a brief explanation in your response.
+
+**Label Explanation Templates:**
+
+| Label | Explanation Template |
+|-------|---------------------|
+| `bug` | I've labeled this as a `bug` because [crash/unexpected behavior/documented functionality not working as expected] |
+| `very-old-msal` | I've applied the `very-old-msal` label because your version (X.X.X) was released on [DATE], which is more than 1.5 years ago and is no longer supported |
+| `triage-issue` | I've added the `triage-issue` label because this issue [requires code investigation/may need a library fix/appears to be a potential bug in MSAL core] |
+| `needs-more-info` | I've added the `needs-more-info` label because we need [specific information] to diagnose the issue |
+| `question` | I've labeled this as a `question` because you're asking about [how to implement X/whether Y is supported] |
+| `feature-request` | I've labeled this as a `feature-request` because you're proposing [new functionality/enhancement] |
+
+**When to Use `triage-issue` Label:**
+
+✅ Apply when:
+- Issue may require a code fix in MSAL library itself
+- Problem cannot be resolved through configuration changes
+- Evidence of library bug (e.g., null pointer in MSAL code)
+- Requires investigation of MSAL internals
+- Affects public SDK API contract
+
+❌ Do NOT apply for:
+- User configuration errors
+- API misuse (deprecated methods, wrong patterns)
+- Issues resolvable with documentation
+- Questions about MSAL usage
+- Issues in user application code
+
+**Example with Label Transparency:**
+```markdown
+Thank you for reporting this issue!
+
+**Labels Applied:**
+- `bug`: This appears to be a bug because silent token acquisition is failing even with valid cached tokens
+- `triage-issue`: I've added this label because the issue may require investigation of MSAL's cache retrieval logic by our engineering team
+- `needs-more-info`: We need your complete stack trace and verbose logs to fully diagnose
+
+To help us investigate...
+```
+
+### PING-COPILOT Follow-Up Mechanism
+
+> **Note:** For detailed implementation guidelines, see [`.github/copilot-instructions.md`](../copilot-instructions.md) section 6.3. This section provides communication templates.
+
+**Special Phrase:** `PING-COPILOT: <question or request>`
+
+**Include in Every Initial Response:**
+```markdown
+---
+
+**Need further assistance?** You can trigger a follow-up analysis by commenting:
+```
+PING-COPILOT: <your question or request>
+```
+
+The Copilot agent will analyze your comment and provide updated guidance based on the full issue context.
+```
+
+**Follow-Up Response Template:**
+```markdown
+Thanks for the follow-up! I see you've [described what user did/asked].
+
+Based on your original issue and this update, [provide contextual guidance].
+
+[Specific answer to their question with code examples or steps]
+
+---
+
+**Need more help?** You can trigger another follow-up by commenting:
+```
+PING-COPILOT: <your question>
+```
+
+---
+*Automated follow-up response. A team member will review the full conversation.*
+```
+
+---
+
 ## Issue Triage Guidelines
 
 ### Priority Levels
