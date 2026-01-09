@@ -69,10 +69,10 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
         mGuestHomeAzureEnvironment = guestHomeAzureEnvironment;
     }
 
+    // TODO US GOV COVERED BY OTHER TESTS, UPDATE ADO ITEM
     @Parameterized.Parameters(name = "{0}")
     public static Collection guestHomeAzureEnvironment() {
         return Arrays.asList(new Object[][]{
-                {"AZURE_US_GOV", GuestHomeAzureEnvironment.AZURE_US_GOVERNMENT},
                 {"AZURE_CHINA_CLOUD", GuestHomeAzureEnvironment.AZURE_CHINA_CLOUD},
         });
     }
