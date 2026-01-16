@@ -134,7 +134,9 @@ jobs:
           ./gradlew clean --no-daemon
           
           # Run the coverage task as defined in the Azure pipeline
-          ./gradlew :msal:localDebugMsalUnitTestCoverageReport -PcodeCoverageEnabled=true --no-daemon || true
+          if ! ./gradlew :msal:localDebugMsalUnitTestCoverageReport -PcodeCoverageEnabled=true --no-daemon; then
+            echo "⚠️ Gradle coverage task failed, continuing to check for existing coverage report..."
+          fi
           
           # Check if coverage report was generated
           COVERAGE_FILE="msal/build/reports/jacoco/localDebugMsalUnitTestCoverageReport/localDebugMsalUnitTestCoverageReport.xml"
