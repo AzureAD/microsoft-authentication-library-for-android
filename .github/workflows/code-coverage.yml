@@ -261,28 +261,24 @@ jobs:
             
             if (result === 'decreased') {
               emoji = '⚠️';
-              message = `Code coverage has **decreased** by ${delta.replace('-', '')}%. Please add tests to maintain or improve coverage.`;
+              message = 'Code coverage has **decreased** by ' + delta.replace('-', '') + '%. Please add tests to maintain or improve coverage.';
             } else if (result === 'increased') {
               emoji = '🎉';
-              message = `Great job! Code coverage **improved** by ${delta}%.`;
+              message = 'Great job! Code coverage **improved** by ' + delta + '%.';
             } else if (result === 'unchanged') {
               emoji = '✅';
-              message = `Code coverage **maintained** at ${prCoverage}%.`;
+              message = 'Code coverage **maintained** at ' + prCoverage + '%.';
             }
             
-            const comment = `## ${emoji} Code Coverage Report
-            
-${status}
-
-| Branch | Coverage | Delta |
-|--------|----------|-------|
-| dev (baseline) | ${devCoverage}% | - |
-| PR branch | ${prCoverage}% | ${delta}% |
-
-${message}
-
----
-*This check can be skipped by adding the \`code-coverage-skip\` label to the PR.*`;
+            let comment = '## ' + emoji + ' Code Coverage Report\n\n';
+            comment += status + '\n\n';
+            comment += '| Branch | Coverage | Delta |\n';
+            comment += '|--------|----------|-------|\n';
+            comment += '| dev (baseline) | ' + devCoverage + '% | - |\n';
+            comment += '| PR branch | ' + prCoverage + '% | ' + delta + '% |\n\n';
+            comment += message + '\n\n';
+            comment += '---\n';
+            comment += '*This check can be skipped by adding the `code-coverage-skip` label to the PR.*';
             
             await github.rest.issues.createComment({
               owner: context.repo.owner,
@@ -314,14 +310,11 @@ ${message}
         uses: actions/github-script@v7
         with:
           script: |
-            const comment = `## ⏭️ Code Coverage Check Skipped
-            
-✅ **PASSED** (Skipped)
-
-This PR has the \`code-coverage-skip\` label, so the code coverage check was skipped.
-
----
-*To re-enable coverage checks, remove the \`code-coverage-skip\` label.*`;
+            let comment = '## ⏭️ Code Coverage Check Skipped\n\n';
+            comment += '✅ **PASSED** (Skipped)\n\n';
+            comment += 'This PR has the `code-coverage-skip` label, so the code coverage check was skipped.\n\n';
+            comment += '---\n';
+            comment += '*To re-enable coverage checks, remove the `code-coverage-skip` label.*';
             
             await github.rest.issues.createComment({
               owner: context.repo.owner,
