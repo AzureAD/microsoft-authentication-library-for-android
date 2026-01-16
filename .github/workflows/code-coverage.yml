@@ -79,7 +79,7 @@ jobs:
           echo "Running code coverage on PR branch..."
           
           # Run the coverage task as defined in the Azure pipeline
-          ./gradlew :msal:localDebugMsalUnitTestCoverageReport -PcodeCoverageEnabled=true --no-daemon || true
+          ./gradlew :msal:localDebugMsalUnitTestCoverageReport -PcodeCoverageEnabled=true --no-daemon
           
           # Check if coverage report was generated
           COVERAGE_FILE="msal/build/reports/jacoco/localDebugMsalUnitTestCoverageReport/localDebugMsalUnitTestCoverageReport.xml"
