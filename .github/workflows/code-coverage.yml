@@ -60,8 +60,18 @@ jobs:
       - name: Enable public Maven repositories
         run: |
           echo "Enabling mavenCentral and public repositories for GitHub Actions..."
-          # Uncomment mavenCentral in build.gradle
-          sed -i 's|// mavenCentral()|mavenCentral()|g' build.gradle
+          # Ensure mavenCentral() is enabled in build.gradle in a robust, non-silent way
+          if grep -q 'mavenCentral()' build.gradle; then
+            echo "mavenCentral() is already enabled in build.gradle"
+          elif grep -qE '//[[:space:]]*mavenCentral\(\)' build.gradle; then
+            echo "Found commented mavenCentral() entry; uncommenting..."
+            # Uncomment mavenCentral line regardless of internal spacing
+            sed -i -E 's|//[[:space:]]*mavenCentral\(\)|mavenCentral()|g' build.gradle
+          else
+            echo "ERROR: Expected commented mavenCentral() entry not found in build.gradle." >&2
+            echo "Please update this workflow or build.gradle to keep Maven repository configuration in sync." >&2
+            exit 1
+          fi
           
           # Create gradle.properties with dummy credentials to avoid errors
           if [ ! -f gradle.properties ]; then
@@ -97,8 +107,36 @@ jobs:
             # Jacoco XML format: <counter type="INSTRUCTION" missed="X" covered="Y"/>
             # Coverage % = (covered / (covered + missed)) * 100
             
-            COVERED=$(grep -o 'type="INSTRUCTION" missed="[0-9]*" covered="[0-9]*"' "$COVERAGE_FILE" | head -1 | grep -o 'covered="[0-9]*"' | grep -o '[0-9]*')
-            MISSED=$(grep -o 'type="INSTRUCTION" missed="[0-9]*" covered="[0-9]*"' "$COVERAGE_FILE" | head -1 | grep -o 'missed="[0-9]*"' | grep -o '[0-9]*')
+            PYTHON_OUTPUT=$(python - <<EOF
+import sys
+import xml.etree.ElementTree as ET
+
+coverage_file = "${COVERAGE_FILE}"
+try:
+    tree = ET.parse(coverage_file)
+    root = tree.getroot()
+except Exception:
+    sys.exit(0)
+
+covered = None
+missed = None
+for counter in root.iter("counter"):
+    if counter.get("type") == "INSTRUCTION":
+        try:
+            missed = int(counter.get("missed", "0"))
+            covered = int(counter.get("covered", "0"))
+        except (TypeError, ValueError):
+            covered = None
+            missed = None
+        break
+
+if covered is not None and missed is not None:
+    print(f"{covered} {missed}")
+EOF
+)
+            
+            COVERED=$(echo "$PYTHON_OUTPUT" | awk '{print $1}')
+            MISSED=$(echo "$PYTHON_OUTPUT" | awk '{print $2}')
             
             if [ -n "$COVERED" ] && [ -n "$MISSED" ]; then
               TOTAL=$((COVERED + MISSED))
@@ -146,8 +184,9 @@ jobs:
             echo "dev_coverage_found=false" >> $GITHUB_OUTPUT
           else
             # Extract coverage percentage from XML report
-            COVERED=$(grep -o 'type="INSTRUCTION" missed="[0-9]*" covered="[0-9]*"' "$COVERAGE_FILE" | head -1 | grep -o 'covered="[0-9]*"' | grep -o '[0-9]*')
-            MISSED=$(grep -o 'type="INSTRUCTION" missed="[0-9]*" covered="[0-9]*"' "$COVERAGE_FILE" | head -1 | grep -o 'missed="[0-9]*"' | grep -o '[0-9]*')
+            INSTRUCTION_LINE=$(grep -o 'type="INSTRUCTION" missed="[0-9]*" covered="[0-9]*"' "$COVERAGE_FILE" | head -1)
+            COVERED=$(echo "$INSTRUCTION_LINE" | grep -o 'covered="[0-9]*"' | grep -o '[0-9]*')
+            MISSED=$(echo "$INSTRUCTION_LINE" | grep -o 'missed="[0-9]*"' | grep -o '[0-9]*')
             
             if [ -n "$COVERED" ] && [ -n "$MISSED" ]; then
               TOTAL=$((COVERED + MISSED))
@@ -192,11 +231,11 @@ jobs:
           echo "  Delta:       ${DELTA}%"
           
           # Determine if coverage increased, decreased, or stayed the same
-          if (( $(echo "$DELTA < 0" | bc -l) )); then
+          if awk "BEGIN {exit !($DELTA < 0)}"; then
             RESULT="decreased"
             STATUS="❌ FAILED"
             EXIT_CODE=1
-          elif (( $(echo "$DELTA > 0" | bc -l) )); then
+          elif awk "BEGIN {exit !($DELTA > 0)}"; then
             RESULT="increased"
             STATUS="✅ PASSED"
             EXIT_CODE=0
@@ -242,7 +281,7 @@ jobs:
           exit $EXIT_CODE
           
       - name: Post coverage comment
-        if: always()
+        if: always() && steps.compare.outcome == 'success'
         uses: actions/github-script@v7
         env:
           PR_COVERAGE: ${{ steps.compare.outputs.pr_coverage }}
@@ -261,9 +300,11 @@ jobs:
             let emoji = '📊';
             let message = '';
             
+            const absDelta = Math.abs(parseFloat(delta || '0')).toString();
+            
             if (result === 'decreased') {
               emoji = '⚠️';
-              message = 'Code coverage has **decreased** by ' + delta.replace('-', '') + '%. Please add tests to maintain or improve coverage.';
+              message = 'Code coverage has **decreased** by ' + absDelta + '%. Please add tests to maintain or improve coverage.';
             } else if (result === 'increased') {
               emoji = '🎉';
               message = 'Great job! Code coverage **improved** by ' + delta + '%.';
@@ -312,15 +353,38 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            let comment = '## ⏭️ Code Coverage Check Skipped\n\n';
+            const header = '## ⏭️ Code Coverage Check Skipped';
+            let comment = header + '\n\n';
             comment += '✅ **PASSED** (Skipped)\n\n';
             comment += 'This PR has the `code-coverage-skip` label, so the code coverage check was skipped.\n\n';
             comment += '---\n';
             comment += '*To re-enable coverage checks, remove the `code-coverage-skip` label.*';
-            
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: comment
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+
+            // Find existing "skip coverage" comment, if any
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number,
+              per_page: 100
             });
+
+            const existing = comments.find(c => typeof c.body === 'string' && c.body.startsWith(header));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body: comment
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body: comment
+              });
+            }
