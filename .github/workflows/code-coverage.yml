@@ -73,15 +73,28 @@ jobs:
             exit 1
           fi
           
-          # Create gradle.properties with dummy credentials to avoid errors
+          # Setup gradle.properties with dummy credentials to avoid errors
+          echo "Setting up gradle.properties for GitHub Actions..."
+          
+          # Ensure file exists
           if [ ! -f gradle.properties ]; then
             echo "Creating gradle.properties..."
             touch gradle.properties
           fi
           
+          # Ensure file ends with newline
+          [ -n "$(tail -c1 gradle.properties)" ] && echo "" >> gradle.properties
+          
           # Add dummy credentials for VSTS Maven (will fallback to mavenCentral)
-          echo "vstsUsername=dummy" >> gradle.properties
-          echo "vstsMavenAccessToken=dummy" >> gradle.properties
+          # Check if credentials already exist to avoid duplicates
+          if ! grep -q "^vstsUsername=" gradle.properties; then
+            echo "vstsUsername=dummy" >> gradle.properties
+          fi
+          if ! grep -q "^vstsMavenAccessToken=" gradle.properties; then
+            echo "vstsMavenAccessToken=dummy" >> gradle.properties
+          fi
+          
+          echo "gradle.properties configured successfully"
         
       - name: Run tests with code coverage on PR branch
         id: pr_coverage
