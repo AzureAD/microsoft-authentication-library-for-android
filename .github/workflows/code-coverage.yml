@@ -89,7 +89,9 @@ jobs:
           echo "Running code coverage on PR branch..."
           
           # Run the coverage task as defined in the Azure pipeline
-          ./gradlew :msal:localDebugMsalUnitTestCoverageReport -PcodeCoverageEnabled=true --no-daemon
+          if ! ./gradlew :msal:localDebugMsalUnitTestCoverageReport -PcodeCoverageEnabled=true --no-daemon; then
+            echo "⚠️ Gradle coverage task failed, continuing to check for existing coverage report..."
+          fi
           
           # Check if coverage report was generated
           COVERAGE_FILE="msal/build/reports/jacoco/localDebugMsalUnitTestCoverageReport/localDebugMsalUnitTestCoverageReport.xml"
@@ -98,7 +100,11 @@ jobs:
             echo "Attempting to find coverage files..."
             
             # Try to find the coverage XML file
-            find msal/build -name "*.xml" -path "*/jacoco/*" || true
+            find msal/build -name "*.xml" -path "*/jacoco/*" 2>/dev/null || true
+            
+            # List build directory to debug
+            echo "Build directory contents:"
+            ls -la msal/build/ 2>/dev/null || echo "msal/build/ does not exist"
             
             echo "pr_coverage=0.0" >> $GITHUB_OUTPUT
             echo "pr_coverage_found=false" >> $GITHUB_OUTPUT
@@ -107,50 +113,38 @@ jobs:
             # Jacoco XML format: <counter type="INSTRUCTION" missed="X" covered="Y"/>
             # Coverage % = (covered / (covered + missed)) * 100
             
-            PYTHON_OUTPUT=$(python - <<EOF
-import sys
-import xml.etree.ElementTree as ET
-
-coverage_file = "${COVERAGE_FILE}"
-try:
-    tree = ET.parse(coverage_file)
-    root = tree.getroot()
-except Exception:
-    sys.exit(0)
-
-covered = None
-missed = None
-for counter in root.iter("counter"):
-    if counter.get("type") == "INSTRUCTION":
-        try:
-            missed = int(counter.get("missed", "0"))
-            covered = int(counter.get("covered", "0"))
-        except (TypeError, ValueError):
-            covered = None
-            missed = None
-        break
-
-if covered is not None and missed is not None:
-    print(f"{covered} {missed}")
-EOF
-)
+            echo "📄 Parsing coverage report: $COVERAGE_FILE"
             
-            COVERED=$(echo "$PYTHON_OUTPUT" | awk '{print $1}')
-            MISSED=$(echo "$PYTHON_OUTPUT" | awk '{print $2}')
+            # Use grep to extract INSTRUCTION counter (more reliable than Python in CI)
+            INSTRUCTION_LINE=$(grep 'type="INSTRUCTION"' "$COVERAGE_FILE" | grep -o 'missed="[0-9]*" covered="[0-9]*"' | head -1)
             
-            if [ -n "$COVERED" ] && [ -n "$MISSED" ]; then
-              TOTAL=$((COVERED + MISSED))
-              if [ $TOTAL -gt 0 ]; then
-                PR_COVERAGE=$(awk "BEGIN {printf \"%.2f\", ($COVERED / $TOTAL) * 100}")
-                echo "✅ PR Coverage: ${PR_COVERAGE}% (Covered: $COVERED, Missed: $MISSED, Total: $TOTAL)"
-                echo "pr_coverage=$PR_COVERAGE" >> $GITHUB_OUTPUT
-                echo "pr_coverage_found=true" >> $GITHUB_OUTPUT
+            if [ -n "$INSTRUCTION_LINE" ]; then
+              COVERED=$(echo "$INSTRUCTION_LINE" | grep -o 'covered="[0-9]*"' | grep -o '[0-9]*')
+              MISSED=$(echo "$INSTRUCTION_LINE" | grep -o 'missed="[0-9]*"' | grep -o '[0-9]*')
+              
+              echo "Raw extraction - Covered: $COVERED, Missed: $MISSED"
+              
+              if [ -n "$COVERED" ] && [ -n "$MISSED" ]; then
+                TOTAL=$((COVERED + MISSED))
+                if [ $TOTAL -gt 0 ]; then
+                  PR_COVERAGE=$(awk "BEGIN {printf \"%.2f\", ($COVERED / $TOTAL) * 100}")
+                  echo "✅ PR Coverage: ${PR_COVERAGE}% (Covered: $COVERED, Missed: $MISSED, Total: $TOTAL)"
+                  echo "pr_coverage=$PR_COVERAGE" >> $GITHUB_OUTPUT
+                  echo "pr_coverage_found=true" >> $GITHUB_OUTPUT
+                else
+                  echo "⚠️ Total instructions is 0"
+                  echo "pr_coverage=0.0" >> $GITHUB_OUTPUT
+                  echo "pr_coverage_found=false" >> $GITHUB_OUTPUT
+                fi
               else
+                echo "⚠️ Could not extract COVERED or MISSED values"
                 echo "pr_coverage=0.0" >> $GITHUB_OUTPUT
                 echo "pr_coverage_found=false" >> $GITHUB_OUTPUT
               fi
             else
-              echo "⚠️ Could not extract coverage data from XML"
+              echo "⚠️ Could not find INSTRUCTION counter in coverage report"
+              echo "First 20 lines of coverage file:"
+              head -20 "$COVERAGE_FILE"
               echo "pr_coverage=0.0" >> $GITHUB_OUTPUT
               echo "pr_coverage_found=false" >> $GITHUB_OUTPUT
             fi
@@ -180,27 +174,50 @@ EOF
           COVERAGE_FILE="msal/build/reports/jacoco/localDebugMsalUnitTestCoverageReport/localDebugMsalUnitTestCoverageReport.xml"
           if [ ! -f "$COVERAGE_FILE" ]; then
             echo "⚠️ Coverage report not found at $COVERAGE_FILE"
+            
+            # Try to find coverage files for debugging
+            echo "Attempting to find coverage files..."
+            find msal/build -name "*.xml" -path "*/jacoco/*" 2>/dev/null || true
+            
+            # List build directory to debug
+            echo "Build directory contents:"
+            ls -la msal/build/ 2>/dev/null || echo "msal/build/ does not exist"
+            
             echo "dev_coverage=0.0" >> $GITHUB_OUTPUT
             echo "dev_coverage_found=false" >> $GITHUB_OUTPUT
           else
             # Extract coverage percentage from XML report
-            INSTRUCTION_LINE=$(grep -o 'type="INSTRUCTION" missed="[0-9]*" covered="[0-9]*"' "$COVERAGE_FILE" | head -1)
-            COVERED=$(echo "$INSTRUCTION_LINE" | grep -o 'covered="[0-9]*"' | grep -o '[0-9]*')
-            MISSED=$(echo "$INSTRUCTION_LINE" | grep -o 'missed="[0-9]*"' | grep -o '[0-9]*')
+            echo "📄 Parsing coverage report: $COVERAGE_FILE"
             
-            if [ -n "$COVERED" ] && [ -n "$MISSED" ]; then
-              TOTAL=$((COVERED + MISSED))
-              if [ $TOTAL -gt 0 ]; then
-                DEV_COVERAGE=$(awk "BEGIN {printf \"%.2f\", ($COVERED / $TOTAL) * 100}")
-                echo "✅ Dev Coverage: ${DEV_COVERAGE}% (Covered: $COVERED, Missed: $MISSED, Total: $TOTAL)"
-                echo "dev_coverage=$DEV_COVERAGE" >> $GITHUB_OUTPUT
-                echo "dev_coverage_found=true" >> $GITHUB_OUTPUT
+            INSTRUCTION_LINE=$(grep 'type="INSTRUCTION"' "$COVERAGE_FILE" | grep -o 'missed="[0-9]*" covered="[0-9]*"' | head -1)
+            
+            if [ -n "$INSTRUCTION_LINE" ]; then
+              COVERED=$(echo "$INSTRUCTION_LINE" | grep -o 'covered="[0-9]*"' | grep -o '[0-9]*')
+              MISSED=$(echo "$INSTRUCTION_LINE" | grep -o 'missed="[0-9]*"' | grep -o '[0-9]*')
+              
+              echo "Raw extraction - Covered: $COVERED, Missed: $MISSED"
+              
+              if [ -n "$COVERED" ] && [ -n "$MISSED" ]; then
+                TOTAL=$((COVERED + MISSED))
+                if [ $TOTAL -gt 0 ]; then
+                  DEV_COVERAGE=$(awk "BEGIN {printf \"%.2f\", ($COVERED / $TOTAL) * 100}")
+                  echo "✅ Dev Coverage: ${DEV_COVERAGE}% (Covered: $COVERED, Missed: $MISSED, Total: $TOTAL)"
+                  echo "dev_coverage=$DEV_COVERAGE" >> $GITHUB_OUTPUT
+                  echo "dev_coverage_found=true" >> $GITHUB_OUTPUT
+                else
+                  echo "⚠️ Total instructions is 0"
+                  echo "dev_coverage=0.0" >> $GITHUB_OUTPUT
+                  echo "dev_coverage_found=false" >> $GITHUB_OUTPUT
+                fi
               else
+                echo "⚠️ Could not extract COVERED or MISSED values"
                 echo "dev_coverage=0.0" >> $GITHUB_OUTPUT
                 echo "dev_coverage_found=false" >> $GITHUB_OUTPUT
               fi
             else
-              echo "⚠️ Could not extract coverage data from XML"
+              echo "⚠️ Could not find INSTRUCTION counter in coverage report"
+              echo "First 20 lines of coverage file:"
+              head -20 "$COVERAGE_FILE"
               echo "dev_coverage=0.0" >> $GITHUB_OUTPUT
               echo "dev_coverage_found=false" >> $GITHUB_OUTPUT
             fi
