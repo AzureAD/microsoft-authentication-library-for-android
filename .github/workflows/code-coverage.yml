@@ -1,0 +1,331 @@
+# Code Coverage Check Workflow
+#
+# This workflow runs code coverage checks for PRs targeting the 'dev' branch.
+# It compares code coverage between the PR branch and the latest dev branch.
+#
+# Features:
+# - Runs only for PRs targeting 'dev' branch
+# - Can be skipped with 'code-coverage-skip' label
+# - Compares total code coverage percentage (PR vs dev)
+# - Fails if coverage decreases
+# - Shows clear output with before/after coverage and delta
+
+name: code-coverage
+
+on:
+  pull_request:
+    branches:
+      - dev
+    types: [opened, reopened, synchronize, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+# Prevent multiple simultaneous runs for the same PR
+concurrency:
+  group: code-coverage-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  code-coverage:
+    name: Code Coverage Check
+    runs-on: ubuntu-latest
+    
+    # Skip if PR has 'code-coverage-skip' label
+    if: "!contains(github.event.pull_request.labels.*.name, 'code-coverage-skip')"
+    
+    steps:
+      - name: Check for skip label
+        id: check_skip
+        run: |
+          echo "Running code coverage check (no skip label found)"
+          
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+          
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+        
+      - name: Enable public Maven repositories
+        run: |
+          echo "Enabling mavenCentral and public repositories for GitHub Actions..."
+          # Uncomment mavenCentral in build.gradle
+          sed -i 's|// mavenCentral()|mavenCentral()|g' build.gradle
+          
+          # Create gradle.properties with dummy credentials to avoid errors
+          if [ ! -f gradle.properties ]; then
+            echo "Creating gradle.properties..."
+            touch gradle.properties
+          fi
+          
+          # Add dummy credentials for VSTS Maven (will fallback to mavenCentral)
+          echo "vstsUsername=dummy" >> gradle.properties
+          echo "vstsMavenAccessToken=dummy" >> gradle.properties
+        
+      - name: Run tests with code coverage on PR branch
+        id: pr_coverage
+        run: |
+          echo "Running code coverage on PR branch..."
+          
+          # Run the coverage task as defined in the Azure pipeline
+          ./gradlew :msal:localDebugMsalUnitTestCoverageReport -PcodeCoverageEnabled=true --no-daemon || true
+          
+          # Check if coverage report was generated
+          COVERAGE_FILE="msal/build/reports/jacoco/localDebugMsalUnitTestCoverageReport/localDebugMsalUnitTestCoverageReport.xml"
+          if [ ! -f "$COVERAGE_FILE" ]; then
+            echo "⚠️ Coverage report not found at $COVERAGE_FILE"
+            echo "Attempting to find coverage files..."
+            
+            # Try to find the coverage XML file
+            find msal/build -name "*.xml" -path "*/jacoco/*" || true
+            
+            echo "pr_coverage=0.0" >> $GITHUB_OUTPUT
+            echo "pr_coverage_found=false" >> $GITHUB_OUTPUT
+          else
+            # Extract coverage percentage from XML report
+            # Jacoco XML format: <counter type="INSTRUCTION" missed="X" covered="Y"/>
+            # Coverage % = (covered / (covered + missed)) * 100
+            
+            COVERED=$(grep -o 'type="INSTRUCTION" missed="[0-9]*" covered="[0-9]*"' "$COVERAGE_FILE" | head -1 | grep -o 'covered="[0-9]*"' | grep -o '[0-9]*')
+            MISSED=$(grep -o 'type="INSTRUCTION" missed="[0-9]*" covered="[0-9]*"' "$COVERAGE_FILE" | head -1 | grep -o 'missed="[0-9]*"' | grep -o '[0-9]*')
+            
+            if [ -n "$COVERED" ] && [ -n "$MISSED" ]; then
+              TOTAL=$((COVERED + MISSED))
+              if [ $TOTAL -gt 0 ]; then
+                PR_COVERAGE=$(awk "BEGIN {printf \"%.2f\", ($COVERED / $TOTAL) * 100}")
+                echo "✅ PR Coverage: ${PR_COVERAGE}% (Covered: $COVERED, Missed: $MISSED, Total: $TOTAL)"
+                echo "pr_coverage=$PR_COVERAGE" >> $GITHUB_OUTPUT
+                echo "pr_coverage_found=true" >> $GITHUB_OUTPUT
+              else
+                echo "pr_coverage=0.0" >> $GITHUB_OUTPUT
+                echo "pr_coverage_found=false" >> $GITHUB_OUTPUT
+              fi
+            else
+              echo "⚠️ Could not extract coverage data from XML"
+              echo "pr_coverage=0.0" >> $GITHUB_OUTPUT
+              echo "pr_coverage_found=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+        continue-on-error: true
+        
+      - name: Checkout dev branch
+        run: |
+          echo "Switching to dev branch for baseline coverage..."
+          git fetch origin dev:dev
+          git checkout dev
+          
+      - name: Run tests with code coverage on dev branch
+        id: dev_coverage
+        run: |
+          echo "Running code coverage on dev branch..."
+          
+          # Clean previous build artifacts
+          ./gradlew clean --no-daemon
+          
+          # Run the coverage task as defined in the Azure pipeline
+          ./gradlew :msal:localDebugMsalUnitTestCoverageReport -PcodeCoverageEnabled=true --no-daemon || true
+          
+          # Check if coverage report was generated
+          COVERAGE_FILE="msal/build/reports/jacoco/localDebugMsalUnitTestCoverageReport/localDebugMsalUnitTestCoverageReport.xml"
+          if [ ! -f "$COVERAGE_FILE" ]; then
+            echo "⚠️ Coverage report not found at $COVERAGE_FILE"
+            echo "dev_coverage=0.0" >> $GITHUB_OUTPUT
+            echo "dev_coverage_found=false" >> $GITHUB_OUTPUT
+          else
+            # Extract coverage percentage from XML report
+            COVERED=$(grep -o 'type="INSTRUCTION" missed="[0-9]*" covered="[0-9]*"' "$COVERAGE_FILE" | head -1 | grep -o 'covered="[0-9]*"' | grep -o '[0-9]*')
+            MISSED=$(grep -o 'type="INSTRUCTION" missed="[0-9]*" covered="[0-9]*"' "$COVERAGE_FILE" | head -1 | grep -o 'missed="[0-9]*"' | grep -o '[0-9]*')
+            
+            if [ -n "$COVERED" ] && [ -n "$MISSED" ]; then
+              TOTAL=$((COVERED + MISSED))
+              if [ $TOTAL -gt 0 ]; then
+                DEV_COVERAGE=$(awk "BEGIN {printf \"%.2f\", ($COVERED / $TOTAL) * 100}")
+                echo "✅ Dev Coverage: ${DEV_COVERAGE}% (Covered: $COVERED, Missed: $MISSED, Total: $TOTAL)"
+                echo "dev_coverage=$DEV_COVERAGE" >> $GITHUB_OUTPUT
+                echo "dev_coverage_found=true" >> $GITHUB_OUTPUT
+              else
+                echo "dev_coverage=0.0" >> $GITHUB_OUTPUT
+                echo "dev_coverage_found=false" >> $GITHUB_OUTPUT
+              fi
+            else
+              echo "⚠️ Could not extract coverage data from XML"
+              echo "dev_coverage=0.0" >> $GITHUB_OUTPUT
+              echo "dev_coverage_found=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+        continue-on-error: true
+        
+      - name: Compare coverage and determine result
+        id: compare
+        run: |
+          PR_COVERAGE="${{ steps.pr_coverage.outputs.pr_coverage }}"
+          DEV_COVERAGE="${{ steps.dev_coverage.outputs.dev_coverage }}"
+          PR_FOUND="${{ steps.pr_coverage.outputs.pr_coverage_found }}"
+          DEV_FOUND="${{ steps.dev_coverage.outputs.dev_coverage_found }}"
+          
+          echo "PR Coverage Found: $PR_FOUND"
+          echo "Dev Coverage Found: $DEV_FOUND"
+          
+          # Default to 0.0 if not set
+          PR_COVERAGE="${PR_COVERAGE:-0.0}"
+          DEV_COVERAGE="${DEV_COVERAGE:-0.0}"
+          
+          echo "📊 Coverage Comparison:"
+          echo "  Dev branch:  ${DEV_COVERAGE}%"
+          echo "  PR branch:   ${PR_COVERAGE}%"
+          
+          # Calculate delta using awk for floating point arithmetic
+          DELTA=$(awk "BEGIN {printf \"%.2f\", $PR_COVERAGE - $DEV_COVERAGE}")
+          echo "  Delta:       ${DELTA}%"
+          
+          # Determine if coverage increased, decreased, or stayed the same
+          if (( $(echo "$DELTA < 0" | bc -l) )); then
+            RESULT="decreased"
+            STATUS="❌ FAILED"
+            EXIT_CODE=1
+          elif (( $(echo "$DELTA > 0" | bc -l) )); then
+            RESULT="increased"
+            STATUS="✅ PASSED"
+            EXIT_CODE=0
+          else
+            RESULT="unchanged"
+            STATUS="✅ PASSED"
+            EXIT_CODE=0
+          fi
+          
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "$STATUS - Code Coverage Check"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "📈 Coverage Summary:"
+          echo "  Before (dev):  ${DEV_COVERAGE}%"
+          echo "  After (PR):    ${PR_COVERAGE}%"
+          echo "  Delta:         ${DELTA}%"
+          echo "  Result:        Coverage $RESULT"
+          echo ""
+          
+          if [ "$RESULT" = "decreased" ]; then
+            echo "⚠️  Code coverage has decreased by ${DELTA#-}%"
+            echo "    Please add tests to maintain or improve coverage."
+          elif [ "$RESULT" = "increased" ]; then
+            echo "🎉 Great job! Code coverage improved by ${DELTA}%"
+          else
+            echo "✓  Code coverage maintained at ${PR_COVERAGE}%"
+          fi
+          
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          
+          # Set outputs for comment
+          echo "pr_coverage=$PR_COVERAGE" >> $GITHUB_OUTPUT
+          echo "dev_coverage=$DEV_COVERAGE" >> $GITHUB_OUTPUT
+          echo "delta=$DELTA" >> $GITHUB_OUTPUT
+          echo "result=$RESULT" >> $GITHUB_OUTPUT
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
+          
+          # Exit with appropriate code
+          exit $EXIT_CODE
+          
+      - name: Post coverage comment
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          PR_COVERAGE: ${{ steps.compare.outputs.pr_coverage }}
+          DEV_COVERAGE: ${{ steps.compare.outputs.dev_coverage }}
+          DELTA: ${{ steps.compare.outputs.delta }}
+          RESULT: ${{ steps.compare.outputs.result }}
+          STATUS: ${{ steps.compare.outputs.status }}
+        with:
+          script: |
+            const prCoverage = process.env.PR_COVERAGE || '0.0';
+            const devCoverage = process.env.DEV_COVERAGE || '0.0';
+            const delta = process.env.DELTA || '0.0';
+            const result = process.env.RESULT || 'unknown';
+            const status = process.env.STATUS || '❓ UNKNOWN';
+            
+            let emoji = '📊';
+            let message = '';
+            
+            if (result === 'decreased') {
+              emoji = '⚠️';
+              message = `Code coverage has **decreased** by ${delta.replace('-', '')}%. Please add tests to maintain or improve coverage.`;
+            } else if (result === 'increased') {
+              emoji = '🎉';
+              message = `Great job! Code coverage **improved** by ${delta}%.`;
+            } else if (result === 'unchanged') {
+              emoji = '✅';
+              message = `Code coverage **maintained** at ${prCoverage}%.`;
+            }
+            
+            const comment = `## ${emoji} Code Coverage Report
+            
+${status}
+
+| Branch | Coverage | Delta |
+|--------|----------|-------|
+| dev (baseline) | ${devCoverage}% | - |
+| PR branch | ${prCoverage}% | ${delta}% |
+
+${message}
+
+---
+*This check can be skipped by adding the \`code-coverage-skip\` label to the PR.*`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
+  
+  # Handle skipped case with explicit success
+  code-coverage-skipped:
+    name: Code Coverage Check (Skipped)
+    runs-on: ubuntu-latest
+    
+    # Run only if PR has 'code-coverage-skip' label
+    if: "contains(github.event.pull_request.labels.*.name, 'code-coverage-skip')"
+    
+    steps:
+      - name: Skip coverage check
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✅ PASSED - Code Coverage Check (Skipped)"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "Code coverage check skipped due to 'code-coverage-skip' label."
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          
+      - name: Post skip comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = `## ⏭️ Code Coverage Check Skipped
+            
+✅ **PASSED** (Skipped)
+
+This PR has the \`code-coverage-skip\` label, so the code coverage check was skipped.
+
+---
+*To re-enable coverage checks, remove the \`code-coverage-skip\` label.*`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
