@@ -64,19 +64,14 @@ jobs:
       sqGradlePluginVersion: 2.0.1
   - task: CodeQL3000Finalize@0
   - task: Gradle@2
-    displayName: Run Unit tests
+    displayName: Run Tests, Generate Code Coverage Report
     inputs:
-      tasks: msal:testLocalDebugUnitTest -Plabtest -PlabSecret=$(LabVaultAppCert) -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PmockApiUrl=$(MOCK_API_URL) -PnativeAuthConfigString=$(NATIVE_AUTH_CONFIG_STRING)
-      javaHomeSelection: $(BuildParameters.javaHomeSelection)
-      jdkVersion: 1.17
-  - task: Gradle@2
-    displayName: Generate Code Coverage Report
-    inputs:
-      tasks: msal:localDebugMsalUnitTestCoverageReport -PcodeCoverageEnabled=true -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}}
+      tasks: msal:localDebugMsalUnitTestCoverageReport -PcodeCoverageEnabled=true -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PmockApiUrl=$(MOCK_API_URL) -PnativeAuthConfigString=$(NATIVE_AUTH_CONFIG_STRING)
       javaHomeSelection: $(BuildParameters.javaHomeSelection)
       jdkVersion: 1.17
   - task: PublishCodeCoverageResults@1
     displayName: Publish Code Coverage Results
+    condition: always()
     inputs:
       codeCoverageTool: 'JaCoCo'
       summaryFileLocation: '$(Build.SourcesDirectory)/msal/build/reports/jacoco/localDebugMsalUnitTestCoverageReport/localDebugMsalUnitTestCoverageReport.xml'
