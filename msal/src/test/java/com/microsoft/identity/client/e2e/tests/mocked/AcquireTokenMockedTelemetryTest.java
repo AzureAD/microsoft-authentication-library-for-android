@@ -35,7 +35,6 @@ import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper;
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId;
-import com.microsoft.identity.common.java.eststelemetry.EstsTelemetry;
 import com.microsoft.identity.common.java.eststelemetry.SchemaConstants;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.net.HttpClient;
@@ -127,7 +126,6 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
     public void setup() {
         sTelemetryHeaders = null;
         sCorrelationIdList.clear();
-        EstsTelemetry.getInstance().clear();
         super.setup();
     }
 
