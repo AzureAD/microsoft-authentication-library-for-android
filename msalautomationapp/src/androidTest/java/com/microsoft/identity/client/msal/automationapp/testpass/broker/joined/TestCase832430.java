@@ -41,7 +41,11 @@ import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
+import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 // [Joined][MSAL] Acquire Token + Acquire Token Silent with resource (Prompt.SELECT_ACCOUNT)
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/832430
@@ -88,7 +92,7 @@ public class TestCase832430 extends AbstractMsalBrokerTest {
         IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),username);
 
         //acquiring token silently
-        final MsalAuthTestParams silentParams = MsalAuthTestParams.builder()
+        final MsalAuthTestParams silentParams1 = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
                 .authority(account.getAuthority())
@@ -97,8 +101,8 @@ public class TestCase832430 extends AbstractMsalBrokerTest {
                 .build();
 
 
-        final MsalAuthResult silentAuthResult = msalSdk.acquireTokenSilent(silentParams, TokenRequestTimeout.MEDIUM);
-        silentAuthResult.assertSuccess();
+        final MsalAuthResult silentAuthResult1 = msalSdk.acquireTokenSilent(silentParams1, TokenRequestTimeout.MEDIUM);
+        silentAuthResult1.assertSuccess();
 
         //forwarding time 1 day
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
@@ -114,6 +118,65 @@ public class TestCase832430 extends AbstractMsalBrokerTest {
 
         final MsalAuthResult refreshTokenAuthResult = msalSdk.acquireTokenSilent(refreshTokenParams, TokenRequestTimeout.MEDIUM);
         refreshTokenAuthResult.assertSuccess();
+
+        // TODO: ADD TO ADO ITEM
+        /*
+            Note that password reset doesn't take effect by ESTS at least user being logged in for 1 min.
+            Therefore we have a Thread.sleep after first successful token acquisition before resetting password.
+         */
+        Thread.sleep(TimeUnit.MINUTES.toMillis(1));
+        Assert.assertTrue(mLabClient.resetPassword(username, 3));
+
+        TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
+
+        // SILENT REQUEST - start a acquireTokenSilent request in MSAL
+        account = msalSdk.getAccount(mActivity, getConfigFileResourceId(), username);
+        final MsalAuthTestParams silentParams2 = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(username)
+                .authority(account.getAuthority())
+                .forceRefresh(true)
+                .scopes(Arrays.asList(mScopes))
+                .msalConfigResourceId(getConfigFileResourceId())
+                .build();
+
+        // get a token silently
+        final MsalAuthResult silentAuthResult2 = msalSdk.acquireTokenSilent(silentParams2, TokenRequestTimeout.SILENT);
+        silentAuthResult2.assertFailure();
+
+        // fetch token in an interactive request
+        final MsalAuthTestParams msalAuthTestParams2 = MsalAuthTestParams.builder()
+                .loginHint(username)
+                .activity(mActivity)
+                .scopes(Arrays.asList(mScopes))
+                .promptParameter(Prompt.SELECT_ACCOUNT)
+                .msalConfigResourceId(getConfigFileResourceId())
+                .build();
+
+        final String newPassword = password + "1";
+
+        final MsalAuthResult authResultPostPwdChange = msalSdk.acquireTokenInteractive(msalAuthTestParams2, new com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired() {
+            @Override
+            public void handleUserInteraction() {
+                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
+                        .prompt(PromptParameter.WHEN_REQUIRED)
+                        .loginHint(username)
+                        .sessionExpected(true)
+                        .consentPageExpected(false)
+                        .speedBumpExpected(false)
+                        .broker(mBroker)
+                        .expectingBrokerAccountChooserActivity(false)
+                        .updateYourPasswordExpected(true)
+                        .newPasswordForUpdateScenario(newPassword)
+                        .passwordPageExpected(true)
+                        .build();
+
+                new AadPromptHandler(promptHandlerParameters)
+                        .handlePrompt(username, password);
+            }
+        }, TokenRequestTimeout.MEDIUM);
+
+        authResultPostPwdChange.assertSuccess();
     }
 
     @Override

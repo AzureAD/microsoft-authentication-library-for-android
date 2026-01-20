@@ -58,7 +58,7 @@ import java.util.concurrent.TimeUnit;
 // Adding a retry on failure, sometimes arlington login page fails to load
 @RetryOnFailure(retryCount = 2)
 @RunOnAPI29Minus("Speed Bump Page")
-@Ignore("Federated Account in LAB is not working at the moment")
+//@Ignore("Federated Account in LAB is not working at the moment")
 public class TestCase938368 extends AbstractMsalUiTest {
 
     @Test

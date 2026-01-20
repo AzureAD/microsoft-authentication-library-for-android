@@ -45,6 +45,7 @@ import java.util.Arrays;
 
 // Interactive Auth with select_account (with consent record)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99274
+// TODO: Is this still needed? How does consent record play with loginhint?
 @RunOnAPI29Minus("Consent Page")
 @RetryOnFailure
 public class TestCase99274 extends AbstractMsalUiTest {

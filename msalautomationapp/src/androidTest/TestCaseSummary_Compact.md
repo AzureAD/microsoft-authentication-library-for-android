@@ -2,7 +2,7 @@
 
 Test cases in `msalautomationapp` grouped by directory. Shows planned combinations and tests to be dropped
 
-Total change in test count is 115 -> 76 (-34% decrease in total test cases, we will not exactly see a 1:1 decrease in execution time because some of these tests will now run longer)
+Total change in test count is 115 -> 77 (-33% decrease in total test cases, we will not exactly see a 1:1 decrease in execution time because some of these tests will now run longer)
 
 ---
 
@@ -72,6 +72,8 @@ Total change in test count is 115 -> 76 (-34% decrease in total test cases, we w
 ## broker/joined/ (7) -> (3)
 - Combine
   - TestCase1561125: In-line WPJ with DeviceId Claim (Joined)
+  - TestCase833558: Broker Delete Account via Account Manager
+- Drop, already covered in 1561125
   - TestCase1561171: Prompt.LOGIN (Joined)
 - Combine
   - TestCase832430: [Joined][MSAL] Acquire Token + Acquire Token Silent with resource (Prompt.SELECT_ACCOUNT)
@@ -79,7 +81,6 @@ Total change in test count is 115 -> 76 (-34% decrease in total test cases, we w
 - Combine
   - TestCase714567: Device Registration via Settings Page
   - TestCase796050: Add Account in Account Chooser Activity
-  - TestCase833558: Broker Delete Account via Account Manager
 
 ## broker/ltw/ (16) -> (3)
 - Keep some basic testing
@@ -122,9 +123,9 @@ Total change in test count is 115 -> 76 (-34% decrease in total test cases, we w
 - TestCase833526: [Joined][MSAL] Device Admin MDM: Broker Auth for MDM Account + PKeyAuth Flow
 
 ## broker/msa/ (4) -> (3)
-- Combine, Run a prompt.LOGIN at the end, after Prompt.SELECT_ACCOUNT and Silent
+- Combine
   - TestCase2637829And2637846: [PRTv3] Brokered Auth for MSA Account - Prompt.Login & Acquire Token Silent
-  - TestCase2637853: [PRTv3] Brokered Auth for MSA Account - Select_Account
+  - TestCase2637853: [PRTv3] Brokered Auth for MSA Account - Select_Account, silent with no login hint
 - TestCase2637882: [PRTv3] Brokered Auth for MSA Account - Consumers Authority
 - TestCase3007768: [Brokered] Sign Up Flow for MSA Accounts
 
@@ -141,9 +142,10 @@ Total change in test count is 115 -> 76 (-34% decrease in total test cases, we w
 - TestCase2578879: [MWPJ] Account with No PRT Uses Non-Joined Flow (PKeyAuth Enabled)
 - TestCase2579654: [MWPJ] After Entry Migration, PRT Still Usable Without Extra Prompts
 
-## broker/nestedAppAuth/ (5) (TODO: DISCUSS WITH SOWMYA)
-- TestCase2688459: Nested App Auth Silent Request
-- TestCase2688460: Nested App Interactive Request After Hub Interactive
+## broker/nestedAppAuth/ (5) -> (4)
+- Combine
+  - TestCase2688459: Nested App Auth Silent Request
+  - TestCase2688460: Nested App Interactive Request After Hub Interactive
 - TestCase2688462: Nested App's Fresh AT Interactive Succeeds, Silent Fails
 - TestCase2688468: Nested App Interactive Token Request After Device is WPJd
 - TestCase2703171: Nested App Auth with US Gov Account
@@ -184,15 +186,13 @@ Total change in test count is 115 -> 76 (-34% decrease in total test cases, we w
   - TestCase1954181: Acquire PoP token interactive followed by Silent
   - TestCase1954183: Generate SHR without broker
 
-## msalonly/basic/ (6) -> (3)
-- Combine, call common authrozity silent after initial sign ins
-  - 99267 and 99274 are similar, 99274 is very similar but has loginhint passed in inital request, we can drop one if login hint doesn't affect consent record logic
-    - TestCase99267: Interactive Auth with select_account (no consent record)
-    - TestCase99274: Interactive Auth with select_account (with consent record)
-  - Can squeeze this one in, just another request with Prompt.LOGIN
-    - TestCase99563: Silent Auth with force_refresh
+## msalonly/basic/ (6) -> (5)
+- Combine, call common authority silent after initial sign ins
+  - TestCase99652: Interactive Auth with Force Login for Managed Account (with Consent Record)
   - TestCase2016158: Single-Tenant App Silent Request with Common Authority Should Fail
-- TestCase99652: Interactive Auth with Force Login for Managed Account (with Consent Record)
+- TestCase99267: Interactive Auth with select_account (no consent record)
+- TestCase99563: Silent Auth with force_refresh
+- TestCase99274: Interactive Auth with select_account (with consent record)
 - TestCase532736: WebView Fallback When All Browsers Disabled (Parameterized)
 
 ## msalonly/crosscloud/ (3) (No combinations, each scenario requires fresh state)

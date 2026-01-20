@@ -23,6 +23,7 @@
 package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.basic;
 
 import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
@@ -39,6 +40,7 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -108,6 +110,23 @@ public class TestCase99652 extends AbstractMsalUiTest {
         }, TokenRequestTimeout.MEDIUM);
 
         forceLoginAuthResult.assertSuccess();
+
+        // TODO: ADD TO ADO ITEM
+        // 2016158
+        // Silent with https://login.microsoftonline.com/common
+        final MsalAuthTestParams silentParams = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(username)
+                .authority("https://login.microsoftonline.com/common")
+                .resource(mScopes[0])
+                .msalConfigResourceId(getConfigFileResourceId())
+                .build();
+
+        final MsalAuthResult authResult2 = msalSdk.acquireTokenSilent(silentParams, TokenRequestTimeout.MEDIUM);
+
+        // Should fail with an MsalServiceException
+        authResult2.assertFailure();
+        Assert.assertTrue(authResult2.getException() instanceof MsalServiceException);
     }
 
     @Override

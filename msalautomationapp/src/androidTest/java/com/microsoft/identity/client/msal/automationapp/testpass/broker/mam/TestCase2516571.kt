@@ -27,11 +27,13 @@ import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.app.OutlookApp
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal
+import com.microsoft.identity.client.ui.automation.broker.BrokerHost
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator
 import com.microsoft.identity.client.ui.automation.installer.LocalApkInstaller
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils
+import com.microsoft.identity.common.java.util.ThreadUtils
 import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
@@ -122,6 +124,31 @@ class TestCase2516571 : AbstractMsalUiTest(){
 
         outlook.onAccountAdded()
         companyPortal.handleAppProtectionPolicy()
+        outlook.confirmAccount(username)
+
+        // TODO: ADD TO ADO ITEM
+        val brokerHost = BrokerHost()
+        brokerHost.install()
+        brokerHost.wpjLeave()
+
+        // advance clock by more than an hour to expire AT in cache
+        settingsScreen.forwardDeviceTimeForOneDay()
+
+        // Log in again in outlook, should get a prompt in the snackbar
+        outlook.launch()
+        outlook.forceStop()
+        outlook.launch()
+        outlook.signInThroughSnackBar(username, password, promptHandlerParameters)
+
+        // Not totally sure what prompts outlook to take the snackbar away, sometimes it still appears after re-authentication
+        // We wait a bit and relaunch outlook twice, this seems improve the chance of the snackbar disappearing
+        ThreadUtils.sleepSafely(20000, "sleeping", "interrupted sleep")
+        outlook.forceStop()
+        outlook.launch()
+        outlook.forceStop()
+        outlook.launch()
+
+        Assert.assertFalse("SIGN IN Button still present", outlook.isSignInSnackBarPresent)
         outlook.confirmAccount(username)
     }
 
