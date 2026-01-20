@@ -109,6 +109,29 @@ class TestCase2637829And2637846 : AbstractMsaBrokerTest() {
                 .handlePrompt(username, password)
         }, TokenRequestTimeout.MEDIUM)
         authResult2.assertSuccess()
+
+        // TODO: ADD TO ADO ITEM
+        // SECOND SILENT REQUEST WITHOUT LOGIN HINT
+        val noLoginHintParams = MsalAuthTestParams.builder()
+            .activity(mActivity)
+            .scopes(Arrays.asList(*mScopes))
+            .promptParameter(Prompt.SELECT_ACCOUNT)
+            .msalConfigResourceId(configFileResourceId)
+            .build()
+        val noLoginHintauthResult = msalSdk.acquireTokenInteractive(noLoginHintParams, {
+            val promptHandlerParameters = PromptHandlerParameters.builder()
+                .prompt(PromptParameter.SELECT_ACCOUNT)
+                .loginHint(null)
+                .sessionExpected(true)
+                .consentPageExpected(false)
+                .speedBumpExpected(false)
+                .broker(mBroker)
+                .expectingBrokerAccountChooserActivity(true)
+                .build()
+            AadPromptHandler(promptHandlerParameters)
+                .handlePrompt(username, password)
+        }, TokenRequestTimeout.MEDIUM)
+        noLoginHintauthResult.assertSuccess()
     }
 
     override fun getConfigFileResourceId(): Int {

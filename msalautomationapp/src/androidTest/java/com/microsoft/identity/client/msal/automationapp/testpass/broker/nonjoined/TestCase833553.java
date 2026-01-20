@@ -50,7 +50,7 @@ import java.util.Arrays;
 // [MSAL] Broker Auth for Non-Joined Account (Federated User)
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833553
 @RetryOnFailure()
-@Ignore("Federated Account in LAB is not working at the moment")
+//@Ignore("Federated Account in LAB is not working at the moment")
 public class TestCase833553 extends AbstractMsalBrokerTest {
     @Test
     public void test_833553_NonJoined_Federated() throws Throwable {

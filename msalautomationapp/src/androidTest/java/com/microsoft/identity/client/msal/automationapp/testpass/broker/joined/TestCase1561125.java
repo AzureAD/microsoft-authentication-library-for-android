@@ -22,23 +22,34 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.joined;
 
+import com.microsoft.identity.client.AcquireTokenParameters;
+import com.microsoft.identity.client.AuthenticationCallback;
+import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
+import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.msal.automationapp.R;
+import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
+import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.client.ui.automation.logging.Logger;
+import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.common.java.providers.oauth2.IDToken;
+import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 
 import org.junit.Assert;
@@ -46,11 +57,15 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 // [Joined][MSAL] In-line WPJ: Perform Device registration with deviceid claim
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561125
 @RetryOnFailure(retryCount = 2)
 public class TestCase1561125 extends AbstractMsalBrokerTest {
+    final String TAG = TestCase1561125.class.getSimpleName();
+    private IAccount mTempAccount = null;
+
     @Test
     public void test_1561125_Joined_DeviceIdClaimWPJ() throws Throwable {
         final String username = mLabAccount.getUsername();
@@ -99,6 +114,82 @@ public class TestCase1561125 extends AbstractMsalBrokerTest {
         authResult.assertSuccess();
         Map<String, ?> tokens = IDToken.parseJWT(authResult.getAccessToken());
         Assert.assertNotNull(tokens.get("deviceid"));
+
+        // TODO: ADD TO ADO ITEM
+        // remove the device registration owner account from settings page. following AT should be interactive
+        Logger.i(TAG, "Remove device registration owner account from settings page");
+        getSettingsScreen().removeAccount(username);
+
+        createTempAccountAndAcquireToken(true);
+    }
+
+    private String createTempAccountAndAcquireToken(boolean registerPageExpected) throws LabApiException {
+        Logger.i(TAG, "Create temp account from lab");
+        final ILabAccount labAccount = mLabClient.createTempAccount(TempUserType.BASIC);
+        final String tempAccountUserName = labAccount.getUsername();
+        final String tempAccountPassword = labAccount.getPassword();
+
+        final TokenRequestLatch tokenRequestLatch = new TokenRequestLatch(1);
+        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                .startAuthorizationFromActivity(mActivity)
+                .withLoginHint(tempAccountUserName)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(interactiveRequestCallback(tokenRequestLatch))
+                .withClaims(deviceIdClaimsRequest())
+                .build();
+
+        final InteractiveRequest interactiveRequest = new InteractiveRequest(
+                mApplication,
+                parameters,
+                () -> {
+                    final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
+                            .prompt(PromptParameter.SELECT_ACCOUNT)
+                            .loginHint(tempAccountUserName)
+                            .sessionExpected(false)
+                            .consentPageExpected(false)
+                            .registerPageExpected(registerPageExpected)
+                            .speedBumpExpected(false)
+                            .build();
+
+                    new AadPromptHandler(promptHandlerParameters)
+                            .handlePrompt(tempAccountUserName, tempAccountPassword);
+                }
+        );
+        Logger.i(TAG, "Perform interactive token request for temp account, with deviceid claim.");
+        interactiveRequest.execute();
+        tokenRequestLatch.await(TokenRequestTimeout.SHORT);
+        return tempAccountUserName;
+    }
+
+    private AuthenticationCallback interactiveRequestCallback(final CountDownLatch latch) {
+        return new AuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
+                mTempAccount = authenticationResult.getAccount();
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                Assert.fail(exception.getMessage());
+                latch.countDown();
+            }
+
+            @Override
+            public void onCancel() {
+                Assert.fail("User cancelled flow");
+                latch.countDown();
+            }
+        };
+    }
+
+    private ClaimsRequest deviceIdClaimsRequest() {
+        RequestedClaimAdditionalInformation information = new RequestedClaimAdditionalInformation();
+        information.setEssential(true);
+        ClaimsRequest claimsRequest = new ClaimsRequest();
+        claimsRequest.requestClaimInAccessToken("deviceid", information);
+        return claimsRequest;
     }
 
     @Override

@@ -22,11 +22,21 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.dcf;
 
+import static com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadLoginComponentHandler.SIGN_IN_FROM_OTHER_DEVICE;
+
 import com.microsoft.identity.client.msal.automationapp.R;
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
+import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadLoginComponentHandler;
+import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 
+import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Arrays;
 
 // Brokered Auth verify "Sign In from other device" option and remote login url.
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2828864
@@ -39,6 +49,28 @@ public class TestCase2828864 extends AbstractSignInFromOtherDeviceTest {
 
     @Test
     public void test_2828864_DCF_CheckSignInFromOtherDeviceOptionAvailable() throws Throwable {
+        // TODO: ADD TO ADO ITEM
+        final MsalSdk msalSdk = new MsalSdk();
+
+        // don't pass "is_remote_login_allowed=true" query parameter
+        final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .scopes(Arrays.asList(mScopes))
+                .msalConfigResourceId(getConfigFileResourceId())
+                .build();
+
+        msalSdk.acquireTokenInteractiveAsync(authTestParams, () ->
+                new AadLoginComponentHandler().handleSignInOptions(), TokenRequestTimeout.MEDIUM);
+
+        // ensure "Sign in from other device" option is no present.
+        Assert.assertFalse(UiAutomatorUtils.obtainUiObjectWithText(SIGN_IN_FROM_OTHER_DEVICE).exists());
+
+        // First, try with AZURE_CLOUD
+        this.testSignInFromOtherDevice();
+
+        // TODO: ADD TO ADO ITEM
+        // Second, try with AZURE_US_GOVERNMENT
+        this.setAzureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT);
         this.testSignInFromOtherDevice();
     }
 

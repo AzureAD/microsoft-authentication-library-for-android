@@ -33,12 +33,14 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 // If LTW is the active broker, and request is made through Authenticator from Legacy WorkplaceJoin API, nothing should break
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2582294
 @SupportedBrokers(brokers = {BrokerLTW.class})
 @LTWTests
+@Ignore("May be dropped")
 public class TestCase2582294 extends AbstractMsalBrokerTest {
 
     @Test

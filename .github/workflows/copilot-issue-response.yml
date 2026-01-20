@@ -1,0 +1,796 @@
+# GitHub Copilot Issue Response Workflow
+#
+# This workflow uses GitHub Copilot to automatically triage and respond to new issues.
+# It analyzes the issue content and provides helpful initial responses based on common patterns.
+#
+# Prerequisites:
+# - Copilot must be enabled for the repository
+# - The workflow requires write access to issues
+#
+# Note: This is a template for integration with GitHub Copilot. Manual review of responses
+# is recommended before enabling automatic posting in production.
+
+name: Copilot Issue Triage
+
+on:
+  issues:
+    types: [opened, reopened]
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+  contents: read
+
+# Prevent multiple simultaneous runs for the same issue
+concurrency:
+  group: issue-triage-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  # Initial triage and labeling
+  triage:
+    name: Triage New Issue
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues' && github.event.action == 'opened'
+    outputs:
+      issue_type: ${{ steps.classify.outputs.type }}
+      priority: ${{ steps.classify.outputs.priority }}
+      needs_info: ${{ steps.classify.outputs.needs_info }}
+      msal_version: ${{ steps.classify.outputs.msal_version }}
+      version_age_days: ${{ steps.classify.outputs.version_age_days }}
+      is_very_old: ${{ steps.classify.outputs.is_very_old }}
+      version_release_date: ${{ steps.classify.outputs.version_release_date }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Classify Issue
+        id: classify
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const title = issue.title.toLowerCase();
+            const body = (issue.body || '').toLowerCase();
+            const content = title + ' ' + body;
+            
+            // Classify issue type
+            let issueType = 'question';
+            let priority = 'p3-low';
+            let needsInfo = true;
+            
+            // Version detection - extract MSAL version
+            let msalVersion = null;
+            let versionAgeDays = null;
+            let isVeryOld = false;
+            let versionReleaseDate = null;
+            
+            // Try multiple patterns: v8.1.1, msal:8.1.1, version 8.1.1 (no fallback to avoid false positives)
+            const versionPatterns = [
+              /v(\d+\.\d+\.\d+)/i,
+              /msal[:\s]+(\d+\.\d+\.\d+)/i,
+              /version[:\s]+(\d+\.\d+\.\d+)/i
+            ];
+            
+            for (const pattern of versionPatterns) {
+              const match = content.match(pattern);
+              if (match && match[1]) {
+                msalVersion = match[1];
+                console.log(`Found MSAL version: ${msalVersion}`);
+                break;
+              }
+            }
+            
+            // If version found, check its age
+            if (msalVersion) {
+              try {
+                // Fetch all releases using pagination to avoid 100-item limit
+                const releases = await github.paginate(
+                  github.rest.repos.listReleases,
+                  {
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    per_page: 100
+                  }
+                );
+                
+                // Find the matching release
+                const matchingRelease = releases.find(r => 
+                  r.tag_name === `v${msalVersion}` || r.tag_name === msalVersion
+                );
+                
+                if (matchingRelease) {
+                  const releaseDate = new Date(matchingRelease.published_at);
+                  const now = new Date();
+                  versionAgeDays = Math.floor((now - releaseDate) / (1000 * 60 * 60 * 24));
+                  versionReleaseDate = releaseDate.toISOString().split('T')[0];
+                  
+                  // Check if version is older than 1.5 years (548 days)
+                  isVeryOld = versionAgeDays > 548;
+                  
+                  console.log(`Version ${msalVersion} released on ${versionReleaseDate}, age: ${versionAgeDays} days, is_very_old: ${isVeryOld}`);
+                }
+              } catch (error) {
+                console.error(`Error checking version age: ${error.message}`);
+              }
+            }
+            
+            // Bug indicators
+            const bugKeywords = ['bug', 'crash', 'error', 'exception', 'fail', 'broken', 'not working', 'issue'];
+            if (bugKeywords.some(kw => content.includes(kw))) {
+              issueType = 'bug';
+              priority = 'p2-medium';
+            }
+            
+            // Feature request indicators
+            const featureKeywords = ['feature', 'request', 'enhancement', 'add support', 'would be nice', 'suggestion'];
+            if (featureKeywords.some(kw => content.includes(kw))) {
+              issueType = 'feature-request';
+              priority = 'p3-low';
+            }
+            
+            // Security indicators - high priority
+            const securityKeywords = ['security', 'vulnerability', 'cve', 'exploit', 'attack'];
+            if (securityKeywords.some(kw => content.includes(kw))) {
+              issueType = 'security';
+              priority = 'p0-critical';
+            }
+            
+            // Production/blocker indicators - high priority
+            const criticalKeywords = ['production', 'blocker', 'urgent', 'critical', 'asap', 'blocking'];
+            if (criticalKeywords.some(kw => content.includes(kw))) {
+              priority = 'p1-high';
+            }
+            
+            // Check if required info is present
+            const hasVersion = /msal.*\d+\.\d+/.test(content) || /version.*\d+\.\d+/.test(content);
+            const hasError = content.includes('error') || content.includes('exception') || content.includes('stacktrace');
+            const hasSteps = content.includes('steps') || content.includes('reproduce') || content.includes('1.') || content.includes('step 1');
+            
+            if (hasVersion && (hasError || issueType !== 'bug')) {
+              needsInfo = false;
+            }
+            
+            core.setOutput('type', issueType);
+            core.setOutput('priority', priority);
+            core.setOutput('needs_info', needsInfo);
+            core.setOutput('msal_version', msalVersion || '');
+            core.setOutput('version_age_days', versionAgeDays !== null ? versionAgeDays.toString() : '');
+            core.setOutput('is_very_old', isVeryOld.toString());
+            core.setOutput('version_release_date', versionReleaseDate || '');
+            
+            console.log(`Issue classified as: ${issueType}, Priority: ${priority}, Needs info: ${needsInfo}, Version: ${msalVersion || 'not detected'}`);
+
+      - name: Apply Labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueType = '${{ steps.classify.outputs.type }}';
+            const priority = '${{ steps.classify.outputs.priority }}';
+            const needsInfo = '${{ steps.classify.outputs.needs_info }}' === 'true';
+            const isVeryOld = '${{ steps.classify.outputs.is_very_old }}' === 'true';
+            
+            const labels = [issueType, priority];
+            
+            if (needsInfo) {
+              labels.push('needs-more-info');
+            }
+            
+            // Add very-old-msal label if version is too old
+            if (isVeryOld) {
+              labels.push('very-old-msal');
+            }
+            
+            // Check which labels exist and create if needed
+            for (const label of labels) {
+              try {
+                await github.rest.issues.getLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: label
+                });
+              } catch (e) {
+                // Label doesn't exist, create it
+                const labelColors = {
+                  'bug': 'd73a4a',
+                  'feature-request': 'a2eeef',
+                  'question': 'd876e3',
+                  'security': 'b60205',
+                  'p0-critical': 'b60205',
+                  'p1-high': 'ff6b6b',
+                  'p2-medium': 'fbca04',
+                  'p3-low': '0e8a16',
+                  'needs-more-info': 'fbca04',
+                  'very-old-msal': 'ffa500',
+                  'triage-issue': 'c5def5'
+                };
+                
+                try {
+                  await github.rest.issues.createLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    name: label,
+                    color: labelColors[label] || '666666'
+                  });
+                } catch (createError) {
+                  console.log(`Could not create label ${label}: ${createError.message}`);
+                }
+              }
+            }
+            
+            // Add labels to issue
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: labels
+            });
+
+  # Generate initial response based on issue classification
+  respond:
+    name: Generate Response
+    needs: triage
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Generate Response
+        id: generate_response
+        uses: actions/github-script@v7
+        env:
+          ISSUE_TYPE: ${{ needs.triage.outputs.issue_type }}
+          PRIORITY: ${{ needs.triage.outputs.priority }}
+          NEEDS_INFO: ${{ needs.triage.outputs.needs_info }}
+          MSAL_VERSION: ${{ needs.triage.outputs.msal_version }}
+          VERSION_AGE_DAYS: ${{ needs.triage.outputs.version_age_days }}
+          IS_VERY_OLD: ${{ needs.triage.outputs.is_very_old }}
+          VERSION_RELEASE_DATE: ${{ needs.triage.outputs.version_release_date }}
+        with:
+          script: |
+            const fs = require('fs');
+            const issueType = process.env.ISSUE_TYPE;
+            const priority = process.env.PRIORITY;
+            const needsInfo = process.env.NEEDS_INFO === 'true';
+            const msalVersion = process.env.MSAL_VERSION;
+            const versionAgeDays = process.env.VERSION_AGE_DAYS;
+            const isVeryOld = process.env.IS_VERY_OLD === 'true';
+            const versionReleaseDate = process.env.VERSION_RELEASE_DATE;
+            const issue = context.payload.issue;
+            
+            // Fetch latest version dynamically
+            let latestVersion = '8.+'; // Fallback
+            try {
+              const latestRelease = await github.rest.repos.getLatestRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo
+              });
+              latestVersion = latestRelease.data.tag_name.replace(/^v/, '');
+            } catch (error) {
+              console.log('Could not fetch latest version, using fallback');
+            }
+            
+            let response = '';
+            let labelExplanations = [];
+            
+            // Base acknowledgment
+            response = `Thank you for opening this issue! We appreciate you taking the time to help improve MSAL Android.\n\n`;
+            
+            // Handle very old version FIRST if detected
+            if (isVeryOld && msalVersion) {
+              response += `⚠️ **Unsupported MSAL Version Detected**\n\n`;
+              response += `I've applied the \`very-old-msal\` label because version **${msalVersion}** (released ${versionReleaseDate}) is more than 1.5 years old and is no longer supported.\n\n`;
+              response += `**Microsoft MSAL Android supports versions released within the last 1.5 years.**\n\n`;
+              response += `**Required Action - Please Upgrade:**\n`;
+              response += `1. Update to the latest version (currently **${latestVersion}**) - see [releases](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases)\n`;
+              response += `2. Review the [migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-android#migration) for breaking changes\n`;
+              response += `3. Test your app with the new version\n`;
+              response += `4. If the issue persists with the latest version, please reopen with updated details\n\n`;
+              response += `**To upgrade, update your build.gradle:**\n`;
+              response += `\`\`\`gradle\n`;
+              response += `implementation "com.microsoft.identity.client:msal:8.+"\n`;
+              response += `\`\`\`\n`;
+              response += `We recommend using \`8.+\` for automatic patch updates within the 8.x series.\n\n`;
+              
+              labelExplanations.push(`\`very-old-msal\`: Version ${msalVersion} (released ${versionReleaseDate}) is ${versionAgeDays} days old, exceeding the 1.5 year support window (548 days)`);
+            }
+            
+            // Add label explanations based on classification
+            if (issueType === 'bug') {
+              labelExplanations.push(`\`bug\`: This appears to be a bug report based on the issue description indicating unexpected behavior or errors`);
+            } else if (issueType === 'feature-request') {
+              labelExplanations.push(`\`feature-request\`: This is labeled as a feature request because you're proposing new functionality or enhancements`);
+            } else if (issueType === 'question') {
+              labelExplanations.push(`\`question\`: This is labeled as a question because you're seeking clarification or guidance on MSAL usage`);
+            } else if (issueType === 'security') {
+              labelExplanations.push(`\`security\`: This has been flagged as a potential security concern`);
+            }
+            
+            if (needsInfo) {
+              labelExplanations.push(`\`needs-more-info\`: Additional information is required to properly diagnose and address this issue`);
+            }
+            
+            // Add label explanations section if any
+            if (labelExplanations.length > 0) {
+              response += `**Labels Applied:**\n`;
+              for (const explanation of labelExplanations) {
+                response += `- ${explanation}\n`;
+              }
+              response += `\n`;
+            }
+            
+            // Only provide detailed guidance if NOT very old version
+            if (!isVeryOld) {
+              // Handle security issues differently
+              if (issueType === 'security') {
+                response += `⚠️ **Security Notice**\n\n`;
+                response += `For security issues, please report them through our [security reporting process](https://github.com/AzureAD/microsoft-authentication-library-for-android#security-reporting) rather than public GitHub issues.\n\n`;
+                response += `This helps protect all users while we investigate and address the concern. Our security team will respond promptly through the proper channels.\n\n`;
+                response += `If this is not a security vulnerability but a general question about security features, please clarify and we'll be happy to help!\n`;
+              }
+              // Bug reports
+              else if (issueType === 'bug') {
+                if (needsInfo) {
+                  response += `To help us investigate this issue, please provide the following information:\n\n`;
+                  response += `**Required Information:**\n`;
+                  response += `- [ ] MSAL version (e.g., 8.+, currently ${latestVersion})\n`;
+                  response += `- [ ] Android version and device model\n`;
+                  response += `- [ ] Account mode (Single or Multiple)\n`;
+                  response += `- [ ] Complete error message or stack trace\n`;
+                  response += `- [ ] Steps to reproduce the issue\n\n`;
+                  response += `**Optional but Helpful:**\n`;
+                  response += `- [ ] Your \`auth_config.json\` (with \`client_id\` redacted)\n`;
+                  response += `- [ ] Verbose logs (see below)\n\n`;
+                  response += `<details>\n<summary>How to enable verbose logging</summary>\n\n`;
+                  response += `\`\`\`java\n`;
+                  response += `Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);\n`;
+                  response += `Logger.getInstance().setEnableLogcatLog(true);\n`;
+                  response += `\`\`\`\n</details>\n\n`;
+                }
+                
+                response += `In the meantime, you might find helpful information in our:\n`;
+                response += `- [Common Issues Guide](.github/issue-responses/common-issues-guide.md)\n`;
+                response += `- [Configuration Template](auth_config.template.json)\n`;
+                response += `- [Code Snippets](snippets/) for correct API usage\n\n`;
+              }
+              // Feature requests
+              else if (issueType === 'feature-request') {
+                response += `We've added this to our backlog for review. Feature requests help us prioritize improvements!\n\n`;
+                response += `A few questions that might help us understand your needs better:\n`;
+                response += `- What problem are you trying to solve?\n`;
+                response += `- Are there any workarounds you're currently using?\n`;
+                response += `- How critical is this for your application?\n\n`;
+              }
+              // Questions
+              else {
+                response += `I'll do my best to help! While we look into this, here are some resources that might be useful:\n\n`;
+                response += `- [MSAL Android Documentation](https://github.com/AzureAD/microsoft-authentication-library-for-android)\n`;
+                response += `- [Code Snippets](snippets/) - Examples for common operations\n`;
+                response += `- [Configuration Guide](auth_config.template.json)\n`;
+                response += `- [Golden Examples](examples/) - Complete working applications\n\n`;
+                
+                if (needsInfo) {
+                  response += `To better assist you, please provide:\n`;
+                  response += `- MSAL version you're using\n`;
+                  response += `- What you're trying to accomplish\n`;
+                  response += `- Any error messages you're seeing\n\n`;
+                }
+              }
+            }
+            
+            // Standard footer with PING-COPILOT trigger
+            response += `---\n\n`;
+            response += `**Need further assistance?** You can trigger a follow-up analysis by commenting:\n`;
+            response += `\`\`\`\n`;
+            response += `PING-COPILOT: <your question or request>\n`;
+            response += `\`\`\`\n\n`;
+            response += `The Copilot agent will analyze your comment and provide updated guidance based on the full issue context.\n\n`;
+            response += `---\n`;
+            response += `*This is an automated response. A team member will review your issue soon.*\n`;
+            
+            core.setOutput('response', response);
+            
+      - name: Post Comment
+        uses: actions/github-script@v7
+        env:
+          RESPONSE_CONTENT: ${{ steps.generate_response.outputs.response }}
+        with:
+          script: |
+            const response = process.env.RESPONSE_CONTENT;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: response
+            });
+
+  # Handle common patterns in issue content for immediate guidance
+  pattern_detection:
+    name: Detect Common Patterns
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues' && github.event.action == 'opened'
+    
+    steps:
+      - name: Analyze Issue Content
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const body = issue.body || '';
+            const title = issue.title || '';
+            const content = (title + ' ' + body).toLowerCase();
+            
+            let additionalGuidance = [];
+            
+            // Check for common error patterns
+            
+            // Redirect URI issues
+            if (content.includes('redirect') && (content.includes('mismatch') || content.includes('error') || content.includes('invalid'))) {
+              additionalGuidance.push({
+                title: 'Redirect URI Configuration',
+                message: `This might be a redirect URI encoding issue. Remember:\n` +
+                         `- \`auth_config.json\`: signature hash in redirect_uri must be **URL encoded**\n` +
+                         `- \`AndroidManifest.xml\`: signature hash must be **NOT URL encoded**\n\n` +
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md) for details.`
+              });
+            }
+            
+            // AADSTS errors (typically 5-6 digit codes)
+            const aadstsMatch = content.match(/aadsts\d{5,6}/i);
+            if (aadstsMatch) {
+              const errorCode = aadstsMatch[0].toUpperCase();
+              additionalGuidance.push({
+                title: `${errorCode} Error Detected`,
+                message: `I noticed you're encountering an ${errorCode} error. ` +
+                         `Check our [Common Issues Guide](.github/issue-responses/common-issues-guide.md) for AADSTS error codes and solutions.`
+              });
+            }
+            
+            // Broker issues
+            if (content.includes('broker') || content.includes('authenticator') || content.includes('company portal')) {
+              additionalGuidance.push({
+                title: 'Broker Integration',
+                message: `For broker-related issues, ensure:\n` +
+                         `- \`broker_redirect_uri_registered: true\` in auth_config.json\n` +
+                         `- Microsoft Authenticator or Company Portal is installed\n` +
+                         `- Your signature hash matches Azure App Registration\n\n` +
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md) for broker integration details.`
+              });
+            }
+            
+            // Deprecated API usage
+            if (content.includes('acquiretoken(activity') || content.includes('acquiretokensilentasync')) {
+              additionalGuidance.push({
+                title: 'Deprecated API Usage',
+                message: `It looks like you might be using deprecated MSAL APIs. ` +
+                         `Please use the Parameters-based APIs instead:\n\n` +
+                         `\`\`\`java\n` +
+                         `// Use this instead\n` +
+                         `AcquireTokenParameters params = new AcquireTokenParameters.Builder()\n` +
+                         `    .withScopes(SCOPES)\n` +
+                         `    .withCallback(callback)\n` +
+                         `    .build();\n` +
+                         `mPCA.acquireToken(params);\n` +
+                         `\`\`\`\n\n` +
+                         `See our [Code Snippets](snippets/) for more examples.`
+              });
+            }
+            
+            // PCA initialization issues
+            if (content.includes('null') && (content.includes('pca') || content.includes('publicclientapplication'))) {
+              additionalGuidance.push({
+                title: 'PCA Initialization',
+                message: `This might be related to PublicClientApplication initialization. ` +
+                         `Make sure to:\n` +
+                         `1. Initialize PCA asynchronously before use\n` +
+                         `2. Check for null before calling MSAL methods\n` +
+                         `3. Handle initialization errors\n\n` +
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md) for initialization patterns.`
+              });
+            }
+            
+            // R8/ProGuard issues
+            if (content.includes('r8') || content.includes('proguard') || content.includes('minify') || 
+                content.includes('missing class') || content.includes('dontwarn') ||
+                content.includes('edu.umd.cs.findbugs') || content.includes('com.google.crypto.tink')) {
+              additionalGuidance.push({
+                title: 'R8/ProGuard Configuration',
+                message: `This looks like a code shrinking/obfuscation issue. ` +
+                         `Add these rules to your \`proguard-rules.pro\`:\n\n` +
+                         `\`\`\`proguard\n` +
+                         `-keep class com.microsoft.identity.** { *; }\n` +
+                         `-keep class com.nimbusds.** { *; }\n` +
+                         `-dontwarn edu.umd.cs.findbugs.annotations.**\n` +
+                         `-dontwarn com.google.crypto.tink.**\n` +
+                         `-dontwarn net.jcip.annotations.**\n` +
+                         `\`\`\`\n\n` +
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md#53-proguardr8-issues) for complete R8 configuration.`
+              });
+            }
+            
+            // AADB2C90080 - expired grant
+            if (content.includes('aadb2c90080') || (content.includes('grant') && content.includes('expired'))) {
+              additionalGuidance.push({
+                title: 'Expired Grant / AADB2C90080',
+                message: `This error indicates the refresh token has expired. ` +
+                         `To handle this:\n` +
+                         `1. Remove the account from cache before re-authenticating\n` +
+                         `2. Fall back to interactive authentication\n` +
+                         `3. Consider adjusting token lifetime settings in Azure B2C\n\n` +
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md#82-aadb2c90080---expired-grant-error) for details.`
+              });
+            }
+            
+            // Silent token issues
+            if (content.includes('acquiretokensilent') && (content.includes('fail') || content.includes('error') || content.includes('no cached accounts'))) {
+              additionalGuidance.push({
+                title: 'Silent Token Acquisition',
+                message: `Silent token acquisition failures are common when:\n` +
+                         `- No cached token is available\n` +
+                         `- Refresh token has expired\n` +
+                         `- User consent is required for new scopes\n\n` +
+                         `Always implement fallback to interactive authentication:\n` +
+                         `\`\`\`java\n` +
+                         `if (exception instanceof MsalUiRequiredException) {\n` +
+                         `    // Fall back to interactive\n` +
+                         `    acquireTokenInteractively();\n` +
+                         `}\n` +
+                         `\`\`\`\n\n` +
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md#8-silent-token-refresh-issues) for more patterns.`
+              });
+            }
+            
+            // display-mask dependency issue
+            if (content.includes('display-mask') || (content.includes('failed to resolve') && content.includes('microsoft.device'))) {
+              additionalGuidance.push({
+                title: 'display-mask Dependency',
+                message: `The \`display-mask\` library requires a specific Maven repository. ` +
+                         `Add this to your \`settings.gradle\`:\n\n` +
+                         `\`\`\`gradle\n` +
+                         `maven {\n` +
+                         `    url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1'\n` +
+                         `}\n` +
+                         `\`\`\`\n\n` +
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md#54-display-mask-dependency-resolution) for details.`
+              });
+            }
+            
+            // Android 15 / SDK 35 issues
+            if (content.includes('android 15') || content.includes('sdk 35') || content.includes('api 35') ||
+                (content.includes('edge') && content.includes('display'))) {
+              additionalGuidance.push({
+                title: 'Android 15 Compatibility',
+                message: `Android 15 (SDK 35) introduces new behaviors that may affect MSAL:\n` +
+                         `- Edge-to-edge display is enabled by default\n` +
+                         `- Package visibility restrictions are stricter\n\n` +
+                         `Make sure to:\n` +
+                         `1. Update to the latest MSAL version\n` +
+                         `2. Update Microsoft Authenticator to the latest version\n` +
+                         `3. Handle system bar insets properly in your theme\n\n` +
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md#63-android-15-edge-to-edge-display-issues) for details.`
+              });
+            }
+            
+            // B2C specific issues
+            if (content.includes('b2c') && (content.includes('error') || content.includes('fail') || content.includes('not working'))) {
+              additionalGuidance.push({
+                title: 'Azure AD B2C Configuration',
+                message: `For B2C integrations, ensure:\n` +
+                         `1. Authority URL follows the format: \`https://{tenant}.b2clogin.com/{tenant}.onmicrosoft.com/{policy}\`\n` +
+                         `2. Your policy name is included in the authority\n` +
+                         `3. You're using the correct account for the policy when calling acquireTokenSilent\n\n` +
+                         `Example authority configuration:\n` +
+                         `\`\`\`json\n` +
+                         `"authorities": [{\n` +
+                         `    "type": "B2C",\n` +
+                         `    "authority_url": "https://contoso.b2clogin.com/contoso.onmicrosoft.com/B2C_1_signin"\n` +
+                         `}]\n` +
+                         `\`\`\``
+              });
+            }
+            
+            // Post additional guidance if patterns detected
+            if (additionalGuidance.length > 0) {
+              let comment = `## 💡 Potential Solutions Detected\n\n`;
+              comment += `Based on your issue description, I noticed some patterns that might help:\n\n`;
+              
+              for (const guidance of additionalGuidance) {
+                comment += `### ${guidance.title}\n\n`;
+                comment += `${guidance.message}\n\n`;
+              }
+              
+              comment += `---\n`;
+              comment += `*These are automated suggestions. Please let us know if any of these apply to your situation.*`;
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
+
+  # Handle PING-COPILOT follow-up comments
+  handle_ping_copilot:
+    name: Handle PING-COPILOT Follow-up
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'issue_comment' && 
+      github.event.action == 'created' &&
+      (contains(github.event.comment.body, 'PING-COPILOT:') || contains(github.event.comment.body, 'ping-copilot:'))
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Extract PING-COPILOT Request
+        id: extract_request
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = context.payload.comment.body;
+            
+            // Extract the text after PING-COPILOT: (supports multi-line)
+            const match = comment.match(/PING-COPILOT:\s*([\s\S]+)/i);
+            if (match && match[1]) {
+              const userRequest = match[1].trim();
+              core.setOutput('user_request', userRequest);
+              core.setOutput('has_request', 'true');
+              console.log(`PING-COPILOT request detected: ${userRequest}`);
+            } else {
+              core.setOutput('has_request', 'false');
+            }
+            
+      - name: Generate Follow-up Response
+        if: steps.extract_request.outputs.has_request == 'true'
+        uses: actions/github-script@v7
+        env:
+          USER_REQUEST: ${{ steps.extract_request.outputs.user_request }}
+        with:
+          script: |
+            const userRequest = process.env.USER_REQUEST;
+            const issue = context.payload.issue;
+            
+            // Fetch latest version dynamically
+            let latestVersion = '8.+'; // Fallback
+            try {
+              const latestRelease = await github.rest.repos.getLatestRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo
+              });
+              latestVersion = latestRelease.data.tag_name.replace(/^v/, '');
+            } catch (error) {
+              console.log('Could not fetch latest version, using fallback');
+            }
+            
+            // Build response acknowledging the follow-up
+            let response = `Thanks for the follow-up! I'll analyze your request: "${userRequest}"\n\n`;
+            
+            // Get issue context
+            const issueTitle = issue.title || '';
+            const issueBody = issue.body || '';
+            const content = (issueTitle + ' ' + issueBody).toLowerCase();
+            
+            // Helper function to detect MSAL version
+            function detectMsalVersion(text) {
+              const versionPatterns = [
+                /v(\d+\.\d+\.\d+)/i,
+                /msal[:\s]+(\d+\.\d+\.\d+)/i,
+                /version[:\s]+(\d+\.\d+\.\d+)/i
+              ];
+              
+              for (const pattern of versionPatterns) {
+                const match = text.match(pattern);
+                if (match && match[1]) {
+                  return match[1];
+                }
+              }
+              return null;
+            }
+            
+            // Try to detect version in the original issue
+            let msalVersion = detectMsalVersion(content);
+            
+            // Provide contextual guidance based on request
+            const requestLower = userRequest.toLowerCase();
+            
+            // Check for upgrade-related questions
+            if (requestLower.includes('upgrade') || requestLower.includes('updated') || requestLower.includes('new version')) {
+              response += `Great that you're upgrading! Here's what you need to know:\n\n`;
+              response += `**Latest Version:** ${latestVersion} ([release notes](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v${latestVersion}))\n\n`;
+              response += `**Upgrade Steps:**\n`;
+              response += `1. Update your \`build.gradle\`:\n`;
+              response += `\`\`\`gradle\n`;
+              response += `implementation "com.microsoft.identity.client:msal:8.+"\n`;
+              response += `\`\`\`\n`;
+              response += `2. Review [breaking changes](https://github.com/AzureAD/microsoft-authentication-library-for-android#migration) if upgrading from v6.x or earlier\n`;
+              response += `3. Test authentication flows thoroughly\n`;
+              response += `4. Update Android Authenticator app on test devices\n\n`;
+            }
+            // Check for configuration questions
+            else if (requestLower.includes('config') || requestLower.includes('auth_config') || requestLower.includes('redirect')) {
+              response += `Let me help with configuration:\n\n`;
+              response += `**Key Configuration Points:**\n`;
+              response += `1. **Redirect URI Encoding** (most common issue):\n`;
+              response += `   - \`auth_config.json\`: signature hash must be URL encoded (\`%2A\` for \`*\`, \`%3D\` for \`=\`)\n`;
+              response += `   - \`AndroidManifest.xml\`: signature hash must NOT be URL encoded\n\n`;
+              response += `2. **Required in auth_config.json:**\n`;
+              response += `   - \`client_id\`: From Azure App Registration\n`;
+              response += `   - \`redirect_uri\`: Format \`msauth://your.package.name/URL_ENCODED_HASH\`\n`;
+              response += `   - \`broker_redirect_uri_registered\`: Should be \`true\`\n\n`;
+              response += `3. **Required in AndroidManifest.xml:**\n`;
+              response += `   - BrowserTabActivity with intent-filter\n`;
+              response += `   - Signature hash in path (NOT URL encoded)\n\n`;
+              response += `See our [configuration template](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/auth_config.template.json) for full details.\n\n`;
+            }
+            // Check for broker questions
+            else if (requestLower.includes('broker') || requestLower.includes('authenticator')) {
+              response += `Here's guidance on broker integration:\n\n`;
+              response += `**Broker Setup:**\n`;
+              response += `1. Set \`broker_redirect_uri_registered: true\` in auth_config.json\n`;
+              response += `2. Ensure Microsoft Authenticator or Company Portal is installed\n`;
+              response += `3. Your app's signature hash must match what's registered in Azure\n\n`;
+              response += `**Common Broker Issues:**\n`;
+              response += `- Signature hash mismatch → Verify with \`keytool\` command\n`;
+              response += `- Broker not installed → Falls back to web flow\n`;
+              response += `- Package visibility → Add \`<queries>\` section to AndroidManifest.xml\n\n`;
+              response += `See [Common Issues Guide](.github/issue-responses/common-issues-guide.md#4-broker-integration-issues) for detailed troubleshooting.\n\n`;
+            }
+            // Check for error-specific questions
+            else if (requestLower.includes('error') || requestLower.includes('exception') || requestLower.includes('fail')) {
+              response += `To help diagnose the error:\n\n`;
+              response += `**Needed Information:**\n`;
+              response += `1. Complete error message or stack trace\n`;
+              response += `2. MSAL version you're using\n`;
+              response += `3. Steps that trigger the error\n`;
+              response += `4. Verbose logs (see below)\n\n`;
+              response += `**Enable Verbose Logging:**\n`;
+              response += `\`\`\`java\n`;
+              response += `Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);\n`;
+              response += `Logger.getInstance().setEnableLogcatLog(true);\n`;
+              response += `\`\`\`\n\n`;
+              response += `Common error patterns are documented in our [Common Issues Guide](.github/issue-responses/common-issues-guide.md).\n\n`;
+            }
+            // Generic helpful response
+            else {
+              response += `Based on the original issue and your follow-up, here are some relevant resources:\n\n`;
+              response += `**Documentation:**\n`;
+              response += `- [Common Issues Guide](.github/issue-responses/common-issues-guide.md) - Troubleshooting reference\n`;
+              response += `- [Configuration Template](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/auth_config.template.json)\n`;
+              response += `- [Code Snippets](https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/dev/snippets) - Correct API usage examples\n`;
+              response += `- [Golden Examples](https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/dev/examples)\n\n`;
+              
+              if (msalVersion) {
+                response += `**Note:** You mentioned version ${msalVersion}. The latest version is ${latestVersion}.\n\n`;
+              }
+            }
+            
+            // Add context from issue labels if available
+            const labels = issue.labels || [];
+            const labelNames = labels.map(l => typeof l === 'string' ? l : l.name);
+            
+            if (labelNames.includes('very-old-msal')) {
+              response += `⚠️ **Important:** This issue is labeled \`very-old-msal\`, indicating you're using an unsupported version. `;
+              response += `Please upgrade to the latest version (${latestVersion}) before further troubleshooting.\n\n`;
+            }
+            
+            // Footer with another PING-COPILOT reminder
+            response += `---\n\n`;
+            response += `**Need more help?** You can trigger another follow-up by commenting:\n`;
+            response += `\`\`\`\n`;
+            response += `PING-COPILOT: <your question>\n`;
+            response += `\`\`\`\n\n`;
+            response += `---\n`;
+            response += `*Automated follow-up response. A team member will review the full conversation.*\n`;
+            
+            // Post the response
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: response
+            });

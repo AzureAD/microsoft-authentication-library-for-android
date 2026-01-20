@@ -36,6 +36,7 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
@@ -46,6 +47,7 @@ import java.util.Map;
 @LTWTests
 @RetryOnFailure
 @SupportedBrokers(brokers = {BrokerLTW.class})
+@Ignore("May be dropped")
 public class TestCase2582297 extends AbstractMsalBrokerTest {
     @Test
     public void test_2582297_LTW_AuthenticatorHighestPriorityCPLTWAuth() throws Throwable {

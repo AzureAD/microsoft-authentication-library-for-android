@@ -49,7 +49,7 @@ import java.util.Map;
 // Brokered Auth verify "Sign In from other device" option.
 abstract class AbstractSignInFromOtherDeviceTest extends AbstractMsalBrokerTest {
 
-    private final AzureEnvironment mAzureEnvironment;
+    private AzureEnvironment mAzureEnvironment;
 
     public AbstractSignInFromOtherDeviceTest(@NonNull AzureEnvironment environment) {
         mAzureEnvironment = environment;
@@ -61,6 +61,10 @@ abstract class AbstractSignInFromOtherDeviceTest extends AbstractMsalBrokerTest 
                 .userType(UserType.CLOUD)
                 .azureEnvironment(mAzureEnvironment)
                 .build();
+    }
+
+    public void setAzureEnvironment(@NonNull AzureEnvironment environment) {
+        mAzureEnvironment = environment;
     }
 
     @Override
