@@ -33,7 +33,7 @@ jacoco {
     toolVersion = "0.8.10"
 }
 
-task jacocoTestReport(type: JacocoReport, dependsOn: ['test']) {
+task jacocoTestReport(type: JacocoReport, dependsOn: ['testLocalDebugUnitTest']) {
     reports {
         xml.required = true
         html.required = true
