@@ -33,13 +33,12 @@ jacoco {
     toolVersion = "0.8.10"
 }
 
-jacocoTestReport {
-    dependsOn test
+task jacocoTestReport(type: JacocoReport, dependsOn: ['test']) {
     reports {
         xml.required = true
-        csv.required = false
-        html.outputLocation = layout.buildDirectory.dir('reports/jacoco/html')
+        html.required = true
     }
+    // Configure classDirectories, sourceDirectories, executionData as needed
 }
 
 // https://blog.gradle.org/gradle-flaky-test-retry-plugin
