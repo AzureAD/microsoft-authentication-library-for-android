@@ -43,6 +43,7 @@ task jacocoTestReport(type: JacocoReport, dependsOn: ['testLocalDebugUnitTest'])
 
 // https://blog.gradle.org/gradle-flaky-test-retry-plugin
 tasks.withType(Test) {
+    useJUnitPlatform()
     retry {
         // The maximum number of test failures that are allowed before retrying is disabled.
         maxRetries = 2
