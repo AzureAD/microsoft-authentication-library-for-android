@@ -29,6 +29,19 @@ codeCoverageReport {
     coverage.enabled = enableCodeCoverage
 }
 
+jacoco {
+    toolVersion = "0.8.10"
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        csv.required = false
+        html.outputLocation = layout.buildDirectory.dir('reports/jacoco/html')
+    }
+}
+
 // https://blog.gradle.org/gradle-flaky-test-retry-plugin
 tasks.withType(Test) {
     retry {
