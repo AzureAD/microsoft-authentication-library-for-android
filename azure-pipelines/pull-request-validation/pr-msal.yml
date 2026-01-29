@@ -54,9 +54,9 @@ jobs:
   - task: CodeQL3000Init@0
   - task: Gradle@2
     name: Gradle1
-    displayName: Assemble Local
+    displayName: Assemble Local Debug
     inputs:
-      tasks: clean msal:assembleLocal
+      tasks: clean msal:assembleLocalDebug
       publishJUnitResults: false
       testResultsFiles: '**/build/test-results/TEST-*.xml'
       jdkVersion: $(BuildParameters.jdkVersion)
