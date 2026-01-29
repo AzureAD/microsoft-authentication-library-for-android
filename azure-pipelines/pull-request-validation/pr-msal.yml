@@ -52,25 +52,23 @@ jobs:
       jdkArchitectureOption: x64
       jdkSourceOption: PreInstalled
   - task: CodeQL3000Init@0
-  - task: Gradle@2
-    name: Gradle1
-    displayName: Assemble Local Debug
-    inputs:
-      tasks: clean msal:assembleLocalDebug
-      publishJUnitResults: false
-      testResultsFiles: '**/build/test-results/TEST-*.xml'
-      jdkVersion: $(BuildParameters.jdkVersion)
-      jdkArchitecture: $(BuildParameters.jdkArchitecture)
-      sqGradlePluginVersion: 2.0.1
-  - task: CodeQL3000Finalize@0
+#  - task: Gradle@2
+#    name: Gradle1
+#    displayName: Assemble Local
+#    inputs:
+#      tasks: clean msal:assembleLocal
+#      publishJUnitResults: false
+#      testResultsFiles: '**/build/test-results/TEST-*.xml'
+#      jdkVersion: $(BuildParameters.jdkVersion)
+#      jdkArchitecture: $(BuildParameters.jdkArchitecture)
+#      sqGradlePluginVersion: 2.0.1
   - task: Gradle@2
     displayName: Run Tests, Generate Code Coverage Report
     inputs:
-      tasks: msal:testLocalDebugUnitTestCoverageReport -Plabtest -PlabSecret=$(LabVaultAppCert) -PcodeCoverageEnabled=true -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PmockApiUrl=$(MOCK_API_URL) -PnativeAuthConfigString=$(NATIVE_AUTH_CONFIG_STRING)
+      tasks: msal:localDebugMsalUnitTestCoverageReport -PcodeCoverageEnabled=true -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PmockApiUrl=$(MOCK_API_URL) -PnativeAuthConfigString=$(NATIVE_AUTH_CONFIG_STRING)
       javaHomeSelection: $(BuildParameters.javaHomeSelection)
       jdkVersion: 1.17
-  - script: tree "$(Build.SourcesDirectory)\msal" /F /A
-    displayName: 'Print File Structure Tree'
+  - task: CodeQL3000Finalize@0
   - task: PublishCodeCoverageResults@1
     displayName: Publish Code Coverage Results
     condition: always()
