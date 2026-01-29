@@ -66,7 +66,7 @@ jobs:
   - task: Gradle@2
     displayName: Run Tests, Generate Code Coverage Report
     inputs:
-      tasks: msal:testLocalDebugUnitTest -Plabtest -PlabSecret=$(LabVaultAppCert) -PcodeCoverageEnabled=true -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PmockApiUrl=$(MOCK_API_URL) -PnativeAuthConfigString=$(NATIVE_AUTH_CONFIG_STRING)
+      tasks: msal:testLocalDebugUnitTestCoverageReport -Plabtest -PlabSecret=$(LabVaultAppCert) -PcodeCoverageEnabled=true -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PmockApiUrl=$(MOCK_API_URL) -PnativeAuthConfigString=$(NATIVE_AUTH_CONFIG_STRING)
       javaHomeSelection: $(BuildParameters.javaHomeSelection)
       jdkVersion: 1.17
   - script: tree "$(Build.SourcesDirectory)\msal" /F /A

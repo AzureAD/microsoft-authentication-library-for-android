@@ -46,6 +46,10 @@ jobs:
     submodules: recursive
     persistCredentials: True
   - template: azure-pipelines/templates/steps/automation-cert.yml@common
+  - bash: |
+      echo "##vso[task.setvariable variable=ENV_VSTS_MVN_CRED_USERNAME]VSTS"
+      echo "##vso[task.setvariable variable=ENV_VSTS_MVN_CRED_ACCESSTOKEN]$(System.AccessToken)"
+    displayName: 'Set VSTS Fields in Environment'
   - task: JavaToolInstaller@0
     displayName: Use Java 8
     inputs:
