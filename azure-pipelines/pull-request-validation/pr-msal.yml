@@ -66,13 +66,7 @@ jobs:
   - task: Gradle@2
     displayName: Run Tests
     inputs:
-      tasks: msal:testLocalDebugUnitTest  -PcodeCoverageEnabled=true -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PmockApiUrl=$(MOCK_API_URL) -PnativeAuthConfigString=$(NATIVE_AUTH_CONFIG_STRING)
-      javaHomeSelection: $(BuildParameters.javaHomeSelection)
-      jdkVersion: 1.17
-  - task: Gradle@2
-    displayName: Run Jacoco
-    inputs:
-      tasks: msal:jacocoTestReport
+      tasks: msal:jacocoTestReport  -PcodeCoverageEnabled=true -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PmockApiUrl=$(MOCK_API_URL) -PnativeAuthConfigString=$(NATIVE_AUTH_CONFIG_STRING)
       javaHomeSelection: $(BuildParameters.javaHomeSelection)
       jdkVersion: 1.17
   - script: tree "$(Build.SourcesDirectory)\msal" /F /A

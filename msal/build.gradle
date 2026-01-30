@@ -32,18 +32,20 @@ codeCoverageReport {
 jacoco {
     toolVersion = "0.8.10"
 }
-
-task jacocoTestReport(type: JacocoReport, dependsOn: ['testLocalDebugUnitTest']) {
-    reports {
-        xml.required = true
-        html.required = true
-    }
-    // Configure classDirectories, sourceDirectories, executionData as needed
-}
+//
+//task jacocoTestReport(type: JacocoReport, dependsOn: ['testLocalDebugUnitTest']) {
+//    reports {
+//        xml.required = true
+//        html.required = true
+//    }
+//    // Configure classDirectories, sourceDirectories, executionData as needed
+//}
 
 // https://blog.gradle.org/gradle-flaky-test-retry-plugin
 tasks.withType(Test) {
-    useJUnitPlatform()
+    jacoco {
+        includeNoLocationClasses = true // Required for Robolectric
+    }
     retry {
         // The maximum number of test failures that are allowed before retrying is disabled.
         maxRetries = 2
@@ -52,9 +54,38 @@ tasks.withType(Test) {
         // Controls whether tests that initially fail and then pass on retry should fail the task.
         failOnPassedAfterRetry = false
     }
-    if (enableCodeCoverage) {
-        finalizedBy jacocoTestReport // report is always generated after tests run
+}
+
+tasks.register("jacocoTestReport", JacocoReport) {
+    dependsOn "testLocalDebugUnitTest" // Run Robolectric tests first
+
+    reports {
+        xml.required = true
+        html.required = true
     }
+
+    def fileFilter = [
+            '**/R.class', '**/R$*.class', '**/BuildConfig.*',
+            '**/Manifest*.*', '**/*Test*.*',
+            'android/**/*.*'
+    ]
+
+    def debugTree = fileTree(
+            dir: "$buildDir/tmp/kotlin-classes/debug",
+            excludes: fileFilter
+    )
+
+    def mainSrc = "$projectDir/src/main/java"
+
+    sourceDirectories.setFrom(files([mainSrc]))
+    classDirectories.setFrom(files([debugTree]))
+    executionData.setFrom(fileTree(
+            dir: buildDir,
+            includes: [
+                    "jacoco/testDebugUnitTest.exec",
+                    "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec"
+            ]
+    ))
 }
 
 android {
