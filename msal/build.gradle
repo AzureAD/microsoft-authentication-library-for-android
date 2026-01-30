@@ -82,8 +82,8 @@ tasks.register("jacocoTestReport", JacocoReport) {
     executionData.setFrom(fileTree(
             dir: buildDir,
             includes: [
-                    "jacoco/testDebugUnitTest.exec",
-                    "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec"
+                    "jacoco/testLocalDebugUnitTest.exec",
+                    "outputs/unit_test_code_coverage/localDebugUnitTest/testLocalDebugUnitTest.exec"
             ]
     ))
 }
