@@ -76,8 +76,8 @@ jobs:
     condition: always()
     inputs:
       codeCoverageTool: 'JaCoCo'
-      summaryFileLocation: '$(Build.SourcesDirectory)/msal/build/reports/jacoco/localDebugMsalUnitTestCoverageReport/localDebugMsalUnitTestCoverageReport.xml'
-      reportDirectory: '$(Build.SourcesDirectory)/msal/build/reports/jacoco/localDebugMsalUnitTestCoverageReport/html'
+      summaryFileLocation: '$(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml'
+      reportDirectory: '$(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport/html'
       failIfCoverageEmpty: false
 - job: spotbugs
   displayName: SpotBugs
