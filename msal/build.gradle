@@ -71,7 +71,7 @@ tasks.register("jacocoTestReport", JacocoReport) {
     ]
 
     def debugTree = fileTree(
-            dir: "$buildDir/tmp/kotlin-classes/debug",
+            dir: "$buildDir/tmp/kotlin-classes/localDebug",
             excludes: fileFilter
     )
 

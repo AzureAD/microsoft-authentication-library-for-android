@@ -32,13 +32,11 @@ resources:
     ref: dev
     endpoint: ANDROID_GITHUB
 
-pool:
-  name: MSSecurity-1ES-Build-Agents-Pool
-  image: MSSecurity-1ES-Windows-2022
-  os: windows
 jobs:
 - job: msal_code_coverage
   displayName: MSAL Code Coverage
+  pool:
+    name: Hosted Windows 2019 with VS2019
   steps:
   - checkout: self
     displayName: Checkout MSAL Repository
@@ -46,10 +44,6 @@ jobs:
     submodules: recursive
     persistCredentials: True
   - template: azure-pipelines/templates/steps/automation-cert.yml@common
-  - bash: |
-      echo "##vso[task.setvariable variable=ENV_VSTS_MVN_CRED_USERNAME]VSTS"
-      echo "##vso[task.setvariable variable=ENV_VSTS_MVN_CRED_ACCESSTOKEN]$(System.AccessToken)"
-    displayName: 'Set VSTS Fields in Environment'
   - task: JavaToolInstaller@0
     displayName: Use Java 8
     inputs:
