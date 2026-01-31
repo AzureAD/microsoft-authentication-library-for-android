@@ -163,8 +163,7 @@ stages:
   - stage: compare_coverage
     displayName: Compare Code Coverage
     dependsOn:
-      - build_test
-      - build_test_dev
+      - build_and_test
     jobs:
       - job: compare
         displayName: Compare PR and Dev Coverage
