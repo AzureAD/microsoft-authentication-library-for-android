@@ -82,6 +82,14 @@ stages:
       - publish: $(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
         artifact: jacocoReport
         displayName: 'Publish JaCoCo Report Artifact (PR Branch)'
+      - task: PublishCodeCoverageResults@1
+        displayName: Publish Code Coverage Results
+        condition: always()
+        inputs:
+          codeCoverageTool: 'JaCoCo'
+          summaryFileLocation: '$(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml'
+          reportDirectory: '$(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport/html'
+          failIfCoverageEmpty: false
 #  This needs to be commented for now, because dev doesn't have the jacocoTestReport task yet, will uncomment in the next PR.
 #    - job: build_test_dev
 #      displayName: Build & Test (Dev)
