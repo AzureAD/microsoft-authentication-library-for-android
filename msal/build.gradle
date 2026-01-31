@@ -61,7 +61,7 @@ tasks.register("jacocoTestReport", JacocoReport) {
 //            '**/Manifest*.*', '**/*Test*.*',
 //            'android/**/*.*'
 //    ]
-
+//
 //    def kotlinClasses = fileTree(
 //            dir: "$buildDir/tmp/kotlin-classes/localDebug",
 //            excludes: fileFilter
@@ -71,22 +71,18 @@ tasks.register("jacocoTestReport", JacocoReport) {
 //            dir: "$buildDir/intermediates/javac/localDebug/classes",
 //            excludes: fileFilter
 //    )
-
-    def mainSrc = "$projectDir/src/main/java"
-
-    // Include both Kotlin and Java source sets
-    sourceDirectories.setFrom(files(mainSrc.allSource.srcDirs))
-    classDirectories.setFrom(files(mainSrc.output))
+//
+//    def mainSrc = "$projectDir/src/main/java"
 //
 //    sourceDirectories.setFrom(files([mainSrc]))
 //    classDirectories.setFrom(files([kotlinClasses, javaClasses]))
-    executionData.setFrom(fileTree(
-            dir: buildDir,
-            includes: [
-                    "jacoco/testLocalDebugUnitTest.exec",
-                    "outputs/unit_test_code_coverage/localDebugUnitTest/testLocalDebugUnitTest.exec"
-            ]
-    ))
+//    executionData.setFrom(fileTree(
+//            dir: buildDir,
+//            includes: [
+//                    "jacoco/testLocalDebugUnitTest.exec",
+//                    "outputs/unit_test_code_coverage/localDebugUnitTest/testLocalDebugUnitTest.exec"
+//            ]
+//    ))
 }
 
 android {
