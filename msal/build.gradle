@@ -62,15 +62,20 @@ tasks.register("jacocoTestReport", JacocoReport) {
             'android/**/*.*'
     ]
 
-    def debugTree = fileTree(
+    def kotlinTree = fileTree(
             dir: "$buildDir/tmp/kotlin-classes/localDebug",
             excludes: fileFilter
+    )
+
+    def javaClasses = fileTree(
+            dir = "$buildDir/intermediates/javac/localDebug/classes",
+            excludes = fileFilter
     )
 
     def mainSrc = "$projectDir/src/main/java"
 
     sourceDirectories.setFrom(files([mainSrc]))
-    classDirectories.setFrom(files([debugTree]))
+    classDirectories.setFrom(files([kotlinTree, javaClasses]))
     executionData.setFrom(fileTree(
             dir: buildDir,
             includes: [
