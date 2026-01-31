@@ -24,6 +24,11 @@ resources:
     name: AzureAD/microsoft-authentication-library-common-for-android
     ref: dev
     endpoint: ANDROID_GITHUB
+  - repository: msal-dev
+    type: github
+    name: AzureAD/microsoft-authentication-library-for-android
+    ref: dev
+    endpoint: ANDROID_GITHUB
 
 pool:
   name: MSSecurity-1ES-Build-Agents-Pool
@@ -31,7 +36,7 @@ pool:
   os: windows
 jobs:
 - job: build_test
-  displayName: Build & Test
+  displayName: Build & Test (PR Branch)
   cancelTimeoutInMinutes: 1
   variables:
     Codeql.Enabled: true
@@ -71,14 +76,54 @@ jobs:
       jdkVersion: 1.17
   - script: tree "$(Build.SourcesDirectory)\msal" /F /A
     displayName: 'Print File Structure Tree'
-  - task: PublishCodeCoverageResults@1
-    displayName: Publish Code Coverage Results
-    condition: always()
-    inputs:
-      codeCoverageTool: 'JaCoCo'
-      summaryFileLocation: '$(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml'
-      reportDirectory: '$(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport/html'
-      failIfCoverageEmpty: false
+  - publish: $(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+    artifact: jacocoReport
+    displayName: 'Publish JaCoCo Report (PR Branch)'
+- job: build_test_dev
+  displayName: Build & Test (Dev)
+  cancelTimeoutInMinutes: 1
+  continueOnError: true
+  variables:
+    Codeql.Enabled: true
+  steps:
+    - checkout: msal-dev
+      clean: true
+      submodules: recursive
+      persistCredentials: True
+    - bash: |
+        echo "##vso[task.setvariable variable=ENV_VSTS_MVN_CRED_USERNAME]VSTS"
+        echo "##vso[task.setvariable variable=ENV_VSTS_MVN_CRED_ACCESSTOKEN]$(System.AccessToken)"
+      displayName: 'Set VSTS Fields in Environment'
+    - template: azure-pipelines/templates/steps/automation-cert.yml@common
+    - task: JavaToolInstaller@0
+      displayName: Use Java 17
+      inputs:
+        versionSpec: '17'
+        jdkArchitectureOption: x64
+        jdkSourceOption: PreInstalled
+    - task: CodeQL3000Init@0
+    - task: Gradle@2
+      name: Gradle1
+      displayName: Assemble Local
+      inputs:
+        tasks: clean msal:assembleLocal
+        publishJUnitResults: false
+        testResultsFiles: '**/build/test-results/TEST-*.xml'
+        jdkVersion: $(BuildParameters.jdkVersion)
+        jdkArchitecture: $(BuildParameters.jdkArchitecture)
+        sqGradlePluginVersion: 2.0.1
+    - task: CodeQL3000Finalize@0
+    - task: Gradle@2
+      displayName: Run Tests
+      inputs:
+        tasks: msal:jacocoTestReport  -PcodeCoverageEnabled=true -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PmockApiUrl=$(MOCK_API_URL) -PnativeAuthConfigString=$(NATIVE_AUTH_CONFIG_STRING)
+        javaHomeSelection: $(BuildParameters.javaHomeSelection)
+        jdkVersion: 1.17
+    - script: tree "$(Build.SourcesDirectory)\msal" /F /A
+      displayName: 'Print File Structure Tree'
+    - publish: $(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+      artifact: jacocoReportDev
+      displayName: 'Publish JaCoCo Report (Dev Branch)'
 - job: spotbugs
   displayName: SpotBugs
   cancelTimeoutInMinutes: 1
@@ -113,4 +158,23 @@ jobs:
       publishJUnitResults: false
       jdkVersion: 1.17
 
+- stage: compare_coverage
+  displayName: Compare Code Coverage
+  dependsOn:
+    - build_test
+    - build_test_dev
+  jobs:
+    - job: compare
+      displayName: Compare PR and Dev Coverage
+      steps:
+        - download: current
+          artifact: jacocoReport # Adjust artifact name as needed
+        - download: current
+          artifact: jacocoReportDev # Adjust artifact name as needed
+
+        - script: |
+            python compare_coverage.py \
+              $(Pipeline.Workspace)/jacocoReport/jacocoTestReport.xml \
+              $(Pipeline.Workspace)/jacocoReportDev/jacocoTestReport.xml
+          displayName: Compare Jacoco Coverage
 ...
