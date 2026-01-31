@@ -32,14 +32,6 @@ codeCoverageReport {
 jacoco {
     toolVersion = "0.8.10"
 }
-//
-//task jacocoTestReport(type: JacocoReport, dependsOn: ['testLocalDebugUnitTest']) {
-//    reports {
-//        xml.required = true
-//        html.required = true
-//    }
-//    // Configure classDirectories, sourceDirectories, executionData as needed
-//}
 
 // https://blog.gradle.org/gradle-flaky-test-retry-plugin
 tasks.withType(Test) {
