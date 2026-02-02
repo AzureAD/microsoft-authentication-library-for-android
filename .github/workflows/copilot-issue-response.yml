@@ -351,7 +351,7 @@ jobs:
             const hasError = content.includes('error') || content.includes('exception') || content.includes('stacktrace');
             const hasSteps = content.includes('steps') || content.includes('reproduce') || content.includes('1.') || content.includes('step 1');
             
-            if (hasVersion && (hasError || issueType !== 'bug')) {
+            if (hasVersion && (hasError || issueType !== 'needs-investigation')) {
               needsInfo = false;
             }
             
