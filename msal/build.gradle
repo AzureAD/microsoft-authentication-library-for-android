@@ -56,33 +56,34 @@ tasks.register("jacocoTestReport", JacocoReport) {
         html.required = true
     }
 
-//    def fileFilter = [
-//            '**/R.class', '**/R$*.class', '**/BuildConfig.*',
-//            '**/Manifest*.*', '**/*Test*.*',
-//            'android/**/*.*'
-//    ]
-//
-//    def kotlinClasses = fileTree(
-//            dir: "$buildDir/tmp/kotlin-classes/localDebug",
-//            excludes: fileFilter
-//    )
-//
-//    def javaClasses = fileTree(
-//            dir: "$buildDir/intermediates/javac/localDebug/classes",
-//            excludes: fileFilter
-//    )
-//
-//    def mainSrc = "$projectDir/src/main/java"
-//
-//    sourceDirectories.setFrom(files([mainSrc]))
-//    classDirectories.setFrom(files([kotlinClasses, javaClasses]))
-//    executionData.setFrom(fileTree(
-//            dir: buildDir,
-//            includes: [
-//                    "jacoco/testLocalDebugUnitTest.exec",
-//                    "outputs/unit_test_code_coverage/localDebugUnitTest/testLocalDebugUnitTest.exec"
-//            ]
-//    ))
+    def fileFilter = [
+            '**/R.class', '**/R$*.class', '**/BuildConfig.*',
+            '**/Manifest*.*', '**/*Test*.*',
+            'android/**/*.*'
+    ]
+
+    def kotlinClasses = fileTree(
+            dir: "$buildDir/tmp/kotlin-classes/localDebug",
+            excludes: fileFilter
+    )
+
+    def javaClasses = fileTree(
+            dir: "$buildDir/intermediates/javac/localDebug/classes",
+            excludes: fileFilter
+    )
+
+    sourceDirectories.setFrom(files([
+            "$projectDir/src/main/java",
+            "$projectDir/src/main/kotlin"
+    ]))
+    classDirectories.setFrom(files([kotlinClasses, javaClasses]))
+    executionData.setFrom(fileTree(
+            dir: buildDir,
+            includes: [
+                    "jacoco/testLocalDebugUnitTest.exec",
+                    "outputs/unit_test_code_coverage/localDebugUnitTest/testLocalDebugUnitTest.exec"
+            ]
+    ))
 }
 
 android {
