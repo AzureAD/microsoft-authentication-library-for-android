@@ -35,7 +35,6 @@ jobs:
     if: github.event_name == 'issues' && github.event.action == 'opened'
     outputs:
       issue_type: ${{ steps.classify.outputs.type }}
-      priority: ${{ steps.classify.outputs.priority }}
       needs_info: ${{ steps.classify.outputs.needs_info }}
       msal_version: ${{ steps.classify.outputs.msal_version }}
       version_age_days: ${{ steps.classify.outputs.version_age_days }}
@@ -58,9 +57,8 @@ jobs:
             const body = (issue.body || '').toLowerCase();
             const content = title + ' ' + body;
             
-            // Classify issue type
+            // Classify issue type (priority will NOT be auto-assigned)
             let issueType = 'question';
-            let priority = 'p3-low';
             let needsInfo = true;
             
             // Version detection - extract MSAL version
@@ -122,12 +120,11 @@ jobs:
             // Classification logic with detailed reasoning
             let classificationReasons = [];
             
-            // Security indicators - highest priority, check first
+            // Security indicators - requires immediate attention
             const securityKeywords = ['security', 'vulnerability', 'cve', 'exploit', 'attack'];
             const securityMatches = securityKeywords.filter(kw => content.includes(kw));
             if (securityMatches.length > 0) {
               issueType = 'security';
-              priority = 'p0-critical';
               classificationReasons.push(`Security-related keywords detected: ${securityMatches.join(', ')}`);
             }
             
@@ -136,63 +133,44 @@ jobs:
             const featureMatches = featureKeywords.filter(kw => content.includes(kw));
             if (featureMatches.length > 0 && issueType !== 'security') {
               issueType = 'feature-request';
-              priority = 'p3-low';
               classificationReasons.push(`Feature request indicators found: ${featureMatches.join(', ')}`);
             }
             
-            // Bug indicators - be more specific to avoid false positives
-            // Strong bug indicators (technical errors)
-            const strongBugKeywords = [
+            // Potential issue indicators - but could be user error or configuration issue
+            // Be conservative: presence of technical terms doesn't automatically mean it's a bug in our code
+            const technicalErrorKeywords = [
               'crash', 'exception', 'nullpointerexception', 'illegalstateexception',
-              'stacktrace', 'stack trace', 'throws', 'fails to', 'broken',
-              'does not work', 'not working', 'stopped working', 'doesn\'t work'
+              'stacktrace', 'stack trace', 'throws'
             ];
-            const strongBugMatches = strongBugKeywords.filter(kw => content.includes(kw));
+            const technicalErrorMatches = technicalErrorKeywords.filter(kw => content.includes(kw));
             
-            // Medium bug indicators (unexpected behavior)
-            const mediumBugKeywords = [
+            const behaviorKeywords = [
+              'fails to', 'broken', 'does not work', 'not working', 'stopped working', 'doesn\'t work',
               'unexpected behavior', 'unexpected', 'incorrect', 'wrong',
               'mismatch', 'fallback', 'not recognized', 'not launch'
             ];
-            const mediumBugMatches = mediumBugKeywords.filter(kw => content.includes(kw));
+            const behaviorMatches = behaviorKeywords.filter(kw => content.includes(kw));
             
             // Check for explicit bug label in title/body
             const explicitBug = title.includes('[bug]') || body.includes('**bug**');
             
             if (issueType !== 'security' && issueType !== 'feature-request') {
-              if (strongBugMatches.length > 0 || explicitBug) {
-                issueType = 'bug';
-                priority = 'p2-medium';
-                if (strongBugMatches.length > 0) {
-                  classificationReasons.push(`Strong bug indicators detected: ${strongBugMatches.join(', ')}`);
+              if (technicalErrorMatches.length > 0 || behaviorMatches.length > 0 || explicitBug) {
+                // Use "needs-investigation" instead of "bug" to indicate this requires review
+                // Stack traces and errors don't automatically mean there's a bug in our code
+                issueType = 'needs-investigation';
+                if (technicalErrorMatches.length > 0) {
+                  classificationReasons.push(`Technical error indicators detected: ${technicalErrorMatches.join(', ')}`);
+                  classificationReasons.push(`Note: Stack traces may indicate user error or configuration issues, not necessarily bugs in MSAL`);
+                }
+                if (behaviorMatches.length > 0) {
+                  classificationReasons.push(`Behavior issue indicators detected: ${behaviorMatches.join(', ')}`);
                 }
                 if (explicitBug) {
-                  classificationReasons.push(`Issue explicitly labeled as a bug`);
+                  classificationReasons.push(`Issue explicitly labeled as a bug by reporter`);
                 }
-              } else if (mediumBugMatches.length > 0) {
-                issueType = 'bug';
-                priority = 'p2-medium';
-                classificationReasons.push(`Unexpected behavior indicators detected: ${mediumBugMatches.join(', ')}`);
               }
               // Don't classify as bug just because it contains generic words like "error" or "issue"
-            }
-            
-            // Production/blocker indicators - elevate priority
-            const criticalKeywords = ['production', 'prod', 'blocker', 'blocking', 'urgent', 'critical', 'asap'];
-            const criticalMatches = criticalKeywords.filter(kw => content.includes(kw));
-            if (criticalMatches.length > 0) {
-              priority = 'p1-high';
-              classificationReasons.push(`High priority indicators: ${criticalMatches.join(', ')}`);
-            }
-            
-            // Additional priority adjustments
-            if (issueType === 'bug') {
-              // Look for severity indicators
-              if (content.includes('data loss') || content.includes('cannot authenticate') || 
-                  content.includes('authentication fails') || content.includes('completely broken')) {
-                priority = 'p1-high';
-                classificationReasons.push(`Critical functionality affected`);
-              }
             }
             
             // Store classification reasons for verbose explanation
@@ -378,25 +356,25 @@ jobs:
             }
             
             core.setOutput('type', issueType);
-            core.setOutput('priority', priority);
             core.setOutput('needs_info', needsInfo);
             core.setOutput('msal_version', msalVersion || '');
             core.setOutput('version_age_days', versionAgeDays !== null ? versionAgeDays.toString() : '');
             core.setOutput('is_very_old', isVeryOld.toString());
             core.setOutput('version_release_date', versionReleaseDate || '');
             
-            console.log(`Issue classified as: ${issueType}, Priority: ${priority}, Needs info: ${needsInfo}, Version: ${msalVersion || 'not detected'}`);
+            console.log(`Issue classified as: ${issueType}, Needs info: ${needsInfo}, Version: ${msalVersion || 'not detected'}`);
 
       - name: Apply Labels
         uses: actions/github-script@v7
         with:
           script: |
             const issueType = '${{ steps.classify.outputs.type }}';
-            const priority = '${{ steps.classify.outputs.priority }}';
             const needsInfo = '${{ steps.classify.outputs.needs_info }}' === 'true';
             const isVeryOld = '${{ steps.classify.outputs.is_very_old }}' === 'true';
             
-            const labels = [issueType, priority];
+            // Only apply issue type labels, NOT priority labels
+            // Priority should be determined by team based on actual customer impact
+            const labels = [issueType];
             
             if (needsInfo) {
               labels.push('needs-more-info');
@@ -418,14 +396,10 @@ jobs:
               } catch (e) {
                 // Label doesn't exist, create it
                 const labelColors = {
-                  'bug': 'd73a4a',
+                  'needs-investigation': 'fbca04',
                   'feature-request': 'a2eeef',
                   'question': 'd876e3',
                   'security': 'b60205',
-                  'p0-critical': 'b60205',
-                  'p1-high': 'ff6b6b',
-                  'p2-medium': 'fbca04',
-                  'p3-low': '0e8a16',
                   'needs-more-info': 'fbca04',
                   'very-old-msal': 'ffa500',
                   'triage-issue': 'c5def5'
@@ -467,7 +441,6 @@ jobs:
         uses: actions/github-script@v7
         env:
           ISSUE_TYPE: ${{ needs.triage.outputs.issue_type }}
-          PRIORITY: ${{ needs.triage.outputs.priority }}
           NEEDS_INFO: ${{ needs.triage.outputs.needs_info }}
           MSAL_VERSION: ${{ needs.triage.outputs.msal_version }}
           VERSION_AGE_DAYS: ${{ needs.triage.outputs.version_age_days }}
@@ -479,7 +452,6 @@ jobs:
           script: |
             const fs = require('fs');
             const issueType = process.env.ISSUE_TYPE;
-            const priority = process.env.PRIORITY;
             const needsInfo = process.env.NEEDS_INFO === 'true';
             const msalVersion = process.env.MSAL_VERSION;
             const versionAgeDays = process.env.VERSION_AGE_DAYS;
@@ -545,12 +517,13 @@ jobs:
             }
             
             // Add label explanations based on classification with verbose reasoning
-            if (issueType === 'bug') {
-              let bugExplanation = `\`bug\`: Classified as a bug report`;
+            if (issueType === 'needs-investigation') {
+              let investigationExplanation = `\`needs-investigation\`: Requires investigation to determine if this is a bug in MSAL or a configuration/usage issue`;
               if (classificationReasons.length > 0) {
-                bugExplanation += ` because: ${classificationReasons.join('; ')}`;
+                investigationExplanation += `\n  - ${classificationReasons.join('\n  - ')}`;
               }
-              labelExplanations.push(bugExplanation);
+              labelExplanations.push(investigationExplanation);
+              labelExplanations.push(`**Note:** The team will review this to determine the actual cause and appropriate priority based on customer impact`);
             } else if (issueType === 'feature-request') {
               let featureExplanation = `\`feature-request\`: Classified as a feature request`;
               if (classificationReasons.length > 0) {
@@ -565,26 +538,11 @@ jobs:
                 securityExplanation += ` because: ${classificationReasons.join('; ')}`;
               }
               labelExplanations.push(securityExplanation);
+              labelExplanations.push(`**Note:** Security issues require immediate team review`);
             }
             
-            // Add priority explanation
-            let priorityExplanation = `\`${priority}\`: Priority level assigned`;
-            if (priority === 'p0-critical') {
-              priorityExplanation += ` - Critical/Security issue requiring immediate attention`;
-            } else if (priority === 'p1-high') {
-              priorityExplanation += ` - High priority`;
-              const highPriorityReasons = classificationReasons.filter(r => 
-                r.includes('priority') || r.includes('production') || r.includes('critical') || r.includes('blocker')
-              );
-              if (highPriorityReasons.length > 0) {
-                priorityExplanation += ` (${highPriorityReasons.join(', ')})`;
-              }
-            } else if (priority === 'p2-medium') {
-              priorityExplanation += ` - Standard bug priority, will be triaged by the team`;
-            } else if (priority === 'p3-low') {
-              priorityExplanation += ` - Lower priority, typically for feature requests or questions`;
-            }
-            labelExplanations.push(priorityExplanation);
+            // Note about priority (not auto-assigned)
+            labelExplanations.push(`**Priority:** Will be assigned by the team based on actual customer impact (users affected, P0 flows, etc.)`);
             
             if (needsInfo) {
               labelExplanations.push(`\`needs-more-info\`: Additional information is required to properly diagnose and address this issue`);
@@ -621,18 +579,32 @@ jobs:
                 response += `This helps protect all users while we investigate and address the concern. Our security team will respond promptly through the proper channels.\n\n`;
                 response += `If this is not a security vulnerability but a general question about security features, please clarify and we'll be happy to help!\n`;
               }
-              // Bug reports
-              else if (issueType === 'bug') {
+              // Issues needing investigation
+              else if (issueType === 'needs-investigation') {
+                response += `**Important:** Before we investigate further, please verify:\n\n`;
+                response += `1. **Check your implementation** against our documentation:\n`;
+                response += `   - [MSAL Android Documentation](https://github.com/AzureAD/microsoft-authentication-library-for-android)\n`;
+                response += `   - [Code Snippets](snippets/) - Correct API usage patterns\n`;
+                response += `   - [Configuration Guide](auth_config.template.json)\n`;
+                response += `   - [Golden Examples](examples/) - Complete working applications\n\n`;
+                response += `2. **Common causes of errors:**\n`;
+                response += `   - Incorrect configuration in \`auth_config.json\` or \`AndroidManifest.xml\`\n`;
+                response += `   - Using deprecated APIs (check [Code Snippets](snippets/) for current patterns)\n`;
+                response += `   - Mismatched redirect URIs or signature hashes\n`;
+                response += `   - Missing required permissions or app registration settings\n\n`;
+                
                 if (needsInfo) {
-                  response += `To help us investigate this issue, please provide the following information:\n\n`;
+                  response += `**To help us investigate, please provide:**\n\n`;
                   response += `**Required Information:**\n`;
                   response += `- [ ] MSAL version (e.g., 8.+, currently ${latestVersion})\n`;
                   response += `- [ ] Android version and device model\n`;
                   response += `- [ ] Account mode (Single or Multiple)\n`;
                   response += `- [ ] Complete error message or stack trace\n`;
-                  response += `- [ ] Steps to reproduce the issue\n\n`;
+                  response += `- [ ] Steps to reproduce the issue\n`;
+                  response += `- [ ] Confirmation that you've reviewed the documentation and examples\n\n`;
                   response += `**Optional but Helpful:**\n`;
                   response += `- [ ] Your \`auth_config.json\` (with \`client_id\` redacted)\n`;
+                  response += `- [ ] Relevant code snippets showing your implementation\n`;
                   response += `- [ ] Verbose logs (see below)\n\n`;
                   response += `<details>\n<summary>How to enable verbose logging</summary>\n\n`;
                   response += `\`\`\`java\n`;
@@ -641,10 +613,7 @@ jobs:
                   response += `\`\`\`\n</details>\n\n`;
                 }
                 
-                response += `In the meantime, you might find helpful information in our:\n`;
-                response += `- [Common Issues Guide](.github/issue-responses/common-issues-guide.md)\n`;
-                response += `- [Configuration Template](auth_config.template.json)\n`;
-                response += `- [Code Snippets](snippets/) for correct API usage\n\n`;
+                response += `Our team will review this to determine if it's a bug in MSAL or a configuration/usage issue.\n\n`;
               }
               // Feature requests
               else if (issueType === 'feature-request') {
