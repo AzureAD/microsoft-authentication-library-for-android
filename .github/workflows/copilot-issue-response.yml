@@ -344,6 +344,58 @@ jobs:
               });
             }
             
+            // display-mask dependency issue
+            if (content.includes('display-mask') || (content.includes('failed to resolve') && content.includes('microsoft.device'))) {
+              detectedPatterns.push({
+                name: 'display_mask',
+                title: 'display-mask Dependency',
+                message: `The \`display-mask\` library requires a specific Maven repository. ` +
+                         `Add this to your \`settings.gradle\`:\n\n` +
+                         `\`\`\`gradle\n` +
+                         `maven {\n` +
+                         `    url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1'\n` +
+                         `}\n` +
+                         `\`\`\`\n\n` +
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md#54-display-mask-dependency-resolution) for details.`
+              });
+            }
+            
+            // Android 15 / SDK 35 issues
+            if (content.includes('android 15') || content.includes('sdk 35') || content.includes('api 35') ||
+                (content.includes('edge') && content.includes('display'))) {
+              detectedPatterns.push({
+                name: 'android_15',
+                title: 'Android 15 Compatibility',
+                message: `Android 15 (SDK 35) introduces new behaviors that may affect MSAL:\n` +
+                         `- Edge-to-edge display is enabled by default\n` +
+                         `- Package visibility restrictions are stricter\n\n` +
+                         `Make sure to:\n` +
+                         `1. Update to the latest MSAL version\n` +
+                         `2. Update Microsoft Authenticator to the latest version\n` +
+                         `3. Handle system bar insets properly in your theme\n\n` +
+                         `See our [Common Issues Guide](.github/issue-responses/common-issues-guide.md#63-android-15-edge-to-edge-display-issues) for details.`
+              });
+            }
+            
+            // B2C specific issues (general configuration)
+            if (content.includes('b2c') && (content.includes('error') || content.includes('fail') || content.includes('not working'))) {
+              detectedPatterns.push({
+                name: 'b2c_config',
+                title: 'Azure AD B2C Configuration',
+                message: `For B2C integrations, ensure:\n` +
+                         `1. Authority URL follows the format: \`https://{tenant}.b2clogin.com/{tenant}.onmicrosoft.com/{policy}\`\n` +
+                         `2. Your policy name is included in the authority\n` +
+                         `3. You're using the correct account for the policy when calling acquireTokenSilent\n\n` +
+                         `Example authority configuration:\n` +
+                         `\`\`\`json\n` +
+                         `"authorities": [{\n` +
+                         `    "type": "B2C",\n` +
+                         `    "authority_url": "https://contoso.b2clogin.com/contoso.onmicrosoft.com/B2C_1_signin"\n` +
+                         `}]\n` +
+                         `\`\`\``
+              });
+            }
+            
             core.setOutput('detected_patterns', JSON.stringify(detectedPatterns));
             
             // Check if required info is present
