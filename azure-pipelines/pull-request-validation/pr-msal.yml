@@ -175,9 +175,10 @@ stages:
             artifact: jacocoReport # Adjust artifact name as needed
           - download: current
             artifact: jacocoReportDev # Adjust artifact name as needed
-
+          - script: tree "$(Build.SourcesDirectory)\azure-pipelines" /F /A
+            displayName: 'Print File Structure Tree'
           - script: |
-              python compare_coverage.py \
+              python $(Build.SourcesDirectory)/azure-pipelines/pull-request-validation/compare_coverage.py \
                 $(Pipeline.Workspace)/jacocoReport/jacocoTestReport.xml \
                 $(Pipeline.Workspace)/jacocoReportDev/jacocoTestReport.xml
             displayName: Compare Jacoco Coverage
