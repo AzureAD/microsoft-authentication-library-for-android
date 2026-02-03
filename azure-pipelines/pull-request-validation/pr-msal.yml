@@ -79,8 +79,8 @@ stages:
           jdkVersion: 1.17
       - script: tree "$(Build.SourcesDirectory)\msal" /F /A
         displayName: 'Print File Structure Tree'
-      - script: tree "$(Build.SourcesDirectory)\msal\build\intermediates\javac\localDebug\classes" /F /A
-        displayName: 'Print File Structure Tree (build/intermediates/javac/localDebug/classes)'
+      - script: tree "$(Build.SourcesDirectory)\msal\build\intermediates\javac\localDebug\compileLocalDebugJavaWithJavac\classes" /F /A
+        displayName: 'Print File Structure Tree (build/intermediates/javac/localDebug/compileLocalDebugJavaWithJavac/classes)'
       - publish: $(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
         artifact: jacocoReport
         displayName: 'Publish JaCoCo Report Artifact (PR Branch)'

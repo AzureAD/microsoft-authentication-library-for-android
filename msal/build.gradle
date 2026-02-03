@@ -68,7 +68,7 @@ tasks.register("jacocoTestReport", JacocoReport) {
     )
 
     def javaClasses = fileTree(
-            dir: "$buildDir/intermediates/javac/localDebug/classes",
+            dir: "$buildDir/intermediates/javac/localDebug/compileLocalDebugJavaWithJavac/classes",
             excludes: fileFilter
     )
 
