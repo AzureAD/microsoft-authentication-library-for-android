@@ -791,7 +791,7 @@ jobs:
             // Check for numeric impact (devices/users)
             const deviceMatch = userRequest.match(/(\d+)\s*(device|user|customer|install|affected|impacted)/i);
             if (deviceMatch) {
-              const count = parseInt(deviceMatch[1]);
+              const count = parseInt(deviceMatch[1], 10);
               if (count >= 1000) {
                 priorityLevel = 'P0';
                 impactReason = `${count}+ ${deviceMatch[2]}s affected`;
@@ -844,6 +844,8 @@ jobs:
               });
             } catch (e) {
               // Label doesn't exist, create it
+              // Priority label colors: P0=Red (critical), P1=Orange-red (high), P2=Yellow (medium)
+              // If additional priorities are needed (P3, P4), add them here with appropriate colors
               const labelColors = {
                 'P0': 'd73a4a',  // Red - critical
                 'P1': 'ff6b6b',  // Orange-red - high
@@ -976,7 +978,7 @@ jobs:
                 response += `   "browser_safelist": [\n`;
                 response += `     {\n`;
                 response += `       "browser_package_name": "com.android.chrome",\n`;
-                response += `       "browser_signature_hashes": ["7fmduHKTdH..."]\n`;
+                response += `       "browser_signature_hashes": ["<base64_encoded_signature_hash>"]\n`;
                 response += `     }\n`;
                 response += `   ]\n`;
                 response += `   \`\`\`\n\n`;
