@@ -64,4 +64,52 @@ public class AuthenticationResultTest {
         mCacheRecords = cacheRecords;
     }
 
+    @Test
+    public void testAuthenticationResultHasCorrelationIdIfValidCorrelationIdWasProvided() {
+        final UUID correlationId = UUID.randomUUID();
+
+        AuthenticationResult authenticationResult = new AuthenticationResult(
+                mCacheRecords,
+                correlationId.toString()
+        );
+
+        Assert.assertNotNull(authenticationResult);
+        Assert.assertNotNull(authenticationResult.getCorrelationId());
+        Assert.assertEquals(correlationId, authenticationResult.getCorrelationId());
+    }
+
+    @Test
+    public void testAuthenticationResultHasNullCorrelationIdIfNullProvided() {
+        AuthenticationResult authenticationResult = new AuthenticationResult(
+                mCacheRecords,
+                null
+        );
+
+        Assert.assertNotNull(authenticationResult);
+        Assert.assertNull(authenticationResult.getCorrelationId());
+    }
+
+    @Test
+    public void testAuthenticationResultHasNullCorrelationIdIfEmptyStringProvided() {
+        AuthenticationResult authenticationResult = new AuthenticationResult(
+                mCacheRecords,
+                ""
+        );
+
+        Assert.assertNotNull(authenticationResult);
+        Assert.assertNull(authenticationResult.getCorrelationId());
+    }
+
+    @Test
+    public void testAuthenticationResultHasNullCorrelationIdIfNotValidUUID() {
+        final String invalidCorrelationId = "garbage";
+        AuthenticationResult authenticationResult = new AuthenticationResult(
+                mCacheRecords,
+                invalidCorrelationId
+        );
+
+        Assert.assertNotNull(authenticationResult);
+        Assert.assertNull(authenticationResult.getCorrelationId());
+    }
+
 }
