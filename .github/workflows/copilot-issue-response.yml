@@ -964,79 +964,56 @@ jobs:
             // Try to detect version in the original issue
             let msalVersion = detectMsalVersion(issueBody);
             
-            // Build context-aware response
-            const requestLower = userRequest.toLowerCase();
+            // Build a comprehensive, AI-friendly response
+            // Instead of hardcoding specific scenarios, provide all relevant resources
+            // and let AI agents (Copilot) or human reviewers analyze based on context
             
-            // Instead of hardcoded responses, provide comprehensive guidance
-            // Let the AI guidance files (copilot-instructions.md and common-issues-guide.md) handle the details
+            response += `I'll help analyze your request: "${userRequest}"\n\n`;
             
-            response += `I'll help you with: "${userRequest}"\n\n`;
+            // Provide comprehensive guidance resources
+            response += `### Available Resources\n\n`;
+            response += `To help address your question, please review these comprehensive guides:\n\n`;
             
-            // Point to comprehensive guides based on keywords
-            const needsConfigHelp = requestLower.includes('config') || requestLower.includes('setup') || 
-                                     requestLower.includes('configure');
-            const needsBrowserHelp = requestLower.includes('browser') || requestLower.includes('chrome') || 
-                                      requestLower.includes('firefox') || requestLower.includes('edge');
-            const needsVersionHelp = requestLower.includes('version') || requestLower.includes('latest') || 
-                                      requestLower.includes('upgrade');
-            const needsErrorHelp = requestLower.includes('error') || requestLower.includes('exception') || 
-                                    requestLower.includes('fail');
+            response += `**Primary Documentation:**\n`;
+            response += `- **[Copilot Instructions](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/copilot-instructions.md)** - Complete MSAL Android guidance including:\n`;
+            response += `  - Critical rules and API patterns\n`;
+            response += `  - Configuration requirements\n`;
+            response += `  - Debugging guidelines\n`;
+            response += `  - Customer interaction best practices\n\n`;
             
-            // Provide targeted guidance
-            if (needsBrowserHelp) {
-              response += `### Browser Configuration & Issues\n\n`;
-              response += `For browser-related questions, please refer to:\n`;
-              response += `- **[Common Issues Guide - Browser Configuration](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/issue-responses/common-issues-guide.md#1011-configuring-browser-preferences)** - Detailed guide for configuring browsers\n`;
-              response += `- **[auth_config.template.json](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/auth_config.template.json)** - Complete list of supported browsers and signatures\n\n`;
-              response += `**Key configuration fields:**\n`;
-              response += `- \`preferred_browser\`: Specify browser package name\n`;
-              response += `- \`browser_safelist\`: Define allowed browsers with signatures\n\n`;
-            }
+            response += `- **[Common Issues Guide](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/issue-responses/common-issues-guide.md)** - Comprehensive troubleshooting covering:\n`;
+            response += `  - Configuration issues (redirect URI, client ID, browser configuration)\n`;
+            response += `  - Authentication errors (AADSTS codes, cancellation)\n`;
+            response += `  - Token acquisition issues\n`;
+            response += `  - Broker integration issues\n`;
+            response += `  - Build and dependency issues\n`;
+            response += `  - Runtime crashes\n`;
+            response += `  - WebView and browser issues\n\n`;
             
-            if (needsVersionHelp) {
-              response += `### MSAL Version Information\n\n`;
-              response += `**Latest Version:** ${latestVersion}\n\n`;
-              response += `- [Release Notes](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v${latestVersion})\n`;
+            response += `**Configuration & Examples:**\n`;
+            response += `- **[auth_config.template.json](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/auth_config.template.json)** - Complete configuration reference\n`;
+            response += `- **[Code Snippets](https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/dev/snippets)** - Correct API usage examples\n`;
+            response += `- **[Golden Examples](https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/dev/examples)** - Complete working applications\n\n`;
+            
+            // Provide version context if detected
+            if (msalVersion) {
+              response += `**Version Context:**\n`;
+              response += `- Your version: ${msalVersion}\n`;
+              response += `- Latest version: ${latestVersion}\n`;
               response += `- [All Releases](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases)\n\n`;
-              response += `**To upgrade:**\n`;
-              response += `\`\`\`gradle\n`;
-              response += `implementation "com.microsoft.identity.client:msal:8.+"\n`;
-              response += `\`\`\`\n\n`;
+            } else {
+              response += `**Latest Version:** ${latestVersion} ([releases](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases))\n\n`;
             }
             
-            if (needsConfigHelp && !needsBrowserHelp) {
-              response += `### Configuration Help\n\n`;
-              response += `For configuration questions, see:\n`;
-              response += `- **[Copilot Instructions](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/copilot-instructions.md)** - Complete setup guidance\n`;
-              response += `- **[auth_config.template.json](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/auth_config.template.json)** - Configuration template\n`;
-              response += `- **[Common Issues Guide - Configuration](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/issue-responses/common-issues-guide.md#1-configuration-issues)** - Common config problems\n\n`;
-            }
+            // Encourage enabling verbose logging for troubleshooting
+            response += `**For Troubleshooting:**\n`;
+            response += `Enable verbose logging to get detailed diagnostic information:\n`;
+            response += `\`\`\`java\n`;
+            response += `Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);\n`;
+            response += `Logger.getInstance().setEnableLogcatLog(true);\n`;
+            response += `\`\`\`\n\n`;
             
-            if (needsErrorHelp) {
-              response += `### Error Troubleshooting\n\n`;
-              response += `For error diagnosis:\n`;
-              response += `- **[Common Issues Guide](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/issue-responses/common-issues-guide.md)** - Comprehensive troubleshooting\n`;
-              response += `- Enable verbose logging:\n`;
-              response += `\`\`\`java\n`;
-              response += `Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);\n`;
-              response += `Logger.getInstance().setEnableLogcatLog(true);\n`;
-              response += `\`\`\`\n\n`;
-            }
-            
-            // If no specific keywords matched, provide general guidance
-            if (!needsBrowserHelp && !needsVersionHelp && !needsConfigHelp && !needsErrorHelp) {
-              response += `### Comprehensive Resources\n\n`;
-              response += `Based on your question, here are the most relevant resources:\n\n`;
-              response += `**Primary Guides:**\n`;
-              response += `- [Copilot Instructions](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/copilot-instructions.md) - Complete MSAL guidance for AI agents\n`;
-              response += `- [Common Issues Guide](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/issue-responses/common-issues-guide.md) - Troubleshooting reference\n`;
-              response += `- [Code Snippets](https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/dev/snippets) - Correct API usage examples\n`;
-              response += `- [Golden Examples](https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/dev/examples) - Complete working applications\n\n`;
-              
-              if (msalVersion) {
-                response += `**Note:** You mentioned version ${msalVersion}. The latest version is ${latestVersion}.\n\n`;
-              }
-            }
+            response += `> **Note:** The guides above contain comprehensive information that AI agents (like Copilot) use to provide specific guidance. Reviewing these resources will help address your question based on your specific scenario.\n\n`;
             
             // Add context from issue labels if available
             const labels = issue.labels || [];
