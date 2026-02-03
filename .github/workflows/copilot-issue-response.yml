@@ -706,11 +706,11 @@ jobs:
                 response += `### 📊 Help Us Prioritize\n\n`;
                 response += `To help the team prioritize this issue, please provide information about customer impact:\n\n`;
                 response += `\`\`\`\n`;
-                response += `PING-COPILOT: We have [number] devices/users affected by this issue\n`;
+                response += `PING-COPILOT: We have <number> devices/users affected by this issue\n`;
                 response += `\`\`\`\n\n`;
                 response += `Or if this is blocking production or P0 scenarios:\n`;
                 response += `\`\`\`\n`;
-                response += `PING-COPILOT: This is a P0/production-blocking issue affecting [description]\n`;
+                response += `PING-COPILOT: This is a P0/production-blocking issue affecting <specific impact details>\n`;
                 response += `\`\`\`\n\n`;
                 response += `---\n\n`;
               }
@@ -804,7 +804,7 @@ jobs:
               }
             }
             
-            // Check for P0 indicators
+            // Check for P0 indicators (always set P0 if detected, as it should override other priorities)
             if (requestLower.includes('p0') || requestLower.includes('production') || 
                 requestLower.includes('critical') || requestLower.includes('blocking') ||
                 requestLower.includes('urgent')) {
@@ -812,7 +812,7 @@ jobs:
               if (!impactReason) impactReason = 'Production/P0 issue reported';
             }
             
-            // Check for P1 indicators
+            // Check for P1 indicators (only if no higher priority already set)
             if (!priorityLevel && (requestLower.includes('p1') || requestLower.includes('major'))) {
               priorityLevel = 'P1';
               if (!impactReason) impactReason = 'Major issue reported';
@@ -857,7 +857,7 @@ jobs:
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   name: priorityLevel,
-                  color: labelColors[priorityLevel] || 'fbca04',
+                  color: labelColors[priorityLevel] || 'fbca04',  // Fallback shouldn't be reached with current logic
                   description: `Priority ${priorityLevel} issue`
                 });
               } catch (createError) {
