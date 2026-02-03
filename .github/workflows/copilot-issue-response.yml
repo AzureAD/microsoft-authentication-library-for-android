@@ -594,7 +594,7 @@ jobs:
             }
             
             // Note about priority (not auto-assigned)
-            labelExplanations.push(`**Priority:** Will be assigned by the team based on actual customer impact (users affected, P0 flows, etc.)`);
+            labelExplanations.push(`**Priority:** Will be assigned by the team based on actual customer impact (users affected, critical flows, etc.)`);
             
             if (needsInfo) {
               labelExplanations.push(`\`needs-more-info\`: Additional information is required to properly diagnose and address this issue`);
@@ -708,9 +708,9 @@ jobs:
                 response += `\`\`\`\n`;
                 response += `PING-COPILOT: We have <number> devices/users affected by this issue\n`;
                 response += `\`\`\`\n\n`;
-                response += `Or if this is blocking production or P0 scenarios:\n`;
+                response += `Or if this is blocking production or critical scenarios:\n`;
                 response += `\`\`\`\n`;
-                response += `PING-COPILOT: This is a P0/production-blocking issue affecting <specific impact details>\n`;
+                response += `PING-COPILOT: This is a production-blocking/critical issue affecting <specific impact details>\n`;
                 response += `\`\`\`\n\n`;
                 response += `---\n\n`;
               }
@@ -792,30 +792,37 @@ jobs:
             const deviceMatch = userRequest.match(/(\d+)\s*(device|user|customer|install|affected|impacted)/i);
             if (deviceMatch) {
               const count = parseInt(deviceMatch[1], 10);
-              if (count >= 1000) {
-                priorityLevel = 'P0';
-                impactReason = `${count}+ ${deviceMatch[2]}s affected`;
-              } else if (count >= 100) {
-                priorityLevel = 'P1';
+              if (count >= 10000) {
+                priorityLevel = 'p0-CodeRed';
                 impactReason = `${count} ${deviceMatch[2]}s affected`;
-              } else if (count >= 10) {
-                priorityLevel = 'P2';
+              } else if (count >= 1000) {
+                priorityLevel = 'p1-High';
+                impactReason = `${count} ${deviceMatch[2]}s affected`;
+              } else if (count >= 300) {
+                priorityLevel = 'p2-Medium';
+                impactReason = `${count} ${deviceMatch[2]}s affected`;
+              } else if (count >= 100) {
+                priorityLevel = 'p3-Low';
+                impactReason = `${count} ${deviceMatch[2]}s affected`;
+              } else if (count > 0) {
+                priorityLevel = 'p4-Minor';
                 impactReason = `${count} ${deviceMatch[2]}s affected`;
               }
             }
             
-            // Check for P0 indicators (always set P0 if detected, as it should override other priorities)
-            if (requestLower.includes('p0') || requestLower.includes('production') || 
-                requestLower.includes('critical') || requestLower.includes('blocking') ||
-                requestLower.includes('urgent')) {
-              priorityLevel = 'P0';
-              if (!impactReason) impactReason = 'Production/P0 issue reported';
+            // Check for p0-CodeRed indicators (always set p0-CodeRed if detected, as it should override other priorities)
+            if (requestLower.includes('p0') || requestLower.includes('codered') || 
+                requestLower.includes('production') || requestLower.includes('critical') || 
+                requestLower.includes('blocking') || requestLower.includes('urgent')) {
+              priorityLevel = 'p0-CodeRed';
+              if (!impactReason) impactReason = 'Production/critical CodeRed issue reported';
             }
             
-            // Check for P1 indicators (only if no higher priority already set)
-            if (!priorityLevel && (requestLower.includes('p1') || requestLower.includes('major'))) {
-              priorityLevel = 'P1';
-              if (!impactReason) impactReason = 'Major issue reported';
+            // Check for p1-High indicators (only if no higher priority already set)
+            if (!priorityLevel && (requestLower.includes('p1') || requestLower.includes('high') || 
+                requestLower.includes('major'))) {
+              priorityLevel = 'p1-High';
+              if (!impactReason) impactReason = 'High priority issue reported';
             }
             
             core.setOutput('has_impact', priorityLevel ? 'true' : 'false');
@@ -844,12 +851,15 @@ jobs:
               });
             } catch (e) {
               // Label doesn't exist, create it
-              // Priority label colors: P0=Red (critical), P1=Orange-red (high), P2=Yellow (medium)
-              // If additional priorities are needed (P3, P4), add them here with appropriate colors
+              // Priority label colors based on new 5-level system:
+              // p0-CodeRed=Red (critical), p1-High=Orange (high), p2-Medium=Yellow (medium)
+              // p3-Low=Blue (low), p4-Minor=Light blue (minor)
               const labelColors = {
-                'P0': 'd73a4a',  // Red - critical
-                'P1': 'ff6b6b',  // Orange-red - high
-                'P2': 'fbca04'   // Yellow - medium
+                'p0-CodeRed': 'd73a4a',  // Red - critical (10000+ devices)
+                'p1-High': 'ff6b6b',     // Orange - high (1000-9999 devices)
+                'p2-Medium': 'fbca04',   // Yellow - medium (300-999 devices)
+                'p3-Low': '0075ca',      // Blue - low (100-299 devices)
+                'p4-Minor': '5DADE2'     // Light blue - minor (<100 devices)
               };
               
               try {
