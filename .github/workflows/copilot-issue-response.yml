@@ -694,6 +694,28 @@ jobs:
             
             // Standard footer with PING-COPILOT trigger
             response += `---\n\n`;
+            
+            // Prompt for customer impact data if not a simple question
+            if (issueType === 'needs-investigation' || issueType === 'feature-request') {
+              const bodyLower = (issue.body || '').toLowerCase();
+              const hasImpactInfo = /\d+\s*(device|user|customer|install|affected|impacted)/i.test(issue.body || '') ||
+                                    bodyLower.includes('p0') || bodyLower.includes('production') || 
+                                    bodyLower.includes('critical');
+              
+              if (!hasImpactInfo) {
+                response += `### 📊 Help Us Prioritize\n\n`;
+                response += `To help the team prioritize this issue, please provide information about customer impact:\n\n`;
+                response += `\`\`\`\n`;
+                response += `PING-COPILOT: We have [number] devices/users affected by this issue\n`;
+                response += `\`\`\`\n\n`;
+                response += `Or if this is blocking production or P0 scenarios:\n`;
+                response += `\`\`\`\n`;
+                response += `PING-COPILOT: This is a P0/production-blocking issue affecting [description]\n`;
+                response += `\`\`\`\n\n`;
+                response += `---\n\n`;
+              }
+            }
+            
             response += `**Need further assistance?** You can trigger a follow-up analysis by commenting:\n`;
             response += `\`\`\`\n`;
             response += `PING-COPILOT: <your question or request>\n`;
@@ -750,14 +772,120 @@ jobs:
               core.setOutput('has_request', 'false');
             }
             
-      - name: Generate Follow-up Response
+      - name: Detect Customer Impact and Apply Priority
         if: steps.extract_request.outputs.has_request == 'true'
+        id: detect_impact
         uses: actions/github-script@v7
         env:
           USER_REQUEST: ${{ steps.extract_request.outputs.user_request }}
         with:
           script: |
             const userRequest = process.env.USER_REQUEST;
+            const issue = context.payload.issue;
+            const requestLower = userRequest.toLowerCase();
+            
+            // Detect customer impact indicators
+            let priorityLevel = null;
+            let impactReason = '';
+            
+            // Check for numeric impact (devices/users)
+            const deviceMatch = userRequest.match(/(\d+)\s*(device|user|customer|install|affected|impacted)/i);
+            if (deviceMatch) {
+              const count = parseInt(deviceMatch[1]);
+              if (count >= 1000) {
+                priorityLevel = 'P0';
+                impactReason = `${count}+ ${deviceMatch[2]}s affected`;
+              } else if (count >= 100) {
+                priorityLevel = 'P1';
+                impactReason = `${count} ${deviceMatch[2]}s affected`;
+              } else if (count >= 10) {
+                priorityLevel = 'P2';
+                impactReason = `${count} ${deviceMatch[2]}s affected`;
+              }
+            }
+            
+            // Check for P0 indicators
+            if (requestLower.includes('p0') || requestLower.includes('production') || 
+                requestLower.includes('critical') || requestLower.includes('blocking') ||
+                requestLower.includes('urgent')) {
+              priorityLevel = 'P0';
+              if (!impactReason) impactReason = 'Production/P0 issue reported';
+            }
+            
+            // Check for P1 indicators
+            if (!priorityLevel && (requestLower.includes('p1') || requestLower.includes('major'))) {
+              priorityLevel = 'P1';
+              if (!impactReason) impactReason = 'Major issue reported';
+            }
+            
+            core.setOutput('has_impact', priorityLevel ? 'true' : 'false');
+            core.setOutput('priority_level', priorityLevel || '');
+            core.setOutput('impact_reason', impactReason);
+            
+            if (priorityLevel) {
+              console.log(`Customer impact detected: ${priorityLevel} - ${impactReason}`);
+            }
+      
+      - name: Apply Priority Label
+        if: steps.detect_impact.outputs.has_impact == 'true'
+        uses: actions/github-script@v7
+        env:
+          PRIORITY_LEVEL: ${{ steps.detect_impact.outputs.priority_level }}
+        with:
+          script: |
+            const priorityLevel = process.env.PRIORITY_LEVEL;
+            
+            // Create the label if it doesn't exist
+            try {
+              await github.rest.issues.getLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: priorityLevel
+              });
+            } catch (e) {
+              // Label doesn't exist, create it
+              const labelColors = {
+                'P0': 'd73a4a',  // Red - critical
+                'P1': 'ff6b6b',  // Orange-red - high
+                'P2': 'fbca04'   // Yellow - medium
+              };
+              
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: priorityLevel,
+                  color: labelColors[priorityLevel] || 'fbca04',
+                  description: `Priority ${priorityLevel} issue`
+                });
+              } catch (createError) {
+                console.log(`Could not create label ${priorityLevel}: ${createError.message}`);
+              }
+            }
+            
+            // Add the priority label
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: [priorityLevel]
+            });
+      
+      - name: Generate Follow-up Response
+        if: steps.extract_request.outputs.has_request == 'true'
+        uses: actions/github-script@v7
+        env:
+          USER_REQUEST: ${{ steps.extract_request.outputs.user_request }}
+          HAS_IMPACT: ${{ steps.detect_impact.outputs.has_impact }}
+          PRIORITY_LEVEL: ${{ steps.detect_impact.outputs.priority_level }}
+          IMPACT_REASON: ${{ steps.detect_impact.outputs.impact_reason }}
+        with:
+          script: |
+            const fs = require('fs');
+            const userRequest = process.env.USER_REQUEST;
+            const hasImpact = process.env.HAS_IMPACT === 'true';
+            const priorityLevel = process.env.PRIORITY_LEVEL;
+            const impactReason = process.env.IMPACT_REASON;
             const issue = context.payload.issue;
             
             // Fetch latest version dynamically
@@ -772,15 +900,39 @@ jobs:
               console.log('Could not fetch latest version, using fallback');
             }
             
-            // Build response acknowledging the follow-up
-            let response = `Thanks for the follow-up! I'll analyze your request: "${userRequest}"\n\n`;
+            // Fetch all comments to get conversation history
+            let allComments = [];
+            try {
+              const commentsResponse = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                per_page: 100
+              });
+              allComments = commentsResponse.data;
+            } catch (e) {
+              console.log('Could not fetch comments:', e.message);
+            }
+            
+            // Build response
+            let response = '';
+            
+            // If customer impact was detected, acknowledge it first
+            if (hasImpact) {
+              response += `📊 **Customer Impact Detected**\n\n`;
+              response += `Thank you for providing impact information. I've applied the \`${priorityLevel}\` priority label based on: ${impactReason}\n\n`;
+              response += `The team will review and prioritize this issue accordingly.\n\n`;
+              response += `---\n\n`;
+            }
+            
+            response += `Thanks for the follow-up!\n\n`;
             
             // Get issue context
             const issueTitle = issue.title || '';
             const issueBody = issue.body || '';
-            const content = (issueTitle + ' ' + issueBody).toLowerCase();
+            const content = (issueTitle + ' ' + issueBody + ' ' + userRequest).toLowerCase();
             
-            // Helper function to detect MSAL version
+            // Helper functions
             function detectMsalVersion(text) {
               const versionPatterns = [
                 /v(\d+\.\d+\.\d+)/i,
@@ -798,13 +950,70 @@ jobs:
             }
             
             // Try to detect version in the original issue
-            let msalVersion = detectMsalVersion(content);
+            let msalVersion = detectMsalVersion(issueBody);
             
             // Provide contextual guidance based on request
             const requestLower = userRequest.toLowerCase();
             
+            // Check for browser configuration questions - this is what was missing!
+            if (requestLower.includes('browser') || requestLower.includes('chrome') || 
+                requestLower.includes('firefox') || requestLower.includes('edge')) {
+              
+              // Check if they're asking about configuration
+              if (requestLower.includes('config') || requestLower.includes('set') || 
+                  requestLower.includes('use') || requestLower.includes('specify')) {
+                response += `## Browser Configuration in MSAL\n\n`;
+                response += `MSAL allows you to configure which browsers can be used for authentication. Here's how:\n\n`;
+                response += `### Configuration Fields in auth_config.json:\n\n`;
+                response += `1. **\`preferred_browser\`** - Specify a preferred browser package name:\n`;
+                response += `   \`\`\`json\n`;
+                response += `   "preferred_browser": "com.android.chrome"  // For Chrome\n`;
+                response += `   "preferred_browser": "org.mozilla.firefox"  // For Firefox\n`;
+                response += `   "preferred_browser": "com.microsoft.emmx"   // For Edge\n`;
+                response += `   \`\`\`\n\n`;
+                response += `2. **\`browser_safelist\`** - Define which browsers are allowed (with their signatures):\n`;
+                response += `   \`\`\`json\n`;
+                response += `   "browser_safelist": [\n`;
+                response += `     {\n`;
+                response += `       "browser_package_name": "com.android.chrome",\n`;
+                response += `       "browser_signature_hashes": ["7fmduHKTdH..."]\n`;
+                response += `     }\n`;
+                response += `   ]\n`;
+                response += `   \`\`\`\n\n`;
+                response += `**Important Notes:**\n`;
+                response += `- Browser signatures must match the installed browser version\n`;
+                response += `- If a browser signature doesn't match, MSAL falls back to WebView\n`;
+                response += `- See [auth_config.template.json](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/auth_config.template.json) for the complete list of supported browsers and their signatures\n\n`;
+                
+                // If the issue mentions Edge specifically
+                if (issueTitle.toLowerCase().includes('edge') || issueBody.toLowerCase().includes('edge')) {
+                  response += `**Regarding Microsoft Edge:**\n`;
+                  response += `Based on your issue, Edge may not be launching due to a signature mismatch. `;
+                  response += `This typically means the installed Edge version has a different signature than what's in MSAL's safelist. `;
+                  response += `The MSAL team may need to update the trusted signatures for Edge.\n\n`;
+                  response += `**Workaround:** You can configure Chrome or Firefox as your preferred browser using the \`preferred_browser\` field shown above.\n\n`;
+                }
+              } else {
+                // They might be reporting an issue with a specific browser
+                response += `I see your question is about browser behavior. `;
+                response += `MSAL uses a safelist of trusted browser signatures for security. `;
+                response += `If a browser's signature doesn't match the safelist, MSAL falls back to WebView.\n\n`;
+                response += `See [auth_config.template.json](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/auth_config.template.json) `;
+                response += `for the \`browser_safelist\` and \`preferred_browser\` configuration options.\n\n`;
+              }
+            }
+            // Check for latest version questions
+            else if (requestLower.includes('version') || requestLower.includes('latest') || requestLower.includes('recent')) {
+              response += `**Latest MSAL Version:** ${latestVersion}\n\n`;
+              response += `You can find release notes and all versions here: `;
+              response += `[MSAL Android Releases](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases)\n\n`;
+              response += `**To upgrade:**\n`;
+              response += `\`\`\`gradle\n`;
+              response += `implementation "com.microsoft.identity.client:msal:8.+"\n`;
+              response += `\`\`\`\n\n`;
+            }
             // Check for upgrade-related questions
-            if (requestLower.includes('upgrade') || requestLower.includes('updated') || requestLower.includes('new version')) {
+            else if (requestLower.includes('upgrade') || requestLower.includes('updated') || requestLower.includes('new version')) {
               response += `Great that you're upgrading! Here's what you need to know:\n\n`;
               response += `**Latest Version:** ${latestVersion} ([release notes](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v${latestVersion}))\n\n`;
               response += `**Upgrade Steps:**\n`;
@@ -862,7 +1071,8 @@ jobs:
             }
             // Generic helpful response
             else {
-              response += `Based on the original issue and your follow-up, here are some relevant resources:\n\n`;
+              response += `Based on your question: "${userRequest}"\n\n`;
+              response += `Here are some relevant resources:\n\n`;
               response += `**Documentation:**\n`;
               response += `- [Common Issues Guide](.github/issue-responses/common-issues-guide.md) - Troubleshooting reference\n`;
               response += `- [Configuration Template](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/auth_config.template.json)\n`;
