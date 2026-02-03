@@ -964,132 +964,74 @@ jobs:
             // Try to detect version in the original issue
             let msalVersion = detectMsalVersion(issueBody);
             
-            // Provide contextual guidance based on request
+            // Build context-aware response
             const requestLower = userRequest.toLowerCase();
             
-            // Check for browser configuration questions - this is what was missing!
-            if (requestLower.includes('browser') || requestLower.includes('chrome') || 
-                requestLower.includes('firefox') || requestLower.includes('edge')) {
-              
-              // Check if they're asking about configuration
-              if (requestLower.includes('config') || requestLower.includes('set') || 
-                  requestLower.includes('use') || requestLower.includes('specify')) {
-                response += `## Browser Configuration in MSAL\n\n`;
-                response += `MSAL allows you to configure which browsers can be used for authentication. Here's how:\n\n`;
-                response += `### Configuration Fields in auth_config.json:\n\n`;
-                response += `1. **\`preferred_browser\`** - Specify a preferred browser package name:\n`;
-                response += `   \`\`\`json\n`;
-                response += `   "preferred_browser": "com.android.chrome"  // For Chrome\n`;
-                response += `   "preferred_browser": "org.mozilla.firefox"  // For Firefox\n`;
-                response += `   "preferred_browser": "com.microsoft.emmx"   // For Edge\n`;
-                response += `   \`\`\`\n\n`;
-                response += `2. **\`browser_safelist\`** - Define which browsers are allowed (with their signatures):\n`;
-                response += `   \`\`\`json\n`;
-                response += `   "browser_safelist": [\n`;
-                response += `     {\n`;
-                response += `       "browser_package_name": "com.android.chrome",\n`;
-                response += `       "browser_signature_hashes": ["<base64_encoded_signature_hash>"]\n`;
-                response += `     }\n`;
-                response += `   ]\n`;
-                response += `   \`\`\`\n\n`;
-                response += `**Important Notes:**\n`;
-                response += `- Browser signatures must match the installed browser version\n`;
-                response += `- If a browser signature doesn't match, MSAL falls back to WebView\n`;
-                response += `- See [auth_config.template.json](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/auth_config.template.json) for the complete list of supported browsers and their signatures\n\n`;
-                
-                // If the issue mentions Edge specifically
-                if (issueTitle.toLowerCase().includes('edge') || issueBody.toLowerCase().includes('edge')) {
-                  response += `**Regarding Microsoft Edge:**\n`;
-                  response += `Based on your issue, Edge may not be launching due to a signature mismatch. `;
-                  response += `This typically means the installed Edge version has a different signature than what's in MSAL's safelist. `;
-                  response += `The MSAL team may need to update the trusted signatures for Edge.\n\n`;
-                  response += `**Workaround:** You can configure Chrome or Firefox as your preferred browser using the \`preferred_browser\` field shown above.\n\n`;
-                }
-              } else {
-                // They might be reporting an issue with a specific browser
-                response += `I see your question is about browser behavior. `;
-                response += `MSAL uses a safelist of trusted browser signatures for security. `;
-                response += `If a browser's signature doesn't match the safelist, MSAL falls back to WebView.\n\n`;
-                response += `See [auth_config.template.json](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/auth_config.template.json) `;
-                response += `for the \`browser_safelist\` and \`preferred_browser\` configuration options.\n\n`;
-              }
+            // Instead of hardcoded responses, provide comprehensive guidance
+            // Let the AI guidance files (copilot-instructions.md and common-issues-guide.md) handle the details
+            
+            response += `I'll help you with: "${userRequest}"\n\n`;
+            
+            // Point to comprehensive guides based on keywords
+            const needsConfigHelp = requestLower.includes('config') || requestLower.includes('setup') || 
+                                     requestLower.includes('configure');
+            const needsBrowserHelp = requestLower.includes('browser') || requestLower.includes('chrome') || 
+                                      requestLower.includes('firefox') || requestLower.includes('edge');
+            const needsVersionHelp = requestLower.includes('version') || requestLower.includes('latest') || 
+                                      requestLower.includes('upgrade');
+            const needsErrorHelp = requestLower.includes('error') || requestLower.includes('exception') || 
+                                    requestLower.includes('fail');
+            
+            // Provide targeted guidance
+            if (needsBrowserHelp) {
+              response += `### Browser Configuration & Issues\n\n`;
+              response += `For browser-related questions, please refer to:\n`;
+              response += `- **[Common Issues Guide - Browser Configuration](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/issue-responses/common-issues-guide.md#1011-configuring-browser-preferences)** - Detailed guide for configuring browsers\n`;
+              response += `- **[auth_config.template.json](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/auth_config.template.json)** - Complete list of supported browsers and signatures\n\n`;
+              response += `**Key configuration fields:**\n`;
+              response += `- \`preferred_browser\`: Specify browser package name\n`;
+              response += `- \`browser_safelist\`: Define allowed browsers with signatures\n\n`;
             }
-            // Check for latest version questions
-            else if (requestLower.includes('version') || requestLower.includes('latest') || requestLower.includes('recent')) {
-              response += `**Latest MSAL Version:** ${latestVersion}\n\n`;
-              response += `You can find release notes and all versions here: `;
-              response += `[MSAL Android Releases](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases)\n\n`;
+            
+            if (needsVersionHelp) {
+              response += `### MSAL Version Information\n\n`;
+              response += `**Latest Version:** ${latestVersion}\n\n`;
+              response += `- [Release Notes](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v${latestVersion})\n`;
+              response += `- [All Releases](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases)\n\n`;
               response += `**To upgrade:**\n`;
               response += `\`\`\`gradle\n`;
               response += `implementation "com.microsoft.identity.client:msal:8.+"\n`;
               response += `\`\`\`\n\n`;
             }
-            // Check for upgrade-related questions
-            else if (requestLower.includes('upgrade') || requestLower.includes('updated') || requestLower.includes('new version')) {
-              response += `Great that you're upgrading! Here's what you need to know:\n\n`;
-              response += `**Latest Version:** ${latestVersion} ([release notes](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v${latestVersion}))\n\n`;
-              response += `**Upgrade Steps:**\n`;
-              response += `1. Update your \`build.gradle\`:\n`;
-              response += `\`\`\`gradle\n`;
-              response += `implementation "com.microsoft.identity.client:msal:8.+"\n`;
-              response += `\`\`\`\n`;
-              response += `2. Review [breaking changes](https://github.com/AzureAD/microsoft-authentication-library-for-android#migration) if upgrading from v6.x or earlier\n`;
-              response += `3. Test authentication flows thoroughly\n`;
-              response += `4. Update Android Authenticator app on test devices\n\n`;
+            
+            if (needsConfigHelp && !needsBrowserHelp) {
+              response += `### Configuration Help\n\n`;
+              response += `For configuration questions, see:\n`;
+              response += `- **[Copilot Instructions](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/copilot-instructions.md)** - Complete setup guidance\n`;
+              response += `- **[auth_config.template.json](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/auth_config.template.json)** - Configuration template\n`;
+              response += `- **[Common Issues Guide - Configuration](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/issue-responses/common-issues-guide.md#1-configuration-issues)** - Common config problems\n\n`;
             }
-            // Check for configuration questions
-            else if (requestLower.includes('config') || requestLower.includes('auth_config') || requestLower.includes('redirect')) {
-              response += `Let me help with configuration:\n\n`;
-              response += `**Key Configuration Points:**\n`;
-              response += `1. **Redirect URI Encoding** (most common issue):\n`;
-              response += `   - \`auth_config.json\`: signature hash must be URL encoded (\`%2A\` for \`*\`, \`%3D\` for \`=\`)\n`;
-              response += `   - \`AndroidManifest.xml\`: signature hash must NOT be URL encoded\n\n`;
-              response += `2. **Required in auth_config.json:**\n`;
-              response += `   - \`client_id\`: From Azure App Registration\n`;
-              response += `   - \`redirect_uri\`: Format \`msauth://your.package.name/URL_ENCODED_HASH\`\n`;
-              response += `   - \`broker_redirect_uri_registered\`: Should be \`true\`\n\n`;
-              response += `3. **Required in AndroidManifest.xml:**\n`;
-              response += `   - BrowserTabActivity with intent-filter\n`;
-              response += `   - Signature hash in path (NOT URL encoded)\n\n`;
-              response += `See our [configuration template](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/auth_config.template.json) for full details.\n\n`;
-            }
-            // Check for broker questions
-            else if (requestLower.includes('broker') || requestLower.includes('authenticator')) {
-              response += `Here's guidance on broker integration:\n\n`;
-              response += `**Broker Setup:**\n`;
-              response += `1. Set \`broker_redirect_uri_registered: true\` in auth_config.json\n`;
-              response += `2. Ensure Microsoft Authenticator or Company Portal is installed\n`;
-              response += `3. Your app's signature hash must match what's registered in Azure\n\n`;
-              response += `**Common Broker Issues:**\n`;
-              response += `- Signature hash mismatch → Verify with \`keytool\` command\n`;
-              response += `- Broker not installed → Falls back to web flow\n`;
-              response += `- Package visibility → Add \`<queries>\` section to AndroidManifest.xml\n\n`;
-              response += `See [Common Issues Guide](.github/issue-responses/common-issues-guide.md#4-broker-integration-issues) for detailed troubleshooting.\n\n`;
-            }
-            // Check for error-specific questions
-            else if (requestLower.includes('error') || requestLower.includes('exception') || requestLower.includes('fail')) {
-              response += `To help diagnose the error:\n\n`;
-              response += `**Needed Information:**\n`;
-              response += `1. Complete error message or stack trace\n`;
-              response += `2. MSAL version you're using\n`;
-              response += `3. Steps that trigger the error\n`;
-              response += `4. Verbose logs (see below)\n\n`;
-              response += `**Enable Verbose Logging:**\n`;
+            
+            if (needsErrorHelp) {
+              response += `### Error Troubleshooting\n\n`;
+              response += `For error diagnosis:\n`;
+              response += `- **[Common Issues Guide](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/issue-responses/common-issues-guide.md)** - Comprehensive troubleshooting\n`;
+              response += `- Enable verbose logging:\n`;
               response += `\`\`\`java\n`;
               response += `Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);\n`;
               response += `Logger.getInstance().setEnableLogcatLog(true);\n`;
               response += `\`\`\`\n\n`;
-              response += `Common error patterns are documented in our [Common Issues Guide](.github/issue-responses/common-issues-guide.md).\n\n`;
             }
-            // Generic helpful response
-            else {
-              response += `Based on your question: "${userRequest}"\n\n`;
-              response += `Here are some relevant resources:\n\n`;
-              response += `**Documentation:**\n`;
-              response += `- [Common Issues Guide](.github/issue-responses/common-issues-guide.md) - Troubleshooting reference\n`;
-              response += `- [Configuration Template](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/auth_config.template.json)\n`;
+            
+            // If no specific keywords matched, provide general guidance
+            if (!needsBrowserHelp && !needsVersionHelp && !needsConfigHelp && !needsErrorHelp) {
+              response += `### Comprehensive Resources\n\n`;
+              response += `Based on your question, here are the most relevant resources:\n\n`;
+              response += `**Primary Guides:**\n`;
+              response += `- [Copilot Instructions](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/copilot-instructions.md) - Complete MSAL guidance for AI agents\n`;
+              response += `- [Common Issues Guide](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/issue-responses/common-issues-guide.md) - Troubleshooting reference\n`;
               response += `- [Code Snippets](https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/dev/snippets) - Correct API usage examples\n`;
-              response += `- [Golden Examples](https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/dev/examples)\n\n`;
+              response += `- [Golden Examples](https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/dev/examples) - Complete working applications\n\n`;
               
               if (msalVersion) {
                 response += `**Note:** You mentioned version ${msalVersion}. The latest version is ${latestVersion}.\n\n`;
