@@ -42,6 +42,8 @@ jobs:
       version_release_date: ${{ steps.classify.outputs.version_release_date }}
       classification_reasons: ${{ steps.classify.outputs.classification_reasons }}
       detected_patterns: ${{ steps.classify.outputs.detected_patterns }}
+      ai_solution: ${{ steps.classify.outputs.ai_solution }}
+      ai_confidence: ${{ steps.classify.outputs.ai_confidence }}
       has_initial_impact: ${{ steps.detect_initial_impact.outputs.has_impact }}
       initial_priority: ${{ steps.detect_initial_impact.outputs.priority_level }}
       initial_impact_reason: ${{ steps.detect_initial_impact.outputs.impact_reason }}
@@ -120,60 +122,152 @@ jobs:
               }
             }
             
-            // Classification logic with detailed reasoning
+            // AI-Powered Classification
+            let aiClassification = null;
+            let aiSolution = null;
+            let aiConfidence = 'low';
+            
+            try {
+              console.log('Attempting AI classification...');
+              
+              // Fetch guidance files for AI context
+              const fs = require('fs');
+              const copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8').substring(0, 15000);
+              const commonIssuesGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8').substring(0, 15000);
+              
+              // Redact secrets from issue content before sending to AI
+              function redactSecrets(text) {
+                return text
+                  .replace(/eyJ[A-Za-z0-9_-]{10,}/g, '[REDACTED_JWT]')
+                  .replace(/Bearer\s+[A-Za-z0-9_\-.]+/gi, 'Bearer [REDACTED_TOKEN]')
+                  .replace(/Authorization:\s*[^\s]+/gi, 'Authorization: [REDACTED]')
+                  .replace(/(client_secret|access_token|api[_-]?key)["\s:=]+[^\s"',}]+/gi, '$1: [REDACTED]')
+                  .replace(/[A-Za-z0-9+\/]{40,}={0,2}/g, (match) => match.length > 40 ? '[REDACTED_BASE64]' : match);
+              }
+              
+              const redactedTitle = redactSecrets(issue.title);
+              const redactedBody = redactSecrets(issue.body || '');
+              
+              // Construct AI prompt (using string concatenation to avoid YAML issues)
+              const systemPrompt = 'You are an expert MSAL Android library support engineer. Analyze GitHub issues and provide accurate classification and solutions.\n\n' +
+                'Your Expertise:\n' + copilotInstructions.substring(0, 8000) + '\n\n' +
+                'Common Issues Reference:\n' + commonIssuesGuide.substring(0, 6000) + '\n\n' +
+                'Task:\n' +
+                '1. Classify the issue type: "bug", "question", "feature-request", or "security"\n' +
+                '2. Determine if it is a security issue (high accuracy required)\n' +
+                '3. Assess if more information is needed (version, error message, steps to reproduce)\n' +
+                '4. Provide a concise 2-3 sentence solution suggestion\n\n' +
+                'Output JSON format:\n' +
+                '{\n' +
+                '  "issueType": "bug|question|feature-request|security",\n' +
+                '  "isSecurity": boolean,\n' +
+                '  "needsMoreInfo": boolean,\n' +
+                '  "suggestedSolution": "string (2-3 sentences with specific guidance)",\n' +
+                '  "confidence": "high|medium|low"\n' +
+                '}\n\n' +
+                'Never echo secrets, tokens, or PII in your response.';
+
+              const userPrompt = 'Issue Title: ' + redactedTitle + '\n\n' +
+                'Issue Description:\n' + redactedBody.substring(0, 3000) + '\n\n' +
+                (msalVersion ? ('MSAL Version: ' + msalVersion) : 'MSAL Version: Not detected') + '\n\n' +
+                'Analyze this issue and provide classification with solution suggestion in JSON format.';
+
+              // Call GitHub Models API
+              const aiResponse = await github.request('POST /models/chat/completions', {
+                model: 'gpt-4o-mini',
+                messages: [
+                  { role: 'system', content: systemPrompt },
+                  { role: 'user', content: userPrompt }
+                ],
+                temperature: 0.3,
+                max_tokens: 500
+              });
+
+              const aiResult = aiResponse.data.choices[0].message.content;
+              console.log(`AI response: ${aiResult}`);
+              
+              // Parse JSON response
+              const jsonMatch = aiResult.match(/\{[\s\S]*\}/);
+              if (jsonMatch) {
+                aiClassification = JSON.parse(jsonMatch[0]);
+                aiSolution = aiClassification.suggestedSolution || null;
+                aiConfidence = aiClassification.confidence || 'medium';
+                console.log(`AI Classification: ${aiClassification.issueType}, Security: ${aiClassification.isSecurity}, Solution provided: ${!!aiSolution}`);
+              }
+            } catch (error) {
+              console.log(`AI classification failed: ${error.message}. Falling back to rule-based classification.`);
+            }
+            
+            // Classification logic - Use AI classification if available, otherwise fall back to rule-based
             let classificationReasons = [];
             
-            // Security indicators - requires immediate attention
-            const securityKeywords = ['security', 'vulnerability', 'cve', 'exploit', 'attack'];
-            const securityMatches = securityKeywords.filter(kw => content.includes(kw));
-            if (securityMatches.length > 0) {
-              issueType = 'security';
-              classificationReasons.push(`Security-related keywords detected: ${securityMatches.join(', ')}`);
-            }
-            
-            // Feature request indicators - check for explicit feature requests
-            const featureKeywords = ['feature request', 'enhancement', 'add support', 'would be nice', 'suggestion', 'could you add'];
-            const featureMatches = featureKeywords.filter(kw => content.includes(kw));
-            if (featureMatches.length > 0 && issueType !== 'security') {
-              issueType = 'feature-request';
-              classificationReasons.push(`Feature request indicators found: ${featureMatches.join(', ')}`);
-            }
-            
-            // Potential issue indicators - but could be user error or configuration issue
-            // Be conservative: presence of technical terms doesn't automatically mean it's a bug in our code
-            const technicalErrorKeywords = [
-              'crash', 'exception', 'nullpointerexception', 'illegalstateexception',
-              'stacktrace', 'stack trace', 'throws'
-            ];
-            const technicalErrorMatches = technicalErrorKeywords.filter(kw => content.includes(kw));
-            
-            const behaviorKeywords = [
-              'fails to', 'broken', 'does not work', 'not working', 'stopped working', 'doesn\'t work',
-              'unexpected behavior', 'unexpected', 'incorrect', 'wrong',
-              'mismatch', 'fallback', 'not recognized', 'not launch'
-            ];
-            const behaviorMatches = behaviorKeywords.filter(kw => content.includes(kw));
-            
-            // Check for explicit bug label in title/body
-            const explicitBug = title.includes('[bug]') || body.includes('**bug**');
-            
-            if (issueType !== 'security' && issueType !== 'feature-request') {
-              if (technicalErrorMatches.length > 0 || behaviorMatches.length > 0 || explicitBug) {
-                // Use "needs-investigation" instead of "bug" to indicate this requires review
-                // Stack traces and errors don't automatically mean there's a bug in our code
-                issueType = 'needs-investigation';
-                if (technicalErrorMatches.length > 0) {
-                  classificationReasons.push(`Technical error indicators detected: ${technicalErrorMatches.join(', ')}`);
-                  classificationReasons.push(`Note: Stack traces may indicate user error or configuration issues, not necessarily bugs in MSAL`);
-                }
-                if (behaviorMatches.length > 0) {
-                  classificationReasons.push(`Behavior issue indicators detected: ${behaviorMatches.join(', ')}`);
-                }
-                if (explicitBug) {
-                  classificationReasons.push(`Issue explicitly labeled as a bug by reporter`);
-                }
+            if (aiClassification && aiConfidence !== 'low') {
+              // Use AI classification
+              issueType = aiClassification.issueType || 'question';
+              needsInfo = aiClassification.needsMoreInfo !== false; // Default to true if not specified
+              
+              classificationReasons.push(`AI Classification (${aiConfidence} confidence): ${issueType}`);
+              if (aiClassification.isSecurity) {
+                issueType = 'security';
+                classificationReasons.push(`AI detected security-related issue`);
               }
-              // Don't classify as bug just because it contains generic words like "error" or "issue"
+              classificationReasons.push(`AI analysis complete - using AI classification`);
+            } else {
+              // Fallback to rule-based classification
+              classificationReasons.push(`Using rule-based classification (AI unavailable or low confidence)`);
+              
+              // Security indicators - requires immediate attention
+              const securityKeywords = ['security', 'vulnerability', 'cve', 'exploit', 'attack'];
+              const securityMatches = securityKeywords.filter(kw => content.includes(kw));
+              if (securityMatches.length > 0) {
+                issueType = 'security';
+                classificationReasons.push(`Security-related keywords detected: ${securityMatches.join(', ')}`);
+              }
+              
+              // Feature request indicators - check for explicit feature requests
+              const featureKeywords = ['feature request', 'enhancement', 'add support', 'would be nice', 'suggestion', 'could you add'];
+              const featureMatches = featureKeywords.filter(kw => content.includes(kw));
+              if (featureMatches.length > 0 && issueType !== 'security') {
+                issueType = 'feature-request';
+                classificationReasons.push(`Feature request indicators found: ${featureMatches.join(', ')}`);
+              }
+              
+              // Potential issue indicators - but could be user error or configuration issue
+              // Be conservative: presence of technical terms doesn't automatically mean it's a bug in our code
+              const technicalErrorKeywords = [
+                'crash', 'exception', 'nullpointerexception', 'illegalstateexception',
+                'stacktrace', 'stack trace', 'throws'
+              ];
+              const technicalErrorMatches = technicalErrorKeywords.filter(kw => content.includes(kw));
+              
+              const behaviorKeywords = [
+                'fails to', 'broken', 'does not work', 'not working', 'stopped working', 'doesn\'t work',
+                'unexpected behavior', 'unexpected', 'incorrect', 'wrong',
+                'mismatch', 'fallback', 'not recognized', 'not launch'
+              ];
+              const behaviorMatches = behaviorKeywords.filter(kw => content.includes(kw));
+              
+              // Check for explicit bug label in title/body
+              const explicitBug = title.includes('[bug]') || body.includes('**bug**');
+              
+              if (issueType !== 'security' && issueType !== 'feature-request') {
+                if (technicalErrorMatches.length > 0 || behaviorMatches.length > 0 || explicitBug) {
+                  // Use "needs-investigation" instead of "bug" to indicate this requires review
+                  // Stack traces and errors don't automatically mean there's a bug in our code
+                  issueType = 'needs-investigation';
+                  if (technicalErrorMatches.length > 0) {
+                    classificationReasons.push(`Technical error indicators detected: ${technicalErrorMatches.join(', ')}`);
+                    classificationReasons.push(`Note: Stack traces may indicate user error or configuration issues, not necessarily bugs in MSAL`);
+                  }
+                  if (behaviorMatches.length > 0) {
+                    classificationReasons.push(`Behavior issue indicators detected: ${behaviorMatches.join(', ')}`);
+                  }
+                  if (explicitBug) {
+                    classificationReasons.push(`Issue explicitly labeled as a bug by reporter`);
+                  }
+                }
+                // Don't classify as bug just because it contains generic words like "error" or "issue"
+              }
             }
             
             // Store classification reasons for verbose explanation
@@ -416,8 +510,10 @@ jobs:
             core.setOutput('version_age_days', versionAgeDays !== null ? versionAgeDays.toString() : '');
             core.setOutput('is_very_old', isVeryOld.toString());
             core.setOutput('version_release_date', versionReleaseDate || '');
+            core.setOutput('ai_solution', aiSolution || '');
+            core.setOutput('ai_confidence', aiConfidence);
             
-            console.log(`Issue classified as: ${issueType}, Needs info: ${needsInfo}, Version: ${msalVersion || 'not detected'}`);
+            console.log(`Issue classified as: ${issueType}, Needs info: ${needsInfo}, Version: ${msalVersion || 'not detected'}, AI Solution: ${!!aiSolution}`);
 
       - name: Detect Impact in Initial Issue
         id: detect_initial_impact
@@ -762,6 +858,18 @@ jobs:
                 response += `- ${explanation}\n`;
               }
               response += `\n`;
+            }
+            
+            // Add AI-generated solution if available
+            const aiSolution = '${{ needs.triage.outputs.ai_solution }}';
+            const aiConfidence = '${{ needs.triage.outputs.ai_confidence }}';
+            if (aiSolution && aiSolution !== '' && !isVeryOld) {
+              response += `## 🤖 AI-Generated Solution Suggestion\n\n`;
+              response += `${aiSolution}\n\n`;
+              if (aiConfidence === 'medium' || aiConfidence === 'low') {
+                response += `> **Note:** This is an AI-generated suggestion. Please verify against our documentation.\n\n`;
+              }
+              response += `---\n\n`;
             }
             
             // Add detected patterns section with solutions
