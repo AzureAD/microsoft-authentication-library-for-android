@@ -719,6 +719,7 @@ jobs:
             response += `\`\`\`\n`;
             response += `PING-COPILOT: <your question or request>\n`;
             response += `\`\`\`\n\n`;
+            response += `> **Privacy Note:** PING-COPILOT responses are generated using AI. Your comment will be processed by a language model. Do not include PII (personally identifiable information), credentials, tokens, or other sensitive data in your PING-COPILOT request.\n\n`;
             response += `The Copilot agent will analyze your comment and provide updated guidance based on the full issue context.\n\n`;
             response += `---\n`;
             response += `*This is an automated response. A team member will review your issue soon.*\n`;
@@ -1148,6 +1149,7 @@ jobs:
             response += `\`\`\`\n`;
             response += `PING-COPILOT: <your question>\n`;
             response += `\`\`\`\n\n`;
+            response += `> **Privacy Note:** PING-COPILOT responses are generated using AI. Your comment will be processed by a language model. Do not include PII (personally identifiable information), credentials, tokens, or other sensitive data in your PING-COPILOT request.\n\n`;
             response += `---\n`;
             response += `*AI-powered response using GitHub Models. A team member will review the conversation.*\n`;
             
