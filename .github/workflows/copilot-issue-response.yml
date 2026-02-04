@@ -1159,8 +1159,6 @@ jobs:
             if (priorityLevel) {
               console.log(`Customer impact detected: ${priorityLevel} - ${impactReason}`);
             }
-
-            }
       
       - name: Apply Priority Label
         if: steps.detect_impact.outputs.has_impact == 'true'
