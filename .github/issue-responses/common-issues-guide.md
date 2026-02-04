@@ -923,6 +923,71 @@ MSAL requires a compatible browser for authentication. Not all browsers support 
 
 ---
 
+### 10.1.1 Configuring Browser Preferences
+
+**Symptoms:**
+- Specific browser (Edge, Firefox) not launching for authentication
+- App falls back to WebView when browser is installed
+- Browser signature mismatch errors
+- "Browser: com.microsoft.emmx signature hash not match"
+
+**Root Cause:**
+MSAL uses a safelist of trusted browser signatures for security. If a browser's signature doesn't match the safelist, or if you want to prefer a specific browser, you need to configure it explicitly.
+
+**Solution:**
+
+1. **Specify a preferred browser** using the `preferred_browser` field in `auth_config.json`:
+```json
+{
+  "preferred_browser": "com.android.chrome"
+}
+```
+
+Available browser package names:
+- Chrome: `"com.android.chrome"`
+- Firefox: `"org.mozilla.firefox"`
+- Edge: `"com.microsoft.emmx"`
+- Samsung Browser: `"com.sec.android.app.sbrowser"`
+- Opera: `"com.opera.browser"`
+
+2. **Define allowed browsers** with the `browser_safelist`:
+```json
+{
+  "browser_safelist": [
+    {
+      "browser_package_name": "com.android.chrome",
+      "browser_signature_hashes": ["7fmduHKTdHHrlMvldlEqAIlSfii1tl35bxj1OXN5Ve8c4lU6URVu4xtSHc3BVZxS6WWJnxMDhIfQN0N0K2NDJg=="]
+    },
+    {
+      "browser_package_name": "org.mozilla.firefox",
+      "browser_signature_hashes": ["2gCe6pR_AO_Q2Vu8Iep-4AsiKNnUHQxu0FaDHO_qa178GByKybdT_BuE8_dYk99G5Uvx_gdONXAOO2EaXidpVQ=="]
+    }
+  ]
+}
+```
+
+3. **If a browser signature doesn't match** (e.g., browser was updated):
+   - Update to the latest MSAL version (may have updated signatures)
+   - Use a different browser as a workaround via `preferred_browser`
+   - File an issue with the browser package name and version for signature updates
+
+**Important Notes:**
+- Browser signatures must match the installed browser version
+- If a browser's signature doesn't match, MSAL will not use that browser for authentication
+- If no browsers in the safelist are available or have matching signatures, MSAL falls back to WebView
+- See [`auth_config.template.json`](../../auth_config.template.json) for the complete list of supported browsers and their current signatures
+- Signature mismatches often occur when browsers auto-update to new versions
+
+**Example for Edge not launching:**
+```json
+{
+  "preferred_browser": "com.android.chrome",  // Workaround: use Chrome instead
+  "broker_redirect_uri_registered": true
+}
+```
+
+---
+
 ### 10.2 Authorization Flow Cancellation
 
 **Symptoms:**

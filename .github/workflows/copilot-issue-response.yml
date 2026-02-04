@@ -42,6 +42,11 @@ jobs:
       version_release_date: ${{ steps.classify.outputs.version_release_date }}
       classification_reasons: ${{ steps.classify.outputs.classification_reasons }}
       detected_patterns: ${{ steps.classify.outputs.detected_patterns }}
+      ai_solution: ${{ steps.classify.outputs.ai_solution }}
+      ai_confidence: ${{ steps.classify.outputs.ai_confidence }}
+      has_initial_impact: ${{ steps.detect_initial_impact.outputs.has_impact }}
+      initial_priority: ${{ steps.detect_initial_impact.outputs.priority_level }}
+      initial_impact_reason: ${{ steps.detect_initial_impact.outputs.impact_reason }}
     
     steps:
       - name: Checkout repository
@@ -117,60 +122,152 @@ jobs:
               }
             }
             
-            // Classification logic with detailed reasoning
+            // AI-Powered Classification
+            let aiClassification = null;
+            let aiSolution = null;
+            let aiConfidence = 'low';
+            
+            try {
+              console.log('Attempting AI classification...');
+              
+              // Fetch guidance files for AI context
+              const fs = require('fs');
+              const copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8').substring(0, 15000);
+              const commonIssuesGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8').substring(0, 15000);
+              
+              // Redact secrets from issue content before sending to AI
+              function redactSecrets(text) {
+                return text
+                  .replace(/eyJ[A-Za-z0-9_-]{10,}/g, '[REDACTED_JWT]')
+                  .replace(/Bearer\s+[A-Za-z0-9_\-.]+/gi, 'Bearer [REDACTED_TOKEN]')
+                  .replace(/Authorization:\s*[^\s]+/gi, 'Authorization: [REDACTED]')
+                  .replace(/(client_secret|access_token|api[_-]?key)["\s:=]+[^\s"',}]+/gi, '$1: [REDACTED]')
+                  .replace(/[A-Za-z0-9+\/]{40,}={0,2}/g, (match) => match.length > 40 ? '[REDACTED_BASE64]' : match);
+              }
+              
+              const redactedTitle = redactSecrets(issue.title);
+              const redactedBody = redactSecrets(issue.body || '');
+              
+              // Construct AI prompt (using string concatenation to avoid YAML issues)
+              const systemPrompt = 'You are an expert MSAL Android library support engineer. Analyze GitHub issues and provide accurate classification and solutions.\n\n' +
+                'Your Expertise:\n' + copilotInstructions.substring(0, 8000) + '\n\n' +
+                'Common Issues Reference:\n' + commonIssuesGuide.substring(0, 6000) + '\n\n' +
+                'Task:\n' +
+                '1. Classify the issue type: "bug", "question", "feature-request", or "security"\n' +
+                '2. Determine if it is a security issue (high accuracy required)\n' +
+                '3. Assess if more information is needed (version, error message, steps to reproduce)\n' +
+                '4. Provide a concise 2-3 sentence solution suggestion\n\n' +
+                'Output JSON format:\n' +
+                '{\n' +
+                '  "issueType": "bug|question|feature-request|security",\n' +
+                '  "isSecurity": boolean,\n' +
+                '  "needsMoreInfo": boolean,\n' +
+                '  "suggestedSolution": "string (2-3 sentences with specific guidance)",\n' +
+                '  "confidence": "high|medium|low"\n' +
+                '}\n\n' +
+                'Never echo secrets, tokens, or PII in your response.';
+
+              const userPrompt = 'Issue Title: ' + redactedTitle + '\n\n' +
+                'Issue Description:\n' + redactedBody.substring(0, 3000) + '\n\n' +
+                (msalVersion ? ('MSAL Version: ' + msalVersion) : 'MSAL Version: Not detected') + '\n\n' +
+                'Analyze this issue and provide classification with solution suggestion in JSON format.';
+
+              // Call GitHub Models API
+              const aiResponse = await github.request('POST /models/chat/completions', {
+                model: 'gpt-4o-mini',
+                messages: [
+                  { role: 'system', content: systemPrompt },
+                  { role: 'user', content: userPrompt }
+                ],
+                temperature: 0.3,
+                max_tokens: 500
+              });
+
+              const aiResult = aiResponse.data.choices[0].message.content;
+              console.log(`AI response: ${aiResult}`);
+              
+              // Parse JSON response
+              const jsonMatch = aiResult.match(/\{[\s\S]*\}/);
+              if (jsonMatch) {
+                aiClassification = JSON.parse(jsonMatch[0]);
+                aiSolution = aiClassification.suggestedSolution || null;
+                aiConfidence = aiClassification.confidence || 'medium';
+                console.log(`AI Classification: ${aiClassification.issueType}, Security: ${aiClassification.isSecurity}, Solution provided: ${!!aiSolution}`);
+              }
+            } catch (error) {
+              console.log(`AI classification failed: ${error.message}. Falling back to rule-based classification.`);
+            }
+            
+            // Classification logic - Use AI classification if available, otherwise fall back to rule-based
             let classificationReasons = [];
             
-            // Security indicators - requires immediate attention
-            const securityKeywords = ['security', 'vulnerability', 'cve', 'exploit', 'attack'];
-            const securityMatches = securityKeywords.filter(kw => content.includes(kw));
-            if (securityMatches.length > 0) {
-              issueType = 'security';
-              classificationReasons.push(`Security-related keywords detected: ${securityMatches.join(', ')}`);
-            }
-            
-            // Feature request indicators - check for explicit feature requests
-            const featureKeywords = ['feature request', 'enhancement', 'add support', 'would be nice', 'suggestion', 'could you add'];
-            const featureMatches = featureKeywords.filter(kw => content.includes(kw));
-            if (featureMatches.length > 0 && issueType !== 'security') {
-              issueType = 'feature-request';
-              classificationReasons.push(`Feature request indicators found: ${featureMatches.join(', ')}`);
-            }
-            
-            // Potential issue indicators - but could be user error or configuration issue
-            // Be conservative: presence of technical terms doesn't automatically mean it's a bug in our code
-            const technicalErrorKeywords = [
-              'crash', 'exception', 'nullpointerexception', 'illegalstateexception',
-              'stacktrace', 'stack trace', 'throws'
-            ];
-            const technicalErrorMatches = technicalErrorKeywords.filter(kw => content.includes(kw));
-            
-            const behaviorKeywords = [
-              'fails to', 'broken', 'does not work', 'not working', 'stopped working', 'doesn\'t work',
-              'unexpected behavior', 'unexpected', 'incorrect', 'wrong',
-              'mismatch', 'fallback', 'not recognized', 'not launch'
-            ];
-            const behaviorMatches = behaviorKeywords.filter(kw => content.includes(kw));
-            
-            // Check for explicit bug label in title/body
-            const explicitBug = title.includes('[bug]') || body.includes('**bug**');
-            
-            if (issueType !== 'security' && issueType !== 'feature-request') {
-              if (technicalErrorMatches.length > 0 || behaviorMatches.length > 0 || explicitBug) {
-                // Use "needs-investigation" instead of "bug" to indicate this requires review
-                // Stack traces and errors don't automatically mean there's a bug in our code
-                issueType = 'needs-investigation';
-                if (technicalErrorMatches.length > 0) {
-                  classificationReasons.push(`Technical error indicators detected: ${technicalErrorMatches.join(', ')}`);
-                  classificationReasons.push(`Note: Stack traces may indicate user error or configuration issues, not necessarily bugs in MSAL`);
-                }
-                if (behaviorMatches.length > 0) {
-                  classificationReasons.push(`Behavior issue indicators detected: ${behaviorMatches.join(', ')}`);
-                }
-                if (explicitBug) {
-                  classificationReasons.push(`Issue explicitly labeled as a bug by reporter`);
-                }
+            if (aiClassification && aiConfidence !== 'low') {
+              // Use AI classification
+              issueType = aiClassification.issueType || 'question';
+              needsInfo = aiClassification.needsMoreInfo !== false; // Default to true if not specified
+              
+              classificationReasons.push(`AI Classification (${aiConfidence} confidence): ${issueType}`);
+              if (aiClassification.isSecurity) {
+                issueType = 'security';
+                classificationReasons.push(`AI detected security-related issue`);
               }
-              // Don't classify as bug just because it contains generic words like "error" or "issue"
+              classificationReasons.push(`AI analysis complete - using AI classification`);
+            } else {
+              // Fallback to rule-based classification
+              classificationReasons.push(`Using rule-based classification (AI unavailable or low confidence)`);
+              
+              // Security indicators - requires immediate attention
+              const securityKeywords = ['security', 'vulnerability', 'cve', 'exploit', 'attack'];
+              const securityMatches = securityKeywords.filter(kw => content.includes(kw));
+              if (securityMatches.length > 0) {
+                issueType = 'security';
+                classificationReasons.push(`Security-related keywords detected: ${securityMatches.join(', ')}`);
+              }
+              
+              // Feature request indicators - check for explicit feature requests
+              const featureKeywords = ['feature request', 'enhancement', 'add support', 'would be nice', 'suggestion', 'could you add'];
+              const featureMatches = featureKeywords.filter(kw => content.includes(kw));
+              if (featureMatches.length > 0 && issueType !== 'security') {
+                issueType = 'feature-request';
+                classificationReasons.push(`Feature request indicators found: ${featureMatches.join(', ')}`);
+              }
+              
+              // Potential issue indicators - but could be user error or configuration issue
+              // Be conservative: presence of technical terms doesn't automatically mean it's a bug in our code
+              const technicalErrorKeywords = [
+                'crash', 'exception', 'nullpointerexception', 'illegalstateexception',
+                'stacktrace', 'stack trace', 'throws'
+              ];
+              const technicalErrorMatches = technicalErrorKeywords.filter(kw => content.includes(kw));
+              
+              const behaviorKeywords = [
+                'fails to', 'broken', 'does not work', 'not working', 'stopped working', 'doesn\'t work',
+                'unexpected behavior', 'unexpected', 'incorrect', 'wrong',
+                'mismatch', 'fallback', 'not recognized', 'not launch'
+              ];
+              const behaviorMatches = behaviorKeywords.filter(kw => content.includes(kw));
+              
+              // Check for explicit bug label in title/body
+              const explicitBug = title.includes('[bug]') || body.includes('**bug**');
+              
+              if (issueType !== 'security' && issueType !== 'feature-request') {
+                if (technicalErrorMatches.length > 0 || behaviorMatches.length > 0 || explicitBug) {
+                  // Use "needs-investigation" instead of "bug" to indicate this requires review
+                  // Stack traces and errors don't automatically mean there's a bug in our code
+                  issueType = 'needs-investigation';
+                  if (technicalErrorMatches.length > 0) {
+                    classificationReasons.push(`Technical error indicators detected: ${technicalErrorMatches.join(', ')}`);
+                    classificationReasons.push(`Note: Stack traces may indicate user error or configuration issues, not necessarily bugs in MSAL`);
+                  }
+                  if (behaviorMatches.length > 0) {
+                    classificationReasons.push(`Behavior issue indicators detected: ${behaviorMatches.join(', ')}`);
+                  }
+                  if (explicitBug) {
+                    classificationReasons.push(`Issue explicitly labeled as a bug by reporter`);
+                  }
+                }
+                // Don't classify as bug just because it contains generic words like "error" or "issue"
+              }
             }
             
             // Store classification reasons for verbose explanation
@@ -413,8 +510,139 @@ jobs:
             core.setOutput('version_age_days', versionAgeDays !== null ? versionAgeDays.toString() : '');
             core.setOutput('is_very_old', isVeryOld.toString());
             core.setOutput('version_release_date', versionReleaseDate || '');
+            core.setOutput('ai_solution', aiSolution || '');
+            core.setOutput('ai_confidence', aiConfidence);
             
-            console.log(`Issue classified as: ${issueType}, Needs info: ${needsInfo}, Version: ${msalVersion || 'not detected'}`);
+            console.log(`Issue classified as: ${issueType}, Needs info: ${needsInfo}, Version: ${msalVersion || 'not detected'}, AI Solution: ${!!aiSolution}`);
+
+      - name: Detect Impact in Initial Issue
+        id: detect_initial_impact
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const issueBody = issue.body || '';
+            
+            let priorityLevel = null;
+            let impactReason = '';
+            let deviceCount = null;
+            
+            try {
+              // Use AI to extract device count from initial issue body
+              const impactPrompt = "Analyze the following issue description and extract customer impact information. " +
+                "Focus on finding the NUMBER of devices or users affected. " +
+                "Respond with ONLY a JSON object in this format: " +
+                '{"deviceCount": <number or null>, "hasExplicitPriority": <boolean>, "explicitPriority": "<p0|p1|null>"}. ' +
+                "Examples:\n" +
+                '- "We have 500 devices affected" → {"deviceCount": 500, "hasExplicitPriority": false, "explicitPriority": null}\n' +
+                '- "This is a p0 issue" → {"deviceCount": null, "hasExplicitPriority": true, "explicitPriority": "p0"}\n' +
+                '- "Error occurs on Android 14 device" → {"deviceCount": null, "hasExplicitPriority": false, "explicitPriority": null}\n' +
+                "Issue description to analyze: " + issueBody;
+              
+              const response = await github.request('POST /models/chat/completions', {
+                model: 'gpt-4o-mini',
+                messages: [
+                  {
+                    role: 'system',
+                    content: 'You are a data extraction assistant. Extract impact information and respond with only valid JSON. No explanations, just JSON.'
+                  },
+                  {
+                    role: 'user',
+                    content: impactPrompt
+                  }
+                ],
+                temperature: 0.1,
+                max_tokens: 200
+              });
+              
+              const aiResult = response.data.choices[0].message.content.trim();
+              console.log('AI impact detection result:', aiResult);
+              
+              // Parse AI response
+              const extracted = JSON.parse(aiResult);
+              deviceCount = extracted.deviceCount;
+              
+              // Apply priority based on device count (primary method)
+              if (deviceCount !== null && deviceCount > 0) {
+                if (deviceCount >= 10000) {
+                  priorityLevel = 'p0-CodeRed';
+                  impactReason = `${deviceCount} devices/users affected`;
+                } else if (deviceCount >= 1000) {
+                  priorityLevel = 'p1-High';
+                  impactReason = `${deviceCount} devices/users affected`;
+                } else if (deviceCount >= 300) {
+                  priorityLevel = 'p2-Medium';
+                  impactReason = `${deviceCount} devices/users affected`;
+                } else if (deviceCount >= 100) {
+                  priorityLevel = 'p3-Low';
+                  impactReason = `${deviceCount} devices/users affected`;
+                } else {
+                  priorityLevel = 'p4-Minor';
+                  impactReason = `${deviceCount} devices/users affected`;
+                }
+              }
+              
+              // Check for explicit priority mentions
+              if (extracted.hasExplicitPriority && extracted.explicitPriority) {
+                const explicitPri = extracted.explicitPriority.toLowerCase();
+                if (explicitPri === 'p0' || explicitPri === 'codered') {
+                  priorityLevel = 'p0-CodeRed';
+                  if (!impactReason) impactReason = 'Customer explicitly requested priority p0/CodeRed';
+                } else if (explicitPri === 'p1') {
+                  if (!priorityLevel || priorityLevel === 'p2-Medium' || priorityLevel === 'p3-Low' || priorityLevel === 'p4-Minor') {
+                    priorityLevel = 'p1-High';
+                    if (!impactReason) impactReason = 'Customer explicitly requested priority p1/High';
+                  }
+                }
+              }
+              
+            } catch (error) {
+              console.log('AI impact detection failed, using fallback regex:', error.message);
+              
+              // Fallback to simple regex if AI fails
+              const deviceMatch = issueBody.match(/(\d+)\s*(device|user|customer|install|affected|impacted)/i);
+              if (deviceMatch) {
+                const count = parseInt(deviceMatch[1], 10);
+                deviceCount = count;
+                
+                if (count >= 10000) {
+                  priorityLevel = 'p0-CodeRed';
+                  impactReason = `${count} ${deviceMatch[2]}s affected`;
+                } else if (count >= 1000) {
+                  priorityLevel = 'p1-High';
+                  impactReason = `${count} ${deviceMatch[2]}s affected`;
+                } else if (count >= 300) {
+                  priorityLevel = 'p2-Medium';
+                  impactReason = `${count} ${deviceMatch[2]}s affected`;
+                } else if (count >= 100) {
+                  priorityLevel = 'p3-Low';
+                  impactReason = `${count} ${deviceMatch[2]}s affected`;
+                } else if (count > 0) {
+                  priorityLevel = 'p4-Minor';
+                  impactReason = `${count} ${deviceMatch[2]}s affected`;
+                }
+              }
+              
+              // Check for explicit priority in fallback
+              const bodyLower = issueBody.toLowerCase();
+              if (bodyLower.includes('p0') || bodyLower.includes('codered')) {
+                priorityLevel = 'p0-CodeRed';
+                if (!impactReason) impactReason = 'Customer explicitly requested priority p0/CodeRed';
+              }
+              
+              if (!priorityLevel && (bodyLower.includes('p1') || bodyLower.includes('high priority'))) {
+                priorityLevel = 'p1-High';
+                if (!impactReason) impactReason = 'High priority issue reported';
+              }
+            }
+            
+            core.setOutput('has_impact', priorityLevel ? 'true' : 'false');
+            core.setOutput('priority_level', priorityLevel || '');
+            core.setOutput('impact_reason', impactReason);
+            
+            if (priorityLevel) {
+              console.log(`Customer impact detected in initial issue: ${priorityLevel} - ${impactReason}`);
+            }
 
       - name: Apply Labels
         uses: actions/github-script@v7
@@ -423,10 +651,16 @@ jobs:
             const issueType = '${{ steps.classify.outputs.type }}';
             const needsInfo = '${{ steps.classify.outputs.needs_info }}' === 'true';
             const isVeryOld = '${{ steps.classify.outputs.is_very_old }}' === 'true';
+            const hasImpact = '${{ steps.detect_initial_impact.outputs.has_impact }}' === 'true';
+            const priorityLevel = '${{ steps.detect_initial_impact.outputs.priority_level }}';
             
-            // Only apply issue type labels, NOT priority labels
-            // Priority should be determined by team based on actual customer impact
+            // Apply issue type labels and priority if detected
             const labels = [issueType];
+            
+            // Add priority label if customer impact was detected in initial issue
+            if (hasImpact && priorityLevel) {
+              labels.push(priorityLevel);
+            }
             
             if (needsInfo) {
               labels.push('needs-more-info');
@@ -454,7 +688,13 @@ jobs:
                   'security': 'b60205',
                   'needs-more-info': 'fbca04',
                   'very-old-msal': 'ffa500',
-                  'triage-issue': 'c5def5'
+                  'triage-issue': 'c5def5',
+                  // Priority labels (5-level system based on device count thresholds)
+                  'p0-CodeRed': 'd73a4a',   // Red - code red (10000+ devices)
+                  'p1-High': 'ff6b6b',      // Orange - high (1000-9999 devices)
+                  'p2-Medium': 'fbca04',    // Yellow - medium (300-999 devices)
+                  'p3-Low': '0075ca',       // Blue - low (100-299 devices)
+                  'p4-Minor': '5DADE2'      // Light blue - minor (<100 devices)
                 };
                 
                 try {
@@ -500,6 +740,9 @@ jobs:
           VERSION_RELEASE_DATE: ${{ needs.triage.outputs.version_release_date }}
           CLASSIFICATION_REASONS: ${{ needs.triage.outputs.classification_reasons }}
           DETECTED_PATTERNS: ${{ needs.triage.outputs.detected_patterns }}
+          HAS_INITIAL_IMPACT: ${{ needs.triage.outputs.has_initial_impact }}
+          INITIAL_PRIORITY: ${{ needs.triage.outputs.initial_priority }}
+          INITIAL_IMPACT_REASON: ${{ needs.triage.outputs.initial_impact_reason }}
         with:
           script: |
             const fs = require('fs');
@@ -509,6 +752,9 @@ jobs:
             const versionAgeDays = process.env.VERSION_AGE_DAYS;
             const isVeryOld = process.env.IS_VERY_OLD === 'true';
             const versionReleaseDate = process.env.VERSION_RELEASE_DATE;
+            const hasInitialImpact = process.env.HAS_INITIAL_IMPACT === 'true';
+            const initialPriority = process.env.INITIAL_PRIORITY;
+            const initialImpactReason = process.env.INITIAL_IMPACT_REASON;
             const issue = context.payload.issue;
             
             // Parse classification reasons and detected patterns
@@ -593,8 +839,13 @@ jobs:
               labelExplanations.push(`**Note:** Security issues require immediate team review`);
             }
             
-            // Note about priority (not auto-assigned)
-            labelExplanations.push(`**Priority:** Will be assigned by the team based on actual customer impact (users affected, P0 flows, etc.)`);
+            // Acknowledge priority if already assigned from initial issue
+            if (hasInitialImpact && initialPriority) {
+              labelExplanations.push(`\`${initialPriority}\`: Auto-assigned based on customer impact - ${initialImpactReason}`);
+            } else {
+              // Note about priority if not yet assigned
+              labelExplanations.push(`**Priority:** Will be auto-assigned by this workflow when customer impact is provided via PING-COPILOT (based on device counts or explicit priority mentions). Human developers may update the priority label later as needed.`);
+            }
             
             if (needsInfo) {
               labelExplanations.push(`\`needs-more-info\`: Additional information is required to properly diagnose and address this issue`);
@@ -607,6 +858,18 @@ jobs:
                 response += `- ${explanation}\n`;
               }
               response += `\n`;
+            }
+            
+            // Add AI-generated solution if available
+            const aiSolution = '${{ needs.triage.outputs.ai_solution }}';
+            const aiConfidence = '${{ needs.triage.outputs.ai_confidence }}';
+            if (aiSolution && aiSolution !== '' && !isVeryOld) {
+              response += `## 🤖 AI-Generated Solution Suggestion\n\n`;
+              response += `${aiSolution}\n\n`;
+              if (aiConfidence === 'medium' || aiConfidence === 'low') {
+                response += `> **Note:** This is an AI-generated suggestion. Please verify against our documentation.\n\n`;
+              }
+              response += `---\n\n`;
             }
             
             // Add detected patterns section with solutions
@@ -694,10 +957,23 @@ jobs:
             
             // Standard footer with PING-COPILOT trigger
             response += `---\n\n`;
+            
+            // Prompt for customer impact data if not already detected and not a simple question
+            if ((issueType === 'needs-investigation' || issueType === 'feature-request') && !hasInitialImpact) {
+              response += `### 📊 Help Us Prioritize\n\n`;
+              response += `To help the team prioritize this issue, please provide information about customer impact:\n\n`;
+              response += `\`\`\`\n`;
+              response += `PING-COPILOT: We have <number> devices/users affected by this issue\n`;
+              response += `\`\`\`\n\n`;
+              response += `The AI will analyze your impact information and apply the appropriate priority label based on device count thresholds.\n\n`;
+              response += `---\n\n`;
+            }
+            
             response += `**Need further assistance?** You can trigger a follow-up analysis by commenting:\n`;
             response += `\`\`\`\n`;
             response += `PING-COPILOT: <your question or request>\n`;
             response += `\`\`\`\n\n`;
+            response += `> **Privacy Note:** PING-COPILOT responses are generated using AI. Your comment will be processed by a language model. Do not include PII (personally identifiable information), credentials, tokens, or other sensitive data in your PING-COPILOT request.\n\n`;
             response += `The Copilot agent will analyze your comment and provide updated guidance based on the full issue context.\n\n`;
             response += `---\n`;
             response += `*This is an automated response. A team member will review your issue soon.*\n`;
@@ -750,8 +1026,9 @@ jobs:
               core.setOutput('has_request', 'false');
             }
             
-      - name: Generate Follow-up Response
+      - name: Detect Customer Impact with AI
         if: steps.extract_request.outputs.has_request == 'true'
+        id: detect_impact
         uses: actions/github-script@v7
         env:
           USER_REQUEST: ${{ steps.extract_request.outputs.user_request }}
@@ -760,8 +1037,243 @@ jobs:
             const userRequest = process.env.USER_REQUEST;
             const issue = context.payload.issue;
             
-            // Fetch latest version dynamically
-            let latestVersion = '8.+'; // Fallback
+            // Use AI to detect customer impact from the user's request
+            // Focus on device count as primary indicator, as per guidelines
+            let priorityLevel = null;
+            let impactReason = '';
+            let deviceCount = null;
+            
+            try {
+              // Construct AI prompt to extract impact information
+              const impactPrompt = "Analyze the following text and extract customer impact information. " +
+                "Focus on finding the NUMBER of devices or users affected. " +
+                "Respond with ONLY a JSON object in this format: " +
+                '{"deviceCount": <number or null>, "hasExplicitPriority": <boolean>, "explicitPriority": "<p0|p1|null>"}. ' +
+                "Examples:\n" +
+                '- "We have 500 devices affected" → {"deviceCount": 500, "hasExplicitPriority": false, "explicitPriority": null}\n' +
+                '- "This is a p0 issue" → {"deviceCount": null, "hasExplicitPriority": true, "explicitPriority": "p0"}\n' +
+                '- "Critical question about config" → {"deviceCount": null, "hasExplicitPriority": false, "explicitPriority": null}\n' +
+                "Text to analyze: " + userRequest;
+              
+              const response = await github.request('POST /models/chat/completions', {
+                model: 'gpt-4o-mini',
+                messages: [
+                  {
+                    role: 'system',
+                    content: 'You are a data extraction assistant. Extract impact information and respond with only valid JSON. No explanations, just JSON.'
+                  },
+                  {
+                    role: 'user',
+                    content: impactPrompt
+                  }
+                ],
+                temperature: 0.1,
+                max_tokens: 200
+              });
+              
+              const aiResult = response.data.choices[0].message.content.trim();
+              console.log('AI impact detection result:', aiResult);
+              
+              // Parse AI response
+              const extracted = JSON.parse(aiResult);
+              deviceCount = extracted.deviceCount;
+              
+              // Apply priority based on device count (primary method)
+              if (deviceCount !== null && deviceCount > 0) {
+                if (deviceCount >= 10000) {
+                  priorityLevel = 'p0-CodeRed';
+                  impactReason = `${deviceCount} devices/users affected`;
+                } else if (deviceCount >= 1000) {
+                  priorityLevel = 'p1-High';
+                  impactReason = `${deviceCount} devices/users affected`;
+                } else if (deviceCount >= 300) {
+                  priorityLevel = 'p2-Medium';
+                  impactReason = `${deviceCount} devices/users affected`;
+                } else if (deviceCount >= 100) {
+                  priorityLevel = 'p3-Low';
+                  impactReason = `${deviceCount} devices/users affected`;
+                } else {
+                  priorityLevel = 'p4-Minor';
+                  impactReason = `${deviceCount} devices/users affected`;
+                }
+              }
+              
+              // Check for explicit priority mentions (secondary method)
+              if (extracted.hasExplicitPriority && extracted.explicitPriority) {
+                const explicitPri = extracted.explicitPriority.toLowerCase();
+                if (explicitPri === 'p0' || explicitPri === 'codered') {
+                  priorityLevel = 'p0-CodeRed';
+                  if (!impactReason) impactReason = 'Customer explicitly requested priority p0/CodeRed';
+                } else if (explicitPri === 'p1') {
+                  if (!priorityLevel || priorityLevel === 'p2-Medium' || priorityLevel === 'p3-Low' || priorityLevel === 'p4-Minor') {
+                    priorityLevel = 'p1-High';
+                    if (!impactReason) impactReason = 'Customer explicitly requested priority p1/High';
+                  }
+                }
+              }
+              
+            } catch (error) {
+              console.log('AI impact detection failed, using fallback regex:', error.message);
+              
+              // Fallback to simple regex if AI fails
+              const deviceMatch = userRequest.match(/(\d+)\s*(device|user|customer|install|affected|impacted)/i);
+              if (deviceMatch) {
+                const count = parseInt(deviceMatch[1], 10);
+                deviceCount = count;
+                
+                if (count >= 10000) {
+                  priorityLevel = 'p0-CodeRed';
+                  impactReason = `${count} ${deviceMatch[2]}s affected`;
+                } else if (count >= 1000) {
+                  priorityLevel = 'p1-High';
+                  impactReason = `${count} ${deviceMatch[2]}s affected`;
+                } else if (count >= 300) {
+                  priorityLevel = 'p2-Medium';
+                  impactReason = `${count} ${deviceMatch[2]}s affected`;
+                } else if (count >= 100) {
+                  priorityLevel = 'p3-Low';
+                  impactReason = `${count} ${deviceMatch[2]}s affected`;
+                } else if (count > 0) {
+                  priorityLevel = 'p4-Minor';
+                  impactReason = `${count} ${deviceMatch[2]}s affected`;
+                }
+              }
+              
+              // Check for explicit priority mentions
+              if (requestLower.includes('p0') || requestLower.includes('codered')) {
+                priorityLevel = 'p0-CodeRed';
+                if (!impactReason) impactReason = 'Customer explicitly requested priority p0/CodeRed';
+              }
+              
+              if (!priorityLevel && (requestLower.includes('p1') || requestLower.includes('high priority'))) {
+                priorityLevel = 'p1-High';
+                if (!impactReason) impactReason = 'High priority issue reported';
+              }
+            }
+            
+            core.setOutput('has_impact', priorityLevel ? 'true' : 'false');
+            core.setOutput('priority_level', priorityLevel || '');
+            core.setOutput('impact_reason', impactReason);
+            core.setOutput('device_count', deviceCount !== null ? deviceCount.toString() : '');
+            
+            if (priorityLevel) {
+              console.log(`Customer impact detected: ${priorityLevel} - ${impactReason}`);
+            }
+
+            }
+      
+      - name: Apply Priority Label
+        if: steps.detect_impact.outputs.has_impact == 'true'
+        uses: actions/github-script@v7
+        env:
+          PRIORITY_LEVEL: ${{ steps.detect_impact.outputs.priority_level }}
+        with:
+          script: |
+            const priorityLevel = process.env.PRIORITY_LEVEL;
+            
+            // Create the label if it doesn't exist
+            try {
+              await github.rest.issues.getLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: priorityLevel
+              });
+            } catch (e) {
+              // Label doesn't exist, create it
+              // Priority label colors based on new 5-level system:
+              // p0-CodeRed=Red (critical), p1-High=Orange (high), p2-Medium=Yellow (medium)
+              // p3-Low=Blue (low), p4-Minor=Light blue (minor)
+              const labelColors = {
+                'p0-CodeRed': 'd73a4a',  // Red - critical (10000+ devices)
+                'p1-High': 'ff6b6b',     // Orange - high (1000-9999 devices)
+                'p2-Medium': 'fbca04',   // Yellow - medium (300-999 devices)
+                'p3-Low': '0075ca',      // Blue - low (100-299 devices)
+                'p4-Minor': '5DADE2'     // Light blue - minor (<100 devices)
+              };
+              
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: priorityLevel,
+                  color: labelColors[priorityLevel] || 'fbca04',  // Fallback shouldn't be reached with current logic
+                  description: `Priority ${priorityLevel} issue`
+                });
+              } catch (createError) {
+                console.log(`Could not create label ${priorityLevel}: ${createError.message}`);
+              }
+            }
+            
+            // Add the priority label
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: [priorityLevel]
+            });
+      
+      - name: Fetch Guidance Files
+        if: steps.extract_request.outputs.has_request == 'true'
+        id: fetch_guidance
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Read guidance files from the repository
+            let copilotInstructions = '';
+            let commonIssuesGuide = '';
+            
+            try {
+              copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8');
+              console.log('Loaded copilot-instructions.md');
+            } catch (e) {
+              console.log('Could not load copilot-instructions.md:', e.message);
+            }
+            
+            try {
+              commonIssuesGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8');
+              console.log('Loaded common-issues-guide.md');
+            } catch (e) {
+              console.log('Could not load common-issues-guide.md:', e.message);
+            }
+            
+            // Truncate if too long (GitHub Models has token limits)
+            const maxLength = 15000;
+            if (copilotInstructions.length > maxLength) {
+              copilotInstructions = copilotInstructions.substring(0, maxLength) + '\n\n[... truncated for length ...]';
+            }
+            if (commonIssuesGuide.length > maxLength) {
+              commonIssuesGuide = commonIssuesGuide.substring(0, maxLength) + '\n\n[... truncated for length ...]';
+            }
+            
+            core.setOutput('copilot_instructions', copilotInstructions);
+            core.setOutput('common_issues', commonIssuesGuide);
+      
+      - name: Generate AI-Powered Response
+        if: steps.extract_request.outputs.has_request == 'true'
+        uses: actions/github-script@v7
+        env:
+          USER_REQUEST: ${{ steps.extract_request.outputs.user_request }}
+          HAS_IMPACT: ${{ steps.detect_impact.outputs.has_impact }}
+          PRIORITY_LEVEL: ${{ steps.detect_impact.outputs.priority_level }}
+          IMPACT_REASON: ${{ steps.detect_impact.outputs.impact_reason }}
+          DEVICE_COUNT: ${{ steps.detect_impact.outputs.device_count }}
+          COPILOT_INSTRUCTIONS: ${{ steps.fetch_guidance.outputs.copilot_instructions }}
+          COMMON_ISSUES: ${{ steps.fetch_guidance.outputs.common_issues }}
+        with:
+          script: |
+            const userRequest = process.env.USER_REQUEST;
+            const hasImpact = process.env.HAS_IMPACT === 'true';
+            const priorityLevel = process.env.PRIORITY_LEVEL;
+            const impactReason = process.env.IMPACT_REASON;
+            const deviceCount = process.env.DEVICE_COUNT;
+            const copilotInstructions = process.env.COPILOT_INSTRUCTIONS;
+            const commonIssues = process.env.COMMON_ISSUES;
+            const issue = context.payload.issue;
+            
+            // Fetch latest version
+            let latestVersion = '8.+';
             try {
               const latestRelease = await github.rest.repos.getLatestRelease({
                 owner: context.repo.owner,
@@ -769,128 +1281,131 @@ jobs:
               });
               latestVersion = latestRelease.data.tag_name.replace(/^v/, '');
             } catch (error) {
-              console.log('Could not fetch latest version, using fallback');
+              console.log('Could not fetch latest version');
             }
             
-            // Build response acknowledging the follow-up
-            let response = `Thanks for the follow-up! I'll analyze your request: "${userRequest}"\n\n`;
-            
-            // Get issue context
+            // Build comprehensive context for AI
             const issueTitle = issue.title || '';
-            const issueBody = issue.body || '';
-            const content = (issueTitle + ' ' + issueBody).toLowerCase();
+            let issueBody = issue.body || '';
+            let sanitizedUserRequest = userRequest;
             
-            // Helper function to detect MSAL version
-            function detectMsalVersion(text) {
-              const versionPatterns = [
-                /v(\d+\.\d+\.\d+)/i,
-                /msal[:\s]+(\d+\.\d+\.\d+)/i,
-                /version[:\s]+(\d+\.\d+\.\d+)/i
-              ];
+            // Redact potential secrets and PII before sending to AI
+            function redactSecrets(text) {
+              if (!text) return text;
               
-              for (const pattern of versionPatterns) {
-                const match = text.match(pattern);
-                if (match && match[1]) {
-                  return match[1];
-                }
-              }
-              return null;
-            }
-            
-            // Try to detect version in the original issue
-            let msalVersion = detectMsalVersion(content);
-            
-            // Provide contextual guidance based on request
-            const requestLower = userRequest.toLowerCase();
-            
-            // Check for upgrade-related questions
-            if (requestLower.includes('upgrade') || requestLower.includes('updated') || requestLower.includes('new version')) {
-              response += `Great that you're upgrading! Here's what you need to know:\n\n`;
-              response += `**Latest Version:** ${latestVersion} ([release notes](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v${latestVersion}))\n\n`;
-              response += `**Upgrade Steps:**\n`;
-              response += `1. Update your \`build.gradle\`:\n`;
-              response += `\`\`\`gradle\n`;
-              response += `implementation "com.microsoft.identity.client:msal:8.+"\n`;
-              response += `\`\`\`\n`;
-              response += `2. Review [breaking changes](https://github.com/AzureAD/microsoft-authentication-library-for-android#migration) if upgrading from v6.x or earlier\n`;
-              response += `3. Test authentication flows thoroughly\n`;
-              response += `4. Update Android Authenticator app on test devices\n\n`;
-            }
-            // Check for configuration questions
-            else if (requestLower.includes('config') || requestLower.includes('auth_config') || requestLower.includes('redirect')) {
-              response += `Let me help with configuration:\n\n`;
-              response += `**Key Configuration Points:**\n`;
-              response += `1. **Redirect URI Encoding** (most common issue):\n`;
-              response += `   - \`auth_config.json\`: signature hash must be URL encoded (\`%2A\` for \`*\`, \`%3D\` for \`=\`)\n`;
-              response += `   - \`AndroidManifest.xml\`: signature hash must NOT be URL encoded\n\n`;
-              response += `2. **Required in auth_config.json:**\n`;
-              response += `   - \`client_id\`: From Azure App Registration\n`;
-              response += `   - \`redirect_uri\`: Format \`msauth://your.package.name/URL_ENCODED_HASH\`\n`;
-              response += `   - \`broker_redirect_uri_registered\`: Should be \`true\`\n\n`;
-              response += `3. **Required in AndroidManifest.xml:**\n`;
-              response += `   - BrowserTabActivity with intent-filter\n`;
-              response += `   - Signature hash in path (NOT URL encoded)\n\n`;
-              response += `See our [configuration template](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/auth_config.template.json) for full details.\n\n`;
-            }
-            // Check for broker questions
-            else if (requestLower.includes('broker') || requestLower.includes('authenticator')) {
-              response += `Here's guidance on broker integration:\n\n`;
-              response += `**Broker Setup:**\n`;
-              response += `1. Set \`broker_redirect_uri_registered: true\` in auth_config.json\n`;
-              response += `2. Ensure Microsoft Authenticator or Company Portal is installed\n`;
-              response += `3. Your app's signature hash must match what's registered in Azure\n\n`;
-              response += `**Common Broker Issues:**\n`;
-              response += `- Signature hash mismatch → Verify with \`keytool\` command\n`;
-              response += `- Broker not installed → Falls back to web flow\n`;
-              response += `- Package visibility → Add \`<queries>\` section to AndroidManifest.xml\n\n`;
-              response += `See [Common Issues Guide](.github/issue-responses/common-issues-guide.md#4-broker-integration-issues) for detailed troubleshooting.\n\n`;
-            }
-            // Check for error-specific questions
-            else if (requestLower.includes('error') || requestLower.includes('exception') || requestLower.includes('fail')) {
-              response += `To help diagnose the error:\n\n`;
-              response += `**Needed Information:**\n`;
-              response += `1. Complete error message or stack trace\n`;
-              response += `2. MSAL version you're using\n`;
-              response += `3. Steps that trigger the error\n`;
-              response += `4. Verbose logs (see below)\n\n`;
-              response += `**Enable Verbose Logging:**\n`;
-              response += `\`\`\`java\n`;
-              response += `Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);\n`;
-              response += `Logger.getInstance().setEnableLogcatLog(true);\n`;
-              response += `\`\`\`\n\n`;
-              response += `Common error patterns are documented in our [Common Issues Guide](.github/issue-responses/common-issues-guide.md).\n\n`;
-            }
-            // Generic helpful response
-            else {
-              response += `Based on the original issue and your follow-up, here are some relevant resources:\n\n`;
-              response += `**Documentation:**\n`;
-              response += `- [Common Issues Guide](.github/issue-responses/common-issues-guide.md) - Troubleshooting reference\n`;
-              response += `- [Configuration Template](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/auth_config.template.json)\n`;
-              response += `- [Code Snippets](https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/dev/snippets) - Correct API usage examples\n`;
-              response += `- [Golden Examples](https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/dev/examples)\n\n`;
+              // Redact common secret patterns
+              let redacted = text;
               
-              if (msalVersion) {
-                response += `**Note:** You mentioned version ${msalVersion}. The latest version is ${latestVersion}.\n\n`;
-              }
+              // JWT tokens (three base64 segments separated by dots)
+              redacted = redacted.replace(/\beyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, '[REDACTED_JWT]');
+              
+              // Bearer tokens
+              redacted = redacted.replace(/Bearer\s+[A-Za-z0-9_-]+/gi, 'Bearer [REDACTED_TOKEN]');
+              
+              // Authorization headers
+              redacted = redacted.replace(/Authorization:\s*[^\n]+/gi, 'Authorization: [REDACTED]');
+              
+              // client_secret values
+              redacted = redacted.replace(/"client_secret"\s*:\s*"[^"]+"/gi, '"client_secret": "[REDACTED]"');
+              redacted = redacted.replace(/client_secret\s*[=:]\s*[^\s,}]+/gi, 'client_secret=[REDACTED]');
+              
+              // Access tokens in URLs or JSON
+              redacted = redacted.replace(/access_token[=:]\s*[A-Za-z0-9_-]+/gi, 'access_token=[REDACTED]');
+              
+              // API keys
+              redacted = redacted.replace(/api[_-]?key\s*[=:]\s*[^\s,}]+/gi, 'api_key=[REDACTED]');
+              
+              // Long base64 strings that might be secrets (40+ chars)
+              redacted = redacted.replace(/\b[A-Za-z0-9+/]{40,}={0,2}\b/g, '[REDACTED_BASE64]');
+              
+              return redacted;
             }
             
-            // Add context from issue labels if available
-            const labels = issue.labels || [];
-            const labelNames = labels.map(l => typeof l === 'string' ? l : l.name);
+            issueBody = redactSecrets(issueBody);
+            sanitizedUserRequest = redactSecrets(sanitizedUserRequest);
             
-            if (labelNames.includes('very-old-msal')) {
-              response += `⚠️ **Important:** This issue is labeled \`very-old-msal\`, indicating you're using an unsupported version. `;
-              response += `Please upgrade to the latest version (${latestVersion}) before further troubleshooting.\n\n`;
+            // Construct prompt for GitHub Models with security instruction
+            const systemPrompt = "You are an expert on MSAL (Microsoft Authentication Library) for Android. You help developers troubleshoot authentication issues and provide guidance based on official documentation.\n\n" +
+              "IMPORTANT SECURITY INSTRUCTION: Never echo or include any secrets, tokens, API keys, or credentials in your response. If you see redacted values like [REDACTED_JWT] or [REDACTED_TOKEN], do not reference them.\n\n" +
+              "You have access to the following comprehensive guides:\n\n" +
+              "## COPILOT INSTRUCTIONS:\n" + copilotInstructions + "\n\n" +
+              "## COMMON ISSUES GUIDE:\n" + commonIssues + "\n\n" +
+              "Your task is to analyze the user's question and provide a helpful, specific response based on these guides. Be concise but thorough. Include relevant code examples, configuration snippets, and links to documentation when appropriate.";
+
+            const userPrompt = "Issue Context:\n" +
+              "Title: " + issueTitle + "\n" +
+              "Description: " + issueBody + "\n\n" +
+              "User Question: " + sanitizedUserRequest + "\n\n" +
+              (deviceCount ? "Customer Impact: " + deviceCount + " devices/users affected\n\n" : "") +
+              "MSAL Latest Version: " + latestVersion + "\n\n" +
+              "Please provide a detailed, helpful response to the user's question based on the guidance documents. Focus on practical solutions and include relevant examples.";
+
+            let aiResponse = '';
+            
+            // Try to call GitHub Models API
+            try {
+              console.log('Attempting to call GitHub Models API...');
+              
+              // GitHub Models API endpoint (uses GitHub token)
+              const response = await github.request('POST /models/chat/completions', {
+                model: 'gpt-4o',
+                messages: [
+                  {
+                    role: 'system',
+                    content: systemPrompt
+                  },
+                  {
+                    role: 'user',
+                    content: userPrompt
+                  }
+                ],
+                temperature: 0.7,
+                max_tokens: 2000
+              });
+              
+              aiResponse = response.data.choices[0].message.content;
+              console.log('Successfully generated AI response');
+              
+            } catch (error) {
+              console.log('GitHub Models API not available or failed:', error.message);
+              
+              // Fallback to comprehensive documentation response
+              aiResponse = `I'll help analyze your request: "${userRequest}"\n\n`;
+              aiResponse += `### Available Resources\n\n`;
+              aiResponse += `To help address your question, please review these comprehensive guides:\n\n`;
+              aiResponse += `**Primary Documentation:**\n`;
+              aiResponse += `- **[Copilot Instructions](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/copilot-instructions.md)** - Complete MSAL Android guidance\n`;
+              aiResponse += `- **[Common Issues Guide](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/issue-responses/common-issues-guide.md)** - Comprehensive troubleshooting\n`;
+              aiResponse += `- **[auth_config.template.json](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/auth_config.template.json)** - Configuration reference\n`;
+              aiResponse += `- **[Code Snippets](https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/dev/snippets)** - API usage examples\n`;
+              aiResponse += `- **[Golden Examples](https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/dev/examples)** - Working applications\n\n`;
+              aiResponse += `**Latest Version:** ${latestVersion} ([releases](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases))\n\n`;
+              aiResponse += `> **Note:** GitHub Models AI is not currently available. This issue will be reviewed by the maintainers.`;
             }
             
-            // Footer with another PING-COPILOT reminder
-            response += `---\n\n`;
+            // Build final response
+            let response = '';
+            
+            // If customer impact was detected, acknowledge it first
+            if (hasImpact) {
+              response += `📊 **Customer Impact Detected**\n\n`;
+              response += `Thank you for providing impact information. I've applied the \`${priorityLevel}\` priority label based on: ${impactReason}\n\n`;
+              response += `The team will review and prioritize this issue accordingly.\n\n`;
+              response += `---\n\n`;
+            }
+            
+            // Add AI response
+            response += aiResponse;
+            
+            // Footer
+            response += `\n\n---\n\n`;
             response += `**Need more help?** You can trigger another follow-up by commenting:\n`;
             response += `\`\`\`\n`;
             response += `PING-COPILOT: <your question>\n`;
             response += `\`\`\`\n\n`;
+            response += `> **Privacy Note:** PING-COPILOT responses are generated using AI. Your comment will be processed by a language model. Do not include PII (personally identifiable information), credentials, tokens, or other sensitive data in your PING-COPILOT request.\n\n`;
             response += `---\n`;
-            response += `*Automated follow-up response. A team member will review the full conversation.*\n`;
+            response += `*AI-powered response using GitHub Models. A team member will review the conversation.*\n`;
             
             // Post the response
             await github.rest.issues.createComment({
