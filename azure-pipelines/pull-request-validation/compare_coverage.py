@@ -4,7 +4,8 @@ import xml.etree.ElementTree as ET
 def get_coverage(xml_path):
     tree = ET.parse(xml_path)
     root = tree.getroot()
-    counter = root.find(".//counter[@type='INSTRUCTION']")
+    # Get the overall counter (direct child of report element, not nested in packages/classes)
+    counter = root.find("./counter[@type='INSTRUCTION']")
     covered = int(counter.attrib['covered'])
     missed = int(counter.attrib['missed'])
     return covered / (covered + missed)
