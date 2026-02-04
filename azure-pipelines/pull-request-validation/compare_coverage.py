@@ -24,3 +24,4 @@ def main():
         print("SUCCESS: PR branch coverage is not lower than dev branch, this is acceptable!")
 
 main()
+sys.exit(0)
