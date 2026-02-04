@@ -939,7 +939,7 @@ MSAL uses a safelist of trusted browser signatures for security. If a browser's 
 1. **Specify a preferred browser** using the `preferred_browser` field in `auth_config.json`:
 ```json
 {
-  "preferred_browser": "com.android.chrome"  // For Chrome
+  "preferred_browser": "com.android.chrome"
 }
 ```
 
