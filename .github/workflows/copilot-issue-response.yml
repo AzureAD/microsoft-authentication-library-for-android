@@ -118,7 +118,13 @@ jobs:
                   console.log(`Version ${msalVersion} released on ${versionReleaseDate}, age: ${versionAgeDays} days, is_very_old: ${isVeryOld}`);
                 }
               } catch (error) {
-                console.error(`Error checking version age: ${error.message}`);
+                console.error('=== Version Age Check Error ===');
+                console.error(`Error Type: ${error.constructor.name}`);
+                console.error(`Error Message: ${error.message}`);
+                if (error.stack) {
+                  console.error(`Stack Trace:\n${error.stack}`);
+                }
+                console.error('==============================');
               }
             }
             
@@ -173,17 +179,33 @@ jobs:
                 'Analyze this issue and provide classification with solution suggestion in JSON format.';
 
               // Call GitHub Models API
-              const aiResponse = await github.request('POST /models/chat/completions', {
-                model: 'gpt-4o-mini',
-                messages: [
-                  { role: 'system', content: systemPrompt },
-                  { role: 'user', content: userPrompt }
-                ],
-                temperature: 0.3,
-                max_tokens: 500
+              console.log('Calling GitHub Models API for classification...');
+              const aiResponse = await fetch('https://models.github.ai/inference/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  model: 'gpt-4o-mini',
+                  messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userPrompt }
+                  ],
+                  temperature: 0.3,
+                  max_tokens: 500
+                })
               });
 
-              const aiResult = aiResponse.data.choices[0].message.content;
+              console.log(`API Response Status: ${aiResponse.status} ${aiResponse.statusText}`);
+              
+              if (!aiResponse.ok) {
+                const errorBody = await aiResponse.text();
+                throw new Error(`HTTP ${aiResponse.status}: ${errorBody}`);
+              }
+
+              const aiResponseData = await aiResponse.json();
+              const aiResult = aiResponseData.choices[0].message.content;
               console.log(`AI response: ${aiResult}`);
               
               // Parse JSON response
@@ -195,7 +217,14 @@ jobs:
                 console.log(`AI Classification: ${aiClassification.issueType}, Security: ${aiClassification.isSecurity}, Solution provided: ${!!aiSolution}`);
               }
             } catch (error) {
-              console.log(`AI classification failed: ${error.message}. Falling back to rule-based classification.`);
+              console.error('=== AI Classification Error ===');
+              console.error(`Error Type: ${error.constructor.name}`);
+              console.error(`Error Message: ${error.message}`);
+              if (error.stack) {
+                console.error(`Stack Trace:\n${error.stack}`);
+              }
+              console.error('Falling back to rule-based classification.');
+              console.error('===============================');
             }
             
             // Classification logic - Use AI classification if available, otherwise fall back to rule-based
@@ -539,23 +568,39 @@ jobs:
                 '- "Error occurs on Android 14 device" → {"deviceCount": null, "hasExplicitPriority": false, "explicitPriority": null}\n' +
                 "Issue description to analyze: " + issueBody;
               
-              const response = await github.request('POST /models/chat/completions', {
-                model: 'gpt-4o-mini',
-                messages: [
-                  {
-                    role: 'system',
-                    content: 'You are a data extraction assistant. Extract impact information and respond with only valid JSON. No explanations, just JSON.'
-                  },
-                  {
-                    role: 'user',
-                    content: impactPrompt
-                  }
-                ],
-                temperature: 0.1,
-                max_tokens: 200
+              console.log('Calling GitHub Models API for impact detection...');
+              const response = await fetch('https://models.github.ai/inference/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  model: 'gpt-4o-mini',
+                  messages: [
+                    {
+                      role: 'system',
+                      content: 'You are a data extraction assistant. Extract impact information and respond with only valid JSON. No explanations, just JSON.'
+                    },
+                    {
+                      role: 'user',
+                      content: impactPrompt
+                    }
+                  ],
+                  temperature: 0.1,
+                  max_tokens: 200
+                })
               });
               
-              const aiResult = response.data.choices[0].message.content.trim();
+              console.log(`API Response Status: ${response.status} ${response.statusText}`);
+              
+              if (!response.ok) {
+                const errorBody = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorBody}`);
+              }
+              
+              const responseData = await response.json();
+              const aiResult = responseData.choices[0].message.content.trim();
               console.log('AI impact detection result:', aiResult);
               
               // Parse AI response
@@ -597,7 +642,14 @@ jobs:
               }
               
             } catch (error) {
-              console.log('AI impact detection failed, using fallback regex:', error.message);
+              console.error('=== AI Impact Detection Error (Triage) ===');
+              console.error(`Error Type: ${error.constructor.name}`);
+              console.error(`Error Message: ${error.message}`);
+              if (error.stack) {
+                console.error(`Stack Trace:\n${error.stack}`);
+              }
+              console.error('Using fallback regex pattern matching.');
+              console.error('=========================================');
               
               // Fallback to simple regex if AI fails
               const deviceMatch = issueBody.match(/(\d+)\s*(device|user|customer|install|affected|impacted)/i);
@@ -785,8 +837,16 @@ jobs:
                 repo: context.repo.repo
               });
               latestVersion = latestRelease.data.tag_name.replace(/^v/, '');
+              console.log(`Latest MSAL version: ${latestVersion}`);
             } catch (error) {
-              console.log('Could not fetch latest version, using fallback');
+              console.error('=== Latest Version Fetch Error ===');
+              console.error(`Error Type: ${error.constructor.name}`);
+              console.error(`Error Message: ${error.message}`);
+              if (error.stack) {
+                console.error(`Stack Trace:\n${error.stack}`);
+              }
+              console.error('Using fallback: version info unavailable');
+              console.error('=================================');
             }
             
             let response = '';
@@ -1055,23 +1115,39 @@ jobs:
                 '- "Critical question about config" → {"deviceCount": null, "hasExplicitPriority": false, "explicitPriority": null}\n' +
                 "Text to analyze: " + userRequest;
               
-              const response = await github.request('POST /models/chat/completions', {
-                model: 'gpt-4o-mini',
-                messages: [
-                  {
-                    role: 'system',
-                    content: 'You are a data extraction assistant. Extract impact information and respond with only valid JSON. No explanations, just JSON.'
-                  },
-                  {
-                    role: 'user',
-                    content: impactPrompt
-                  }
-                ],
-                temperature: 0.1,
-                max_tokens: 200
+              console.log('Calling GitHub Models API for impact detection (PING-COPILOT)...');
+              const response = await fetch('https://models.github.ai/inference/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  model: 'gpt-4o-mini',
+                  messages: [
+                    {
+                      role: 'system',
+                      content: 'You are a data extraction assistant. Extract impact information and respond with only valid JSON. No explanations, just JSON.'
+                    },
+                    {
+                      role: 'user',
+                      content: impactPrompt
+                    }
+                  ],
+                  temperature: 0.1,
+                  max_tokens: 200
+                })
               });
               
-              const aiResult = response.data.choices[0].message.content.trim();
+              console.log(`API Response Status: ${response.status} ${response.statusText}`);
+              
+              if (!response.ok) {
+                const errorBody = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorBody}`);
+              }
+              
+              const responseData = await response.json();
+              const aiResult = responseData.choices[0].message.content.trim();
               console.log('AI impact detection result:', aiResult);
               
               // Parse AI response
@@ -1113,7 +1189,14 @@ jobs:
               }
               
             } catch (error) {
-              console.log('AI impact detection failed, using fallback regex:', error.message);
+              console.error('=== AI Impact Detection Error (PING-COPILOT) ===');
+              console.error(`Error Type: ${error.constructor.name}`);
+              console.error(`Error Message: ${error.message}`);
+              if (error.stack) {
+                console.error(`Stack Trace:\n${error.stack}`);
+              }
+              console.error('Using fallback regex pattern matching.');
+              console.error('===============================================');
               
               // Fallback to simple regex if AI fails
               const deviceMatch = userRequest.match(/(\d+)\s*(device|user|customer|install|affected|impacted)/i);
@@ -1140,6 +1223,7 @@ jobs:
               }
               
               // Check for explicit priority mentions
+              const requestLower = userRequest.toLowerCase();
               if (requestLower.includes('p0') || requestLower.includes('codered')) {
                 priorityLevel = 'p0-CodeRed';
                 if (!impactReason) impactReason = 'Customer explicitly requested priority p0/CodeRed';
@@ -1278,8 +1362,16 @@ jobs:
                 repo: context.repo.repo
               });
               latestVersion = latestRelease.data.tag_name.replace(/^v/, '');
+              console.log(`Latest MSAL version: ${latestVersion}`);
             } catch (error) {
-              console.log('Could not fetch latest version');
+              console.error('=== Latest Version Fetch Error ===');
+              console.error(`Error Type: ${error.constructor.name}`);
+              console.error(`Error Message: ${error.message}`);
+              if (error.stack) {
+                console.error(`Stack Trace:\n${error.stack}`);
+              }
+              console.error('Using fallback: version info unavailable');
+              console.error('=================================');
             }
             
             // Build comprehensive context for AI
@@ -1342,30 +1434,52 @@ jobs:
             
             // Try to call GitHub Models API
             try {
-              console.log('Attempting to call GitHub Models API...');
+              console.log('Attempting to call GitHub Models API for response generation...');
               
               // GitHub Models API endpoint (uses GitHub token)
-              const response = await github.request('POST /models/chat/completions', {
-                model: 'gpt-4o',
-                messages: [
-                  {
-                    role: 'system',
-                    content: systemPrompt
-                  },
-                  {
-                    role: 'user',
-                    content: userPrompt
-                  }
-                ],
-                temperature: 0.7,
-                max_tokens: 2000
+              const response = await fetch('https://models.github.ai/inference/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  model: 'gpt-4o',
+                  messages: [
+                    {
+                      role: 'system',
+                      content: systemPrompt
+                    },
+                    {
+                      role: 'user',
+                      content: userPrompt
+                    }
+                  ],
+                  temperature: 0.7,
+                  max_tokens: 2000
+                })
               });
               
-              aiResponse = response.data.choices[0].message.content;
+              console.log(`API Response Status: ${response.status} ${response.statusText}`);
+              
+              if (!response.ok) {
+                const errorBody = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorBody}`);
+              }
+              
+              const responseData = await response.json();
+              aiResponse = responseData.choices[0].message.content;
               console.log('Successfully generated AI response');
               
             } catch (error) {
-              console.log('GitHub Models API not available or failed:', error.message);
+              console.error('=== AI Response Generation Error ===');
+              console.error(`Error Type: ${error.constructor.name}`);
+              console.error(`Error Message: ${error.message}`);
+              if (error.stack) {
+                console.error(`Stack Trace:\n${error.stack}`);
+              }
+              console.error('Falling back to documentation links.');
+              console.error('===================================');
               
               // Fallback to comprehensive documentation response
               aiResponse = `I'll help analyze your request: "${userRequest}"\n\n`;
