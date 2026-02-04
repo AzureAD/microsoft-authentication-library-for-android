@@ -118,7 +118,7 @@ public class TestCase1600567 extends AbstractMsalBrokerTest {
      */
     private void confirmCallingAppNotVerified(@NonNull final BrokerHost brokerHost) {
         String dialogMessage = brokerHost.dismissDialog();
-        Assert.assertTrue(dialogMessage.contains("Calling app could not be verified"));
+        Assert.assertTrue(dialogMessage.contains("is not in the list of allowed callers"));
     }
 
 }
