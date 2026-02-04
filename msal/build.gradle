@@ -37,6 +37,7 @@ jacoco {
 tasks.withType(Test) {
     jacoco {
         includeNoLocationClasses = true // Required for Robolectric
+        excludes = ['jdk.internal.*']
     }
     retry {
         // The maximum number of test failures that are allowed before retrying is disabled.
