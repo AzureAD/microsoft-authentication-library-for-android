@@ -883,7 +883,45 @@ jobs:
               labels: [priorityLevel]
             });
       
-      - name: Generate Follow-up Response
+      - name: Fetch Guidance Files
+        if: steps.extract_request.outputs.has_request == 'true'
+        id: fetch_guidance
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Read guidance files from the repository
+            let copilotInstructions = '';
+            let commonIssuesGuide = '';
+            
+            try {
+              copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8');
+              console.log('Loaded copilot-instructions.md');
+            } catch (e) {
+              console.log('Could not load copilot-instructions.md:', e.message);
+            }
+            
+            try {
+              commonIssuesGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8');
+              console.log('Loaded common-issues-guide.md');
+            } catch (e) {
+              console.log('Could not load common-issues-guide.md:', e.message);
+            }
+            
+            // Truncate if too long (GitHub Models has token limits)
+            const maxLength = 15000;
+            if (copilotInstructions.length > maxLength) {
+              copilotInstructions = copilotInstructions.substring(0, maxLength) + '\n\n[... truncated for length ...]';
+            }
+            if (commonIssuesGuide.length > maxLength) {
+              commonIssuesGuide = commonIssuesGuide.substring(0, maxLength) + '\n\n[... truncated for length ...]';
+            }
+            
+            core.setOutput('copilot_instructions', copilotInstructions);
+            core.setOutput('common_issues', commonIssuesGuide);
+      
+      - name: Generate AI-Powered Response
         if: steps.extract_request.outputs.has_request == 'true'
         uses: actions/github-script@v7
         env:
@@ -891,17 +929,20 @@ jobs:
           HAS_IMPACT: ${{ steps.detect_impact.outputs.has_impact }}
           PRIORITY_LEVEL: ${{ steps.detect_impact.outputs.priority_level }}
           IMPACT_REASON: ${{ steps.detect_impact.outputs.impact_reason }}
+          COPILOT_INSTRUCTIONS: ${{ steps.fetch_guidance.outputs.copilot_instructions }}
+          COMMON_ISSUES: ${{ steps.fetch_guidance.outputs.common_issues }}
         with:
           script: |
-            const fs = require('fs');
             const userRequest = process.env.USER_REQUEST;
             const hasImpact = process.env.HAS_IMPACT === 'true';
             const priorityLevel = process.env.PRIORITY_LEVEL;
             const impactReason = process.env.IMPACT_REASON;
+            const copilotInstructions = process.env.COPILOT_INSTRUCTIONS;
+            const commonIssues = process.env.COMMON_ISSUES;
             const issue = context.payload.issue;
             
-            // Fetch latest version dynamically
-            let latestVersion = '8.+'; // Fallback
+            // Fetch latest version
+            let latestVersion = '8.+';
             try {
               const latestRelease = await github.rest.repos.getLatestRelease({
                 owner: context.repo.owner,
@@ -909,24 +950,71 @@ jobs:
               });
               latestVersion = latestRelease.data.tag_name.replace(/^v/, '');
             } catch (error) {
-              console.log('Could not fetch latest version, using fallback');
+              console.log('Could not fetch latest version');
             }
             
-            // Fetch all comments to get conversation history
-            let allComments = [];
+            // Build comprehensive context for AI
+            const issueTitle = issue.title || '';
+            const issueBody = issue.body || '';
+            
+            // Construct prompt for GitHub Models
+            const systemPrompt = "You are an expert on MSAL (Microsoft Authentication Library) for Android. You help developers troubleshoot authentication issues and provide guidance based on official documentation.\n\n" +
+              "You have access to the following comprehensive guides:\n\n" +
+              "## COPILOT INSTRUCTIONS:\n" + copilotInstructions + "\n\n" +
+              "## COMMON ISSUES GUIDE:\n" + commonIssues + "\n\n" +
+              "Your task is to analyze the user's question and provide a helpful, specific response based on these guides. Be concise but thorough. Include relevant code examples, configuration snippets, and links to documentation when appropriate.";
+
+            const userPrompt = "Issue Context:\n" +
+              "Title: " + issueTitle + "\n" +
+              "Description: " + issueBody + "\n\n" +
+              "User Question: " + userRequest + "\n\n" +
+              "MSAL Latest Version: " + latestVersion + "\n\n" +
+              "Please provide a detailed, helpful response to the user's question based on the guidance documents. Focus on practical solutions and include relevant examples.";
+
+            let aiResponse = '';
+            
+            // Try to call GitHub Models API
             try {
-              const commentsResponse = await github.rest.issues.listComments({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                per_page: 100
+              console.log('Attempting to call GitHub Models API...');
+              
+              // GitHub Models API endpoint (uses GitHub token)
+              const response = await github.request('POST /models/chat/completions', {
+                model: 'gpt-4o',
+                messages: [
+                  {
+                    role: 'system',
+                    content: systemPrompt
+                  },
+                  {
+                    role: 'user',
+                    content: userPrompt
+                  }
+                ],
+                temperature: 0.7,
+                max_tokens: 2000
               });
-              allComments = commentsResponse.data;
-            } catch (e) {
-              console.log('Could not fetch comments:', e.message);
+              
+              aiResponse = response.data.choices[0].message.content;
+              console.log('Successfully generated AI response');
+              
+            } catch (error) {
+              console.log('GitHub Models API not available or failed:', error.message);
+              
+              // Fallback to comprehensive documentation response
+              aiResponse = `I'll help analyze your request: "${userRequest}"\n\n`;
+              aiResponse += `### Available Resources\n\n`;
+              aiResponse += `To help address your question, please review these comprehensive guides:\n\n`;
+              aiResponse += `**Primary Documentation:**\n`;
+              aiResponse += `- **[Copilot Instructions](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/copilot-instructions.md)** - Complete MSAL Android guidance\n`;
+              aiResponse += `- **[Common Issues Guide](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/issue-responses/common-issues-guide.md)** - Comprehensive troubleshooting\n`;
+              aiResponse += `- **[auth_config.template.json](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/auth_config.template.json)** - Configuration reference\n`;
+              aiResponse += `- **[Code Snippets](https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/dev/snippets)** - API usage examples\n`;
+              aiResponse += `- **[Golden Examples](https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/dev/examples)** - Working applications\n\n`;
+              aiResponse += `**Latest Version:** ${latestVersion} ([releases](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases))\n\n`;
+              aiResponse += `> **Note:** GitHub Models AI is not currently available. A team member will provide a detailed response shortly.`;
             }
             
-            // Build response
+            // Build final response
             let response = '';
             
             // If customer impact was detected, acknowledge it first
@@ -937,101 +1025,17 @@ jobs:
               response += `---\n\n`;
             }
             
-            response += `Thanks for the follow-up!\n\n`;
+            // Add AI response
+            response += aiResponse;
             
-            // Get issue context
-            const issueTitle = issue.title || '';
-            const issueBody = issue.body || '';
-            const content = (issueTitle + ' ' + issueBody + ' ' + userRequest).toLowerCase();
-            
-            // Helper functions
-            function detectMsalVersion(text) {
-              const versionPatterns = [
-                /v(\d+\.\d+\.\d+)/i,
-                /msal[:\s]+(\d+\.\d+\.\d+)/i,
-                /version[:\s]+(\d+\.\d+\.\d+)/i
-              ];
-              
-              for (const pattern of versionPatterns) {
-                const match = text.match(pattern);
-                if (match && match[1]) {
-                  return match[1];
-                }
-              }
-              return null;
-            }
-            
-            // Try to detect version in the original issue
-            let msalVersion = detectMsalVersion(issueBody);
-            
-            // Build a comprehensive, AI-friendly response
-            // Instead of hardcoding specific scenarios, provide all relevant resources
-            // and let AI agents (Copilot) or human reviewers analyze based on context
-            
-            response += `I'll help analyze your request: "${userRequest}"\n\n`;
-            
-            // Provide comprehensive guidance resources
-            response += `### Available Resources\n\n`;
-            response += `To help address your question, please review these comprehensive guides:\n\n`;
-            
-            response += `**Primary Documentation:**\n`;
-            response += `- **[Copilot Instructions](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/copilot-instructions.md)** - Complete MSAL Android guidance including:\n`;
-            response += `  - Critical rules and API patterns\n`;
-            response += `  - Configuration requirements\n`;
-            response += `  - Debugging guidelines\n`;
-            response += `  - Customer interaction best practices\n\n`;
-            
-            response += `- **[Common Issues Guide](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/issue-responses/common-issues-guide.md)** - Comprehensive troubleshooting covering:\n`;
-            response += `  - Configuration issues (redirect URI, client ID, browser configuration)\n`;
-            response += `  - Authentication errors (AADSTS codes, cancellation)\n`;
-            response += `  - Token acquisition issues\n`;
-            response += `  - Broker integration issues\n`;
-            response += `  - Build and dependency issues\n`;
-            response += `  - Runtime crashes\n`;
-            response += `  - WebView and browser issues\n\n`;
-            
-            response += `**Configuration & Examples:**\n`;
-            response += `- **[auth_config.template.json](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/auth_config.template.json)** - Complete configuration reference\n`;
-            response += `- **[Code Snippets](https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/dev/snippets)** - Correct API usage examples\n`;
-            response += `- **[Golden Examples](https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/dev/examples)** - Complete working applications\n\n`;
-            
-            // Provide version context if detected
-            if (msalVersion) {
-              response += `**Version Context:**\n`;
-              response += `- Your version: ${msalVersion}\n`;
-              response += `- Latest version: ${latestVersion}\n`;
-              response += `- [All Releases](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases)\n\n`;
-            } else {
-              response += `**Latest Version:** ${latestVersion} ([releases](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases))\n\n`;
-            }
-            
-            // Encourage enabling verbose logging for troubleshooting
-            response += `**For Troubleshooting:**\n`;
-            response += `Enable verbose logging to get detailed diagnostic information:\n`;
-            response += `\`\`\`java\n`;
-            response += `Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);\n`;
-            response += `Logger.getInstance().setEnableLogcatLog(true);\n`;
-            response += `\`\`\`\n\n`;
-            
-            response += `> **Note:** The guides above contain comprehensive information that AI agents (like Copilot) use to provide specific guidance. Reviewing these resources will help address your question based on your specific scenario.\n\n`;
-            
-            // Add context from issue labels if available
-            const labels = issue.labels || [];
-            const labelNames = labels.map(l => typeof l === 'string' ? l : l.name);
-            
-            if (labelNames.includes('very-old-msal')) {
-              response += `⚠️ **Important:** This issue is labeled \`very-old-msal\`, indicating you're using an unsupported version. `;
-              response += `Please upgrade to the latest version (${latestVersion}) before further troubleshooting.\n\n`;
-            }
-            
-            // Footer with another PING-COPILOT reminder
-            response += `---\n\n`;
+            // Footer
+            response += `\n\n---\n\n`;
             response += `**Need more help?** You can trigger another follow-up by commenting:\n`;
             response += `\`\`\`\n`;
             response += `PING-COPILOT: <your question>\n`;
             response += `\`\`\`\n\n`;
             response += `---\n`;
-            response += `*Automated follow-up response. A team member will review the full conversation.*\n`;
+            response += `*AI-powered response using GitHub Models. A team member will review the conversation.*\n`;
             
             // Post the response
             await github.rest.issues.createComment({
