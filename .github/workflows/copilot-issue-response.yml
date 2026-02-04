@@ -593,8 +593,8 @@ jobs:
               labelExplanations.push(`**Note:** Security issues require immediate team review`);
             }
             
-            // Note about priority (not auto-assigned)
-            labelExplanations.push(`**Priority:** Will be assigned by the team based on actual customer impact (users affected, critical flows, etc.)`);
+            // Note about priority
+            labelExplanations.push(`**Priority:** May be auto-assigned based on customer impact indicators provided via PING-COPILOT (e.g., device counts, explicit priority mentions). Otherwise, will be assigned by the team.`);
             
             if (needsInfo) {
               labelExplanations.push(`\`needs-more-info\`: Additional information is required to properly diagnose and address this issue`);
@@ -698,9 +698,12 @@ jobs:
             // Prompt for customer impact data if not a simple question
             if (issueType === 'needs-investigation' || issueType === 'feature-request') {
               const bodyLower = (issue.body || '').toLowerCase();
-              const hasImpactInfo = /\d+\s*(device|user|customer|install|affected|impacted)/i.test(issue.body || '') ||
-                                    bodyLower.includes('p0') || bodyLower.includes('production') || 
-                                    bodyLower.includes('critical');
+              // Tightened regex: require "affected" or "impacted" to appear with the number
+              // This avoids false positives like "Android 14 device"
+              const hasImpactInfo = /\d+\s*(?:device|user|customer)s?\s+(?:affected|impacted)/i.test(issue.body || '') ||
+                                    /(?:affected|impacted)[^\d]*\d+\s*(?:device|user|customer)/i.test(issue.body || '') ||
+                                    bodyLower.includes('p0') || bodyLower.includes('p1') || 
+                                    bodyLower.includes('codered') || bodyLower.includes('high priority');
               
               if (!hasImpactInfo) {
                 response += `### 📊 Help Us Prioritize\n\n`;
@@ -810,12 +813,11 @@ jobs:
               }
             }
             
-            // Check for p0-CodeRed indicators (always set p0-CodeRed if detected, as it should override other priorities)
-            if (requestLower.includes('p0') || requestLower.includes('codered') || 
-                requestLower.includes('production') || requestLower.includes('critical') || 
-                requestLower.includes('blocking') || requestLower.includes('urgent')) {
+            // Check for explicit p0-CodeRed indicators (always set p0-CodeRed if detected, as it should override other priorities)
+            // Restrict to explicit priority mentions to avoid false positives from general urgency words
+            if (requestLower.includes('p0') || requestLower.includes('codered')) {
               priorityLevel = 'p0-CodeRed';
-              if (!impactReason) impactReason = 'Production/critical CodeRed issue reported';
+              if (!impactReason) impactReason = 'Customer explicitly requested priority p0/CodeRed';
             }
             
             // Check for p1-High indicators (only if no higher priority already set)
@@ -955,10 +957,47 @@ jobs:
             
             // Build comprehensive context for AI
             const issueTitle = issue.title || '';
-            const issueBody = issue.body || '';
+            let issueBody = issue.body || '';
+            let sanitizedUserRequest = userRequest;
             
-            // Construct prompt for GitHub Models
+            // Redact potential secrets and PII before sending to AI
+            function redactSecrets(text) {
+              if (!text) return text;
+              
+              // Redact common secret patterns
+              let redacted = text;
+              
+              // JWT tokens (three base64 segments separated by dots)
+              redacted = redacted.replace(/\beyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, '[REDACTED_JWT]');
+              
+              // Bearer tokens
+              redacted = redacted.replace(/Bearer\s+[A-Za-z0-9_-]+/gi, 'Bearer [REDACTED_TOKEN]');
+              
+              // Authorization headers
+              redacted = redacted.replace(/Authorization:\s*[^\n]+/gi, 'Authorization: [REDACTED]');
+              
+              // client_secret values
+              redacted = redacted.replace(/"client_secret"\s*:\s*"[^"]+"/gi, '"client_secret": "[REDACTED]"');
+              redacted = redacted.replace(/client_secret\s*[=:]\s*[^\s,}]+/gi, 'client_secret=[REDACTED]');
+              
+              // Access tokens in URLs or JSON
+              redacted = redacted.replace(/access_token[=:]\s*[A-Za-z0-9_-]+/gi, 'access_token=[REDACTED]');
+              
+              // API keys
+              redacted = redacted.replace(/api[_-]?key\s*[=:]\s*[^\s,}]+/gi, 'api_key=[REDACTED]');
+              
+              // Long base64 strings that might be secrets (40+ chars)
+              redacted = redacted.replace(/\b[A-Za-z0-9+/]{40,}={0,2}\b/g, '[REDACTED_BASE64]');
+              
+              return redacted;
+            }
+            
+            issueBody = redactSecrets(issueBody);
+            sanitizedUserRequest = redactSecrets(sanitizedUserRequest);
+            
+            // Construct prompt for GitHub Models with security instruction
             const systemPrompt = "You are an expert on MSAL (Microsoft Authentication Library) for Android. You help developers troubleshoot authentication issues and provide guidance based on official documentation.\n\n" +
+              "IMPORTANT SECURITY INSTRUCTION: Never echo or include any secrets, tokens, API keys, or credentials in your response. If you see redacted values like [REDACTED_JWT] or [REDACTED_TOKEN], do not reference them.\n\n" +
               "You have access to the following comprehensive guides:\n\n" +
               "## COPILOT INSTRUCTIONS:\n" + copilotInstructions + "\n\n" +
               "## COMMON ISSUES GUIDE:\n" + commonIssues + "\n\n" +
@@ -967,7 +1006,7 @@ jobs:
             const userPrompt = "Issue Context:\n" +
               "Title: " + issueTitle + "\n" +
               "Description: " + issueBody + "\n\n" +
-              "User Question: " + userRequest + "\n\n" +
+              "User Question: " + sanitizedUserRequest + "\n\n" +
               "MSAL Latest Version: " + latestVersion + "\n\n" +
               "Please provide a detailed, helpful response to the user's question based on the guidance documents. Focus on practical solutions and include relevant examples.";
 

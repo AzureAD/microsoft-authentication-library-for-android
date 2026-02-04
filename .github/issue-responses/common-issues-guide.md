@@ -973,7 +973,8 @@ Available browser package names:
 
 **Important Notes:**
 - Browser signatures must match the installed browser version
-- If a browser signature doesn't match, MSAL falls back to WebView
+- If a browser's signature doesn't match, MSAL will not use that browser for authentication
+- If no browsers in the safelist are available or have matching signatures, MSAL falls back to WebView
 - See [`auth_config.template.json`](../../auth_config.template.json) for the complete list of supported browsers and their current signatures
 - Signature mismatches often occur when browsers auto-update to new versions
 
