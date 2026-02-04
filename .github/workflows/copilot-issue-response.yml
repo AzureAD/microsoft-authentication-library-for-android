@@ -1011,7 +1011,7 @@ jobs:
               aiResponse += `- **[Code Snippets](https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/dev/snippets)** - API usage examples\n`;
               aiResponse += `- **[Golden Examples](https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/dev/examples)** - Working applications\n\n`;
               aiResponse += `**Latest Version:** ${latestVersion} ([releases](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases))\n\n`;
-              aiResponse += `> **Note:** GitHub Models AI is not currently available. A team member will provide a detailed response shortly.`;
+              aiResponse += `> **Note:** GitHub Models AI is not currently available. This issue will be reviewed by the maintainers.`;
             }
             
             // Build final response
