@@ -594,7 +594,7 @@ jobs:
             }
             
             // Note about priority
-            labelExplanations.push(`**Priority:** May be auto-assigned based on customer impact indicators provided via PING-COPILOT (e.g., device counts, explicit priority mentions). Otherwise, will be assigned by the team.`);
+            labelExplanations.push(`**Priority:** Will be auto-assigned by this workflow when customer impact is provided via PING-COPILOT (based on device counts or explicit priority mentions). Human developers may update the priority label later as needed.`);
             
             if (needsInfo) {
               labelExplanations.push(`\`needs-more-info\`: Additional information is required to properly diagnose and address this issue`);
