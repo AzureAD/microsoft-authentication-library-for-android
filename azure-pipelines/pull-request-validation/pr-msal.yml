@@ -39,7 +39,7 @@ stages:
     displayName: Build and Test
     jobs:
     - job: build_test
-      displayName: Build & Test (PR Branch)
+      displayName: PR Branch
       cancelTimeoutInMinutes: 1
       variables:
         Codeql.Enabled: true
@@ -89,7 +89,7 @@ stages:
           reportDirectory: '$(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport/html'
           failIfCoverageEmpty: false
     - job: build_test_dev
-      displayName: Build & Test (Dev)
+      displayName: Dev Branch
       cancelTimeoutInMinutes: 1
       variables:
         Codeql.Enabled: true
@@ -131,7 +131,7 @@ stages:
           artifact: jacocoReportDev
           displayName: 'Publish JaCoCo Report Artifact (Dev Branch)'
     - job: spotbugs
-      displayName: SpotBugs
+      displayName: SpotBugs (PR)
       cancelTimeoutInMinutes: 1
       steps:
       - checkout: self
@@ -146,7 +146,7 @@ stages:
         parameters:
           project: msal
     - job: lint
-      displayName: Lint
+      displayName: Lint (PR)
       cancelTimeoutInMinutes: 1
       steps:
       - checkout: self
@@ -178,8 +178,6 @@ stages:
           - script: tree "$(Build.SourcesDirectory)\azure-pipelines" /F /A
             displayName: 'Print File Structure Tree'
           - script: |
-              python $(Build.SourcesDirectory)/azure-pipelines/pull-request-validation/compare_coverage.py \
-                $(Pipeline.Workspace)/jacocoReport/jacocoTestReport.xml \
-                $(Pipeline.Workspace)/jacocoReportDev/jacocoTestReport.xml
+              python $(Build.SourcesDirectory)/azure-pipelines/pull-request-validation/compare_coverage.py $(Pipeline.Workspace)/jacocoReport/jacocoTestReport.xml $(Pipeline.Workspace)/jacocoReportDev/jacocoTestReport.xml
             displayName: Compare Jacoco Coverage
 ...

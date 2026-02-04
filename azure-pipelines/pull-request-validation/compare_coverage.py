@@ -10,14 +10,17 @@ def get_coverage(xml_path):
     missed = int(counter.attrib['missed'])
     return covered / (covered + missed)
 
-pr_cov = get_coverage(sys.argv[1])
-dev_cov = get_coverage(sys.argv[2])
+def main():
+    pr_cov = get_coverage(sys.argv[1])
+    dev_cov = get_coverage(sys.argv[2])
 
-print(f"PR branch coverage: {pr_cov:.2%}")
-print(f"Dev branch coverage: {dev_cov:.2%}")
+    print(f"PR branch coverage: {pr_cov:.2%}")
+    print(f"Dev branch coverage: {dev_cov:.2%}")
 
-if pr_cov < dev_cov:
-    print("ERROR: PR branch coverage is lower than dev branch. Failing...")
-    sys.exit(1)
-else:
-    print("SUCCESS: PR branch coverage is not lower than dev branch, this is acceptable!")
+    if pr_cov < dev_cov:
+        print("ERROR: PR branch coverage is lower than dev branch. Failing...")
+        sys.exit(1)
+    else:
+        print("SUCCESS: PR branch coverage is not lower than dev branch, this is acceptable!")
+
+main()
