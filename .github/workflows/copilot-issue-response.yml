@@ -173,17 +173,25 @@ jobs:
                 'Analyze this issue and provide classification with solution suggestion in JSON format.';
 
               // Call GitHub Models API
-              const aiResponse = await github.request('POST /models/chat/completions', {
-                model: 'gpt-4o-mini',
-                messages: [
-                  { role: 'system', content: systemPrompt },
-                  { role: 'user', content: userPrompt }
-                ],
-                temperature: 0.3,
-                max_tokens: 500
+              const aiResponse = await fetch('https://models.github.ai/inference/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  model: 'gpt-4o-mini',
+                  messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userPrompt }
+                  ],
+                  temperature: 0.3,
+                  max_tokens: 500
+                })
               });
 
-              const aiResult = aiResponse.data.choices[0].message.content;
+              const aiResponseData = await aiResponse.json();
+              const aiResult = aiResponseData.choices[0].message.content;
               console.log(`AI response: ${aiResult}`);
               
               // Parse JSON response
@@ -539,23 +547,31 @@ jobs:
                 '- "Error occurs on Android 14 device" → {"deviceCount": null, "hasExplicitPriority": false, "explicitPriority": null}\n' +
                 "Issue description to analyze: " + issueBody;
               
-              const response = await github.request('POST /models/chat/completions', {
-                model: 'gpt-4o-mini',
-                messages: [
-                  {
-                    role: 'system',
-                    content: 'You are a data extraction assistant. Extract impact information and respond with only valid JSON. No explanations, just JSON.'
-                  },
-                  {
-                    role: 'user',
-                    content: impactPrompt
-                  }
-                ],
-                temperature: 0.1,
-                max_tokens: 200
+              const response = await fetch('https://models.github.ai/inference/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  model: 'gpt-4o-mini',
+                  messages: [
+                    {
+                      role: 'system',
+                      content: 'You are a data extraction assistant. Extract impact information and respond with only valid JSON. No explanations, just JSON.'
+                    },
+                    {
+                      role: 'user',
+                      content: impactPrompt
+                    }
+                  ],
+                  temperature: 0.1,
+                  max_tokens: 200
+                })
               });
               
-              const aiResult = response.data.choices[0].message.content.trim();
+              const responseData = await response.json();
+              const aiResult = responseData.choices[0].message.content.trim();
               console.log('AI impact detection result:', aiResult);
               
               // Parse AI response
@@ -1055,23 +1071,31 @@ jobs:
                 '- "Critical question about config" → {"deviceCount": null, "hasExplicitPriority": false, "explicitPriority": null}\n' +
                 "Text to analyze: " + userRequest;
               
-              const response = await github.request('POST /models/chat/completions', {
-                model: 'gpt-4o-mini',
-                messages: [
-                  {
-                    role: 'system',
-                    content: 'You are a data extraction assistant. Extract impact information and respond with only valid JSON. No explanations, just JSON.'
-                  },
-                  {
-                    role: 'user',
-                    content: impactPrompt
-                  }
-                ],
-                temperature: 0.1,
-                max_tokens: 200
+              const response = await fetch('https://models.github.ai/inference/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  model: 'gpt-4o-mini',
+                  messages: [
+                    {
+                      role: 'system',
+                      content: 'You are a data extraction assistant. Extract impact information and respond with only valid JSON. No explanations, just JSON.'
+                    },
+                    {
+                      role: 'user',
+                      content: impactPrompt
+                    }
+                  ],
+                  temperature: 0.1,
+                  max_tokens: 200
+                })
               });
               
-              const aiResult = response.data.choices[0].message.content.trim();
+              const responseData = await response.json();
+              const aiResult = responseData.choices[0].message.content.trim();
               console.log('AI impact detection result:', aiResult);
               
               // Parse AI response
@@ -1140,6 +1164,7 @@ jobs:
               }
               
               // Check for explicit priority mentions
+              const requestLower = userRequest.toLowerCase();
               if (requestLower.includes('p0') || requestLower.includes('codered')) {
                 priorityLevel = 'p0-CodeRed';
                 if (!impactReason) impactReason = 'Customer explicitly requested priority p0/CodeRed';
@@ -1345,23 +1370,31 @@ jobs:
               console.log('Attempting to call GitHub Models API...');
               
               // GitHub Models API endpoint (uses GitHub token)
-              const response = await github.request('POST /models/chat/completions', {
-                model: 'gpt-4o',
-                messages: [
-                  {
-                    role: 'system',
-                    content: systemPrompt
-                  },
-                  {
-                    role: 'user',
-                    content: userPrompt
-                  }
-                ],
-                temperature: 0.7,
-                max_tokens: 2000
+              const response = await fetch('https://models.github.ai/inference/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  model: 'gpt-4o',
+                  messages: [
+                    {
+                      role: 'system',
+                      content: systemPrompt
+                    },
+                    {
+                      role: 'user',
+                      content: userPrompt
+                    }
+                  ],
+                  temperature: 0.7,
+                  max_tokens: 2000
+                })
               });
               
-              aiResponse = response.data.choices[0].message.content;
+              const responseData = await response.json();
+              aiResponse = responseData.choices[0].message.content;
               console.log('Successfully generated AI response');
               
             } catch (error) {
