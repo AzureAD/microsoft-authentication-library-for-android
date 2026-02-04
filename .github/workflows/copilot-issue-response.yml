@@ -42,6 +42,9 @@ jobs:
       version_release_date: ${{ steps.classify.outputs.version_release_date }}
       classification_reasons: ${{ steps.classify.outputs.classification_reasons }}
       detected_patterns: ${{ steps.classify.outputs.detected_patterns }}
+      has_initial_impact: ${{ steps.detect_initial_impact.outputs.has_impact }}
+      initial_priority: ${{ steps.detect_initial_impact.outputs.priority_level }}
+      initial_impact_reason: ${{ steps.detect_initial_impact.outputs.impact_reason }}
     
     steps:
       - name: Checkout repository
@@ -416,6 +419,135 @@ jobs:
             
             console.log(`Issue classified as: ${issueType}, Needs info: ${needsInfo}, Version: ${msalVersion || 'not detected'}`);
 
+      - name: Detect Impact in Initial Issue
+        id: detect_initial_impact
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const issueBody = issue.body || '';
+            
+            let priorityLevel = null;
+            let impactReason = '';
+            let deviceCount = null;
+            
+            try {
+              // Use AI to extract device count from initial issue body
+              const impactPrompt = "Analyze the following issue description and extract customer impact information. " +
+                "Focus on finding the NUMBER of devices or users affected. " +
+                "Respond with ONLY a JSON object in this format: " +
+                '{"deviceCount": <number or null>, "hasExplicitPriority": <boolean>, "explicitPriority": "<p0|p1|null>"}. ' +
+                "Examples:\n" +
+                '- "We have 500 devices affected" → {"deviceCount": 500, "hasExplicitPriority": false, "explicitPriority": null}\n' +
+                '- "This is a p0 issue" → {"deviceCount": null, "hasExplicitPriority": true, "explicitPriority": "p0"}\n' +
+                '- "Error occurs on Android 14 device" → {"deviceCount": null, "hasExplicitPriority": false, "explicitPriority": null}\n' +
+                "Issue description to analyze: " + issueBody;
+              
+              const response = await github.request('POST /models/chat/completions', {
+                model: 'gpt-4o-mini',
+                messages: [
+                  {
+                    role: 'system',
+                    content: 'You are a data extraction assistant. Extract impact information and respond with only valid JSON. No explanations, just JSON.'
+                  },
+                  {
+                    role: 'user',
+                    content: impactPrompt
+                  }
+                ],
+                temperature: 0.1,
+                max_tokens: 200
+              });
+              
+              const aiResult = response.data.choices[0].message.content.trim();
+              console.log('AI impact detection result:', aiResult);
+              
+              // Parse AI response
+              const extracted = JSON.parse(aiResult);
+              deviceCount = extracted.deviceCount;
+              
+              // Apply priority based on device count (primary method)
+              if (deviceCount !== null && deviceCount > 0) {
+                if (deviceCount >= 10000) {
+                  priorityLevel = 'p0-CodeRed';
+                  impactReason = `${deviceCount} devices/users affected`;
+                } else if (deviceCount >= 1000) {
+                  priorityLevel = 'p1-High';
+                  impactReason = `${deviceCount} devices/users affected`;
+                } else if (deviceCount >= 300) {
+                  priorityLevel = 'p2-Medium';
+                  impactReason = `${deviceCount} devices/users affected`;
+                } else if (deviceCount >= 100) {
+                  priorityLevel = 'p3-Low';
+                  impactReason = `${deviceCount} devices/users affected`;
+                } else {
+                  priorityLevel = 'p4-Minor';
+                  impactReason = `${deviceCount} devices/users affected`;
+                }
+              }
+              
+              // Check for explicit priority mentions
+              if (extracted.hasExplicitPriority && extracted.explicitPriority) {
+                const explicitPri = extracted.explicitPriority.toLowerCase();
+                if (explicitPri === 'p0' || explicitPri === 'codered') {
+                  priorityLevel = 'p0-CodeRed';
+                  if (!impactReason) impactReason = 'Customer explicitly requested priority p0/CodeRed';
+                } else if (explicitPri === 'p1') {
+                  if (!priorityLevel || priorityLevel === 'p2-Medium' || priorityLevel === 'p3-Low' || priorityLevel === 'p4-Minor') {
+                    priorityLevel = 'p1-High';
+                    if (!impactReason) impactReason = 'Customer explicitly requested priority p1/High';
+                  }
+                }
+              }
+              
+            } catch (error) {
+              console.log('AI impact detection failed, using fallback regex:', error.message);
+              
+              // Fallback to simple regex if AI fails
+              const deviceMatch = issueBody.match(/(\d+)\s*(device|user|customer|install|affected|impacted)/i);
+              if (deviceMatch) {
+                const count = parseInt(deviceMatch[1], 10);
+                deviceCount = count;
+                
+                if (count >= 10000) {
+                  priorityLevel = 'p0-CodeRed';
+                  impactReason = `${count} ${deviceMatch[2]}s affected`;
+                } else if (count >= 1000) {
+                  priorityLevel = 'p1-High';
+                  impactReason = `${count} ${deviceMatch[2]}s affected`;
+                } else if (count >= 300) {
+                  priorityLevel = 'p2-Medium';
+                  impactReason = `${count} ${deviceMatch[2]}s affected`;
+                } else if (count >= 100) {
+                  priorityLevel = 'p3-Low';
+                  impactReason = `${count} ${deviceMatch[2]}s affected`;
+                } else if (count > 0) {
+                  priorityLevel = 'p4-Minor';
+                  impactReason = `${count} ${deviceMatch[2]}s affected`;
+                }
+              }
+              
+              // Check for explicit priority in fallback
+              const bodyLower = issueBody.toLowerCase();
+              if (bodyLower.includes('p0') || bodyLower.includes('codered')) {
+                priorityLevel = 'p0-CodeRed';
+                if (!impactReason) impactReason = 'Customer explicitly requested priority p0/CodeRed';
+              }
+              
+              if (!priorityLevel && (bodyLower.includes('p1') || bodyLower.includes('high priority'))) {
+                priorityLevel = 'p1-High';
+                if (!impactReason) impactReason = 'High priority issue reported';
+              }
+            }
+            
+            core.setOutput('has_impact', priorityLevel ? 'true' : 'false');
+            core.setOutput('priority_level', priorityLevel || '');
+            core.setOutput('impact_reason', impactReason);
+            
+            if (priorityLevel) {
+              console.log(`Customer impact detected in initial issue: ${priorityLevel} - ${impactReason}`);
+            }
+
       - name: Apply Labels
         uses: actions/github-script@v7
         with:
@@ -423,10 +555,16 @@ jobs:
             const issueType = '${{ steps.classify.outputs.type }}';
             const needsInfo = '${{ steps.classify.outputs.needs_info }}' === 'true';
             const isVeryOld = '${{ steps.classify.outputs.is_very_old }}' === 'true';
+            const hasImpact = '${{ steps.detect_initial_impact.outputs.has_impact }}' === 'true';
+            const priorityLevel = '${{ steps.detect_initial_impact.outputs.priority_level }}';
             
-            // Only apply issue type labels, NOT priority labels
-            // Priority should be determined by team based on actual customer impact
+            // Apply issue type labels and priority if detected
             const labels = [issueType];
+            
+            // Add priority label if customer impact was detected in initial issue
+            if (hasImpact && priorityLevel) {
+              labels.push(priorityLevel);
+            }
             
             if (needsInfo) {
               labels.push('needs-more-info');
@@ -454,7 +592,13 @@ jobs:
                   'security': 'b60205',
                   'needs-more-info': 'fbca04',
                   'very-old-msal': 'ffa500',
-                  'triage-issue': 'c5def5'
+                  'triage-issue': 'c5def5',
+                  // Priority labels (5-level system based on device count thresholds)
+                  'p0-CodeRed': 'd73a4a',   // Red - code red (10000+ devices)
+                  'p1-High': 'ff6b6b',      // Orange - high (1000-9999 devices)
+                  'p2-Medium': 'fbca04',    // Yellow - medium (300-999 devices)
+                  'p3-Low': '0075ca',       // Blue - low (100-299 devices)
+                  'p4-Minor': '5DADE2'      // Light blue - minor (<100 devices)
                 };
                 
                 try {
@@ -500,6 +644,9 @@ jobs:
           VERSION_RELEASE_DATE: ${{ needs.triage.outputs.version_release_date }}
           CLASSIFICATION_REASONS: ${{ needs.triage.outputs.classification_reasons }}
           DETECTED_PATTERNS: ${{ needs.triage.outputs.detected_patterns }}
+          HAS_INITIAL_IMPACT: ${{ needs.triage.outputs.has_initial_impact }}
+          INITIAL_PRIORITY: ${{ needs.triage.outputs.initial_priority }}
+          INITIAL_IMPACT_REASON: ${{ needs.triage.outputs.initial_impact_reason }}
         with:
           script: |
             const fs = require('fs');
@@ -509,6 +656,9 @@ jobs:
             const versionAgeDays = process.env.VERSION_AGE_DAYS;
             const isVeryOld = process.env.IS_VERY_OLD === 'true';
             const versionReleaseDate = process.env.VERSION_RELEASE_DATE;
+            const hasInitialImpact = process.env.HAS_INITIAL_IMPACT === 'true';
+            const initialPriority = process.env.INITIAL_PRIORITY;
+            const initialImpactReason = process.env.INITIAL_IMPACT_REASON;
             const issue = context.payload.issue;
             
             // Parse classification reasons and detected patterns
@@ -593,8 +743,13 @@ jobs:
               labelExplanations.push(`**Note:** Security issues require immediate team review`);
             }
             
-            // Note about priority
-            labelExplanations.push(`**Priority:** Will be auto-assigned by this workflow when customer impact is provided via PING-COPILOT (based on device counts or explicit priority mentions). Human developers may update the priority label later as needed.`);
+            // Acknowledge priority if already assigned from initial issue
+            if (hasInitialImpact && initialPriority) {
+              labelExplanations.push(`\`${initialPriority}\`: Auto-assigned based on customer impact - ${initialImpactReason}`);
+            } else {
+              // Note about priority if not yet assigned
+              labelExplanations.push(`**Priority:** Will be auto-assigned by this workflow when customer impact is provided via PING-COPILOT (based on device counts or explicit priority mentions). Human developers may update the priority label later as needed.`);
+            }
             
             if (needsInfo) {
               labelExplanations.push(`\`needs-more-info\`: Additional information is required to properly diagnose and address this issue`);
@@ -695,24 +850,15 @@ jobs:
             // Standard footer with PING-COPILOT trigger
             response += `---\n\n`;
             
-            // Prompt for customer impact data if not a simple question
-            if (issueType === 'needs-investigation' || issueType === 'feature-request') {
-              // Use simple check - just look for any number that might indicate impact
-              // AI will do the real analysis in PING-COPILOT responses
-              const hasAnyNumber = /\d{2,}/.test(issue.body || '');
-              const hasPriorityKeyword = (issue.body || '').toLowerCase().includes('p0') || 
-                                         (issue.body || '').toLowerCase().includes('p1') ||
-                                         (issue.body || '').toLowerCase().includes('priority');
-              
-              if (!hasAnyNumber && !hasPriorityKeyword) {
-                response += `### 📊 Help Us Prioritize\n\n`;
-                response += `To help the team prioritize this issue, please provide information about customer impact:\n\n`;
-                response += `\`\`\`\n`;
-                response += `PING-COPILOT: We have <number> devices/users affected by this issue\n`;
-                response += `\`\`\`\n\n`;
-                response += `The AI will analyze your impact information and apply the appropriate priority label based on device count thresholds.\n\n`;
-                response += `---\n\n`;
-              }
+            // Prompt for customer impact data if not already detected and not a simple question
+            if ((issueType === 'needs-investigation' || issueType === 'feature-request') && !hasInitialImpact) {
+              response += `### 📊 Help Us Prioritize\n\n`;
+              response += `To help the team prioritize this issue, please provide information about customer impact:\n\n`;
+              response += `\`\`\`\n`;
+              response += `PING-COPILOT: We have <number> devices/users affected by this issue\n`;
+              response += `\`\`\`\n\n`;
+              response += `The AI will analyze your impact information and apply the appropriate priority label based on device count thresholds.\n\n`;
+              response += `---\n\n`;
             }
             
             response += `**Need further assistance?** You can trigger a follow-up analysis by commenting:\n`;
