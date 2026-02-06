@@ -87,7 +87,303 @@ public class CommandParametersTest {
         Mockito.when(mActivity.getApplicationContext()).thenReturn(mContext);
     }
 
+    @Test
+    public void testAcquireTokenSilentOperationWithClaimsWithCapabilities() throws ClientException {
+        SilentTokenCommandParameters commandParameters = CommandParametersAdapter.createSilentTokenCommandParameters(getConfiguration(AAD_CP1_CONFIG_FILE), getCache(), getAcquireTokenSilentParametersWithClaims());
+        Assert.assertEquals(true, commandParameters.isForceRefresh());
+    }
 
+    @Test
+    public void testAcquireTokenSilentOperationWithClaimsWithoutCapabilities() throws ClientException {
+        SilentTokenCommandParameters commandParameters = CommandParametersAdapter.createSilentTokenCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getAcquireTokenSilentParametersWithClaims());
+        Assert.assertEquals(true, commandParameters.isForceRefresh());
+    }
+
+    @Test
+    public void testAcquireTokenSilentOperationWithoutClaimsWithCapabilities() throws ClientException {
+        SilentTokenCommandParameters commandParameters = CommandParametersAdapter.createSilentTokenCommandParameters(getConfiguration(AAD_CP1_CONFIG_FILE), getCache(), getAcquireTokenSilentParametersWithoutClaims());
+        Assert.assertEquals(false, commandParameters.isForceRefresh());
+    }
+
+    @Test
+    public void testAcquireTokenSilentOperationWithoutClaimsWithoutCapabilities() throws ClientException {
+        SilentTokenCommandParameters commandParameters = CommandParametersAdapter.createSilentTokenCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getAcquireTokenSilentParametersWithoutClaims());
+
+        Assert.assertEquals(false, commandParameters.isForceRefresh());
+    }
+
+    @Test
+    public void testAcquireTokenOperationWithClaimsWithCapabilities() throws ClientException {
+        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_CP1_CONFIG_FILE), getCache(), getAcquireTokenParametersWithClaims());
+        Assert.assertEquals(true, commandParameters.isForceRefresh());
+    }
+
+    @Test
+    public void testAcquireTokenOperationWithClaimsWithoutCapabilities() throws ClientException {
+        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getAcquireTokenParametersWithClaims());
+        Assert.assertEquals(true, commandParameters.isForceRefresh());
+    }
+
+    @Test
+    public void testAcquireTokenOperationWithoutClaimsWithCapabilities() throws ClientException {
+        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_CP1_CONFIG_FILE), getCache(), getAcquireTokenParametersWithoutClaims());
+        Assert.assertEquals(false, commandParameters.isForceRefresh());
+    }
+
+    @Test
+    public void testAcquireTokenOperationWithoutClaimsWithoutCapabilities() throws ClientException {
+        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getAcquireTokenParametersWithoutClaims());
+        Assert.assertEquals(false, commandParameters.isForceRefresh());
+    }
+
+    @Test
+    public void testAcquireTokenOperationWithoutCorrelationId() throws ClientException {
+        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_CP1_CONFIG_FILE), getCache(), getAcquireTokenParametersWithoutCorrelationId());
+        Assert.assertNull(commandParameters.getCorrelationId());
+    }
+
+    @Test
+    public void testAcquireTokenOperationWithCorrelationId() throws ClientException {
+        final UUID correlationId = UUID.randomUUID();
+        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getAcquireTokenParametersWithCorrelationId(correlationId));
+        Assert.assertNotNull(commandParameters.getCorrelationId());
+        Assert.assertEquals(correlationId.toString(), commandParameters.getCorrelationId());
+    }
+
+    @Test
+    public void testAcquireTokenOperationWithPreferredAuthMethod() throws ClientException {
+
+        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(
+                getConfiguration(AAD_NONE_CONFIG_FILE),
+                getCache(),
+                getAcquireTokenParametersPreferredAuthMethod(PreferredAuthMethod.QR)
+        );
+        Assert.assertEquals(PreferredAuthMethod.QR, commandParameters.getPreferredAuthMethod());
+    }
+
+    @Test
+    public void testAcquireTokenOperationWithNoPreferredAuthMethod() throws ClientException {
+
+        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(
+                getConfiguration(AAD_NONE_CONFIG_FILE),
+                getCache(),
+                getAcquireTokenParametersPreferredAuthMethod(null)
+        );
+        Assert.assertNull(commandParameters.getPreferredAuthMethod());
+    }
+
+    @Test
+    public void testAcquireTokenSilentOperationWithoutCorrelationId() throws ClientException {
+        SilentTokenCommandParameters commandParameters = CommandParametersAdapter.createSilentTokenCommandParameters(getConfiguration(AAD_CP1_CONFIG_FILE), getCache(), getAcquireTokenSilentParametersWithoutCorrelationId());
+        Assert.assertNull(commandParameters.getCorrelationId());
+    }
+
+    @Test
+    public void testAcquireTokenSilentOperationWithCorrelationId() throws ClientException {
+        final UUID correlationId = UUID.randomUUID();
+        SilentTokenCommandParameters commandParameters = CommandParametersAdapter.createSilentTokenCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getAcquireTokenSilentParametersWithCorrelationId(correlationId));
+        Assert.assertNotNull(commandParameters.getCorrelationId());
+        Assert.assertEquals(correlationId.toString(), commandParameters.getCorrelationId());
+    }
+
+    @Test
+    public void testDeviceCodeFlowOperationWithClaimsWithCorrelationId() throws ClientException {
+        final UUID correlationId = UUID.randomUUID();
+        DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter.createDeviceCodeFlowWithClaimsCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getDeviceCodeFlowParametersWithClaimsWithCorrelationId(correlationId));
+        Assert.assertNotNull(commandParameters.getCorrelationId());
+        Assert.assertEquals(correlationId.toString(), commandParameters.getCorrelationId());
+        validateDeviceCodeFlowClaimsInCommandParameter(commandParameters);
+    }
+
+    @Test
+    public void testDeviceCodeFlowOperationWithClaimsWithoutCorrelationId() throws ClientException {
+        DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter.createDeviceCodeFlowWithClaimsCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getDeviceCodeFlowParametersWithClaimsWithoutCorrelationId());
+        Assert.assertNull(commandParameters.getCorrelationId());
+        validateDeviceCodeFlowClaimsInCommandParameter(commandParameters);
+    }
+
+    @Test
+    public void testDeviceCodeFlowOperationWithoutClaims() throws ClientException {
+        DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter.createDeviceCodeFlowWithClaimsCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getDeviceCodeFlowParametersWithoutClaims());
+        Assert.assertNull(commandParameters.getCorrelationId());
+        Assert.assertNull(commandParameters.getClaimsRequestJson());
+    }
+
+    @Test
+    @Config(sdk=28)
+    public void testAppendToExtraQueryParametersIfWebAuthnCapable_UnsetPropertyAndNullInput() {
+        final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
+                null,
+                getConfiguration(AAD_NONE_CONFIG_FILE)
+        );
+        Assert.assertNull(combinedQueryParameters);
+    }
+
+    @Test
+    @Config(sdk=28)
+    public void testAppendToExtraQueryParametersIfWebAuthnCapable_UnsetPropertyAndNonNullInput() {
+        final List<Map.Entry<String, String>> queryParameters = new ArrayList<>();
+        queryParameters.add(new AbstractMap.SimpleEntry<>("field1", "property1"));
+        final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
+                queryParameters,
+                getConfiguration(AAD_NONE_CONFIG_FILE)
+        );
+        Assert.assertNotNull(combinedQueryParameters);
+        Assert.assertEquals(combinedQueryParameters.size(), 1);
+    }
+
+    @Test
+    @Config(sdk=28)
+    public void testAppendToExtraQueryParametersIfWebAuthnCapable_setPropertyAndNullInput() {
+        final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
+                null,
+                getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE)
+        );
+        Assert.assertNotNull(combinedQueryParameters);
+        Assert.assertEquals(combinedQueryParameters.size(), 1);
+    }
+
+    @Test
+    @Config(sdk=28)
+    public void testAppendToExtraQueryParametersIfWebAuthnCapable_setPropertyAndNonNullInput() {
+        final List<Map.Entry<String, String>> queryParameters = new ArrayList<>();
+        queryParameters.add(new AbstractMap.SimpleEntry<>("field1", "property1"));
+        final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
+                queryParameters,
+                getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE)
+        );
+        Assert.assertNotNull(combinedQueryParameters);
+        Assert.assertEquals(combinedQueryParameters.size(), 2);
+    }
+
+    @Test
+    @Config(sdk=28)
+    public void testAppendToExtraQueryParametersIfWebAuthnCapable_setPropertyAndParameterAlreadyPresent() {
+        final List<Map.Entry<String, String>> queryParameters = new ArrayList<>();
+        queryParameters.add(new AbstractMap.SimpleEntry<>(FidoConstants.WEBAUTHN_QUERY_PARAMETER_FIELD, FidoConstants.WEBAUTHN_QUERY_PARAMETER_VALUE));
+        final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
+                queryParameters,
+                getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE)
+        );
+        Assert.assertNotNull(combinedQueryParameters);
+        Assert.assertEquals(combinedQueryParameters.size(), 1);
+    }
+
+    @Test
+    @Config(sdk=28)
+    public void testAppendToExtraQueryParametersIfWebAuthnCapable_setPropertyAndSingletonListInput() {
+        final List<Map.Entry<String, String>> queryParameters = Collections.singletonList(new AbstractMap.SimpleEntry<>("field1", "property1"));
+        final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
+                queryParameters,
+                getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE)
+        );
+        Assert.assertNotNull(combinedQueryParameters);
+        Assert.assertEquals(combinedQueryParameters.size(), 2);
+    }
+
+    @Test
+    @Config(sdk=28)
+    public void testAppendToExtraQueryParametersIfWebAuthnCapable_setPropertyAndArraysAsListInput() {
+        final List<Map.Entry<String, String>> queryParameters = Arrays.asList(
+                new AbstractMap.SimpleEntry<>("field1", "property1"),
+                new AbstractMap.SimpleEntry<>("field2", "property2"));
+        final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
+                queryParameters,
+                getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE)
+        );
+        Assert.assertNotNull(combinedQueryParameters);
+        Assert.assertEquals(combinedQueryParameters.size(), 3);
+    }
+
+    @Test
+    @Config(sdk=28)
+    public void testAppendToExtraQueryParametersIfWebAuthnCapable_setPropertyAndParameterAlreadyPresentInImmutableList() {
+        final List<Map.Entry<String, String>> queryParameters = Collections.singletonList(new AbstractMap.SimpleEntry<>(
+                FidoConstants.WEBAUTHN_QUERY_PARAMETER_FIELD,
+                FidoConstants.WEBAUTHN_QUERY_PARAMETER_VALUE));
+        final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
+                queryParameters,
+                getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE)
+        );
+        Assert.assertNotNull(combinedQueryParameters);
+        Assert.assertEquals(combinedQueryParameters.size(), 1);
+    }
+
+    @Test
+    @Config(sdk=26)
+    public void testAppendToExtraQueryParametersIfWebAuthnCapable_setPropertyAndNullInputWithOlderOs() {
+        final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
+                null,
+                getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE)
+        );
+        if (combinedQueryParameters != null) {
+            Assert.assertTrue(combinedQueryParameters.isEmpty());
+        } else {
+            Assert.assertNull(combinedQueryParameters);
+        }
+    }
+
+    @Test
+    @Config(sdk=26)
+    public void testAppendToExtraQueryParametersIfWebAuthnCapable_setPropertyAndParameterAlreadyPresentWithOlderOs() {
+        final List<Map.Entry<String, String>> queryParameters = Collections.singletonList(new AbstractMap.SimpleEntry<>(
+                FidoConstants.WEBAUTHN_QUERY_PARAMETER_FIELD,
+                FidoConstants.WEBAUTHN_QUERY_PARAMETER_VALUE));
+        final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
+                queryParameters,
+                getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE)
+        );
+        Assert.assertNotNull(combinedQueryParameters);
+        Assert.assertEquals(combinedQueryParameters.size(), 0);
+    }
+
+    @Test
+    @Config(sdk=28)
+    public void testAppendToExtraQueryParametersIfWebAuthnCapable_WebAuthnCapableFalse() {
+        final List<Map.Entry<String, String>> queryParameters = Arrays.asList(
+                new AbstractMap.SimpleEntry<>("field1", "property1"),
+                new AbstractMap.SimpleEntry<>("field2", "property2"));
+        final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
+                queryParameters,
+                getConfiguration(AAD_NONE_CONFIG_FILE)
+        );
+        Assert.assertNotNull(combinedQueryParameters);
+        Assert.assertEquals(combinedQueryParameters.size(), 2);
+    }
+
+    @Test
+    @Config(sdk=28)
+    public void testAppendToExtraQueryParametersIfWebAuthnCapable_WebAuthnCapableFalseKeepPresentParam() {
+        final List<Map.Entry<String, String>> queryParameters = Collections.singletonList(new AbstractMap.SimpleEntry<>(
+                FidoConstants.WEBAUTHN_QUERY_PARAMETER_FIELD,
+                FidoConstants.WEBAUTHN_QUERY_PARAMETER_VALUE));
+        final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
+                queryParameters,
+                getConfiguration(AAD_NONE_CONFIG_FILE)
+        );
+        Assert.assertNotNull(combinedQueryParameters);
+        Assert.assertEquals(combinedQueryParameters.size(), 1);
+    }
+
+
+    @Test
+    @Config(sdk=28)
+    public void testPasskeyHeader_AddedWhenWebAuthnConfigurationEnabled() throws ClientException {
+        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter
+                .createInteractiveTokenCommandParameters(
+                        getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE),
+                        getCache(),
+                        getAcquireTokenParametersWithClaims()
+                );
+        Assert.assertTrue(commandParameters
+                .getRequestHeaders()
+                .containsKey(FidoConstants.PASSKEY_PROTOCOL_HEADER_NAME)
+        );
+        Assert.assertEquals(
+                FidoConstants.PASSKEY_PROTOCOL_HEADER_AUTH_AND_REG,
+                commandParameters.getRequestHeaders().get(FidoConstants.PASSKEY_PROTOCOL_HEADER_NAME)
+        );
+    }
 
     @Test
     @Config(sdk=28)
