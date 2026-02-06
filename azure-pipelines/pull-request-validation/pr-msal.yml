@@ -89,7 +89,7 @@ stages:
           reportDirectory: '$(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport/html'
           failIfCoverageEmpty: false
     - job: build_test_dev
-      displayName: Dev Branch
+      displayName: Dev Branch Testing
       cancelTimeoutInMinutes: 1
       variables:
         Codeql.Enabled: true
