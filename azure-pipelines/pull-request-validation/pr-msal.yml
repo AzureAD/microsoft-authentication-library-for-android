@@ -22,7 +22,7 @@ resources:
   - repository: common
     type: github
     name: AzureAD/microsoft-authentication-library-common-for-android
-    ref: dev
+    ref: fadi/code-cov-3
     endpoint: ANDROID_GITHUB
   - repository: msal-dev
     type: github
