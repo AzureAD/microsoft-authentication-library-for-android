@@ -33,12 +33,14 @@ import com.microsoft.identity.client.ui.automation.broker.IMdmAgent
 import com.microsoft.identity.client.ui.automation.installer.LocalApkInstaller
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
+import com.microsoft.identity.common.internal.broker.BrokerData.Companion.getShouldTrustDebugBrokers
 import com.microsoft.identity.common.java.util.ThreadUtils
 import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assert
+import org.junit.Assume
 import org.junit.Test
 
 // Can use Outlook with True MAM account upon re-registration
@@ -49,6 +51,12 @@ class TestCase2516967 : AbstractMsalBrokerTest(){
 
     @Test
     fun test_2516967_MAM_CanUseOutlookAfterRegistration() {
+        // Skip test if preconditions are not met
+        Assume.assumeTrue(
+            "Only run this test if the device is set to trust debug brokers",
+            getShouldTrustDebugBrokers()
+        )
+
         // Fetch credentials
         val username: String = mLabAccount.username
         val password: String = mLabAccount.password

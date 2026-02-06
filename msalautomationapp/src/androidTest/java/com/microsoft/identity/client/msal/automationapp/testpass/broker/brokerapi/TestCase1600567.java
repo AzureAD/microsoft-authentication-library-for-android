@@ -32,11 +32,13 @@ import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
+import com.microsoft.identity.common.internal.broker.BrokerData;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 
 // Invoke each API from non-allowed apps. the request should be blocked.
@@ -46,6 +48,12 @@ import org.junit.Test;
 public class TestCase1600567 extends AbstractMsalBrokerTest {
     @Test
     public void test_1600567_nonAllowedBrokerApp() throws Throwable {
+        // Skip test if preconditions are not met
+        Assume.assumeFalse(
+                "Only run this test if the device is set to not trust debug brokers",
+                BrokerData.getShouldTrustDebugBrokers()
+        );
+
         final BrokerHost brokerHost = new BrokerHost();
         brokerHost.install();
         brokerHost.launch();

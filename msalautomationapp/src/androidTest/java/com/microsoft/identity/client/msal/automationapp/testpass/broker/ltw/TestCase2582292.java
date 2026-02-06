@@ -35,6 +35,7 @@ import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
+import com.microsoft.identity.common.internal.broker.BrokerData;
 import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
@@ -44,6 +45,7 @@ import com.microsoft.identity.labapi.utilities.constants.UserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 
 import java.util.List;
@@ -57,6 +59,12 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_2582292_LTW_LTWActiveBrokerShouldNotBreakSDMMSALAuthenticatorRequest() throws LabApiException, InterruptedException, UiObjectNotFoundException {
+        // Skip test if preconditions are not met
+        Assume.assumeTrue(
+                "Only run this test if the device is set to trust debug brokers",
+                BrokerData.getShouldTrustDebugBrokers()
+        );
+
         final String username1 = mLabAccount.getUsername();
         final String password1 = mLabAccount.getPassword();
 
