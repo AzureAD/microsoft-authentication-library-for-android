@@ -163,7 +163,7 @@ stages:
           tasks: clean msal:lintLocalDebug
           publishJUnitResults: false
           jdkVersion: 1.17
-  - template: azure-pipelines/code-coverage/copmare-code-coverage.yml@common
+  - template: azure-pipelines/code-coverage/compare-code-coverage.yml@common
   - stage: compare_coverage
     displayName: Compare Code Coverage
     dependsOn:
