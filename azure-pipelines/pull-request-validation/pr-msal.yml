@@ -164,4 +164,8 @@ stages:
           publishJUnitResults: false
           jdkVersion: 1.17
   - template: azure-pipelines/code-coverage/compare-code-coverage.yml@common
+    parameters:
+      commonRepoAlias: common
+      dependsOn:
+        - build_and_test
 ...
