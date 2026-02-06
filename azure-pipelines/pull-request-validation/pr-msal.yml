@@ -164,21 +164,4 @@ stages:
           publishJUnitResults: false
           jdkVersion: 1.17
   - template: azure-pipelines/code-coverage/compare-code-coverage.yml@common
-  - stage: compare_coverage
-    displayName: Compare Code Coverage
-    dependsOn:
-      - build_and_test
-    jobs:
-      - job: compare
-        displayName: Compare PR and Dev Coverage
-        steps:
-          - download: current
-            artifact: jacocoReport # Adjust artifact name as needed
-          - download: current
-            artifact: jacocoReportDev # Adjust artifact name as needed
-          - script: tree "$(Build.SourcesDirectory)\azure-pipelines" /F /A
-            displayName: 'Print File Structure Tree'
-          - script: |
-              python $(Build.SourcesDirectory)/azure-pipelines/pull-request-validation/compare_coverage.py $(Pipeline.Workspace)/jacocoReport/jacocoTestReport.xml $(Pipeline.Workspace)/jacocoReportDev/jacocoTestReport.xml
-            displayName: Compare Jacoco Coverage
 ...
