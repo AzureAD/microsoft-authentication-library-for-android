@@ -80,6 +80,8 @@ stages:
       - publish: $(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
         artifact: jacocoReport
         displayName: 'Publish JaCoCo Report Artifact (PR Branch)'
+      - script: tree "$(Build.SourcesDirectory)\msal" /F /A
+        displayName: 'Print File Structure Tree'
       - task: PublishCodeCoverageResults@1
         displayName: Publish Code Coverage Results
         condition: always()
