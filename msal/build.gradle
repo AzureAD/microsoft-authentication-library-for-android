@@ -5,6 +5,7 @@ plugins {
     id 'checkstyle'
     id 'maven-publish'
     id 'kotlin-android'
+    id 'jacoco'
 
     // Test retries
     id 'org.gradle.test-retry' version '1.5.6'
@@ -28,8 +29,16 @@ codeCoverageReport {
     coverage.enabled = enableCodeCoverage
 }
 
+jacoco {
+    toolVersion = "0.8.10"
+}
+
 // https://blog.gradle.org/gradle-flaky-test-retry-plugin
 tasks.withType(Test) {
+    jacoco {
+        includeNoLocationClasses = true // Required for Robolectric
+        excludes = ['jdk.internal.*']
+    }
     retry {
         // The maximum number of test failures that are allowed before retrying is disabled.
         maxRetries = 2
@@ -38,6 +47,44 @@ tasks.withType(Test) {
         // Controls whether tests that initially fail and then pass on retry should fail the task.
         failOnPassedAfterRetry = false
     }
+}
+
+tasks.register("jacocoTestReport", JacocoReport) {
+    dependsOn "testLocalDebugUnitTest" // Run Robolectric tests first
+
+    reports {
+        xml.required = true
+        html.required = true
+    }
+
+    def fileFilter = [
+            '**/R.class', '**/R$*.class', '**/BuildConfig.*',
+            '**/Manifest*.*', '**/*Test*.*',
+            'android/**/*.*'
+    ]
+
+    def kotlinClasses = fileTree(
+            dir: "$buildDir/tmp/kotlin-classes/localDebug",
+            excludes: fileFilter
+    )
+
+    def javaClasses = fileTree(
+            dir: "$buildDir/intermediates/javac/localDebug/compileLocalDebugJavaWithJavac/classes",
+            excludes: fileFilter
+    )
+
+    sourceDirectories.setFrom(files([
+            "$projectDir/src/main/java",
+            "$projectDir/src/main/kotlin"
+    ]))
+    classDirectories.setFrom(files([kotlinClasses, javaClasses]))
+    executionData.setFrom(fileTree(
+            dir: buildDir,
+            includes: [
+                    "jacoco/testLocalDebugUnitTest.exec",
+                    "outputs/unit_test_code_coverage/localDebugUnitTest/testLocalDebugUnitTest.exec"
+            ]
+    ))
 }
 
 android {
