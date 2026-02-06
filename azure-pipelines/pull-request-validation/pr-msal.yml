@@ -39,7 +39,7 @@ stages:
     displayName: Build and Test
     jobs:
     - job: build_test
-      displayName: PR Branch
+      displayName: PR Branch Testing
       cancelTimeoutInMinutes: 1
       variables:
         Codeql.Enabled: true
@@ -163,6 +163,7 @@ stages:
           tasks: clean msal:lintLocalDebug
           publishJUnitResults: false
           jdkVersion: 1.17
+  - template: azure-pipelines/code-coverage/copmare-code-coverage.yml@common
   - stage: compare_coverage
     displayName: Compare Code Coverage
     dependsOn:
