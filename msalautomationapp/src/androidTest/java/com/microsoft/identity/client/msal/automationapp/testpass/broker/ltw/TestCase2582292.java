@@ -24,6 +24,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
 import androidx.test.uiautomator.UiObjectNotFoundException;
 
+import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
@@ -35,7 +36,6 @@ import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
-import com.microsoft.identity.common.internal.broker.BrokerData;
 import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
@@ -60,9 +60,8 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
     @Test
     public void test_2582292_LTW_LTWActiveBrokerShouldNotBreakSDMMSALAuthenticatorRequest() throws LabApiException, InterruptedException, UiObjectNotFoundException {
         // Skip test if preconditions are not met
-        Assume.assumeTrue(
-                "Only run this test if the device is set to trust debug brokers",
-                BrokerData.getShouldTrustDebugBrokers()
+        Assume.assumeFalse( "Only run this test if there are local flights",
+                BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.isEmpty()
         );
 
         final String username1 = mLabAccount.getUsername();

@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
+import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
@@ -29,7 +30,6 @@ import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
-import com.microsoft.identity.common.internal.broker.BrokerData;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
@@ -46,9 +46,8 @@ public class TestCase2582294 extends AbstractMsalBrokerTest {
     @Test
     public void test_2582294_LTW_LTWActiveBrokerShouldNotBreakNLegacyWPJAuthenticatorRequest() throws Throwable{
         // Skip test if preconditions are not met
-        Assume.assumeTrue(
-                "Only run this test if the device is set to trust debug brokers",
-                BrokerData.getShouldTrustDebugBrokers()
+        Assume.assumeFalse( "Only run this test if there are local flights",
+                BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.isEmpty()
         );
 
         final String username = mLabAccount.getUsername();

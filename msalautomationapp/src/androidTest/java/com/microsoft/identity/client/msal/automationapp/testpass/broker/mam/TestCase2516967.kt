@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.mam
 
+import com.microsoft.identity.client.msal.automationapp.BuildConfig
 import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
@@ -33,7 +34,6 @@ import com.microsoft.identity.client.ui.automation.broker.IMdmAgent
 import com.microsoft.identity.client.ui.automation.installer.LocalApkInstaller
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
-import com.microsoft.identity.common.internal.broker.BrokerData.Companion.getShouldTrustDebugBrokers
 import com.microsoft.identity.common.java.util.ThreadUtils
 import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy
@@ -52,9 +52,8 @@ class TestCase2516967 : AbstractMsalBrokerTest(){
     @Test
     fun test_2516967_MAM_CanUseOutlookAfterRegistration() {
         // Skip test if preconditions are not met
-        Assume.assumeTrue(
-            "Only run this test if the device is set to trust debug brokers",
-            getShouldTrustDebugBrokers()
+        Assume.assumeFalse( "Only run this test if there are local flights",
+            BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.isEmpty()
         )
 
         // Fetch credentials
