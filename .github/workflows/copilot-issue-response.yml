@@ -5,7 +5,7 @@ name: Copilot Issue Triage
 
 on:
   issues:
-    types: [opened, reopened]
+    types: [opened, reopened, labeled]
   issue_comment:
     types: [created]
 
@@ -22,7 +22,10 @@ jobs:
   triage:
     name: Triage New Issue
     runs-on: ubuntu-latest
-    if: github.event_name == 'issues' && github.event.action == 'opened'
+    if: >-
+      github.event_name == 'issues' &&
+      (github.event.action == 'opened' ||
+       (github.event.action == 'labeled' && github.event.label.name == 'Target-For-Ai-Triage'))
     outputs:
       issue_type: ${{ steps.ai_triage.outputs.issue_type }}
       priority: ${{ steps.ai_triage.outputs.priority }}
@@ -224,6 +227,18 @@ jobs:
               issue_number: context.issue.number,
               labels: labels
             });
+
+            // Remove the trigger label if it was used
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                name: 'Target-For-Ai-Triage'
+              });
+            } catch(e) {
+              // Label wasn't present, ignore
+            }
 
   respond:
     name: Generate Response
