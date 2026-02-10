@@ -21,6 +21,7 @@ on:
 permissions:
   issues: write
   contents: read
+  models: read
 
 # Prevent multiple simultaneous runs for the same issue
 concurrency:
