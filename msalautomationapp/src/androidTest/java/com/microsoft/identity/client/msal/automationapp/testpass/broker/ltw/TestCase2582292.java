@@ -24,6 +24,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
 import androidx.test.uiautomator.UiObjectNotFoundException;
 
+import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
@@ -58,9 +59,10 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_2582292_LTW_LTWActiveBrokerShouldNotBreakSDMMSALAuthenticatorRequest() throws LabApiException, InterruptedException, UiObjectNotFoundException {
-        final BrokerHost brokerHost = new BrokerHost();
-        // Skipping this test is brokerhost is using ECS flights
-        Assume.assumeTrue((brokerHost).isLocalFlightProviderSelector());
+        // Skip test if preconditions are not met
+        Assume.assumeFalse( "Only run this test if there are local flights",
+                BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.isEmpty()
+        );
 
         final String username1 = mLabAccount.getUsername();
         final String password1 = mLabAccount.getPassword();

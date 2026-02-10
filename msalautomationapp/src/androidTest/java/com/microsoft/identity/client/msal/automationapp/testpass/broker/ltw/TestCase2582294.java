@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
+import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
@@ -44,9 +45,10 @@ public class TestCase2582294 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_2582294_LTW_LTWActiveBrokerShouldNotBreakNLegacyWPJAuthenticatorRequest() throws Throwable{
-        final BrokerHost brokerHost = new BrokerHost();
-        // Skipping this test is brokerhost is using ECS flights
-        Assume.assumeTrue((brokerHost).isLocalFlightProviderSelector());
+        // Skip test if preconditions are not met
+        Assume.assumeFalse( "Only run this test if there are local flights",
+                BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.isEmpty()
+        );
 
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
