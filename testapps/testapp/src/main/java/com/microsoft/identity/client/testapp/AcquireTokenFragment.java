@@ -656,10 +656,9 @@ public class AcquireTokenFragment extends Fragment {
     }
 
     private void loadMsalApplicationFromRequestParameters(final RequestOptions requestOptions) {
-        boolean enablePiiLogging = true;
+        boolean enablePiiLogging = requestOptions.isEnablePII();
         // The sample app is having the PII enable setting on the MainActivity. Ideally, app should decide to enable Pii or not,
         // if it's enabled, it should be set when the application is onCreate.
-        Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
         Logger.getInstance().setEnableLogcatLog(enablePiiLogging);
         if (enablePiiLogging) {
             Logger.getInstance().setEnablePII(true);
