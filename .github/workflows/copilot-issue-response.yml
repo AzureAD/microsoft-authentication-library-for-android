@@ -440,29 +440,53 @@ jobs:
               // Robust JSON extraction: handles fenced code blocks, whitespace, and multiple formats
               let jsonStr = null;
               let jsonStartIdx = -1;
+              let fullMatchLength = 0;
               
               // Try to extract JSON from fenced code blocks first (```json ... ```)
               const fencedMatch = aiResponse.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
               if (fencedMatch) {
                 jsonStr = fencedMatch[1];
                 jsonStartIdx = aiResponse.indexOf(fencedMatch[0]);
+                fullMatchLength = fencedMatch[0].length;
               } else {
                 // Fall back to finding the last JSON object in the response
-                // Use a more robust pattern that handles nested structures
+                // Use a string-aware parser that handles nested structures
                 const matches = [];
                 let depth = 0;
                 let start = -1;
+                let inString = false;
+                let escapeNext = false;
                 
                 for (let i = 0; i < aiResponse.length; i++) {
                   const char = aiResponse[i];
-                  if (char === '{') {
-                    if (depth === 0) start = i;
-                    depth++;
-                  } else if (char === '}') {
-                    depth--;
-                    if (depth === 0 && start !== -1) {
-                      matches.push({ str: aiResponse.substring(start, i + 1), idx: start });
-                      start = -1;
+                  
+                  // Handle string escaping
+                  if (escapeNext) {
+                    escapeNext = false;
+                    continue;
+                  }
+                  if (char === '\\') {
+                    escapeNext = true;
+                    continue;
+                  }
+                  
+                  // Track string boundaries
+                  if (char === '"') {
+                    inString = !inString;
+                    continue;
+                  }
+                  
+                  // Only count braces outside of strings
+                  if (!inString) {
+                    if (char === '{') {
+                      if (depth === 0) start = i;
+                      depth++;
+                    } else if (char === '}') {
+                      depth--;
+                      if (depth === 0 && start !== -1) {
+                        matches.push({ str: aiResponse.substring(start, i + 1), idx: start });
+                        start = -1;
+                      }
                     }
                   }
                 }
@@ -474,6 +498,7 @@ jobs:
                     if (candidate.detectedPriority !== undefined) {
                       jsonStr = matches[i].str;
                       jsonStartIdx = matches[i].idx;
+                      fullMatchLength = matches[i].str.length;
                       break;
                     }
                   } catch (e) {
@@ -489,12 +514,10 @@ jobs:
                   if (parsed.detectedPriority && parsed.detectedPriority !== 'null') {
                     detectedPriority = parsed.detectedPriority;
                   }
-                  // Remove the JSON block from the response
-                  if (jsonStartIdx !== -1) {
+                  // Remove the JSON block from the response using the full match length
+                  if (jsonStartIdx !== -1 && fullMatchLength > 0) {
                     aiResponse = (aiResponse.substring(0, jsonStartIdx) + 
-                                 aiResponse.substring(jsonStartIdx + jsonStr.length))
-                                 .replace(/```(?:json)?\s*```/g, '') // Clean up any remaining fence markers
-                                 .trim();
+                                 aiResponse.substring(jsonStartIdx + fullMatchLength)).trim();
                   }
                 } catch (parseError) {
                   console.warn('JSON extraction succeeded but parsing failed:', parseError.message);
