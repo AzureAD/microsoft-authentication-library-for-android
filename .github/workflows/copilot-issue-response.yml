@@ -278,7 +278,7 @@ jobs:
 
             let response = 'Thank you for opening this issue!\n\n';
 
-            if (isVeryOld) {
+            if (isVeryOld && msalVersion && msalVersion.trim() !== '') {
               response += '⚠️ **Unsupported MSAL Version Detected**\n\n';
               response += 'Version **' + msalVersion + '** is more than 1.5 years old and is no longer supported.\n\n';
               response += '**Please upgrade to the latest version (' + latestVersion + '):**\n';
