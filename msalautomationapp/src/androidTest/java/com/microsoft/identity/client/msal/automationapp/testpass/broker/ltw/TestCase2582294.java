@@ -59,7 +59,7 @@ public class TestCase2582294 extends AbstractMsalBrokerTest {
         // installed LTW by SupportedBrokers annotation
 
         // Install BrokerHost app with broker selection logic
-
+        final BrokerHost brokerHost = new BrokerHost();
         brokerHost.install();
         brokerHost.launch();
 

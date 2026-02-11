@@ -66,6 +66,7 @@ public class TestCase2582297 extends AbstractMsalBrokerTest {
         // installed with SupportedBrokers annotation
 
         // Install BrokerHost app with broker SDK changes of broker selection logic
+        final BrokerHost brokerHost = new BrokerHost();
         brokerHost.install();
         brokerHost.launch();
 

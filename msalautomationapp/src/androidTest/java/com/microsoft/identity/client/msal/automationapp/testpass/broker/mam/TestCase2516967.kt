@@ -82,6 +82,7 @@ class TestCase2516967 : AbstractMsalBrokerTest(){
         // handle app protection policy in CP i.e. setup PIN when asked
         (mBroker as IMdmAgent).handleAppProtectionPolicy()
 
+        val brokerHost = BrokerHost()
         brokerHost.install()
         brokerHost.wpjLeave()
 
