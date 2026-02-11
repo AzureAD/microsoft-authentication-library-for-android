@@ -427,7 +427,7 @@ jobs:
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: userPrompt }
                   ],
-                  temperature: 0.5,
+                  temperature: 0.2,
                   max_tokens: 1500
                 })
               });
@@ -437,13 +437,69 @@ jobs:
               const data = await response.json();
               aiResponse = data.choices[0].message.content;
 
-              const priorityMatch = aiResponse.match(/\{"detectedPriority":\s*"([^"]+)"[^}]*\}/);
-              if (priorityMatch) {
-                const parsed = JSON.parse(priorityMatch[0]);
-                if (parsed.detectedPriority && parsed.detectedPriority !== 'null') {
-                  detectedPriority = parsed.detectedPriority;
+              // Robust JSON extraction: handles fenced code blocks, whitespace, and multiple formats
+              let jsonStr = null;
+              let jsonStartIdx = -1;
+              
+              // Try to extract JSON from fenced code blocks first (```json ... ```)
+              const fencedMatch = aiResponse.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+              if (fencedMatch) {
+                jsonStr = fencedMatch[1];
+                jsonStartIdx = aiResponse.indexOf(fencedMatch[0]);
+              } else {
+                // Fall back to finding the last JSON object in the response
+                // Use a more robust pattern that handles nested structures
+                const matches = [];
+                let depth = 0;
+                let start = -1;
+                
+                for (let i = 0; i < aiResponse.length; i++) {
+                  const char = aiResponse[i];
+                  if (char === '{') {
+                    if (depth === 0) start = i;
+                    depth++;
+                  } else if (char === '}') {
+                    depth--;
+                    if (depth === 0 && start !== -1) {
+                      matches.push({ str: aiResponse.substring(start, i + 1), idx: start });
+                      start = -1;
+                    }
+                  }
                 }
-                aiResponse = aiResponse.replace(/\{"detectedPriority"[^}]*\}/, '').trim();
+                
+                // Try to parse each potential JSON object, starting from the last one
+                for (let i = matches.length - 1; i >= 0; i--) {
+                  try {
+                    const candidate = JSON.parse(matches[i].str);
+                    if (candidate.detectedPriority !== undefined) {
+                      jsonStr = matches[i].str;
+                      jsonStartIdx = matches[i].idx;
+                      break;
+                    }
+                  } catch (e) {
+                    // Not valid JSON or doesn't have the field we need, try next
+                  }
+                }
+              }
+              
+              // Parse and extract priority if we found valid JSON
+              if (jsonStr) {
+                try {
+                  const parsed = JSON.parse(jsonStr);
+                  if (parsed.detectedPriority && parsed.detectedPriority !== 'null') {
+                    detectedPriority = parsed.detectedPriority;
+                  }
+                  // Remove the JSON block from the response
+                  if (jsonStartIdx !== -1) {
+                    aiResponse = (aiResponse.substring(0, jsonStartIdx) + 
+                                 aiResponse.substring(jsonStartIdx + jsonStr.length))
+                                 .replace(/```(?:json)?\s*```/g, '') // Clean up any remaining fence markers
+                                 .trim();
+                  }
+                } catch (parseError) {
+                  console.warn('JSON extraction succeeded but parsing failed:', parseError.message);
+                  // Keep the response as-is if parsing fails
+                }
               }
             } catch (error) {
               console.error('AI error:', error.message);
