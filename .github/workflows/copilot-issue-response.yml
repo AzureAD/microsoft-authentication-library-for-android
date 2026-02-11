@@ -455,26 +455,28 @@ jobs:
                 let depth = 0;
                 let start = -1;
                 let inString = false;
-                let escapeNext = false;
+                let consecutiveBackslashes = 0;
                 
                 for (let i = 0; i < aiResponse.length; i++) {
                   const char = aiResponse[i];
                   
-                  // Handle string escaping
-                  if (escapeNext) {
-                    escapeNext = false;
-                    continue;
-                  }
+                  // Count consecutive backslashes to handle escape sequences
                   if (char === '\\') {
-                    escapeNext = true;
+                    consecutiveBackslashes++;
                     continue;
                   }
                   
-                  // Track string boundaries
+                  // Track string boundaries - only toggle if quote is not escaped
+                  // A quote is escaped if preceded by an odd number of backslashes
                   if (char === '"') {
-                    inString = !inString;
+                    if (consecutiveBackslashes % 2 === 0) {
+                      inString = !inString;
+                    }
+                    consecutiveBackslashes = 0;
                     continue;
                   }
+                  
+                  consecutiveBackslashes = 0;
                   
                   // Only count braces outside of strings
                   if (!inString) {
@@ -515,7 +517,7 @@ jobs:
                     detectedPriority = parsed.detectedPriority;
                   }
                   // Remove the JSON block from the response using the full match length
-                  if (jsonStartIdx !== -1 && fullMatchLength > 0) {
+                  if (jsonStartIdx >= 0 && fullMatchLength > 0) {
                     aiResponse = (aiResponse.substring(0, jsonStartIdx) + 
                                  aiResponse.substring(jsonStartIdx + fullMatchLength)).trim();
                   }
