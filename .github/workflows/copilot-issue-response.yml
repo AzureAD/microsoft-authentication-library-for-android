@@ -65,10 +65,16 @@ jobs:
             let releases = [];
             let latestVersion = '8.+';
             try {
+              const latestRelease = await github.rest.repos.getLatestRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo
+              });
+              latestVersion = latestRelease.data.tag_name.replace(/^v/, '');
+              
+              // Also fetch all releases for version age checking
               releases = await github.paginate(github.rest.repos.listReleases, {
                 owner: context.repo.owner, repo: context.repo.repo, per_page: 100
               });
-              if (releases.length > 0) latestVersion = releases[0].tag_name.replace(/^v/, '');
             } catch(e) { console.error('Failed to fetch releases:', e.message); }
 
             const systemPrompt = [
