@@ -323,11 +323,15 @@ jobs:
             const aiSolution = process.env.AI_SOLUTION;
             const needsInfo = process.env.NEEDS_INFO === 'true';
 
+            // Upstream repository for MSAL releases
+            const upstreamOwner = 'AzureAD';
+            const upstreamRepo = 'microsoft-authentication-library-for-android';
+
             let latestVersion = '8.+';
             try {
               const rel = await github.rest.repos.getLatestRelease({
-                owner: 'AzureAD',
-                repo: 'microsoft-authentication-library-for-android'
+                owner: upstreamOwner,
+                repo: upstreamRepo
               });
               latestVersion = rel.data.tag_name.replace(/^v/, '');
             } catch(e) {
@@ -436,11 +440,15 @@ jobs:
             try { copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8').substring(0, 12000); } catch(e) {}
             try { commonIssuesGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8').substring(0, 12000); } catch(e) {}
 
+            // Upstream repository for MSAL releases
+            const upstreamOwner = 'AzureAD';
+            const upstreamRepo = 'microsoft-authentication-library-for-android';
+
             let latestVersion = '8.+';
             try {
               const rel = await github.rest.repos.getLatestRelease({
-                owner: 'AzureAD',
-                repo: 'microsoft-authentication-library-for-android'
+                owner: upstreamOwner,
+                repo: upstreamRepo
               });
               latestVersion = rel.data.tag_name.replace(/^v/, '');
             } catch(e) {
