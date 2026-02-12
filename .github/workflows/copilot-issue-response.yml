@@ -219,7 +219,6 @@ jobs:
               'Feature-Request': 'd7f79b',
               'Question': '1d76db',
               'Other': '93a588',
-              
               'very-old-msal': 'ffa500',
               'p0-CodeRed': 'b60205',
               'p1-High': 'd93f0b',
@@ -480,11 +479,11 @@ jobs:
 
             if (detectedPriority) {
               const labelColors = {
-                'p0-CodeRed': 'd73a4a',
-                'p1-High': 'ff6b6b',
+                'p0-CodeRed': 'b60205',
+                'p1-High': 'd93f0b',
                 'p2-Medium': 'fbca04',
-                'p3-Low': '0075ca',
-                'p4-Minor': '5DADE2'
+                'p3-Low': 'fef2c0',
+                'p4-Minor': 'c5def5'
               };
 
               try {
