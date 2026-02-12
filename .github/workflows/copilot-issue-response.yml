@@ -134,18 +134,18 @@ jobs:
               'Issue Title: ' + redactedTitle,
               '',
               'Issue Description:',
-              redactedBody.substring(0, 4000),
+              redactedBody.substring,
               '',
               'Available Releases (for version age check):',
-              releases.slice(0, 20).map(r => r.tag_name + ': ' + r.published_at).join('\n'),
+              releases.slice(0, 60).map(r => r.tag_name + ': ' + r.published_at).join('\n'),
               '',
               'Latest MSAL Version: ' + latestVersion,
               '',
-              'Analyze this issue and provide comprehensive triage in JSON format.'
+              'Analyze this issue and provide comprehensive triage in JSON format according to your system prompt. Make sure to sure MSAL AI Guidance files.'
             ].join('\n');
 
             let result = {
-              issueType: 'question',
+              issueType: 'null',
               priority: null,
               priorityReason: null,
               deviceCount: null,
@@ -161,7 +161,7 @@ jobs:
               const response = await fetch('https://models.github.ai/inference/chat/completions', {
                 method: 'POST',
                 headers: {
-                  'Authorization': 'Bearer ' + process.env.GITHUB_TOKEN,
+                  'Authorization': 'Bearer ' + secrets.GITHUB_TOKEN,
                   'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
@@ -170,10 +170,11 @@ jobs:
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: userPrompt }
                   ],
-                  temperature: 0.2,
-                  max_tokens: 800
+                  temperature: 0.2
                 })
               });
+
+              console.log(response)
 
               if (!response.ok) throw new Error('HTTP ' + response.status + ': ' + await response.text());
 
@@ -183,6 +184,8 @@ jobs:
               if (jsonMatch) {
                 result = { ...result, ...JSON.parse(jsonMatch[0]) };
                 console.log('AI triage result:', JSON.stringify(result));
+              } else {
+                console.log("There was an error with the json match");
               }
             } catch (error) {
               console.error('AI triage error:', error.message);
