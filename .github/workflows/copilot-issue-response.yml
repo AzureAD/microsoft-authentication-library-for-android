@@ -48,13 +48,24 @@ jobs:
 
             const issueTitle = issue.title;
             const issueBody = issue.body;
-            const redactedTitle = issue.title;
-            const redactedBody = redactSecrets(issue.body || '');
 
-            let copilotInstructions = '', commonIssuesGuide = '';
-            try { copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8').substring(0, 12000); } catch(e) {}
-            try { commonIssuesGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8').substring(0, 12000); } catch(e) {}
+            // Load copilot instructions
+            let copilotInstructions = '';
+            try { 
+              copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8').substring(0, 12000);
+            } catch(e) {
+              console.error('Failed to load copilot instructions:', e.message);
+            }
 
+            // Load common issues
+            let commonIssuesGuide = '';
+            try {
+              commonIssuesGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8').substring(0, 12000);
+            } catch(e) {
+              console.error('Failed to load common issues guide:', e.message);
+            }
+
+            // Load the latest release version
             let releases = [];
             let latestVersion = '8.+';
             try {
@@ -68,16 +79,18 @@ jobs:
               releases = await github.paginate(github.rest.repos.listReleases, {
                 owner: context.repo.owner, repo: context.repo.repo, per_page: 100
               });
-            } catch(e) { console.error('Failed to fetch releases:', e.message); }
+            } catch(e) {
+              console.error('Failed to fetch releases:', e.message);
+            }
 
             const systemPrompt = [
               'You are an expert MSAL Android support engineer. Analyze GitHub issues and provide classification, priority, and solutions.',
               '',
               'MSAL Expertise:',
-              copilotInstructions.substring(0, 6000),
+              copilotInstructions,
               '',
               'Common Issues Reference:',
-              commonIssuesGuide.substring(0, 6000),
+              commonIssuesGuide,
               '',
               'PRIORITY THRESHOLDS (based on device/user count):',
               '- p0-CodeRed: 10000+ devices affected',
@@ -86,6 +99,10 @@ jobs:
               '- p3-Low: 100-299 devices affected',
               '- p4-Minor: <100 devices affected',
               '- null: No device count mentioned',
+              '',
+              'ISSUE LABEL MEANINGS (based on MSAL Expertise, whether users are properly using library or not):',
+              '- Bug: Code bug found in our library, unexpected behavior even as customers are properly using MSAL',
+              '- Feature-Request: User desires some behavior, which is currently not supported. No immediate "Bug" in the code'
               '',
               'VERSION SUPPORT: MSAL versions older than 548 days (1.5 years) are unsupported.',
               '',
@@ -104,10 +121,10 @@ jobs:
             ].join('\n');
 
             const userPrompt = [
-              'Issue Title: ' + redactedTitle,
+              'Issue Title: ' + issueTitle,
               '',
               'Issue Description:',
-              redactedBody.substring(0, 4000),
+              issueBody.substring(0, 4000),
               '',
               'Available Releases (for version age check):',
               releases.slice(0, 20).map(r => r.tag_name + ': ' + r.published_at).join('\n'),
