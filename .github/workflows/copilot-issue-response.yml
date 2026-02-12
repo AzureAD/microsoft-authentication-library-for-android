@@ -62,7 +62,7 @@ jobs:
 
             // Load copilot instructions
             let copilotInstructions = '';
-            try { 
+            try {
               copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8').substring(0, 12000);
             } catch(e) {
               console.error('Failed to load copilot instructions:', e.message);
@@ -71,7 +71,7 @@ jobs:
             // Load common issues
             let commonIssuesGuide = '';
             try {
-              commonIssuesGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8').substring(0, 12000);
+              commonIssuesGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8').substring;
             } catch(e) {
               console.error('Failed to load common issues guide:', e.message);
             }
@@ -97,14 +97,10 @@ jobs:
             const systemPrompt = [
               'You are an expert MSAL Android support engineer. Analyze GitHub issues and provide classification, priority, and solutions.',
               '',
-              'MSAL Expertise:',
-              copilotInstructions,
-              '',
-              'Common Issues Reference:',
+              'Common Issues Reference (This is a list of common issues that our customers face. Be sure to read this entire guide to find the known issue most closely resembling the user's issue) :',
               commonIssuesGuide,
               '',
               'PRIORITY THRESHOLDS, Only apply one of these if you have a device count given by the user. If no device count is given, assign p4-Minor:',
-              '- p0-CodeRed: NEVER AUTOMATICALLY ASSIGN THIS. This is only to be assigned by human reviewers',
               '- p1-High: 5000+ devices impacted',
               '- p2-Medium: 4999-1000 devices impacted',
               '- p3-Low: 100-999 devices impacted',
@@ -121,7 +117,7 @@ jobs:
               'Respond with ONLY valid JSON:',
               '{',
               '  "issueType": "Bug|Feature-Request|Question|Other|null",',
-              '  "priority": "p0-CodeRed|p1-High|p2-Medium|p3-Low|p4-Minor",',
+              '  "priority": "p1-High|p2-Medium|p3-Low|p4-Minor",',
               '  "priorityReason": "string explaining priority reasoning or null if impact is not found",',
               '  "deviceCount": "number or null if not found in issue title or body",',
               '  "msalVersion": "extracted MSAL version string from the issue title/body or null if not found",',
@@ -171,8 +167,7 @@ jobs:
                   messages: [
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: userPrompt }
-                  ],
-                  temperature: 0.2
+                  ]
                 })
               });
 
@@ -199,7 +194,6 @@ jobs:
             core.setOutput('msal_version', result.msalVersion || '');
             core.setOutput('is_very_old', result.isVeryOld.toString());
             core.setOutput('needs_info', result.needsMoreInfo.toString());
-            core.setOutput('ai_solution', result.suggestedSolution || '');
             core.setOutput('classification_reason', result.classificationReason || '');
 
       - name: Apply Labels
@@ -285,7 +279,6 @@ jobs:
           PRIORITY: ${{ needs.triage.outputs.priority }}
           IS_VERY_OLD: ${{ needs.triage.outputs.is_very_old }}
           MSAL_VERSION: ${{ needs.triage.outputs.msal_version }}
-          AI_SOLUTION: ${{ needs.triage.outputs.ai_solution }}
           NEEDS_INFO: ${{ needs.triage.outputs.needs_info }}
         with:
           script: |
@@ -293,7 +286,6 @@ jobs:
             const priority = process.env.PRIORITY;
             const isVeryOld = process.env.IS_VERY_OLD === 'true';
             const msalVersion = process.env.MSAL_VERSION;
-            const aiSolution = process.env.AI_SOLUTION;
             const needsInfo = process.env.NEEDS_INFO === 'true';
 
             let latestVersion = '8.+';
@@ -331,10 +323,6 @@ jobs:
 
             if (aiSolution) {
               response += '## 🤖 AI Analysis\n\n' + aiSolution + '\n\n---\n\n';
-            }
-
-            if (issueType === 'security') {
-              response += '⚠️ **Security Notice:** Please report security vulnerabilities through our [security reporting process](https://github.com/AzureAD/microsoft-authentication-library-for-android#security-reporting) rather than public issues.\n\n';
             }
 
             if (needsInfo) {
@@ -455,9 +443,7 @@ jobs:
                   messages: [
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: userPrompt }
-                  ],
-                  temperature: 0.5,
-                  max_tokens: 1500
+                  ]
                 })
               });
 
