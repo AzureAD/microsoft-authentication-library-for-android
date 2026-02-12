@@ -46,8 +46,17 @@ jobs:
             const fs = require('fs');
             const issue = context.payload.issue;
 
-            const issueTitle = issue.title;
-            const issueBody = issue.body;
+            function redactSecrets(text) {
+              if (!text) return '';
+              return text
+                .replace(/eyJ[A-Za-z0-9_\-+\/]{10,}\.[A-Za-z0-9_\-+\/]+\.[A-Za-z0-9_\-+\/]*/g, '[REDACTED_JWT]')
+                .replace(/Bearer\s+[A-Za-z0-9_\-./+=]+/gi, 'Bearer [REDACTED]')
+                .replace(/(client_secret|access_token|refresh_token|api[_-]?key)["\s:=]+[^\s"',}]+/gi, '$1=[REDACTED]')
+                .replace(/[A-Za-z0-9+\/]{100,}={0,2}/g, '[REDACTED_BASE64]');
+            }
+
+            const redactedTitle = redactSecrets(issue.title);
+            const redactedBody = redactSecrets(issue.body || '');
 
             // Load copilot instructions
             let copilotInstructions = '';
@@ -111,7 +120,7 @@ jobs:
               '{',
               '  "issueType": "Bug|Feature-Request|Question|Other|null",',
               '  "priority": "p0-CodeRed|p1-High|p2-Medium|p3-Low|p4-Minor",',
-              '  "priorityReason": "string explaining priority reasoning or null if impact is not currently detected",',
+              '  "priorityReason": "string explaining priority reasoning or null if impact is not found",',
               '  "deviceCount": "number or null if not found in issue title or body",',
               '  "msalVersion": "extracted MSAL version string from the issue title/body or null if not found",',
               '  "isVeryOld": "boolean (true if msalVersion is older than 548 days)",',
@@ -122,10 +131,10 @@ jobs:
             ].join('\n');
 
             const userPrompt = [
-              'Issue Title: ' + issueTitle,
+              'Issue Title: ' + redactedTitle,
               '',
               'Issue Description:',
-              issueBody.substring(0, 4000),
+              redactedBody.substring(0, 4000),
               '',
               'Available Releases (for version age check):',
               releases.slice(0, 20).map(r => r.tag_name + ': ' + r.published_at).join('\n'),
