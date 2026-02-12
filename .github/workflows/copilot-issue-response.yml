@@ -104,7 +104,7 @@ jobs:
               '',
               'ISSUE TYPE CLASSIFICATION:',
               '- Bug: Library bug, unexpected behavior when MSAL used correctly',
-              '- User-Error: Incorrect MSAL Implementation causing unexpected behavior'
+              '- User-Error: Incorrect MSAL Implementation causing unexpected behavior',
               '- Feature-Request: Desired behavior not currently supported',
               '- Question: User asking for clarification, no error/unexpected behavior',
               '- Other: Miscellaneous, no clear classification',
