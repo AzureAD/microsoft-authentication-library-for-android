@@ -33,6 +33,7 @@ jobs:
       msal_version: ${{ steps.ai_triage.outputs.msal_version }}
       ai_solution: ${{ steps.ai_triage.outputs.ai_solution }}
       needs_info: ${{ steps.ai_triage.outputs.needs_info }}
+      related_issues: ${{ steps.ai_triage.outputs.related_issues }}
 
     steps:
       - name: Checkout repository
@@ -97,22 +98,34 @@ jobs:
             const systemPrompt = [
               'You are an expert MSAL Android support engineer. Analyze GitHub issues and provide classification, priority, and solutions.',
               '',
-              'Common Issues Reference (This is a list of common issues that our customers face. Be sure to read this entire guide to find the known issue most closely resembling the user's issue) :',
+              '=== COMMON ISSUES REFERENCE ===',
+              'The following guide contains solutions for 250+ issues organized by category.',
+              'Use the "Error Pattern Quick Lookup" section to quickly find relevant solutions.',
+              'Always cite related GitHub issues (format: #NNNN) when providing solutions.',
+              '',
               commonIssuesGuide,
               '',
-              'PRIORITY THRESHOLDS, Only apply one of these if you have a device count given by the user. If no device count is given, assign p4-Minor:',
+              '=== TRIAGE INSTRUCTIONS ===',
+              'PRIORITY THRESHOLDS (Only apply if user provides device count, otherwise assign p4-Minor):',
               '- p1-High: 5000+ devices impacted',
               '- p2-Medium: 4999-1000 devices impacted',
               '- p3-Low: 100-999 devices impacted',
               '- p4-Minor: <100 devices impacted, or no device impact given',
               '',
-              'ISSUE TYPE LABEL MEANINGS (based on MSAL Expertise, whether users are properly using library or not):',
-              '- Bug: Code bug found in our library, unexpected behavior even as customers are properly using MSAL',
-              '- Feature-Request: User desires some behavior, which is currently not supported. No immediate "Bug" in the code',
-              '- Question: User is simply asking a question, no indication of error or unexpected user experience',
-              '- Other: Miscellaneous issue, no immediate classification seems fitting',
+              'ISSUE TYPE CLASSIFICATION:',
+              '- Bug: Library bug, unexpected behavior when MSAL used correctly',
+              '- Feature-Request: Desired behavior not currently supported',
+              '- Question: User asking for clarification, no error/unexpected behavior',
+              '- Other: Miscellaneous, no clear classification',
               '',
               'VERSION SUPPORT: MSAL versions older than 548 days (1.5 years) are unsupported.',
+              '',
+              '=== SOLUTION REQUIREMENTS ===',
+              'In suggestedSolution field:',
+              '1. Identify the most similar issue from the Common Issues Reference',
+              '2. Provide specific solution with code examples if applicable',
+              '3. List related GitHub issues from the guide (e.g., "See also: #1234, #5678")',
+              '4. If issue not in guide, provide general MSAL troubleshooting steps',
               '',
               'Respond with ONLY valid JSON:',
               '{',
@@ -122,9 +135,10 @@ jobs:
               '  "deviceCount": "number or null if not found in issue title or body",',
               '  "msalVersion": "extracted MSAL version string from the issue title/body or null if not found",',
               '  "isVeryOld": "boolean (true if msalVersion is older than 548 days)",',
-              '  "needsMoreInfo": "boolean, true if the issue has insufficient information for triage, false otherwise ",',
-              '  "suggestedSolution": "suggested solution to the issue based on MSAL expertise information",',
-              '  "classificationReason": "brief explanation of why the issueType was chosen"',
+              '  "needsMoreInfo": "boolean, true if issue has insufficient information for triage",',
+              '  "suggestedSolution": "detailed solution referencing Common Issues guide sections and related GitHub issues",',
+              '  "relatedIssues": "array of related GitHub issue numbers from the guide, e.g. [1234, 5678]",',
+              '  "classificationReason": "brief explanation of why issueType was chosen"',
               '}'
             ].join('\n');
 
@@ -151,6 +165,7 @@ jobs:
               isVeryOld: false,
               needsMoreInfo: true,
               suggestedSolution: null,
+              relatedIssues: [],
               classificationReason: 'AI classification'
             };
 
@@ -195,6 +210,8 @@ jobs:
             core.setOutput('is_very_old', result.isVeryOld.toString());
             core.setOutput('needs_info', result.needsMoreInfo.toString());
             core.setOutput('classification_reason', result.classificationReason || '');
+            core.setOutput('ai_solution', result.suggestedSolution || '');
+            core.setOutput('related_issues', JSON.stringify(result.relatedIssues || []));
 
       - name: Apply Labels
         uses: actions/github-script@v7
@@ -280,6 +297,8 @@ jobs:
           IS_VERY_OLD: ${{ needs.triage.outputs.is_very_old }}
           MSAL_VERSION: ${{ needs.triage.outputs.msal_version }}
           NEEDS_INFO: ${{ needs.triage.outputs.needs_info }}
+          AI_SOLUTION: ${{ needs.triage.outputs.ai_solution }}
+          RELATED_ISSUES: ${{ needs.triage.outputs.related_issues }}
         with:
           script: |
             const issueType = process.env.ISSUE_TYPE;
@@ -287,6 +306,8 @@ jobs:
             const isVeryOld = process.env.IS_VERY_OLD === 'true';
             const msalVersion = process.env.MSAL_VERSION;
             const needsInfo = process.env.NEEDS_INFO === 'true';
+            const aiSolution = process.env.AI_SOLUTION;
+            const relatedIssues = JSON.parse(process.env.RELATED_ISSUES || '[]');
 
             let latestVersion = '8.+';
             try {
@@ -322,7 +343,15 @@ jobs:
             response += '\n\n';
 
             if (aiSolution) {
-              response += '## 🤖 AI Analysis\n\n' + aiSolution + '\n\n---\n\n';
+              response += '## 🤖 AI Analysis\n\n' + aiSolution + '\n\n';
+              
+              if (relatedIssues && relatedIssues.length > 0) {
+                response += '**Related Issues:** ';
+                response += relatedIssues.map(num => '#' + num).join(', ');
+                response += '\n\n';
+              }
+              
+              response += '---\n\n';
             }
 
             if (needsInfo) {
