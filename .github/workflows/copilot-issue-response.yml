@@ -220,7 +220,7 @@ jobs:
 
             const labelColors = {
               'Bug': 'd93f0b',
-              'User-Error': 'b0e9e0",
+              'User-Error': 'b0e9e0',
               'Feature-Request': 'd7f79b',
               'Question': '1d76db',
               'Other': '93a588',
