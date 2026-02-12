@@ -38,9 +38,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: AI-Powered Triage
+      - name: AI-Powered-Triage
         id: ai_triage
         uses: actions/github-script@v7
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           script: |
             const fs = require('fs');
@@ -161,7 +163,7 @@ jobs:
               const response = await fetch('https://models.github.ai/inference/chat/completions', {
                 method: 'POST',
                 headers: {
-                  'Authorization': 'Bearer ' + secrets.GITHUB_TOKEN,
+                  'Authorization': 'Bearer ' + env.GH_TOKEN,
                   'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
