@@ -49,19 +49,32 @@ jobs:
             function redactSecrets(text) {
               if (!text) return '';
               return text
-                .replace(/eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*/g, '[REDACTED_JWT]')
-                .replace(/Bearer\s+[A-Za-z0-9_\-.]+/gi, 'Bearer [REDACTED]')
-                .replace(/(client_secret|access_token|api[_-]?key)["\s:=]+[^\s"',}]+/gi, '$1=[REDACTED]')
-                .replace(/[A-Za-z0-9+\/]{50,}={0,2}/g, '[REDACTED_BASE64]');
+                .replace(/eyJ[A-Za-z0-9_\-+\/]{10,}\.[A-Za-z0-9_\-+\/]+\.[A-Za-z0-9_\-+\/]*/g, '[REDACTED_JWT]')
+                .replace(/Bearer\s+[A-Za-z0-9_\-./+=]+/gi, 'Bearer [REDACTED]')
+                .replace(/(client_secret|access_token|refresh_token|api[_-]?key)["\s:=]+[^\s"',}]+/gi, '$1=[REDACTED]')
+                .replace(/[A-Za-z0-9+\/]{100,}={0,2}/g, '[REDACTED_BASE64]');
             }
 
             const redactedTitle = redactSecrets(issue.title);
             const redactedBody = redactSecrets(issue.body || '');
 
-            let copilotInstructions = '', commonIssuesGuide = '';
-            try { copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8').substring(0, 12000); } catch(e) {}
-            try { commonIssuesGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8').substring(0, 12000); } catch(e) {}
+            // Load copilot instructions
+            let copilotInstructions = '';
+            try { 
+              copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8').substring(0, 12000);
+            } catch(e) {
+              console.error('Failed to load copilot instructions:', e.message);
+            }
 
+            // Load common issues
+            let commonIssuesGuide = '';
+            try {
+              commonIssuesGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8').substring(0, 12000);
+            } catch(e) {
+              console.error('Failed to load common issues guide:', e.message);
+            }
+
+            // Load the latest release version
             let releases = [];
             let latestVersion = '8.+';
             try {
@@ -75,38 +88,45 @@ jobs:
               releases = await github.paginate(github.rest.repos.listReleases, {
                 owner: context.repo.owner, repo: context.repo.repo, per_page: 100
               });
-            } catch(e) { console.error('Failed to fetch releases:', e.message); }
+            } catch(e) {
+              console.error('Failed to fetch releases:', e.message);
+            }
 
             const systemPrompt = [
               'You are an expert MSAL Android support engineer. Analyze GitHub issues and provide classification, priority, and solutions.',
               '',
               'MSAL Expertise:',
-              copilotInstructions.substring(0, 6000),
+              copilotInstructions,
               '',
               'Common Issues Reference:',
-              commonIssuesGuide.substring(0, 6000),
+              commonIssuesGuide,
               '',
               'PRIORITY THRESHOLDS (based on device/user count):',
-              '- p0-CodeRed: 10000+ devices affected',
-              '- p1-High: 1000-9999 devices affected',
-              '- p2-Medium: 300-999 devices affected',
-              '- p3-Low: 100-299 devices affected',
-              '- p4-Minor: <100 devices affected',
-              '- null: No device count mentioned',
+              '- p0-CodeRed: 10000+ devices impacted',
+              '- p1-High: 1000-9999 devices impacted',
+              '- p2-Medium: 300-999 devices impacted',
+              '- p3-Low: 100-299 devices impacted',
+              '- p4-Minor: <100 devices impacted, or no device impact given',
+              '',
+              'ISSUE TYPE LABEL MEANINGS (based on MSAL Expertise, whether users are properly using library or not):',
+              '- Bug: Code bug found in our library, unexpected behavior even as customers are properly using MSAL',
+              '- Feature-Request: User desires some behavior, which is currently not supported. No immediate "Bug" in the code',
+              '- Question: User is simply asking a question, no indication of error or unexpected user experience',
+              '- Other: Miscellaneous issue, no immediate classification seems fitting',
               '',
               'VERSION SUPPORT: MSAL versions older than 548 days (1.5 years) are unsupported.',
               '',
               'Respond with ONLY valid JSON:',
               '{',
-              '  "issueType": "bug|question|feature-request|security|needs-investigation",',
-              '  "priority": "p0-CodeRed|p1-High|p2-Medium|p3-Low|p4-Minor|null",',
-              '  "priorityReason": "string explaining priority or null",',
-              '  "deviceCount": "number or null",',
-              '  "msalVersion": "extracted version string or null",',
-              '  "isVeryOld": "boolean (true if version is older than 548 days)",',
-              '  "needsMoreInfo": "boolean",',
-              '  "suggestedSolution": "2-4 sentence solution with specific guidance",',
-              '  "classificationReason": "brief explanation of classification"',
+              '  "issueType": "Bug|Feature-Request|Question|Other|null",',
+              '  "priority": "p0-CodeRed|p1-High|p2-Medium|p3-Low|p4-Minor",',
+              '  "priorityReason": "string explaining priority reasoning or null if impact is not found",',
+              '  "deviceCount": "number or null if not found in issue title or body",',
+              '  "msalVersion": "extracted MSAL version string from the issue title/body or null if not found",',
+              '  "isVeryOld": "boolean (true if msalVersion is older than 548 days)",',
+              '  "needsMoreInfo": "boolean, true if the issue has insufficient information for triage, false otherwise ",',
+              '  "suggestedSolution": "suggested solution to the issue based on MSAL expertise information",',
+              '  "classificationReason": "brief explanation of why the issueType was chosen"',
               '}'
             ].join('\n');
 
@@ -114,18 +134,18 @@ jobs:
               'Issue Title: ' + redactedTitle,
               '',
               'Issue Description:',
-              redactedBody.substring(0, 4000),
+              redactedBody.substring,
               '',
               'Available Releases (for version age check):',
-              releases.slice(0, 20).map(r => r.tag_name + ': ' + r.published_at).join('\n'),
+              releases.slice(0, 60).map(r => r.tag_name + ': ' + r.published_at).join('\n'),
               '',
               'Latest MSAL Version: ' + latestVersion,
               '',
-              'Analyze this issue and provide comprehensive triage in JSON format.'
+              'Analyze this issue and provide comprehensive triage in JSON format according to your system prompt. Make sure to sure MSAL AI Guidance files.'
             ].join('\n');
 
             let result = {
-              issueType: 'question',
+              issueType: 'null',
               priority: null,
               priorityReason: null,
               deviceCount: null,
@@ -141,7 +161,7 @@ jobs:
               const response = await fetch('https://models.github.ai/inference/chat/completions', {
                 method: 'POST',
                 headers: {
-                  'Authorization': 'Bearer ' + process.env.GITHUB_TOKEN,
+                  'Authorization': 'Bearer ' + secrets.GITHUB_TOKEN,
                   'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
@@ -150,10 +170,11 @@ jobs:
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: userPrompt }
                   ],
-                  temperature: 0.2,
-                  max_tokens: 800
+                  temperature: 0.2
                 })
               });
+
+              console.log(response)
 
               if (!response.ok) throw new Error('HTTP ' + response.status + ': ' + await response.text());
 
@@ -163,6 +184,8 @@ jobs:
               if (jsonMatch) {
                 result = { ...result, ...JSON.parse(jsonMatch[0]) };
                 console.log('AI triage result:', JSON.stringify(result));
+              } else {
+                console.log("There was an error with the json match");
               }
             } catch (error) {
               console.error('AI triage error:', error.message);
@@ -192,18 +215,16 @@ jobs:
             if (process.env.NEEDS_INFO === 'true') labels.push('needs-more-info');
 
             const labelColors = {
-              'bug': 'd73a4a',
-              'needs-investigation': 'fbca04',
-              'feature-request': 'a2eeef',
-              'question': 'd876e3',
-              'security': 'b60205',
-              'needs-more-info': 'fbca04',
+              'Bug': 'd93f0b',
+              'Feature-Request': 'd7f79b',
+              'Question': '1d76db',
+              'Other': '93a588',
               'very-old-msal': 'ffa500',
-              'p0-CodeRed': 'd73a4a',
-              'p1-High': 'ff6b6b',
+              'p0-CodeRed': 'b60205',
+              'p1-High': 'd93f0b',
               'p2-Medium': 'fbca04',
-              'p3-Low': '0075ca',
-              'p4-Minor': '5DADE2'
+              'p3-Low': 'fef2c0',
+              'p4-Minor': 'c5def5'
             };
 
             for (const label of labels) {
@@ -458,11 +479,11 @@ jobs:
 
             if (detectedPriority) {
               const labelColors = {
-                'p0-CodeRed': 'd73a4a',
-                'p1-High': 'ff6b6b',
+                'p0-CodeRed': 'b60205',
+                'p1-High': 'd93f0b',
                 'p2-Medium': 'fbca04',
-                'p3-Low': '0075ca',
-                'p4-Minor': '5DADE2'
+                'p3-Low': 'fef2c0',
+                'p4-Minor': 'c5def5'
               };
 
               try {
