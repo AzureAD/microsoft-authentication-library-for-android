@@ -87,7 +87,6 @@ public class CommandParametersTest {
         Mockito.when(mActivity.getApplicationContext()).thenReturn(mContext);
     }
 
-
     @Test
     public void testAcquireTokenSilentOperationWithClaimsWithCapabilities() throws ClientException {
         SilentTokenCommandParameters commandParameters = CommandParametersAdapter.createSilentTokenCommandParameters(getConfiguration(AAD_CP1_CONFIG_FILE), getCache(), getAcquireTokenSilentParametersWithClaims());
