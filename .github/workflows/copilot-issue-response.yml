@@ -93,30 +93,31 @@ jobs:
               commonIssuesGuide,
               '',
               'PRIORITY THRESHOLDS (based on device/user count):',
-              '- p0-CodeRed: 10000+ devices affected',
-              '- p1-High: 1000-9999 devices affected',
-              '- p2-Medium: 300-999 devices affected',
-              '- p3-Low: 100-299 devices affected',
-              '- p4-Minor: <100 devices affected',
-              '- null: No device count mentioned',
+              '- p0-CodeRed: 10000+ devices impacted',
+              '- p1-High: 1000-9999 devices impacted',
+              '- p2-Medium: 300-999 devices impacted',
+              '- p3-Low: 100-299 devices impacted',
+              '- p4-Minor: <100 devices impacted, or no device impact given',
               '',
-              'ISSUE LABEL MEANINGS (based on MSAL Expertise, whether users are properly using library or not):',
+              'ISSUE TYPE LABEL MEANINGS (based on MSAL Expertise, whether users are properly using library or not):',
               '- Bug: Code bug found in our library, unexpected behavior even as customers are properly using MSAL',
-              '- Feature-Request: User desires some behavior, which is currently not supported. No immediate "Bug" in the code'
+              '- Feature-Request: User desires some behavior, which is currently not supported. No immediate "Bug" in the code',
+              '- Question: User is simply asking a question, no indication of error or unexpected user experience',
+              '- Other: Miscellaneous issue, no immediate classification seems fitting',
               '',
               'VERSION SUPPORT: MSAL versions older than 548 days (1.5 years) are unsupported.',
               '',
               'Respond with ONLY valid JSON:',
               '{',
-              '  "issueType": "bug|question|feature-request|security|needs-investigation",',
-              '  "priority": "p0-CodeRed|p1-High|p2-Medium|p3-Low|p4-Minor|null",',
-              '  "priorityReason": "string explaining priority or null",',
-              '  "deviceCount": "number or null",',
-              '  "msalVersion": "extracted version string or null",',
-              '  "isVeryOld": "boolean (true if version is older than 548 days)",',
-              '  "needsMoreInfo": "boolean",',
-              '  "suggestedSolution": "2-4 sentence solution with specific guidance",',
-              '  "classificationReason": "brief explanation of classification"',
+              '  "issueType": "Bug|Feature-Request|Question|Other|null",',
+              '  "priority": "p0-CodeRed|p1-High|p2-Medium|p3-Low|p4-Minor",',
+              '  "priorityReason": "string explaining priority reasoning or null if impact is not currently detected",',
+              '  "deviceCount": "number or null if not found in issue title or body",',
+              '  "msalVersion": "extracted MSAL version string from the issue title/body or null if not found",',
+              '  "isVeryOld": "boolean (true if msalVersion is older than 548 days)",',
+              '  "needsMoreInfo": "boolean, true if the issue has insufficient information for triage, false otherwise ",',
+              '  "suggestedSolution": "suggested solution to the issue based on MSAL expertise information",',
+              '  "classificationReason": "brief explanation of why the issueType was chosen"',
               '}'
             ].join('\n');
 
@@ -202,18 +203,17 @@ jobs:
             if (process.env.NEEDS_INFO === 'true') labels.push('needs-more-info');
 
             const labelColors = {
-              'bug': 'd73a4a',
-              'needs-investigation': 'fbca04',
-              'feature-request': 'a2eeef',
-              'question': 'd876e3',
-              'security': 'b60205',
-              'needs-more-info': 'fbca04',
+              'Bug': 'd93f0b',
+              'Feature-Request': 'd7f79b',
+              'Question': '1d76db',
+              'Other': '93a588',
+              
               'very-old-msal': 'ffa500',
-              'p0-CodeRed': 'd73a4a',
-              'p1-High': 'ff6b6b',
+              'p0-CodeRed': 'b60205',
+              'p1-High': 'd93f0b',
               'p2-Medium': 'fbca04',
-              'p3-Low': '0075ca',
-              'p4-Minor': '5DADE2'
+              'p3-Low': 'fef2c0',
+              'p4-Minor': 'c5def5'
             };
 
             for (const label of labels) {
