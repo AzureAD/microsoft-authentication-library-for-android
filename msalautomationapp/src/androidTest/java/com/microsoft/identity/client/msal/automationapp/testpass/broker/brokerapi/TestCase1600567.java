@@ -52,11 +52,7 @@ public class TestCase1600567 extends AbstractMsalBrokerTest {
         Assume.assumeTrue( "Only run this test if there are no local flights",
                 BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.isEmpty()
         );
-
-
         final BrokerHost brokerHost = new BrokerHost();
-        // Skipping this test is brokerhost is using local flights
-        Assume.assumeFalse((brokerHost).isLocalFlightProviderSelector());
         brokerHost.install();
         brokerHost.launch();
 
