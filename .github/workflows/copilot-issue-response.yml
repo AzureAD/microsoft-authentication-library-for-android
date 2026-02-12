@@ -77,48 +77,21 @@ jobs:
             }
 
             // Load the latest release version
-            // Try to fetch from upstream repository first (AzureAD/microsoft-authentication-library-for-android)
-            // Fall back to current repository if that fails
             let releases = [];
             let latestVersion = '8.+';
-            
-            const upstreamOwner = 'AzureAD';
-            const upstreamRepo = 'microsoft-authentication-library-for-android';
-            
             try {
               const latestRelease = await github.rest.repos.getLatestRelease({
-                owner: upstreamOwner,
-                repo: upstreamRepo
+                owner: context.repo.owner,
+                repo: context.repo.repo
               });
               latestVersion = latestRelease.data.tag_name.replace(/^v/, '');
               
               // Also fetch all releases for version age checking
               releases = await github.paginate(github.rest.repos.listReleases, {
-                owner: upstreamOwner, 
-                repo: upstreamRepo, 
-                per_page: 100
+                owner: context.repo.owner, repo: context.repo.repo, per_page: 100
               });
-              console.log('Fetched ' + releases.length + ' releases from upstream repository');
             } catch(e) {
-              console.error('Failed to fetch releases from upstream:', e.message);
-              // Try current repository as fallback
-              try {
-                const latestRelease = await github.rest.repos.getLatestRelease({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo
-                });
-                latestVersion = latestRelease.data.tag_name.replace(/^v/, '');
-                
-                releases = await github.paginate(github.rest.repos.listReleases, {
-                  owner: context.repo.owner, 
-                  repo: context.repo.repo, 
-                  per_page: 100
-                });
-                console.log('Fetched ' + releases.length + ' releases from current repository');
-              } catch(e2) {
-                console.error('Failed to fetch releases from current repository:', e2.message);
-                console.log('Using default version: ' + latestVersion);
-              }
+              console.error('Failed to fetch releases:', e.message);
             }
 
             const systemPrompt = [
@@ -323,29 +296,14 @@ jobs:
             const aiSolution = process.env.AI_SOLUTION;
             const needsInfo = process.env.NEEDS_INFO === 'true';
 
-            // Upstream repository for MSAL releases
-            const upstreamOwner = 'AzureAD';
-            const upstreamRepo = 'microsoft-authentication-library-for-android';
-
             let latestVersion = '8.+';
             try {
               const rel = await github.rest.repos.getLatestRelease({
-                owner: upstreamOwner,
-                repo: upstreamRepo
+                owner: context.repo.owner,
+                repo: context.repo.repo
               });
               latestVersion = rel.data.tag_name.replace(/^v/, '');
-            } catch(e) {
-              // Try current repository as fallback
-              try {
-                const rel = await github.rest.repos.getLatestRelease({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo
-                });
-                latestVersion = rel.data.tag_name.replace(/^v/, '');
-              } catch(e2) {
-                console.log('Using default version: ' + latestVersion);
-              }
-            }
+            } catch(e) {}
 
             let response = 'Thank you for opening this issue!\n\n';
 
@@ -440,29 +398,14 @@ jobs:
             try { copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8').substring(0, 12000); } catch(e) {}
             try { commonIssuesGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8').substring(0, 12000); } catch(e) {}
 
-            // Upstream repository for MSAL releases
-            const upstreamOwner = 'AzureAD';
-            const upstreamRepo = 'microsoft-authentication-library-for-android';
-
             let latestVersion = '8.+';
             try {
               const rel = await github.rest.repos.getLatestRelease({
-                owner: upstreamOwner,
-                repo: upstreamRepo
+                owner: context.repo.owner,
+                repo: context.repo.repo
               });
               latestVersion = rel.data.tag_name.replace(/^v/, '');
-            } catch(e) {
-              // Try current repository as fallback
-              try {
-                const rel = await github.rest.repos.getLatestRelease({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo
-                });
-                latestVersion = rel.data.tag_name.replace(/^v/, '');
-              } catch(e2) {
-                console.log('Using default version: ' + latestVersion);
-              }
-            }
+            } catch(e) {}
 
             const systemPrompt = [
               'You are an expert MSAL Android support engineer.',
