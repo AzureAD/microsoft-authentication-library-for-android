@@ -114,6 +114,7 @@ jobs:
               '',
               'ISSUE TYPE CLASSIFICATION:',
               '- Bug: Library bug, unexpected behavior when MSAL used correctly',
+              '- User-Error: Incorrect MSAL Implementation causing unexpected behavior'
               '- Feature-Request: Desired behavior not currently supported',
               '- Question: User asking for clarification, no error/unexpected behavior',
               '- Other: Miscellaneous, no clear classification',
@@ -229,6 +230,7 @@ jobs:
 
             const labelColors = {
               'Bug': 'd93f0b',
+              'User-Error': 'b0e9e0",
               'Feature-Request': 'd7f79b',
               'Question': '1d76db',
               'Other': '93a588',
