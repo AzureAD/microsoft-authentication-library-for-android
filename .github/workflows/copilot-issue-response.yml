@@ -61,15 +61,15 @@ jobs:
             const redactedTitle = redactSecrets(issue.title);
             const redactedBody = redactSecrets(issue.body || '');
 
-            # # Load copilot instructions
-            # let copilotInstructions = '';
-            # try {
-            #   copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8').substring(0, 12000);
-            # } catch(e) {
-            #   console.error('Failed to load copilot instructions:', e.message);
-            # }
+            // Load copilot instructions
+            // let copilotInstructions = '';
+            // try {
+            //   copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8').substring(0, 12000);
+            // } catch(e) {
+            //   console.error('Failed to load copilot instructions:', e.message);
+            // }
 
-            # Load common issues
+            // Load common issues
             let commonIssuesGuide = '';
             try {
               commonIssuesGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8');
@@ -394,6 +394,8 @@ jobs:
 
       - name: Process PING-COPILOT Request
         uses: actions/github-script@v7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           script: |
             const fs = require('fs');
