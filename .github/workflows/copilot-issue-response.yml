@@ -33,6 +33,7 @@ jobs:
       msal_version: ${{ steps.ai_triage.outputs.msal_version }}
       ai_solution: ${{ steps.ai_triage.outputs.ai_solution }}
       needs_info: ${{ steps.ai_triage.outputs.needs_info }}
+      related_issues: ${{ steps.ai_triage.outputs.related_issues }}
 
     steps:
       - name: Checkout repository
@@ -61,17 +62,17 @@ jobs:
             const redactedBody = redactSecrets(issue.body || '');
 
             // Load copilot instructions
-            let copilotInstructions = '';
-            try { 
-              copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8').substring(0, 12000);
-            } catch(e) {
-              console.error('Failed to load copilot instructions:', e.message);
-            }
+            // let copilotInstructions = '';
+            // try {
+            //   copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8').substring(0, 12000);
+            // } catch(e) {
+            //   console.error('Failed to load copilot instructions:', e.message);
+            // }
 
             // Load common issues
             let commonIssuesGuide = '';
             try {
-              commonIssuesGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8').substring(0, 12000);
+              commonIssuesGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8');
             } catch(e) {
               console.error('Failed to load common issues guide:', e.message);
             }
@@ -97,38 +98,48 @@ jobs:
             const systemPrompt = [
               'You are an expert MSAL Android support engineer. Analyze GitHub issues and provide classification, priority, and solutions.',
               '',
-              'MSAL Expertise:',
-              copilotInstructions,
+              '=== COMMON ISSUES REFERENCE ===',
+              'The following guide contains solutions for 250+ issues organized by category.',
+              'Use the "Error Pattern Quick Lookup" section to quickly find relevant solutions.',
+              'Always cite related GitHub issues (format: #NNNN) when providing solutions.',
               '',
-              'Common Issues Reference:',
               commonIssuesGuide,
               '',
-              'PRIORITY THRESHOLDS (based on device/user count):',
-              '- p0-CodeRed: 10000+ devices impacted',
-              '- p1-High: 1000-9999 devices impacted',
-              '- p2-Medium: 300-999 devices impacted',
-              '- p3-Low: 100-299 devices impacted',
+              '=== TRIAGE INSTRUCTIONS ===',
+              'PRIORITY THRESHOLDS (Only apply if user provides device count, otherwise assign p4-Minor):',
+              '- p1-High: 5000+ devices impacted',
+              '- p2-Medium: 4999-1000 devices impacted',
+              '- p3-Low: 100-999 devices impacted',
               '- p4-Minor: <100 devices impacted, or no device impact given',
               '',
-              'ISSUE TYPE LABEL MEANINGS (based on MSAL Expertise, whether users are properly using library or not):',
-              '- Bug: Code bug found in our library, unexpected behavior even as customers are properly using MSAL',
-              '- Feature-Request: User desires some behavior, which is currently not supported. No immediate "Bug" in the code',
-              '- Question: User is simply asking a question, no indication of error or unexpected user experience',
-              '- Other: Miscellaneous issue, no immediate classification seems fitting',
+              'ISSUE TYPE CLASSIFICATION:',
+              '- Bug: Library bug, unexpected behavior when MSAL used correctly',
+              '- User-Error: Incorrect MSAL Implementation causing unexpected behavior'
+              '- Feature-Request: Desired behavior not currently supported',
+              '- Question: User asking for clarification, no error/unexpected behavior',
+              '- Other: Miscellaneous, no clear classification',
               '',
               'VERSION SUPPORT: MSAL versions older than 548 days (1.5 years) are unsupported.',
+              '',
+              '=== SOLUTION REQUIREMENTS ===',
+              'In suggestedSolution field:',
+              '1. Identify the most similar issue from the Common Issues Reference',
+              '2. Provide specific solution with code examples if applicable',
+              '3. List related GitHub issues from the guide (e.g., "See also: #1234, #5678")',
+              '4. If issue not in guide, provide general MSAL troubleshooting steps',
               '',
               'Respond with ONLY valid JSON:',
               '{',
               '  "issueType": "Bug|Feature-Request|Question|Other|null",',
-              '  "priority": "p0-CodeRed|p1-High|p2-Medium|p3-Low|p4-Minor",',
+              '  "priority": "p1-High|p2-Medium|p3-Low|p4-Minor",',
               '  "priorityReason": "string explaining priority reasoning or null if impact is not found",',
               '  "deviceCount": "number or null if not found in issue title or body",',
               '  "msalVersion": "extracted MSAL version string from the issue title/body or null if not found",',
               '  "isVeryOld": "boolean (true if msalVersion is older than 548 days)",',
-              '  "needsMoreInfo": "boolean, true if the issue has insufficient information for triage, false otherwise ",',
-              '  "suggestedSolution": "suggested solution to the issue based on MSAL expertise information",',
-              '  "classificationReason": "brief explanation of why the issueType was chosen"',
+              '  "needsMoreInfo": "boolean, true if issue has insufficient information for triage",',
+              '  "suggestedSolution": "detailed solution referencing Common Issues guide sections and related GitHub issues",',
+              '  "relatedIssues": "array of related GitHub issue numbers from the guide, e.g. [1234, 5678]",',
+              '  "classificationReason": "brief explanation of why issueType was chosen"',
               '}'
             ].join('\n');
 
@@ -155,6 +166,7 @@ jobs:
               isVeryOld: false,
               needsMoreInfo: true,
               suggestedSolution: null,
+              relatedIssues: [],
               classificationReason: 'AI classification'
             };
 
@@ -171,8 +183,7 @@ jobs:
                   messages: [
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: userPrompt }
-                  ],
-                  temperature: 0.2
+                  ]
                 })
               });
 
@@ -199,8 +210,9 @@ jobs:
             core.setOutput('msal_version', result.msalVersion || '');
             core.setOutput('is_very_old', result.isVeryOld.toString());
             core.setOutput('needs_info', result.needsMoreInfo.toString());
-            core.setOutput('ai_solution', result.suggestedSolution || '');
             core.setOutput('classification_reason', result.classificationReason || '');
+            core.setOutput('ai_solution', result.suggestedSolution || '');
+            core.setOutput('related_issues', JSON.stringify(result.relatedIssues || []));
 
       - name: Apply Labels
         uses: actions/github-script@v7
@@ -218,6 +230,7 @@ jobs:
 
             const labelColors = {
               'Bug': 'd93f0b',
+              'User-Error': 'b0e9e0",
               'Feature-Request': 'd7f79b',
               'Question': '1d76db',
               'Other': '93a588',
@@ -285,16 +298,18 @@ jobs:
           PRIORITY: ${{ needs.triage.outputs.priority }}
           IS_VERY_OLD: ${{ needs.triage.outputs.is_very_old }}
           MSAL_VERSION: ${{ needs.triage.outputs.msal_version }}
-          AI_SOLUTION: ${{ needs.triage.outputs.ai_solution }}
           NEEDS_INFO: ${{ needs.triage.outputs.needs_info }}
+          AI_SOLUTION: ${{ needs.triage.outputs.ai_solution }}
+          RELATED_ISSUES: ${{ needs.triage.outputs.related_issues }}
         with:
           script: |
             const issueType = process.env.ISSUE_TYPE;
             const priority = process.env.PRIORITY;
             const isVeryOld = process.env.IS_VERY_OLD === 'true';
             const msalVersion = process.env.MSAL_VERSION;
-            const aiSolution = process.env.AI_SOLUTION;
             const needsInfo = process.env.NEEDS_INFO === 'true';
+            const aiSolution = process.env.AI_SOLUTION;
+            const relatedIssues = JSON.parse(process.env.RELATED_ISSUES || '[]');
 
             let latestVersion = '8.+';
             try {
@@ -330,11 +345,15 @@ jobs:
             response += '\n\n';
 
             if (aiSolution) {
-              response += '## 🤖 AI Analysis\n\n' + aiSolution + '\n\n---\n\n';
-            }
-
-            if (issueType === 'security') {
-              response += '⚠️ **Security Notice:** Please report security vulnerabilities through our [security reporting process](https://github.com/AzureAD/microsoft-authentication-library-for-android#security-reporting) rather than public issues.\n\n';
+              response += '## 🤖 AI Analysis\n\n' + aiSolution + '\n\n';
+              
+              if (relatedIssues && relatedIssues.length > 0) {
+                response += '**Related Issues:** ';
+                response += relatedIssues.map(num => '#' + num).join(', ');
+                response += '\n\n';
+              }
+              
+              response += '---\n\n';
             }
 
             if (needsInfo) {
@@ -375,6 +394,8 @@ jobs:
 
       - name: Process PING-COPILOT Request
         uses: actions/github-script@v7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           script: |
             const fs = require('fs');
@@ -455,9 +476,7 @@ jobs:
                   messages: [
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: userPrompt }
-                  ],
-                  temperature: 0.5,
-                  max_tokens: 1500
+                  ]
                 })
               });
 
