@@ -81,10 +81,9 @@ class TestCase2563668 : AbstractMsalBrokerTest() , ICustomBrokerInstallationTest
         Assert.assertTrue(claims.containsKey("deviceid"))
         Assert.assertEquals(deviceIdObtainedUsingLegacyBroker, claims["deviceid"])
 
-        if (!mBrokerHostApp.flights.contains("\"EnableKeyStoreKeyFactory\":\"true\"")) {
-            //Install certificate
-            mBrokerHostApp.multipleWpjApiFragment.installCertificate(mLabAccount.username)
-        }
+        //Install certificate
+        mBrokerHostApp.multipleWpjApiFragment.installCertificate(mLabAccount.username)
+
 
         //Get device state
         val deviceState = mBrokerHostApp.multipleWpjApiFragment.getDeviceState(mLabAccount.username)
