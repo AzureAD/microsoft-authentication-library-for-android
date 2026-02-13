@@ -35,6 +35,9 @@ jobs:
       ai_solution: ${{ steps.ai_triage.outputs.ai_solution }}
       needs_info: ${{ steps.ai_triage.outputs.needs_info }}
       related_issues: ${{ steps.ai_triage.outputs.related_issues }}
+      very_old_msal: ${{ steps.ai_triage.outputs.very_old_msal }}
+      version_age_days: ${{ steps.ai_triage.outputs.version_age_days }}
+      version_published_date: ${{ steps.ai_triage.outputs.version_published_date }}
 
     steps:
       - name: Checkout repository
@@ -195,8 +198,36 @@ jobs:
             core.setOutput('needs_info', result.needsMoreInfo.toString());
             core.setOutput('ai_solution', result.suggestedSolution || '');
             core.setOutput('related_issues', JSON.stringify(result.relatedIssues || []));
+            
+            // Calculate version age for version update recommendations
+            let versionAgeDays = null;
+            let versionPublishedDate = null;
+            let isVeryOldMsal = false;
+            
+            if (result.msalVersion && result.msalVersion !== 'null' && releases.length > 0) {
+              const normalizedVersion = result.msalVersion.replace(/^v/, '');
+              const matchingRelease = releases.find(release => {
+                const releaseVersion = release.tag_name.replace(/^v/, '');
+                return releaseVersion === normalizedVersion || release.tag_name === result.msalVersion;
+              });
+              
+              if (matchingRelease) {
+                const publishedDate = new Date(matchingRelease.published_at);
+                const currentDate = new Date();
+                versionAgeDays = Math.floor((currentDate - publishedDate) / (1000 * 60 * 60 * 24));
+                versionPublishedDate = publishedDate.toISOString().split('T')[0];
+                isVeryOldMsal = versionAgeDays > 548; // 1.5 years
+                
+                console.log(`MSAL version ${result.msalVersion}: ${versionAgeDays} days old (published ${versionPublishedDate}), very old: ${isVeryOldMsal}`);
+              }
+            }
+            
+            core.setOutput('very_old_msal', isVeryOldMsal.toString());
+            core.setOutput('version_age_days', versionAgeDays ? versionAgeDays.toString() : '');
+            core.setOutput('version_published_date', versionPublishedDate || '');
 
       - name: Apply Labels
+        id: apply_labels
         uses: actions/github-script@v7
         env:
           ISSUE_TYPE: ${{ steps.ai_triage.outputs.issue_type }}
@@ -204,6 +235,7 @@ jobs:
           DEVICE_COUNT: ${{ steps.ai_triage.outputs.device_count }}
           NEEDS_INFO: ${{ steps.ai_triage.outputs.needs_info }}
           MSAL_VERSION: ${{ steps.ai_triage.outputs.msal_version }}
+          VERY_OLD_MSAL: ${{ steps.ai_triage.outputs.very_old_msal }}
         with:
           script: |
             const labels = [process.env.ISSUE_TYPE];
@@ -222,30 +254,9 @@ jobs:
             }
 
             // Check if MSAL version is older than 1.5 years (548 days)
-            const msalVersion = process.env.MSAL_VERSION
-            if (msalVersion && msalVersion !== 'null' && releases.length > 0) {
-              // Normalize version string (remove 'v' prefix if present)
-              const normalizedVersion = msalVersion.replace(/^v/, '');
-              
-              // Find the release matching this version
-              const matchingRelease = releases.find(release => {
-                const releaseVersion = release.tag_name.replace(/^v/, '');
-                return releaseVersion === normalizedVersion || release.tag_name === msalVersion;
-              });
-              
-              if (matchingRelease) {
-                const publishedDate = new Date(matchingRelease.published_at);
-                const currentDate = new Date();
-                const ageInDays = (currentDate - publishedDate) / (1000 * 60 * 60 * 24);
-                
-                // If version is older than 1.5 years (548 days), mark as very old
-                if (ageInDays > 548) {
-                  labels.push('very-old-msal');
-                  console.log(`MSAL version ${msalVersion} is ${Math.floor(ageInDays)} days old (published ${publishedDate.toISOString().split('T')[0]}), marking as very-old-msal`);
-                }
-              } else {
-                console.log(`Could not find release for MSAL version: ${msalVersion}`);
-              }
+            if (process.env.VERY_OLD_MSAL === 'true') {
+              labels.push('very-old-msal');
+              console.log(`MSAL version ${process.env.MSAL_VERSION} is very old, adding label`);
             }
             
             if (process.env.NEEDS_INFO === 'true') labels.push('needs-more-info');
@@ -322,6 +333,9 @@ jobs:
           NEEDS_INFO: ${{ needs.triage.outputs.needs_info }}
           AI_SOLUTION: ${{ needs.triage.outputs.ai_solution }}
           RELATED_ISSUES: ${{ needs.triage.outputs.related_issues }}
+          VERY_OLD_MSAL: ${{ needs.triage.outputs.very_old_msal }}
+          VERSION_AGE_DAYS: ${{ needs.triage.outputs.version_age_days }}
+          VERSION_PUBLISHED_DATE: ${{ needs.triage.outputs.version_published_date }}
         with:
           script: |
             const issueType = process.env.ISSUE_TYPE;
@@ -331,6 +345,9 @@ jobs:
             const needsInfo = process.env.NEEDS_INFO === 'true';
             const aiSolution = process.env.AI_SOLUTION;
             const relatedIssues = JSON.parse(process.env.RELATED_ISSUES || '[]');
+            const isVeryOld = process.env.VERY_OLD_MSAL === 'true';
+            const versionAgeDays = process.env.VERSION_AGE_DAYS;
+            const versionPublishedDate = process.env.VERSION_PUBLISHED_DATE;
 
             let latestVersion = '8.+';
             try {
@@ -345,7 +362,7 @@ jobs:
 
             if (isVeryOld) {
               response += '⚠️ **Unsupported MSAL Version Detected**\n\n';
-              response += 'Version **' + msalVersion + '** is more than 1.5 years old and is no longer supported.\n\n';
+              response += 'Version **' + msalVersion + '** (released ' + versionPublishedDate + ', ' + versionAgeDays + ' days ago) is more than 1.5 years old and is no longer supported.\n\n';
               response += '**Please upgrade to the latest version (' + latestVersion + '):**\n';
               response += '```gradle\nimplementation "com.microsoft.identity.client:msal:8.+"\n```\n\n';
               response += 'If the issue persists after upgrading, please reopen with updated details.\n\n';
@@ -375,6 +392,37 @@ jobs:
                 response += '\n\n';
               }
               
+              response += '---\n\n';
+            }
+
+            // Version age recommendation - always recommend updating if we have version info
+            if (msalVersion && msalVersion !== 'null' && versionAgeDays) {
+              response += '## 📦 MSAL Version Update Recommendation\n\n';
+              
+              if (versionPublishedDate) {
+                response += 'You are using MSAL version **' + msalVersion + '** (released ' + versionPublishedDate + ', **' + versionAgeDays + ' days ago**).\n\n';
+              } else {
+                response += 'You are using MSAL version **' + msalVersion + '**.\n\n';
+              }
+              
+              // Calculate approximate age in months and years for better readability
+              const ageInMonths = Math.floor(parseInt(versionAgeDays) / 30);
+              const ageInYears = Math.floor(parseInt(versionAgeDays) / 365);
+              
+              if (ageInYears >= 1) {
+                response += '⚠️ This version is approximately **' + ageInYears + ' year' + (ageInYears > 1 ? 's' : '') + ' old**. ';
+              } else if (ageInMonths >= 3) {
+                response += 'ℹ️ This version is approximately **' + ageInMonths + ' months old**. ';
+              } else if (ageInMonths >= 1) {
+                response += '✅ This version is approximately **' + ageInMonths + ' month' + (ageInMonths > 1 ? 's' : '') + ' old**. ';
+              } else {
+                response += '✅ This version is relatively recent (**' + versionAgeDays + ' days old**). ';
+              }
+              
+              response += 'We recommend keeping MSAL up to date to benefit from bug fixes, security improvements, and new features.\n\n';
+              response += '**Latest version: ' + latestVersion + '**\n\n';
+              response += '```gradle\nimplementation "com.microsoft.identity.client:msal:8.+"\n```\n\n';
+              response += '> Using `8.+` automatically gets patch updates within the 8.x series.\n\n';
               response += '---\n\n';
             }
 
