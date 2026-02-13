@@ -468,31 +468,15 @@ jobs:
                 .replace(/[A-Za-z0-9+\/]{100,}={0,2}/g, '[REDACTED_BASE64]');
             }
 
-            // Load reference files with size limits to avoid HTTP 413 errors
-            let copilotInstructions = '', commonIssuesGuide = '';
+            // Load copilot instructions (full content)
+            let copilotInstructions = '';
             try {
-              const fullInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8');
-              // Extract only critical sections to reduce payload size
-              const criticalSections = fullInstructions.split('\n').filter(line => {
-                return line.startsWith('##') || line.startsWith('###') || 
-                       line.includes('NEVER:') || line.includes('ALWAYS:') ||
-                       line.includes('✅') || line.includes('❌');
-              }).join('\n');
-              copilotInstructions = criticalSections.slice(0, 5000); // Limit to 5000 chars
+              copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8');
             } catch(e) {
               console.error('Failed to load copilot instructions:', e.message);
             }
-            
-            try {
-              const fullGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8');
-              // Extract only the quick lookup section for efficient reference
-              const quickLookupMatch = fullGuide.match(/## Error Pattern Quick Lookup[\s\S]*?(?=\n## |$)/);
-              commonIssuesGuide = quickLookupMatch ? quickLookupMatch[0].slice(0, 8000) : fullGuide.slice(0, 8000);
-            } catch(e) {
-              console.error('Failed to load common issues guide:', e.message);
-            }
 
-            // Fetch recent comments for context (limit to last 10 to reduce payload size)
+            // Fetch last 10 comments for context (limit to reduce payload size)
             let previousComments = '';
             try {
               const comments = await github.rest.issues.listComments({
@@ -506,19 +490,12 @@ jobs:
                 // Take only the last 10 comments to keep payload manageable
                 const recentComments = comments.data.slice(-10);
                 previousComments = recentComments.map((c, idx) => {
-                  const body = redactSecrets(c.body || '');
-                  // Truncate each comment to 500 chars to avoid excessive payload
-                  const truncatedBody = body.length > 500 ? body.slice(0, 500) + '...[truncated]' : body;
-                  return `Comment ${comments.data.length - recentComments.length + idx + 1} (by ${c.user.login}):\n${truncatedBody}`;
+                  return `Comment ${comments.data.length - recentComments.length + idx + 1} (by ${c.user.login}):\n${redactSecrets(c.body || '')}`;
                 }).join('\n\n---\n\n');
               }
             } catch(e) {
               console.error('Failed to fetch comments:', e.message);
             }
-
-            // Truncate issue content to prevent HTTP 413 errors
-            const truncatedTitle = redactSecrets(issue.title).slice(0, 200);
-            const truncatedBody = redactSecrets(issue.body || '').slice(0, 2000);
             
             const systemPrompt = [
               'You are an expert MSAL Android support engineer.',
@@ -530,17 +507,16 @@ jobs:
               'but your response should directly address the user\'s PING-COPILOT request.',
               '',
               '=== ISSUE CONTEXT ===',
-              'Issue Title: ' + truncatedTitle,
+              'Issue Title: ' + redactSecrets(issue.title),
               '',
-              'Issue Description: ' + truncatedBody + (issue.body && issue.body.length > 2000 ? '\n...[truncated]' : ''),
+              'Issue Description: ' + redactSecrets(issue.body || ''),
               '',
               previousComments ? '=== RECENT COMMENTS (Last 10) ===\n' + previousComments + '\n' : '',
               '',
-              '=== MSAL EXPERTISE REFERENCE (Critical Rules) ===',
-              copilotInstructions,
+              '=== MSAL EXPERTISE REFERENCE ===',
+              'These are the copilot instructions for this library, use them to better your responses.',
               '',
-              '=== COMMON ISSUES REFERENCE (Error Patterns) ===',
-              commonIssuesGuide,
+              copilotInstructions,
               '',
               'IMPORTANT: Never echo secrets, tokens, or PII in your response.',
               '',
