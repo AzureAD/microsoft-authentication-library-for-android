@@ -468,11 +468,15 @@ jobs:
                 .replace(/[A-Za-z0-9+\/]{100,}={0,2}/g, '[REDACTED_BASE64]');
             }
 
-            let copilotInstructions = '', commonIssuesGuide = '';
-            try { copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8'); } catch(e) {}
-            try { commonIssuesGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8'); } catch(e) {}
+            // Load copilot instructions (full content)
+            let copilotInstructions = '';
+            try {
+              copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8');
+            } catch(e) {
+              console.error('Failed to load copilot instructions:', e.message);
+            }
 
-            // Fetch all previous comments for context
+            // Fetch last 10 comments for context (limit to reduce payload size)
             let previousComments = '';
             try {
               const comments = await github.rest.issues.listComments({
@@ -483,21 +487,23 @@ jobs:
               });
 
               if (comments.data.length > 0) {
-                previousComments = comments.data.map((c, idx) => {
-                  return `Comment ${idx + 1} (by ${c.user.login}):\n${redactSecrets(c.body || '')}`;
+                // Take only the last 10 comments to keep payload manageable
+                const recentComments = comments.data.slice(-10);
+                previousComments = recentComments.map((c, idx) => {
+                  return `Comment ${comments.data.length - recentComments.length + idx + 1} (by ${c.user.login}):\n${redactSecrets(c.body || '')}`;
                 }).join('\n\n---\n\n');
               }
             } catch(e) {
               console.error('Failed to fetch comments:', e.message);
             }
-
+            
             const systemPrompt = [
               'You are an expert MSAL Android support engineer.',
               '',
               '=== YOUR TASK ===',
               'You are responding to a specific PING-COPILOT request from a user.',
               'Focus your response ONLY on answering their specific question or request.',
-              'Use the issue context (title, description, previous comments) to understand the situation,',
+              'Use the issue context (title, description, recent comments) to understand the situation,',
               'but your response should directly address the user\'s PING-COPILOT request.',
               '',
               '=== ISSUE CONTEXT ===',
@@ -505,19 +511,12 @@ jobs:
               '',
               'Issue Description: ' + redactSecrets(issue.body || ''),
               '',
-              previousComments ? '=== PREVIOUS COMMENTS ===\n' + previousComments + '\n' : '',
+              previousComments ? '=== RECENT COMMENTS (Last 10) ===\n' + previousComments + '\n' : '',
               '',
               '=== MSAL EXPERTISE REFERENCE ===',
               'These are the copilot instructions for this library, use them to better your responses.',
               '',
               copilotInstructions,
-              '',
-              '=== COMMON ISSUES REFERENCE ===',
-              'The following guide contains solutions for 250+ issues organized by category.',
-              'Use the "Error Pattern Quick Lookup" section to quickly find relevant solutions.',
-              'Always cite related GitHub issues (format: #NNNN) when providing solutions.',
-              '',
-              commonIssuesGuide,
               '',
               'IMPORTANT: Never echo secrets, tokens, or PII in your response.',
               '',
@@ -534,28 +533,53 @@ jobs:
             let aiResponse = '';
 
             try {
+              const requestBody = JSON.stringify({
+                model: 'gpt-4o',
+                messages: [
+                  { role: 'system', content: systemPrompt },
+                  { role: 'user', content: userPrompt }
+                ]
+              });
+              
+              // Log payload size for debugging
+              const payloadSizeKB = (requestBody.length / 1024).toFixed(2);
+              console.log(`Payload size: ${payloadSizeKB} KB`);
+              
               const response = await fetch('https://models.github.ai/inference/chat/completions', {
                 method: 'POST',
                 headers: {
                   'Authorization': 'Bearer ' + process.env.GITHUB_TOKEN,
                   'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                  model: 'gpt-4o',
-                  messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: userPrompt }
-                  ]
-                })
+                body: requestBody
               });
 
-              if (!response.ok) throw new Error('HTTP ' + response.status);
+              if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error('HTTP ' + response.status + ': ' + errorText);
+              }
 
               const data = await response.json();
               aiResponse = data.choices[0].message.content;
             } catch (error) {
               console.error('AI error:', error.message);
-              aiResponse = 'I will help with: "' + userRequest + '"\n\nPlease review:\n- [MSAL Documentation](https://github.com/AzureAD/microsoft-authentication-library-for-android)\n- [Common Issues Guide](.github/issue-responses/common-issues-guide.md)';
+              
+              if (error.message.includes('413')) {
+                aiResponse = '⚠️ **Request Too Large**\n\n';
+                aiResponse += 'I apologize, but this issue thread has grown too large for me to process all at once.\n\n';
+                aiResponse += '**Your question:** "' + userRequest.slice(0, 100) + (userRequest.length > 100 ? '...' : '') + '"\n\n';
+                aiResponse += 'Please try one of these approaches:\n';
+                aiResponse += '1. Open a new issue with your specific question\n';
+                aiResponse += '2. Reference the specific comment or error you need help with\n';
+                aiResponse += '3. Review the [MSAL Documentation](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki)\n';
+                aiResponse += '4. Check the [Common Issues Guide](.github/issue-responses/common-issues-guide.md)\n\n';
+                aiResponse += 'A team member will assist you shortly.';
+              } else {
+                aiResponse = 'I will help with: "' + userRequest.slice(0, 100) + (userRequest.length > 100 ? '...' : '') + '"\n\n';
+                aiResponse += 'Please review:\n';
+                aiResponse += '- [MSAL Documentation](https://github.com/AzureAD/microsoft-authentication-library-for-android)\n';
+                aiResponse += '- [Common Issues Guide](.github/issue-responses/common-issues-guide.md)';
+              }
             }
 
             let finalResponse = '';
