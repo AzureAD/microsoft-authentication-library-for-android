@@ -221,11 +221,32 @@ jobs:
               labels.push('p4-Minor')
             }
 
+            // Check if MSAL version is older than 1.5 years (548 days)
             const msalVersion = process.env.MSAL_VERSION
-            // labels.push('very-old-msal');
-            // CHECK MSAL_VERSION ACTIVELY FROM RELEASE SECTION, FIND DATE AND DO THE COMPARISON HERE
-            // IF MSAL_VERSION IS VERY OLD, ATTACH THE LABEL
-
+            if (msalVersion && msalVersion !== 'null' && releases.length > 0) {
+              // Normalize version string (remove 'v' prefix if present)
+              const normalizedVersion = msalVersion.replace(/^v/, '');
+              
+              // Find the release matching this version
+              const matchingRelease = releases.find(release => {
+                const releaseVersion = release.tag_name.replace(/^v/, '');
+                return releaseVersion === normalizedVersion || release.tag_name === msalVersion;
+              });
+              
+              if (matchingRelease) {
+                const publishedDate = new Date(matchingRelease.published_at);
+                const currentDate = new Date();
+                const ageInDays = (currentDate - publishedDate) / (1000 * 60 * 60 * 24);
+                
+                // If version is older than 1.5 years (548 days), mark as very old
+                if (ageInDays > 548) {
+                  labels.push('very-old-msal');
+                  console.log(`MSAL version ${msalVersion} is ${Math.floor(ageInDays)} days old (published ${publishedDate.toISOString().split('T')[0]}), marking as very-old-msal`);
+                }
+              } else {
+                console.log(`Could not find release for MSAL version: ${msalVersion}`);
+              }
+            }
             
             if (process.env.NEEDS_INFO === 'true') labels.push('needs-more-info');
 
