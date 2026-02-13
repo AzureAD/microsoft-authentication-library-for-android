@@ -129,7 +129,6 @@ jobs:
               '  "needsMoreInfo": "boolean, true if issue has insufficient information for triage",',
               '  "suggestedSolution": "detailed solution referencing Common Issues guide sections and related GitHub issues",',
               '  "relatedIssues": "array of related GitHub issue numbers from the guide, e.g. [1234, 5678]",',
-              '  "classificationReason": "brief explanation of why issueType was chosen"',
               '}'
             ].join('\n');
 
@@ -156,8 +155,7 @@ jobs:
               isVeryOld: false,
               needsMoreInfo: true,
               suggestedSolution: null,
-              relatedIssues: [],
-              classificationReason: 'AI classification'
+              relatedIssues: []
             };
 
             try {
@@ -199,7 +197,6 @@ jobs:
             core.setOutput('device_count', result.deviceCount);
             core.setOutput('is_very_old', result.isVeryOld.toString());
             core.setOutput('needs_info', result.needsMoreInfo.toString());
-            core.setOutput('classification_reason', result.classificationReason || '');
             core.setOutput('ai_solution', result.suggestedSolution || '');
             core.setOutput('related_issues', JSON.stringify(result.relatedIssues || []));
 
@@ -307,6 +304,7 @@ jobs:
         with:
           script: |
             const issueType = process.env.ISSUE_TYPE;
+            const issueTypeReason = process.env.ISSUE_TYPE_REASON;
             const priority = process.env.PRIORITY;
             const isVeryOld = process.env.IS_VERY_OLD === 'true';
             const msalVersion = process.env.MSAL_VERSION;
@@ -342,10 +340,11 @@ jobs:
               return;
             }
 
-            response += '**Labels Applied:** `' + issueType + '`';
-            if (priority) response += ', `' + priority + '`';
-            if (needsInfo) response += ', `needs-more-info`';
-            response += '\n\n';
+            response += '**Labels Applied:**\n';
+            response += '`' + issueType + '`: ' + issueTypeReason + ".\n";
+            if (priority) response += ', `' + priority + '`\n';
+            if (needsInfo) response += ', `needs-more-info`\n';
+            response += '\n';
 
             if (aiSolution) {
               response += '## 🤖 AI Analysis\n\n' + aiSolution + '\n\n';
@@ -374,8 +373,7 @@ jobs:
 
             response += '---\n\n**Need help?** Comment with:\n```\nPING-COPILOT: <your question>\n```\n\n';
             response += '> **Privacy:** Do not include credentials, tokens, or PII in PING-COPILOT requests.\n\n';
-            response += '*Automated response. A team member will review soon.*';
-
+            
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
