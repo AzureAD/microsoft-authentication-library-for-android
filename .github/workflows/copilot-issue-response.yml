@@ -120,16 +120,15 @@ jobs:
               '',
               'Respond with ONLY valid JSON:',
               '{',
-              '  "issueType": "Bug|Feature-Request|Question|Other|null",',
+              '  "issueType": "Bug|User-Error|Feature-Request|Question|Other|null",',
+              '  "issueTypeReason": "string explaining reasoning for choosing a particular issue type",',
               '  "priority": "p1-High|p2-Medium|p3-Low|p4-Minor",',
-              '  "priorityReason": "string explaining priority reasoning or null if impact is not found",',
               '  "deviceCount": "number or null if not found in issue title or body",',
               '  "msalVersion": "extracted MSAL version string from the issue title/body or null if not found",',
               '  "isVeryOld": "boolean (true if msalVersion is older than 548 days)",',
               '  "needsMoreInfo": "boolean, true if issue has insufficient information for triage",',
               '  "suggestedSolution": "detailed solution referencing Common Issues guide sections and related GitHub issues",',
               '  "relatedIssues": "array of related GitHub issue numbers from the guide, e.g. [1234, 5678]",',
-              '  "classificationReason": "brief explanation of why issueType was chosen"',
               '}'
             ].join('\n');
 
@@ -149,15 +148,14 @@ jobs:
 
             let result = {
               issueType: 'null',
+              issueTypeReason: null,
               priority: null,
-              priorityReason: null,
               deviceCount: null,
               msalVersion: null,
               isVeryOld: false,
               needsMoreInfo: true,
               suggestedSolution: null,
-              relatedIssues: [],
-              classificationReason: 'AI classification'
+              relatedIssues: []
             };
 
             try {
@@ -193,12 +191,12 @@ jobs:
             }
 
             core.setOutput('issue_type', result.issueType);
+            core.setOutput('issue_type_reason', result.issueTypeReason);
             core.setOutput('priority', result.priority || '');
-            core.setOutput('priority_reason', result.priorityReason || '');
             core.setOutput('msal_version', result.msalVersion || '');
+            core.setOutput('device_count', result.deviceCount);
             core.setOutput('is_very_old', result.isVeryOld.toString());
             core.setOutput('needs_info', result.needsMoreInfo.toString());
-            core.setOutput('classification_reason', result.classificationReason || '');
             core.setOutput('ai_solution', result.suggestedSolution || '');
             core.setOutput('related_issues', JSON.stringify(result.relatedIssues || []));
 
@@ -208,11 +206,25 @@ jobs:
           ISSUE_TYPE: ${{ steps.ai_triage.outputs.issue_type }}
           PRIORITY: ${{ steps.ai_triage.outputs.priority }}
           IS_VERY_OLD: ${{ steps.ai_triage.outputs.is_very_old }}
+          DEVICE_COUNT: ${{ steps.ai_triage.outputs.device_count }}
           NEEDS_INFO: ${{ steps.ai_triage.outputs.needs_info }}
         with:
           script: |
             const labels = [process.env.ISSUE_TYPE];
-            if (process.env.PRIORITY) labels.push(process.env.PRIORITY);
+
+            // Priority Label
+            if (process.env.DEVICE_COUNT && process.env.DEVICE_COUNT !== 'null') {
+              if (process.env.PRIORITY) {
+                labels.push(process.env.PRIORITY);
+              } else {
+                // If AI did not come up with a priority label, mark it as p4-minor
+                labels.push('p4-Minor')
+              }
+            } else {
+              // If we don't have device count, mark it as p4-minor
+              labels.push('p4-Minor')
+            }
+
             if (process.env.IS_VERY_OLD === 'true') labels.push('very-old-msal');
             if (process.env.NEEDS_INFO === 'true') labels.push('needs-more-info');
 
@@ -223,7 +235,6 @@ jobs:
               'Question': '1d76db',
               'Other': '93a588',
               'very-old-msal': 'ffa500',
-              'p0-CodeRed': 'b60205',
               'p1-High': 'd93f0b',
               'p2-Medium': 'fbca04',
               'p3-Low': 'fef2c0',
@@ -283,6 +294,7 @@ jobs:
         uses: actions/github-script@v7
         env:
           ISSUE_TYPE: ${{ needs.triage.outputs.issue_type }}
+          ISSUE_TYPE_REASON: ${{ needs.triage.outputs.issue_type_reason }}
           PRIORITY: ${{ needs.triage.outputs.priority }}
           IS_VERY_OLD: ${{ needs.triage.outputs.is_very_old }}
           MSAL_VERSION: ${{ needs.triage.outputs.msal_version }}
@@ -292,6 +304,7 @@ jobs:
         with:
           script: |
             const issueType = process.env.ISSUE_TYPE;
+            const issueTypeReason = process.env.ISSUE_TYPE_REASON;
             const priority = process.env.PRIORITY;
             const isVeryOld = process.env.IS_VERY_OLD === 'true';
             const msalVersion = process.env.MSAL_VERSION;
@@ -327,10 +340,11 @@ jobs:
               return;
             }
 
-            response += '**Labels Applied:** `' + issueType + '`';
-            if (priority) response += ', `' + priority + '`';
-            if (needsInfo) response += ', `needs-more-info`';
-            response += '\n\n';
+            response += '**Labels Applied:**\n';
+            response += '`' + issueType + '`: ' + issueTypeReason + ".\n";
+            if (priority) response += ', `' + priority + '`\n';
+            if (needsInfo) response += ', `needs-more-info`\n';
+            response += '\n';
 
             if (aiSolution) {
               response += '## 🤖 AI Analysis\n\n' + aiSolution + '\n\n';
@@ -359,8 +373,7 @@ jobs:
 
             response += '---\n\n**Need help?** Comment with:\n```\nPING-COPILOT: <your question>\n```\n\n';
             response += '> **Privacy:** Do not include credentials, tokens, or PII in PING-COPILOT requests.\n\n';
-            response += '*Automated response. A team member will review soon.*';
-
+            
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
