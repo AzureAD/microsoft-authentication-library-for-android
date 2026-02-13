@@ -465,38 +465,26 @@ jobs:
             }
 
             let copilotInstructions = '', commonIssuesGuide = '';
-            try { copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8').substring(0, 12000); } catch(e) {}
-            try { commonIssuesGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8').substring(0, 12000); } catch(e) {}
-
-            let latestVersion = '8.+';
-            try {
-              const rel = await github.rest.repos.getLatestRelease({
-                owner: context.repo.owner,
-                repo: context.repo.repo
-              });
-              latestVersion = rel.data.tag_name.replace(/^v/, '');
-            } catch(e) {}
+            try { copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8'); } catch(e) {}
+            try { commonIssuesGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8'); } catch(e) {}
 
             const systemPrompt = [
               'You are an expert MSAL Android support engineer.',
               '',
-              'MSAL Expertise:',
-              copilotInstructions.substring(0, 8000),
+              '=== MSAL EXPERTISE REFERENCE ===',
+              'These are the copilot instructions for this library, use them to better your responses.',
               '',
-              'Common Issues:',
-              commonIssuesGuide.substring(0, 8000),
+              copilotInstructions,
               '',
-              'PRIORITY THRESHOLDS:',
-              '- p0-CodeRed: 10000+ devices',
-              '- p1-High: 1000-9999 devices',
-              '- p2-Medium: 300-999 devices',
-              '- p3-Low: 100-299 devices',
-              '- p4-Minor: <100 devices',
+              '=== COMMON ISSUES REFERENCE ===',
+              'The following guide contains solutions for 250+ issues organized by category.',
+              'Use the "Error Pattern Quick Lookup" section to quickly find relevant solutions.',
+              'Always cite related GitHub issues (format: #NNNN) when providing solutions.',
+              '',
+              commonIssuesGuide,
               '',
               'IMPORTANT: Never echo secrets, tokens, or PII in your response.',
               '',
-              'If the user provides device/user count, also output a JSON block at the END:',
-              '{"detectedPriority": "p0-CodeRed|p1-High|p2-Medium|p3-Low|p4-Minor|null", "deviceCount": number|null}'
             ].join('\n');
 
             const userPrompt = [
@@ -505,13 +493,9 @@ jobs:
               '',
               'User Request: ' + redactSecrets(userRequest),
               '',
-              'Latest MSAL: ' + latestVersion,
-              '',
-              'Provide a helpful response. If device count is mentioned, include priority JSON at the end.'
             ].join('\n');
 
             let aiResponse = '';
-            let detectedPriority = null;
 
             try {
               const response = await fetch('https://models.github.ai/inference/chat/completions', {
@@ -533,58 +517,12 @@ jobs:
 
               const data = await response.json();
               aiResponse = data.choices[0].message.content;
-
-              const priorityMatch = aiResponse.match(/\{"detectedPriority":\s*"([^"]+)"[^}]*\}/);
-              if (priorityMatch) {
-                const parsed = JSON.parse(priorityMatch[0]);
-                if (parsed.detectedPriority && parsed.detectedPriority !== 'null') {
-                  detectedPriority = parsed.detectedPriority;
-                }
-                aiResponse = aiResponse.replace(/\{"detectedPriority"[^}]*\}/, '').trim();
-              }
             } catch (error) {
               console.error('AI error:', error.message);
               aiResponse = 'I will help with: "' + userRequest + '"\n\nPlease review:\n- [MSAL Documentation](https://github.com/AzureAD/microsoft-authentication-library-for-android)\n- [Common Issues Guide](.github/issue-responses/common-issues-guide.md)';
             }
 
-            if (detectedPriority) {
-              const labelColors = {
-                'p0-CodeRed': 'b60205',
-                'p1-High': 'd93f0b',
-                'p2-Medium': 'fbca04',
-                'p3-Low': 'fef2c0',
-                'p4-Minor': 'c5def5'
-              };
-
-              try {
-                await github.rest.issues.getLabel({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  name: detectedPriority
-                });
-              } catch {
-                try {
-                  await github.rest.issues.createLabel({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    name: detectedPriority,
-                    color: labelColors[detectedPriority] || 'fbca04'
-                  });
-                } catch(e) {}
-              }
-
-              await github.rest.issues.addLabels({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                labels: [detectedPriority]
-              });
-            }
-
             let finalResponse = '';
-            if (detectedPriority) {
-              finalResponse += '📊 **Priority Updated:** Applied `' + detectedPriority + '` based on customer impact.\n\n---\n\n';
-            }
             finalResponse += aiResponse;
             finalResponse += '\n\n---\n\n**Need more help?** Comment with:\n```\nPING-COPILOT: <your question>\n```\n\n';
             finalResponse += '> **Privacy:** Do not include credentials, tokens, or PII.\n\n';
