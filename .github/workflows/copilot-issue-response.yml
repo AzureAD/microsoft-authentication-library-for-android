@@ -80,7 +80,7 @@ jobs:
                 repo: context.repo.repo
               });
               latestVersion = latestRelease.data.tag_name.replace(/^v/, '');
-              
+
               // Also fetch all releases for version age checking
               releases = await github.paginate(github.rest.repos.listReleases, {
                 owner: context.repo.owner, repo: context.repo.repo, per_page: 100
@@ -198,30 +198,30 @@ jobs:
             core.setOutput('needs_info', result.needsMoreInfo.toString());
             core.setOutput('ai_solution', result.suggestedSolution || '');
             core.setOutput('related_issues', JSON.stringify(result.relatedIssues || []));
-            
+
             // Calculate version age for version update recommendations
             let versionAgeDays = null;
             let versionPublishedDate = null;
             let isVeryOldMsal = false;
-            
+
             if (result.msalVersion && result.msalVersion !== 'null' && releases.length > 0) {
               const normalizedVersion = result.msalVersion.replace(/^v/, '');
               const matchingRelease = releases.find(release => {
                 const releaseVersion = release.tag_name.replace(/^v/, '');
                 return releaseVersion === normalizedVersion || release.tag_name === result.msalVersion;
               });
-              
+
               if (matchingRelease) {
                 const publishedDate = new Date(matchingRelease.published_at);
                 const currentDate = new Date();
                 versionAgeDays = Math.floor((currentDate - publishedDate) / (1000 * 60 * 60 * 24));
                 versionPublishedDate = publishedDate.toISOString().split('T')[0];
                 isVeryOldMsal = versionAgeDays > 548; // 1.5 years
-                
+
                 console.log(`MSAL version ${result.msalVersion}: ${versionAgeDays} days old (published ${versionPublishedDate}), very old: ${isVeryOldMsal}`);
               }
             }
-            
+
             core.setOutput('very_old_msal', isVeryOldMsal.toString());
             core.setOutput('version_age_days', versionAgeDays ? versionAgeDays.toString() : '');
             core.setOutput('version_published_date', versionPublishedDate || '');
@@ -258,7 +258,7 @@ jobs:
               labels.push('very-old-msal');
               console.log(`MSAL version ${process.env.MSAL_VERSION} is very old, adding label`);
             }
-            
+
             if (process.env.NEEDS_INFO === 'true') labels.push('needs-more-info');
 
             const labelColors = {
@@ -385,13 +385,13 @@ jobs:
 
             if (aiSolution) {
               response += '## 🤖 AI Analysis\n\n' + aiSolution + '\n\n';
-              
+
               if (relatedIssues && relatedIssues.length > 0) {
                 response += '**Related Issues:** ';
                 response += relatedIssues.map(num => '#' + num).join(', ');
                 response += '\n\n';
               }
-              
+
               response += '---\n\n';
             }
 
@@ -421,7 +421,7 @@ jobs:
 
             response += '---\n\n**Need help?** Comment with:\n```\nPING-COPILOT: <your question>\n```\n\n';
             response += '> **Privacy:** Do not include credentials, tokens, or PII in PING-COPILOT requests.\n\n';
-            
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -435,7 +435,10 @@ jobs:
     if: >-
       github.event_name == 'issue_comment' &&
       github.event.action == 'created' &&
-      (contains(github.event.comment.body, 'PING-COPILOT:') || contains(github.event.comment.body, 'ping-copilot:'))
+      (contains(github.event.comment.body, 'PING-COPILOT') ||
+       contains(github.event.comment.body, 'PING COPILOT') ||
+       contains(github.event.comment.body, 'ping-copilot') ||
+       contains(github.event.comment.body, 'ping copilot'))
 
     steps:
       - name: Checkout repository
@@ -451,7 +454,8 @@ jobs:
             const comment = context.payload.comment.body;
             const issue = context.payload.issue;
 
-            const match = comment.match(/PING-COPILOT:\s*([\s\S]+)/i);
+            // Match PING-COPILOT or PING COPILOT (with or without colon, case-insensitive)
+            const match = comment.match(/PING[-\s]COPILOT:?\s*([\s\S]+)/i);
             if (!match) return;
             const userRequest = match[1].trim();
 
@@ -468,8 +472,30 @@ jobs:
             try { copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8'); } catch(e) {}
             try { commonIssuesGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8'); } catch(e) {}
 
+            // Fetch all previous comments for context
+            let previousComments = '';
+            try {
+              const comments = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                per_page: 100
+              });
+
+              if (comments.data.length > 0) {
+                previousComments = comments.data.map((c, idx) => {
+                  return `Comment ${idx + 1} (by ${c.user.login}):\n${redactSecrets(c.body || '')}`;
+                }).join('\n\n---\n\n');
+              }
+            } catch(e) {
+              console.error('Failed to fetch comments:', e.message);
+            }
+
             const systemPrompt = [
               'You are an expert MSAL Android support engineer.',
+              '',
+              '=== ISSUE CONTEXT ===',
+              'Issue Title: ' + redactSecrets(issue.title),
               '',
               '=== MSAL EXPERTISE REFERENCE ===',
               'These are the copilot instructions for this library, use them to better your responses.',
@@ -488,9 +514,10 @@ jobs:
             ].join('\n');
 
             const userPrompt = [
-              'Issue: ' + redactSecrets(issue.title),
-              'Description: ' + redactSecrets(issue.body || '').substring(0, 2000),
+              'Issue Description: ' + redactSecrets(issue.body || '').substring(0, 2000),
               '',
+              previousComments ? '=== PREVIOUS COMMENTS ===\n' + previousComments.substring(0, 3000) + '\n' : '',
+              '=== CURRENT USER REQUEST ===',
               'User Request: ' + redactSecrets(userRequest),
               '',
             ].join('\n');
