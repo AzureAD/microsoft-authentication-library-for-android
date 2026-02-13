@@ -395,32 +395,12 @@ jobs:
               response += '---\n\n';
             }
 
-            // Version age recommendation - always recommend updating if we have version info
-            if (msalVersion && msalVersion !== 'null' && versionAgeDays) {
-              response += '## 📦 MSAL Version Update Recommendation\n\n';
-              
-              if (versionPublishedDate) {
-                response += 'You are using MSAL version **' + msalVersion + '** (released ' + versionPublishedDate + ', **' + versionAgeDays + ' days ago**).\n\n';
-              } else {
-                response += 'You are using MSAL version **' + msalVersion + '**.\n\n';
-              }
-              
-              // Calculate approximate age in months and years for better readability
-              const ageInMonths = Math.floor(parseInt(versionAgeDays) / 30);
-              const ageInYears = Math.floor(parseInt(versionAgeDays) / 365);
-              
-              if (ageInYears >= 1) {
-                response += '⚠️ This version is approximately **' + ageInYears + ' year' + (ageInYears > 1 ? 's' : '') + ' old**. ';
-              } else if (ageInMonths >= 3) {
-                response += 'ℹ️ This version is approximately **' + ageInMonths + ' months old**. ';
-              } else if (ageInMonths >= 1) {
-                response += '✅ This version is approximately **' + ageInMonths + ' month' + (ageInMonths > 1 ? 's' : '') + ' old**. ';
-              } else {
-                response += '✅ This version is relatively recent (**' + versionAgeDays + ' days old**). ';
-              }
-              
-              response += 'We recommend keeping MSAL up to date to benefit from bug fixes, security improvements, and new features.\n\n';
-              response += '**Latest version: ' + latestVersion + '**\n\n';
+            // Version update recommendation - only show if user is not on latest version
+            if (msalVersion && msalVersion !== 'null' && msalVersion !== latestVersion) {
+              response += '## 📦 MSAL Version Update Available\n\n';
+              response += 'You are using MSAL version **' + msalVersion + '**. ';
+              response += 'The latest version is **' + latestVersion + '**.\n\n';
+              response += 'We recommend updating to the latest version to benefit from bug fixes, security improvements, and new features.\n\n';
               response += '```gradle\nimplementation "com.microsoft.identity.client:msal:8.+"\n```\n\n';
               response += '> Using `8.+` automatically gets patch updates within the 8.x series.\n\n';
               response += '---\n\n';
