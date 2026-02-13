@@ -144,7 +144,7 @@ jobs:
               '',
               'Latest MSAL Version: ' + latestVersion,
               '',
-              'Analyze this issue and provide comprehensive triage in JSON format according to your system prompt. Make sure to sure MSAL AI Guidance files.'
+              'Analyze this issue and provide comprehensive triage in JSON format according to your system prompt. Make sure to use the MSAL AI guidance files.'
             ].join('\n');
 
             let result = {
