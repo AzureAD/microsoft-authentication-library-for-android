@@ -28,9 +28,10 @@ jobs:
        (github.event.action == 'labeled' && github.event.label.name == 'Target-For-Ai-Triage'))
     outputs:
       issue_type: ${{ steps.ai_triage.outputs.issue_type }}
+      issue_type_reason: ${{ steps.ai_triage.outputs.issue_type_reason }}
       priority: ${{ steps.ai_triage.outputs.priority }}
-      is_very_old: ${{ steps.ai_triage.outputs.is_very_old }}
       msal_version: ${{ steps.ai_triage.outputs.msal_version }}
+      device_count: ${{ steps.ai_triage.outputs.device_count }}
       ai_solution: ${{ steps.ai_triage.outputs.ai_solution }}
       needs_info: ${{ steps.ai_triage.outputs.needs_info }}
       related_issues: ${{ steps.ai_triage.outputs.related_issues }}
@@ -109,8 +110,6 @@ jobs:
               '- Question: User asking for clarification, no error/unexpected behavior',
               '- Other: Miscellaneous, no clear classification',
               '',
-              'VERSION SUPPORT: MSAL versions older than 548 days (1.5 years) are unsupported.',
-              '',
               '=== SOLUTION REQUIREMENTS ===',
               'In suggestedSolution field:',
               '1. Identify the most similar issue from the Common Issues Reference',
@@ -125,7 +124,6 @@ jobs:
               '  "priority": "p1-High|p2-Medium|p3-Low|p4-Minor",',
               '  "deviceCount": "number or null if not found in issue title or body",',
               '  "msalVersion": "extracted MSAL version string from the issue title/body or null if not found",',
-              '  "isVeryOld": "boolean (true if msalVersion is older than 548 days)",',
               '  "needsMoreInfo": "boolean, true if issue has insufficient information for triage",',
               '  "suggestedSolution": "detailed solution referencing Common Issues guide sections and related GitHub issues",',
               '  "relatedIssues": "array of related GitHub issue numbers from the guide, e.g. [1234, 5678]",',
@@ -152,7 +150,6 @@ jobs:
               priority: null,
               deviceCount: null,
               msalVersion: null,
-              isVeryOld: false,
               needsMoreInfo: true,
               suggestedSolution: null,
               relatedIssues: []
@@ -195,7 +192,6 @@ jobs:
             core.setOutput('priority', result.priority || '');
             core.setOutput('msal_version', result.msalVersion || '');
             core.setOutput('device_count', result.deviceCount);
-            core.setOutput('is_very_old', result.isVeryOld.toString());
             core.setOutput('needs_info', result.needsMoreInfo.toString());
             core.setOutput('ai_solution', result.suggestedSolution || '');
             core.setOutput('related_issues', JSON.stringify(result.relatedIssues || []));
@@ -205,9 +201,9 @@ jobs:
         env:
           ISSUE_TYPE: ${{ steps.ai_triage.outputs.issue_type }}
           PRIORITY: ${{ steps.ai_triage.outputs.priority }}
-          IS_VERY_OLD: ${{ steps.ai_triage.outputs.is_very_old }}
           DEVICE_COUNT: ${{ steps.ai_triage.outputs.device_count }}
           NEEDS_INFO: ${{ steps.ai_triage.outputs.needs_info }}
+          MSAL_VERSION: ${{ steps.ai_triage.outputs.msal_version }}
         with:
           script: |
             const labels = [process.env.ISSUE_TYPE];
@@ -225,7 +221,12 @@ jobs:
               labels.push('p4-Minor')
             }
 
-            if (process.env.IS_VERY_OLD === 'true') labels.push('very-old-msal');
+            const msalVersion = process.env.MSAL_VERSION
+            // labels.push('very-old-msal');
+            // CHECK MSAL_VERSION ACTIVELY FROM RELEASE SECTION, FIND DATE AND DO THE COMPARISON HERE
+            // IF MSAL_VERSION IS VERY OLD, ATTACH THE LABEL
+
+            
             if (process.env.NEEDS_INFO === 'true') labels.push('needs-more-info');
 
             const labelColors = {
@@ -296,7 +297,6 @@ jobs:
           ISSUE_TYPE: ${{ needs.triage.outputs.issue_type }}
           ISSUE_TYPE_REASON: ${{ needs.triage.outputs.issue_type_reason }}
           PRIORITY: ${{ needs.triage.outputs.priority }}
-          IS_VERY_OLD: ${{ needs.triage.outputs.is_very_old }}
           MSAL_VERSION: ${{ needs.triage.outputs.msal_version }}
           NEEDS_INFO: ${{ needs.triage.outputs.needs_info }}
           AI_SOLUTION: ${{ needs.triage.outputs.ai_solution }}
@@ -306,7 +306,6 @@ jobs:
             const issueType = process.env.ISSUE_TYPE;
             const issueTypeReason = process.env.ISSUE_TYPE_REASON;
             const priority = process.env.PRIORITY;
-            const isVeryOld = process.env.IS_VERY_OLD === 'true';
             const msalVersion = process.env.MSAL_VERSION;
             const needsInfo = process.env.NEEDS_INFO === 'true';
             const aiSolution = process.env.AI_SOLUTION;
