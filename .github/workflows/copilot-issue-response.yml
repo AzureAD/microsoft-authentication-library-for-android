@@ -590,18 +590,7 @@ jobs:
             } catch (error) {
               console.error('AI error:', error.message);
               
-              if (error.message.includes('content_filter') || error.message.includes('ResponsibleAIPolicyViolation')) {
-                aiResponse = '⚠️ **Content Filter Error**\n\n';
-                aiResponse += 'The AI service detected content that triggered safety filters. This usually happens when:\n\n';
-                aiResponse += '- The prompt contains sensitive instructions that appear to override AI behavior\n';
-                aiResponse += '- The conversation context includes phrases that resemble jailbreak attempts\n\n';
-                aiResponse += '**Your question:** "' + userRequest.slice(0, 100) + (userRequest.length > 100 ? '...' : '') + '"\n\n';
-                aiResponse += 'Please try rephrasing your question, or:\n';
-                aiResponse += '1. Open a new issue with your specific question\n';
-                aiResponse += '2. Review the [MSAL Documentation](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki)\n';
-                aiResponse += '3. Check the [Common Issues Guide](.github/issue-responses/common-issues-guide.md)\n\n';
-                aiResponse += 'A team member will assist you shortly.';
-              } else if (error.message.includes('413')) {
+              if (error.message.includes('413')) {
                 aiResponse = '⚠️ **Request Too Large**\n\n';
                 aiResponse += 'I apologize, but this issue thread has grown too large for me to process all at once.\n\n';
                 aiResponse += '**Your question:** "' + userRequest.slice(0, 100) + (userRequest.length > 100 ? '...' : '') + '"\n\n';
