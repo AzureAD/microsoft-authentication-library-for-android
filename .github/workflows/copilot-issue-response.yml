@@ -494,6 +494,12 @@ jobs:
             const systemPrompt = [
               'You are an expert MSAL Android support engineer.',
               '',
+              '=== YOUR TASK ===',
+              'You are responding to a specific PING-COPILOT request from a user.',
+              'Focus your response ONLY on answering their specific question or request.',
+              'Use the issue context (title, description, previous comments) to understand the situation,',
+              'but your response should directly address the user\'s PING-COPILOT request.',
+              '',
               '=== ISSUE CONTEXT ===',
               'Issue Title: ' + redactSecrets(issue.title),
               '',
@@ -550,6 +556,7 @@ jobs:
             }
 
             let finalResponse = '';
+            finalResponse += '> Responding to [comment](' + context.payload.comment.html_url + ') by @' + context.payload.comment.user.login + '\n\n';
             finalResponse += aiResponse;
             finalResponse += '\n\n---\n\n**Need more help?** Comment with:\n```\nPING-COPILOT: <your question>\n```\n\n';
             finalResponse += '> **Privacy:** Do not include credentials, tokens, or PII.\n\n';
