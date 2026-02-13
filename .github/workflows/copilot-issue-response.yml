@@ -503,6 +503,10 @@ jobs:
               '=== ISSUE CONTEXT ===',
               'Issue Title: ' + redactSecrets(issue.title),
               '',
+              'Issue Description: ' + redactSecrets(issue.body || ''),
+              '',
+              previousComments ? '=== PREVIOUS COMMENTS ===\n' + previousComments + '\n' : '',
+              '',
               '=== MSAL EXPERTISE REFERENCE ===',
               'These are the copilot instructions for this library, use them to better your responses.',
               '',
@@ -520,9 +524,8 @@ jobs:
             ].join('\n');
 
             const userPrompt = [
-              'Issue Description: ' + redactSecrets(issue.body || '').substring(0, 2000),
+              'Use your system prompt context to answer the following user request:',
               '',
-              previousComments ? '=== PREVIOUS COMMENTS ===\n' + previousComments.substring(0, 3000) + '\n' : '',
               '=== CURRENT USER REQUEST ===',
               'User Request: ' + redactSecrets(userRequest),
               '',
