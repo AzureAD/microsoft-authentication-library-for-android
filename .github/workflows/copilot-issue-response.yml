@@ -1,4 +1,4 @@
-# GitHub Copilot Issue Response Workflow.
+# GitHub Copilot Issue Response Workflow
 # Automatically triages and responds to issues using AI.
 
 name: Copilot Issue Triage
