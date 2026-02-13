@@ -462,10 +462,10 @@ jobs:
             function redactSecrets(text) {
               if (!text) return '';
               return text
-                .replace(/eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*/g, '[REDACTED_JWT]')
-                .replace(/Bearer\s+[A-Za-z0-9_\-.]+/gi, 'Bearer [REDACTED]')
-                .replace(/(client_secret|access_token|api[_-]?key)["\s:=]+[^\s"',}]+/gi, '$1=[REDACTED]')
-                .replace(/[A-Za-z0-9+\/]{50,}={0,2}/g, '[REDACTED_BASE64]');
+                .replace(/eyJ[A-Za-z0-9_\-+\/]{10,}\.[A-Za-z0-9_\-+\/]+\.[A-Za-z0-9_\-+\/]*/g, '[REDACTED_JWT]')
+                .replace(/Bearer\s+[A-Za-z0-9_\-./+=]+/gi, 'Bearer [REDACTED]')
+                .replace(/(client_secret|access_token|refresh_token|api[_-]?key)["\s:=]+[^\s"',}]+/gi, '$1=[REDACTED]')
+                .replace(/[A-Za-z0-9+\/]{100,}={0,2}/g, '[REDACTED_BASE64]');
             }
 
             let copilotInstructions = '', commonIssuesGuide = '';
