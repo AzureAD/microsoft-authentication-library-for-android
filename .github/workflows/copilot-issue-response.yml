@@ -80,7 +80,7 @@ jobs:
                 repo: context.repo.repo
               });
               latestVersion = latestRelease.data.tag_name.replace(/^v/, '');
-              
+
               // Also fetch all releases for version age checking
               releases = await github.paginate(github.rest.repos.listReleases, {
                 owner: context.repo.owner, repo: context.repo.repo, per_page: 100
@@ -198,30 +198,30 @@ jobs:
             core.setOutput('needs_info', result.needsMoreInfo.toString());
             core.setOutput('ai_solution', result.suggestedSolution || '');
             core.setOutput('related_issues', JSON.stringify(result.relatedIssues || []));
-            
+
             // Calculate version age for version update recommendations
             let versionAgeDays = null;
             let versionPublishedDate = null;
             let isVeryOldMsal = false;
-            
+
             if (result.msalVersion && result.msalVersion !== 'null' && releases.length > 0) {
               const normalizedVersion = result.msalVersion.replace(/^v/, '');
               const matchingRelease = releases.find(release => {
                 const releaseVersion = release.tag_name.replace(/^v/, '');
                 return releaseVersion === normalizedVersion || release.tag_name === result.msalVersion;
               });
-              
+
               if (matchingRelease) {
                 const publishedDate = new Date(matchingRelease.published_at);
                 const currentDate = new Date();
                 versionAgeDays = Math.floor((currentDate - publishedDate) / (1000 * 60 * 60 * 24));
                 versionPublishedDate = publishedDate.toISOString().split('T')[0];
                 isVeryOldMsal = versionAgeDays > 548; // 1.5 years
-                
+
                 console.log(`MSAL version ${result.msalVersion}: ${versionAgeDays} days old (published ${versionPublishedDate}), very old: ${isVeryOldMsal}`);
               }
             }
-            
+
             core.setOutput('very_old_msal', isVeryOldMsal.toString());
             core.setOutput('version_age_days', versionAgeDays ? versionAgeDays.toString() : '');
             core.setOutput('version_published_date', versionPublishedDate || '');
@@ -258,7 +258,7 @@ jobs:
               labels.push('very-old-msal');
               console.log(`MSAL version ${process.env.MSAL_VERSION} is very old, adding label`);
             }
-            
+
             if (process.env.NEEDS_INFO === 'true') labels.push('needs-more-info');
 
             const labelColors = {
@@ -385,13 +385,13 @@ jobs:
 
             if (aiSolution) {
               response += '## 🤖 AI Analysis\n\n' + aiSolution + '\n\n';
-              
+
               if (relatedIssues && relatedIssues.length > 0) {
                 response += '**Related Issues:** ';
                 response += relatedIssues.map(num => '#' + num).join(', ');
                 response += '\n\n';
               }
-              
+
               response += '---\n\n';
             }
 
@@ -421,7 +421,7 @@ jobs:
 
             response += '---\n\n**Need help?** Comment with:\n```\nPING-COPILOT: <your question>\n```\n\n';
             response += '> **Privacy:** Do not include credentials, tokens, or PII in PING-COPILOT requests.\n\n';
-            
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -435,7 +435,10 @@ jobs:
     if: >-
       github.event_name == 'issue_comment' &&
       github.event.action == 'created' &&
-      (contains(github.event.comment.body, 'PING-COPILOT:') || contains(github.event.comment.body, 'ping-copilot:'))
+      (contains(github.event.comment.body, 'PING-COPILOT') ||
+       contains(github.event.comment.body, 'PING COPILOT') ||
+       contains(github.event.comment.body, 'ping-copilot') ||
+       contains(github.event.comment.body, 'ping copilot'))
 
     steps:
       - name: Checkout repository
@@ -451,67 +454,84 @@ jobs:
             const comment = context.payload.comment.body;
             const issue = context.payload.issue;
 
-            const match = comment.match(/PING-COPILOT:\s*([\s\S]+)/i);
+            // Match PING-COPILOT or PING COPILOT (with or without colon, case-insensitive)
+            const match = comment.match(/PING[-\s]COPILOT:?\s*([\s\S]+)/i);
             if (!match) return;
             const userRequest = match[1].trim();
 
             function redactSecrets(text) {
               if (!text) return '';
               return text
-                .replace(/eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*/g, '[REDACTED_JWT]')
-                .replace(/Bearer\s+[A-Za-z0-9_\-.]+/gi, 'Bearer [REDACTED]')
-                .replace(/(client_secret|access_token|api[_-]?key)["\s:=]+[^\s"',}]+/gi, '$1=[REDACTED]')
-                .replace(/[A-Za-z0-9+\/]{50,}={0,2}/g, '[REDACTED_BASE64]');
+                .replace(/eyJ[A-Za-z0-9_\-+\/]{10,}\.[A-Za-z0-9_\-+\/]+\.[A-Za-z0-9_\-+\/]*/g, '[REDACTED_JWT]')
+                .replace(/Bearer\s+[A-Za-z0-9_\-./+=]+/gi, 'Bearer [REDACTED]')
+                .replace(/(client_secret|access_token|refresh_token|api[_-]?key)["\s:=]+[^\s"',}]+/gi, '$1=[REDACTED]')
+                .replace(/[A-Za-z0-9+\/]{100,}={0,2}/g, '[REDACTED_BASE64]');
             }
 
             let copilotInstructions = '', commonIssuesGuide = '';
-            try { copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8').substring(0, 12000); } catch(e) {}
-            try { commonIssuesGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8').substring(0, 12000); } catch(e) {}
+            try { copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8'); } catch(e) {}
+            try { commonIssuesGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8'); } catch(e) {}
 
-            let latestVersion = '8.+';
+            // Fetch all previous comments for context
+            let previousComments = '';
             try {
-              const rel = await github.rest.repos.getLatestRelease({
+              const comments = await github.rest.issues.listComments({
                 owner: context.repo.owner,
-                repo: context.repo.repo
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                per_page: 100
               });
-              latestVersion = rel.data.tag_name.replace(/^v/, '');
-            } catch(e) {}
+
+              if (comments.data.length > 0) {
+                previousComments = comments.data.map((c, idx) => {
+                  return `Comment ${idx + 1} (by ${c.user.login}):\n${redactSecrets(c.body || '')}`;
+                }).join('\n\n---\n\n');
+              }
+            } catch(e) {
+              console.error('Failed to fetch comments:', e.message);
+            }
 
             const systemPrompt = [
               'You are an expert MSAL Android support engineer.',
               '',
-              'MSAL Expertise:',
-              copilotInstructions.substring(0, 8000),
+              '=== YOUR TASK ===',
+              'You are responding to a specific PING-COPILOT request from a user.',
+              'Focus your response ONLY on answering their specific question or request.',
+              'Use the issue context (title, description, previous comments) to understand the situation,',
+              'but your response should directly address the user\'s PING-COPILOT request.',
               '',
-              'Common Issues:',
-              commonIssuesGuide.substring(0, 8000),
+              '=== ISSUE CONTEXT ===',
+              'Issue Title: ' + redactSecrets(issue.title),
               '',
-              'PRIORITY THRESHOLDS:',
-              '- p0-CodeRed: 10000+ devices',
-              '- p1-High: 1000-9999 devices',
-              '- p2-Medium: 300-999 devices',
-              '- p3-Low: 100-299 devices',
-              '- p4-Minor: <100 devices',
+              'Issue Description: ' + redactSecrets(issue.body || ''),
+              '',
+              previousComments ? '=== PREVIOUS COMMENTS ===\n' + previousComments + '\n' : '',
+              '',
+              '=== MSAL EXPERTISE REFERENCE ===',
+              'These are the copilot instructions for this library, use them to better your responses.',
+              '',
+              copilotInstructions,
+              '',
+              '=== COMMON ISSUES REFERENCE ===',
+              'The following guide contains solutions for 250+ issues organized by category.',
+              'Use the "Error Pattern Quick Lookup" section to quickly find relevant solutions.',
+              'Always cite related GitHub issues (format: #NNNN) when providing solutions.',
+              '',
+              commonIssuesGuide,
               '',
               'IMPORTANT: Never echo secrets, tokens, or PII in your response.',
               '',
-              'If the user provides device/user count, also output a JSON block at the END:',
-              '{"detectedPriority": "p0-CodeRed|p1-High|p2-Medium|p3-Low|p4-Minor|null", "deviceCount": number|null}'
             ].join('\n');
 
             const userPrompt = [
-              'Issue: ' + redactSecrets(issue.title),
-              'Description: ' + redactSecrets(issue.body || '').substring(0, 2000),
+              'Use your system prompt context to answer the following user request:',
               '',
+              '=== CURRENT USER REQUEST ===',
               'User Request: ' + redactSecrets(userRequest),
               '',
-              'Latest MSAL: ' + latestVersion,
-              '',
-              'Provide a helpful response. If device count is mentioned, include priority JSON at the end.'
             ].join('\n');
 
             let aiResponse = '';
-            let detectedPriority = null;
 
             try {
               const response = await fetch('https://models.github.ai/inference/chat/completions', {
@@ -533,58 +553,13 @@ jobs:
 
               const data = await response.json();
               aiResponse = data.choices[0].message.content;
-
-              const priorityMatch = aiResponse.match(/\{"detectedPriority":\s*"([^"]+)"[^}]*\}/);
-              if (priorityMatch) {
-                const parsed = JSON.parse(priorityMatch[0]);
-                if (parsed.detectedPriority && parsed.detectedPriority !== 'null') {
-                  detectedPriority = parsed.detectedPriority;
-                }
-                aiResponse = aiResponse.replace(/\{"detectedPriority"[^}]*\}/, '').trim();
-              }
             } catch (error) {
               console.error('AI error:', error.message);
               aiResponse = 'I will help with: "' + userRequest + '"\n\nPlease review:\n- [MSAL Documentation](https://github.com/AzureAD/microsoft-authentication-library-for-android)\n- [Common Issues Guide](.github/issue-responses/common-issues-guide.md)';
             }
 
-            if (detectedPriority) {
-              const labelColors = {
-                'p0-CodeRed': 'b60205',
-                'p1-High': 'd93f0b',
-                'p2-Medium': 'fbca04',
-                'p3-Low': 'fef2c0',
-                'p4-Minor': 'c5def5'
-              };
-
-              try {
-                await github.rest.issues.getLabel({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  name: detectedPriority
-                });
-              } catch {
-                try {
-                  await github.rest.issues.createLabel({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    name: detectedPriority,
-                    color: labelColors[detectedPriority] || 'fbca04'
-                  });
-                } catch(e) {}
-              }
-
-              await github.rest.issues.addLabels({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                labels: [detectedPriority]
-              });
-            }
-
             let finalResponse = '';
-            if (detectedPriority) {
-              finalResponse += '📊 **Priority Updated:** Applied `' + detectedPriority + '` based on customer impact.\n\n---\n\n';
-            }
+            finalResponse += '> Responding to [comment](' + context.payload.comment.html_url + ') by @' + context.payload.comment.user.login + '\n\n';
             finalResponse += aiResponse;
             finalResponse += '\n\n---\n\n**Need more help?** Comment with:\n```\nPING-COPILOT: <your question>\n```\n\n';
             finalResponse += '> **Privacy:** Do not include credentials, tokens, or PII.\n\n';
