@@ -43,7 +43,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: AI-Powered-Triage
+      - name: AI-Powered Triage
         id: ai_triage
         uses: actions/github-script@v7
         env:
@@ -100,12 +100,12 @@ jobs:
               commonIssuesGuide,
               '',
               '=== TRIAGE INSTRUCTIONS ===',
-              'PRIORITY THRESHOLDS (Only apply if user provides device count, otherwise assign p4-Minor):',
+              'PRIORITY THRESHOLDS (apply when user provides a device count):',
               '- p1-High: 5000+ devices impacted',
               '- p2-Medium: 4999-1000 devices impacted',
               '- p3-Low: 100-999 devices impacted',
-              '- p4-Minor: <100 devices impacted, or no device impact given',
-              '',
+              '- p4-Minor: <100 devices impacted',
+              'If no device impact is given, always assign p4-Minor.',
               'ISSUE TYPE CLASSIFICATION:',
               '- Bug: Library bug, unexpected behavior when MSAL used correctly',
               '- User-Error: Incorrect MSAL Implementation causing unexpected behavior',
