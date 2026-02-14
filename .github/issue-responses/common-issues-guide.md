@@ -210,7 +210,7 @@ Install Microsoft Authenticator or Company Portal
 
 **SOLUTION:**
 ```bash
-keytool -exportcert -alias ALIAS -keystore KEYSTORE.jks | openssl sha1 -binary | openssl base64
+keytool -exportcert -alias <YOUR_KEY_ALIAS> -keystore <YOUR_KEYSTORE.jks> | openssl sha1 -binary | openssl base64
 ```
 Update Azure App Registration + `auth_config.json` (URL encoded) + `AndroidManifest.xml` (not encoded)
 
