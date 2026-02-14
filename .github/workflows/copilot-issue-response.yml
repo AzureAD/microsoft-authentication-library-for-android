@@ -414,11 +414,6 @@ jobs:
               response += '- Steps to reproduce\n\n';
             }
 
-            if (!priority && (issueType === 'bug' || issueType === 'needs-investigation')) {
-              response += '### 📊 Help Us Prioritize\n\n';
-              response += 'Comment with customer impact:\n```\nPING-COPILOT: We have <number> devices/users affected\n```\n\n';
-            }
-
             response += '---\n\n**Need help?** Comment with:\n```\nPING-COPILOT: <your question>\n```\n\n';
             response += '> **Privacy:** Do not include credentials, tokens, or PII in PING-COPILOT requests.\n\n';
 
@@ -598,13 +593,13 @@ jobs:
                 aiResponse += '1. Open a new issue with your specific question\n';
                 aiResponse += '2. Reference the specific comment or error you need help with\n';
                 aiResponse += '3. Try using the GitHub Copilot agent by clicking the "Chat with Copilot" button in the top right\n';
-                aiResponse += '4. Check the [Common Issues Guide](.github/issue-responses/common-issues-guide-human-readable.md)\n\n';
+                aiResponse += '4. Check the [Common Issues Guide](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/issue-responses/common-issues-guide-human-readable.md)\n\n';
                 aiResponse += 'A team member will assist you shortly.';
               } else {
                 aiResponse = 'I will help with: "' + userRequest.slice(0, 100) + (userRequest.length > 100 ? '...' : '') + '"\n\n';
                 aiResponse += 'Please review:\n';
                 aiResponse += '- Try using the GitHub Copilot agent by clicking the "Chat with Copilot" button in the top right\n';
-                aiResponse += '- [Common Issues Guide](.github/issue-responses/common-issues-guide-human-readable.md)';
+                aiResponse += '- [Common Issues Guide](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/issue-responses/common-issues-guide-human-readable.md)';
               }
             }
 
