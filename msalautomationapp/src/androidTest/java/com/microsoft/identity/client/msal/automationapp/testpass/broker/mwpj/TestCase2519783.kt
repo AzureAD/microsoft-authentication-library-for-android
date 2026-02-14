@@ -82,8 +82,8 @@ class TestCase2519783 : AbstractMsalBrokerTest() {
     fun before() {
         mUsGovAccount = mLabClient.getLabAccount(getUsGovLabQuery())
         mBrokerHostApp = broker as BrokerHost
-        Assume.assumeFalse( "EnableKeyStoreKeyFactory flight is set, Test will be skipped",
-            mBrokerHostApp.flights.contains("\"EnableKeyStoreKeyFactory\":\"true\""));
+        Assume.assumeFalse( "performNonSharedWpjWithHardwareKey flight is enabled, Test will be skipped",
+            mBrokerHostApp.flights.contains("\"performNonSharedWpjWithHardwareKey\":\"true\""));
         mBrokerHostApp.enableMultipleWpj()
     }
 

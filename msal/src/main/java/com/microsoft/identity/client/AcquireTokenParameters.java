@@ -41,6 +41,7 @@ public class AcquireTokenParameters extends TokenParameters {
     private Activity mActivity;
     private Fragment mFragment;
     private String mLoginHint;
+    private String mDomainHint;
     private Prompt mPrompt;
     private List<String> mExtraScopesToConsent;
     private List<Map.Entry<String, String>> mExtraQueryStringParameters;
@@ -53,6 +54,7 @@ public class AcquireTokenParameters extends TokenParameters {
         mActivity = builder.mActivity;
         mFragment = builder.mFragment;
         mLoginHint = builder.mLoginHint;
+        mDomainHint = builder.mDomainHint;
         mPreferredAuthMethod = builder.mPreferredAuthMethod;
         mPrompt = builder.mPrompt;
         mExtraScopesToConsent = builder.mExtraScopesToConsent;
@@ -90,6 +92,24 @@ public class AcquireTokenParameters extends TokenParameters {
      */
     void setLoginHint(String loginHint) {
         this.mLoginHint = loginHint;
+    }
+
+    /**
+     * Optional. Gets the domain hint sent along with the authorization request.
+     *
+     * @return
+     */
+    public String getDomainHint() {
+        return mDomainHint;
+    }
+
+    /**
+     * Sets the domain hint sent along with the authorization request.
+     *
+     * @param domainHint
+     */
+    void setDomainHint(String domainHint) {
+        this.mDomainHint = domainHint;
     }
 
     /**
@@ -152,7 +172,7 @@ public class AcquireTokenParameters extends TokenParameters {
         private Activity mActivity;
         private Fragment mFragment;
         private String mLoginHint;
-
+        private String mDomainHint;
         private PreferredAuthMethod mPreferredAuthMethod;
         private Prompt mPrompt;
         private List<String> mExtraScopesToConsent;
@@ -171,6 +191,11 @@ public class AcquireTokenParameters extends TokenParameters {
 
         public AcquireTokenParameters.Builder withLoginHint(String loginHint) {
             mLoginHint = loginHint;
+            return self();
+        }
+
+        public AcquireTokenParameters.Builder withDomainHint(String domainHint) {
+            mDomainHint = domainHint;
             return self();
         }
 

@@ -32,14 +32,12 @@ import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
-import com.microsoft.identity.common.java.nativeauth.controllers.results.GetAuthMethodsCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.MFAChallengeCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.MFACommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.MFASubmitChallengeCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInCommandResult
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
-import com.microsoft.identity.common.nativeauth.internal.commands.GetAuthMethodsCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.MFAChallengeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.MFASubmitChallengeCommand
 import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
@@ -47,14 +45,11 @@ import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
-import com.microsoft.identity.nativeauth.statemachine.errors.MFAGetAuthMethodsError
 import com.microsoft.identity.nativeauth.statemachine.errors.MFARequestChallengeError
 import com.microsoft.identity.nativeauth.statemachine.errors.MFASubmitChallengeError
-import com.microsoft.identity.nativeauth.statemachine.results.MFAGetAuthMethodsResult
 import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
 import com.microsoft.identity.nativeauth.statemachine.results.MFASubmitChallengeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
-import com.microsoft.identity.nativeauth.toListOfAuthMethods
 import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -76,19 +71,19 @@ class AwaitingMFAState(
     /**
      * Requests a challenge to be sent to the user's default authentication method; callback variant.
      *
-     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
+     * @param authMethod [com.microsoft.identity.nativeauth.AuthMethod] the authentication method used for the challenge operation.
      * @param callback [com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState.RequestChallengeCallback] to receive the result on.
      * @return The result of the request challenge action.
      */
-    fun requestChallenge(callback: RequestChallengeCallback) {
+    fun requestChallenge(authMethod: AuthMethod, callback: RequestChallengeCallback) {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.requestChallenge(callback: RequestChallengeCallback)"
+            methodName = "${TAG}.requestChallenge(authMethod: AuthMethod, callback: RequestChallengeCallback)"
         )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
-                val result = requestChallenge()
+                val result = requestChallenge(authMethod)
                 callback.onResult(result)
             } catch (e: MsalException) {
                 Logger.error(TAG, "Exception thrown in requestChallenge", e)
@@ -98,33 +93,30 @@ class AwaitingMFAState(
     }
 
     /**
-     * Requests a challenge to be sent to the user's default authentication method; Kotlin coroutines variant.
+     * Requests a challenge to be sent to the authentication method; Kotlin coroutines variant.
      *
-     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
      * @return The result of the request challenge action.
      */
-    suspend fun requestChallenge(): MFARequiredResult {
+    suspend fun requestChallenge(authMethod: AuthMethod): MFARequiredResult {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.requestChallenge()"
+            methodName = "${TAG}.requestChallenge(authMethod: AuthMethod)"
         )
-
-        Logger.warn(TAG, "Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.")
 
         return withContext(Dispatchers.IO) {
             try {
-                val params = CommandParametersAdapter.createMFADefaultChallengeCommandParameters(
+                val params = CommandParametersAdapter.createMFAChallengeAuthMethodCommandParameters(
                     config,
                     config.oAuth2TokenCache,
                     continuationToken,
                     correlationId,
-                    scopes
+                    authMethod
                 )
                 val command = MFAChallengeCommand(
                     parameters = params,
                     controller = NativeAuthMsalController(),
-                    publicApiId = PublicApiId.NATIVE_AUTH_MFA_DEFAULT_CHALLENGE
+                    publicApiId = PublicApiId.NATIVE_AUTH_MFA_SELECTED_CHALLENGE
                 )
 
                 val rawCommandResult =
@@ -146,22 +138,11 @@ class AwaitingMFAState(
                             channel = result.challengeChannel
                         )
                     }
-                    is MFACommandResult.SelectionRequired -> {
-                        MFARequiredResult.SelectionRequired(
-                            nextState = MFARequiredState(
-                                continuationToken = result.continuationToken,
-                                correlationId = result.correlationId,
-                                scopes = scopes,
-                                config = config
-                            ),
-                            authMethods = result.authMethods.toListOfAuthMethods()
-                        )
-                    }
                     is INativeAuthCommandResult.APIError -> {
                         Logger.warnWithObject(
                             TAG,
                             result.correlationId,
-                            "requestChallenge() received unexpected result: ",
+                            "requestChallenge(authMethod: AuthMethod) received unexpected result: ",
                             result
                         )
                         MFARequestChallengeError(
@@ -177,6 +158,14 @@ class AwaitingMFAState(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
                             error = result.error,
                             errorMessage = result.redirectReason,
+                            correlationId = result.correlationId
+                        )
+                    }
+                    is MFACommandResult.BlockedAuthMethod -> {
+                        MFARequestChallengeError(
+                            errorType = ErrorTypes.AUTH_METHOD_BLOCKED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
                             correlationId = result.correlationId
                         )
                     }
@@ -230,135 +219,22 @@ class MFARequiredState(
     private val TAG: String = MFARequiredState::class.java.simpleName
 
     /**
-     * GetAuthMethodsCallback receives the result for getAuthMethods() in MFA flows in native authentication.
-     */
-    interface GetAuthMethodsCallback : Callback<MFAGetAuthMethodsResult>
-
-    /**
-     * Retrieves all authentication methods that can be used to complete the challenge flow; callback variant.
-     *
-     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
-     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState.GetAuthMethodsCallback] to receive the result on.
-     * @return The results of the get authentication methods action.
-     */
-    fun getAuthMethods(callback: GetAuthMethodsCallback) {
-        LogSession.logMethodCall(
-            tag = TAG,
-            correlationId = correlationId,
-            methodName = "${TAG}.getAuthMethods(callback: GetAuthMethodsCallback)"
-        )
-        NativeAuthPublicClientApplication.pcaScope.launch {
-            try {
-                val result = getAuthMethods()
-                callback.onResult(result)
-            } catch (e: MsalException) {
-                Logger.error(TAG, "Exception thrown in getAuthMethods", e)
-                callback.onError(e)
-            }
-        }
-    }
-
-    /**
-     * Retrieves all authentication methods that can be used to complete the challenge flow; Kotlin coroutines variant.
-     *
-     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
-     * @return The results of the get authentication methods action.
-     */
-    suspend fun getAuthMethods(): MFAGetAuthMethodsResult {
-        LogSession.logMethodCall(
-            tag = TAG,
-            correlationId = correlationId,
-            methodName = "${TAG}.getAuthMethods()"
-        )
-
-        Logger.warn(TAG, "Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.")
-
-        return withContext(Dispatchers.IO) {
-            try {
-                val params = CommandParametersAdapter.createGetAuthMethodsCommandParameters(
-                    config,
-                    config.oAuth2TokenCache,
-                    continuationToken,
-                    correlationId
-                )
-                val command = GetAuthMethodsCommand(
-                    parameters = params,
-                    controller = NativeAuthMsalController(),
-                    publicApiId = PublicApiId.NATIVE_AUTH_GET_AUTH_METHODS
-                )
-
-                val rawCommandResult =
-                    CommandDispatcher.submitSilentReturningFuture(command)
-                        .get()
-
-                return@withContext when (val result =
-                    rawCommandResult.checkAndWrapCommandResultType<GetAuthMethodsCommandResult>()) {
-                    is MFACommandResult.SelectionRequired -> {
-                        MFARequiredResult.SelectionRequired(
-                            nextState = MFARequiredState(
-                                continuationToken = result.continuationToken,
-                                correlationId = result.correlationId,
-                                scopes = scopes,
-                                config = config
-                            ),
-                            authMethods = result.authMethods.toListOfAuthMethods()
-                        )
-                    }
-                    is INativeAuthCommandResult.APIError -> {
-                        Logger.warnWithObject(
-                            TAG,
-                            result.correlationId,
-                            "getAuthMethods() received unexpected result: ",
-                            result
-                        )
-                        MFAGetAuthMethodsError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            errorCodes = result.errorCodes,
-                            exception = result.exception
-                        )
-                    }
-                    is INativeAuthCommandResult.Redirect -> {
-                        MFAGetAuthMethodsError(
-                            errorType = ErrorTypes.BROWSER_REQUIRED,
-                            error = result.error,
-                            errorMessage = result.redirectReason,
-                            correlationId = result.correlationId
-                        )
-                    }
-                }
-            } catch (e: Exception) {
-                MFAGetAuthMethodsError(
-                    errorType = ErrorTypes.CLIENT_EXCEPTION,
-                    errorMessage = "MSAL client exception occurred in getAuthMethods().",
-                    exception = e,
-                    correlationId = correlationId
-                )
-            }
-        }
-    }
-
-    /**
      * RequestChallengeCallback receives the result for requestChallenge() in MFA flows in native authentication.
      */
     interface RequestChallengeCallback : Callback<MFARequiredResult>
 
     /**
      * Requests a challenge to be sent to the user's default authentication method; callback variant.
-     * If an authentication method ID was supplied, the server will send a challenge to the specified method. If no ID is supplied,
-     * the server will attempt to send the challenge to the user's default auth method.
      *
-     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
      * @param authMethod [com.microsoft.identity.nativeauth.AuthMethod] the authentication method used for the challenge operation.
-     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState.RequestChallengeCallback] to receive the result on.
+     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState.RequestChallengeCallback] to receive the result on.
      * @return The result of the request challenge action.
      */
-    fun requestChallenge(authMethod: AuthMethod? = null, callback: RequestChallengeCallback) {
+    fun requestChallenge(authMethod: AuthMethod, callback: RequestChallengeCallback) {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.requestChallenge(callback: RequestChallengeCallback)"
+            methodName = "${TAG}.requestChallenge(authMethod: AuthMethod, callback: RequestChallengeCallback)"
         )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
@@ -372,42 +248,27 @@ class MFARequiredState(
     }
 
     /**
-     * Requests a challenge to be sent to the user's default authentication method; Kotlin coroutines variant.
-     * If an authentication method ID was supplied, the server will send a challenge to the specified method. If no ID is supplied,
-     * the server will attempt to send the challenge to the user's default auth method.
+     * Requests a challenge to be sent to authentication method; Kotlin coroutines variant.
      *
-     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
      * @param authMethod [com.microsoft.identity.nativeauth.AuthMethod] the authentication method used for the challenge operation.
      * @return The result of the request challenge action.
      */
-    suspend fun requestChallenge(authMethod: AuthMethod? = null): MFARequiredResult {
+    suspend fun requestChallenge(authMethod: AuthMethod): MFARequiredResult {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
             methodName = "${TAG}.requestChallenge(authMethod: AuthMethod)"
         )
 
-        Logger.warn(TAG, "Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.")
-
         return withContext(Dispatchers.IO) {
             try {
-                val params = if (authMethod != null) {
-                    CommandParametersAdapter.createMFASelectedChallengeCommandParameters(
-                        config,
-                        config.oAuth2TokenCache,
-                        continuationToken,
-                        correlationId,
-                        authMethod
-                    )
-                } else {
-                    CommandParametersAdapter.createMFADefaultChallengeCommandParameters(
-                        config,
-                        config.oAuth2TokenCache,
-                        continuationToken,
-                        correlationId,
-                        scopes
-                    )
-                }
+                val params = CommandParametersAdapter.createMFAChallengeAuthMethodCommandParameters(
+                    config,
+                    config.oAuth2TokenCache,
+                    continuationToken,
+                    correlationId,
+                    authMethod
+                )
 
                 val command = MFAChallengeCommand(
                     parameters = params,
@@ -434,17 +295,6 @@ class MFARequiredState(
                             channel = result.challengeChannel
                         )
                     }
-                    is MFACommandResult.SelectionRequired -> {
-                        MFARequiredResult.SelectionRequired(
-                            nextState = MFARequiredState(
-                                continuationToken = result.continuationToken,
-                                correlationId = result.correlationId,
-                                scopes = scopes,
-                                config = config
-                            ),
-                            authMethods = result.authMethods.toListOfAuthMethods()
-                        )
-                    }
                     is INativeAuthCommandResult.APIError -> {
                         Logger.warnWithObject(
                             TAG,
@@ -468,6 +318,14 @@ class MFARequiredState(
                             correlationId = result.correlationId
                         )
                     }
+                    is MFACommandResult.BlockedAuthMethod -> {
+                        MFARequestChallengeError(
+                            errorType = ErrorTypes.AUTH_METHOD_BLOCKED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 MFARequestChallengeError(
@@ -488,7 +346,6 @@ class MFARequiredState(
     /**
      * Submits the challenge value to the server; callback variant.
      *
-     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
      * @param callback [com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState.SubmitChallengeCallback] to receive the result on.
      * @return The result of the submit challenge action.
      */
@@ -512,7 +369,6 @@ class MFARequiredState(
     /**
      * Submits the challenge value to the server; Kotlin coroutines variant.
      *
-     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
      * @return The result of the submit challenge action.
      */
     suspend fun submitChallenge(challenge: String): MFASubmitChallengeResult {
@@ -521,8 +377,6 @@ class MFARequiredState(
             correlationId = correlationId,
             methodName = "${TAG}.submitChallenge(challenge: String)"
         )
-
-        Logger.warn(TAG, "Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.")
 
         return withContext(Dispatchers.IO) {
             try {

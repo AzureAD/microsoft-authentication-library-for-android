@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.mam
 
+import com.microsoft.identity.client.msal.automationapp.BuildConfig
 import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
@@ -39,6 +40,7 @@ import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assert
+import org.junit.Assume
 import org.junit.Test
 
 // Can use Outlook with True MAM account upon re-registration
@@ -49,6 +51,11 @@ class TestCase2516967 : AbstractMsalBrokerTest(){
 
     @Test
     fun test_2516967_MAM_CanUseOutlookAfterRegistration() {
+        // Skip test if preconditions are not met
+        Assume.assumeFalse( "Only run this test if there are local flights",
+            BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.isEmpty()
+        )
+
         // Fetch credentials
         val username: String = mLabAccount.username
         val password: String = mLabAccount.password

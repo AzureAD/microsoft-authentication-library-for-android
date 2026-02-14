@@ -5,6 +5,10 @@ plugins {
     id 'checkstyle'
     id 'maven-publish'
     id 'kotlin-android'
+    id 'jacoco'
+
+    // Test retries
+    id 'org.gradle.test-retry' version '1.5.6'
 }
 
 apply from: 'versioning/version_tasks.gradle'
@@ -23,6 +27,64 @@ if (project.hasProperty("codeCoverageEnabled")) {
 
 codeCoverageReport {
     coverage.enabled = enableCodeCoverage
+}
+
+jacoco {
+    toolVersion = "0.8.10"
+}
+
+// https://blog.gradle.org/gradle-flaky-test-retry-plugin
+tasks.withType(Test) {
+    jacoco {
+        includeNoLocationClasses = true // Required for Robolectric
+        excludes = ['jdk.internal.*']
+    }
+    retry {
+        // The maximum number of test failures that are allowed before retrying is disabled.
+        maxRetries = 2
+        // The maximum number of times to retry an individual test.
+        maxFailures = 10
+        // Controls whether tests that initially fail and then pass on retry should fail the task.
+        failOnPassedAfterRetry = false
+    }
+}
+
+tasks.register("jacocoTestReport", JacocoReport) {
+    dependsOn "testLocalDebugUnitTest" // Run Robolectric tests first
+
+    reports {
+        xml.required = true
+        html.required = true
+    }
+
+    def fileFilter = [
+            '**/R.class', '**/R$*.class', '**/BuildConfig.*',
+            '**/Manifest*.*', '**/*Test*.*',
+            'android/**/*.*'
+    ]
+
+    def kotlinClasses = fileTree(
+            dir: "$buildDir/tmp/kotlin-classes/localDebug",
+            excludes: fileFilter
+    )
+
+    def javaClasses = fileTree(
+            dir: "$buildDir/intermediates/javac/localDebug/compileLocalDebugJavaWithJavac/classes",
+            excludes: fileFilter
+    )
+
+    sourceDirectories.setFrom(files([
+            "$projectDir/src/main/java",
+            "$projectDir/src/main/kotlin"
+    ]))
+    classDirectories.setFrom(files([kotlinClasses, javaClasses]))
+    executionData.setFrom(fileTree(
+            dir: buildDir,
+            includes: [
+                    "jacoco/testLocalDebugUnitTest.exec",
+                    "outputs/unit_test_code_coverage/localDebugUnitTest/testLocalDebugUnitTest.exec"
+            ]
+    ))
 }
 
 android {
@@ -120,6 +182,14 @@ android {
         variant.outputs.all {
             def fileName = "${archivesBaseName}-${version}.aar"
             outputFileName = fileName
+        }
+    }
+
+    libraryVariants.all { variant ->
+        tasks.named("assemble${variant.name.capitalize()}").configure {
+            doFirst {
+                println("Assembling variant: ${variant.name} for ${project.name}")
+            }
         }
     }
 
@@ -278,19 +348,24 @@ task pmd(type: Pmd) {
 }
 
 afterEvaluate {
-    // Gradle 6.1.1 and Android Gradle Plugin 4.0.1 doesn't rename the file (see 'outputFileName' above)
-    // Adding this work around to have the file properly renamed.
-    // Please uncomment the section below for the Maven release step only. Currently troubleshooting why this extra renaming configuration is still needed for MSAL.
-//    tasks.named("assembleDistRelease").configure {
-//        def buildFile = file("$buildDir/outputs/aar/${archivesBaseName}-dist-release.aar")
-//        print "Build file $buildFile"
-//        doLast {
-//            println "Renaming build file $buildFile to '$buildDir${File.separator}outputs${File.separator}aar${File.separator}${archivesBaseName}-${version}.aar'"
-//            if (!buildFile.renameTo("$buildDir${File.separator}outputs${File.separator}aar${File.separator}${archivesBaseName}-${version}.aar")) {
-//                println "Rename failed!"
-//            }
-//        }
-//    }
+    // This task customization renames the output AAR file after the 'assembleDistRelease' build.
+    // When the 'renameOutput' property is set to true, it locates the generated AAR named
+    // 'msal-dist-release.aar' and renames it to 'msal-<version>.aar'.
+    // This is useful for publishing to repositories (e.g., Maven) that expect the artifact name
+    // to include the version number.
+    tasks.named("assembleDistRelease").configure {
+        if (project.findProperty("renameOutput")?.toString()?.toBoolean() == true) {
+            def buildFile = file("$buildDir/outputs/aar/${archivesBaseName}-dist-release.aar")
+            println "Build file $buildFile"
+            doLast {
+                def renamedFile = file("$buildDir/outputs/aar/${archivesBaseName}-${version}.aar")
+                println "Renaming build file $buildFile to '$renamedFile'"
+                if (!buildFile.renameTo(renamedFile)) {
+                    println "Rename failed!"
+                }
+            }
+        }
+    }
     publishing {
         publications {
             msal(MavenPublication) {
@@ -334,8 +409,8 @@ afterEvaluate {
                 name "vsts-maven-adal-android"
                 url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
                 credentials {
-                    username System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") : project.findProperty("vstsUsername")
-                    password System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
+                    username System.getenv("ENV_VSTS_MVN_CRED_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_CRED_USERNAME") : project.findProperty("vstsUsername")
+                    password System.getenv("ENV_VSTS_MVN_CRED_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_CRED_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
                 }
             }
         }

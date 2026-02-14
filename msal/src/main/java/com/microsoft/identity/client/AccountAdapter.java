@@ -54,13 +54,23 @@ public class AccountAdapter {
 
         @Override
         public List<ICacheRecord> filter(@NonNull List<ICacheRecord> records) {
+            final String methodTag = TAG + ":GuestAccountFilter";
             final List<ICacheRecord> result = new ArrayList<>();
 
             for (final ICacheRecord cacheRecord : records) {
                 final String acctHomeAccountId = cacheRecord.getAccount().getHomeAccountId();
                 final String acctLocalAccountId = cacheRecord.getAccount().getLocalAccountId();
+                boolean isValid = true;
 
-                if (!acctHomeAccountId.contains(acctLocalAccountId)) {
+                if (acctHomeAccountId == null) {
+                    Logger.warn(methodTag, "Home account ID is null for entry.");
+                    isValid = false;
+                }
+                if (acctLocalAccountId == null) {
+                    Logger.warn(methodTag, "Local account ID is null for entry.");
+                    isValid = false;
+                }
+                if (isValid && !acctHomeAccountId.contains(acctLocalAccountId)) {
                     result.add(cacheRecord);
                 }
             }

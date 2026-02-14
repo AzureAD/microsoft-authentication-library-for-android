@@ -4,6 +4,52 @@ vNext
 ----------
 - [MAJOR] Bump TargetSdk to 35, minSdk to 24, AGP to 8.10.0 (#3164)
 
+Version 8.2.1
+----------
+- [PATCH] Update common @23.3.0
+
+Version 8.2.0
+----------
+- [PATCH] Update common @23.2.0
+- [MINOR] Remove MavenCentral repository from build.gradle files (#2413)
+
+Version 8.1.1
+----------
+- [PATCH] Update common @23.1.1
+
+Version 8.1.0
+----------
+- [PATCH] Update common @23.1.0
+- [MINOR] Add WebAuthN version support in configuration (#2393)
+
+Version 8.0.2
+----------
+- [PATCH] Update common @23.0.2
+- [MAJOR] Update proguard rules (#2372)
+- [MINOR] SDK now handles SMS as strong authentication method (#2382)
+- [MINOR] Awaiting MFA Delegate now automatically returns the AuthMethods to be used when calling MFA Challenge (#2380)
+
+Version 7.1.0
+----------
+- [PATCH] Update common @22.1.0
+- [PATCH] Add null checks for guest account ids (#2361)
+- [MINOR] Fix for App Link Usage in DUNA / SSO scenarios (#2363)
+
+Version 7.0.3
+----------
+- [PATCH] Update common @22.0.3
+
+Version 7.0.1
+----------
+- [PATCH] Update common @22.0.1
+
+Version 7.0.0
+----------
+- [PATCH] Update common @22.0.0
+- [MINOR] Copy username from UiRequiredException to MsalUiRequiredException (#2344)
+- [MAJOR] Bump TargetSdk to 35, minSdk to 24, AGP to 8.10.0 (#3164)
+- [MINOR] Update Nimbus version (#2346)
+
 Version 6.2.0
 ----------
 - [PATCH] Update common @21.4.0

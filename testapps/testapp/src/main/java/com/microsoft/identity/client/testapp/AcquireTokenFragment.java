@@ -65,6 +65,7 @@ import com.microsoft.identity.common.java.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
@@ -86,7 +87,6 @@ public class AcquireTokenFragment extends Fragment {
     private Button mAddNgcMfaClaimButton;
     private Switch mEnablePII;
     private Switch mForceRefresh;
-    private Switch mEnableNewBrokerDiscovery;
     private Switch mAllowSignInFromOtherDevice;
 
     private Button mClearActiveBrokerDiscoveryCache;
@@ -121,6 +121,15 @@ public class AcquireTokenFragment extends Fragment {
     private OnFragmentInteractionListener mOnFragmentInteractionListener;
     private MsalWrapper mMsalWrapper;
     private List<IAccount> mLoadedAccounts = new ArrayList<>();
+
+    // Concurrent execution UI elements
+    private EditText mConcurrentCount;
+    private EditText mConcurrentTotalCount;
+    private Button mRunConcurrent;
+    private Button mStopConcurrent;
+    private LinearLayout mThreadProgressContainer;
+    private List<TextView> mThreadProgressViews = new ArrayList<>();
+    private List<ConcurrentAcquireTokenExecutor> mRunningExecutors = new ArrayList<>();
 
     private IClientActiveBrokerCache mCache;
     public AcquireTokenFragment() {
@@ -193,18 +202,8 @@ public class AcquireTokenFragment extends Fragment {
                 AndroidPlatformComponentsFactory.createFromContext(getContext()).getStorageSupplier()
         );
 
-        mEnableNewBrokerDiscovery = view.findViewById(R.id.enableBrokerDiscovery);
         mCachedActiveBrokerName = view.findViewById(R.id.cachedActiveBrokerName);
         mClearActiveBrokerDiscoveryCache = view.findViewById(R.id.clearActiveBrokerDiscoveryCache);
-
-        mEnableNewBrokerDiscovery.setChecked(BrokerDiscoveryClientFactory.isNewBrokerDiscoveryEnabled());
-        mEnableNewBrokerDiscovery.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton v, boolean value) {
-                BrokerDiscoveryClientFactory.setNewBrokerDiscoveryEnabled(value);
-                setActiveBrokerTextFromCache();
-            }
-        });
 
         mClearActiveBrokerDiscoveryCache.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -433,6 +432,27 @@ public class AcquireTokenFragment extends Fragment {
         mPreferredAuthMethod.setOnClickListener(v -> AcquireTokenFragment.this.showMessage(
             mMsalWrapper.getPreferredAuthMethod()
         ));
+
+        // Initialize concurrent execution UI elements
+        mConcurrentCount = view.findViewById(R.id.concurrent_count);
+        mConcurrentTotalCount = view.findViewById(R.id.concurrent_total_count);
+        mRunConcurrent = view.findViewById(R.id.btn_run_concurrent);
+        mStopConcurrent = view.findViewById(R.id.btn_stop_concurrent);
+        mThreadProgressContainer = view.findViewById(R.id.concurrent_thread_progress_container);
+
+        mRunConcurrent.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                runConcurrentAcquireTokenSilent();
+            }
+        });
+
+        mStopConcurrent.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stopConcurrentExecutors();
+            }
+        });
 
         return view;
     }
@@ -692,6 +712,80 @@ public class AcquireTokenFragment extends Fragment {
                 dialog.show();
             }
         });
+    }
+
+    /**
+     * Concurrent AcquireTokenSilent
+     * Note: In order for this to work, the build config shouldSkipSilentTokenCommandCacheForStressTest must be set to true.
+     */
+    private void runConcurrentAcquireTokenSilent() {
+        try {
+            final int concurrency = Integer.parseInt(mConcurrentCount.getText().toString());
+            final int totalCount = Integer.parseInt(mConcurrentTotalCount.getText().toString());
+
+            if (concurrency <= 0 || totalCount <= 0) {
+                showMessage("Concurrency and total count must be greater than 0");
+                return;
+            }
+
+            // Calculate requests per thread
+            final int requestsPerThread = totalCount / concurrency;
+            final int remainder = totalCount % concurrency;
+
+            // Reset progress
+            mThreadProgressContainer.removeAllViews();
+            mThreadProgressViews.clear();
+
+            // Create per-thread progress views
+            for (int i = 0; i < concurrency; i++) {
+                TextView threadProgress = new TextView(getContext());
+                threadProgress.setText("Thread " + i + ": 0/0");
+                threadProgress.setTextSize(12);
+                threadProgress.setPadding(0, 5, 0, 5);
+                mThreadProgressContainer.addView(threadProgress);
+                mThreadProgressViews.add(threadProgress);
+            }
+
+            // Create and start one executor per thread
+            for (int i = 0; i < concurrency; i++) {
+                final int threadId = i;
+                final int countForThisThread = requestsPerThread + (i < remainder ? 1 : 0);
+
+                final ConcurrentAcquireTokenExecutor executor =
+                    new ConcurrentAcquireTokenExecutor(threadId, countForThisThread);
+
+                executor.execute(
+                    getContext(),
+                    getCurrentRequestOptions(),
+                    new ConcurrentAcquireTokenExecutor.IUIUpdateCallback() {
+                        @Override
+                        public void updateProgress(final int tid, final int successCount, final int completedCount) {
+                            if (tid >= 0 && tid < mThreadProgressViews.size()) {
+                                mThreadProgressViews.get(tid).setText(
+                                        String.format(Locale.US,
+                                                "Thread %d: %d/%d", tid, successCount, completedCount));
+                            }
+                        }
+
+                        @Override
+                        public void onStopped(final int tid) {
+                        }
+                    }
+                );
+
+                mRunningExecutors.add(executor);
+            }
+        } catch (NumberFormatException e) {
+            showMessage("Please enter valid numbers for concurrency and total count");
+        }
+    }
+
+    private void stopConcurrentExecutors() {
+        for (ConcurrentAcquireTokenExecutor executor : mRunningExecutors) {
+            executor.stop();
+        }
+        mRunningExecutors.clear();
+        showMessage("Stopped all running tasks");
     }
 
     public interface OnFragmentInteractionListener {

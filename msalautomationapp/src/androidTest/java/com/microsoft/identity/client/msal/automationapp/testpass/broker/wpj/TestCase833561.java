@@ -47,7 +47,8 @@ public class TestCase833561 extends AbstractMsalBrokerTest {
         // Check flight, this is checking what was passed to automation app, not the broker apks
         Assume.assumeFalse( "EnableKeyStoreKeyFactory flight is activated, Test will be skipped",
                 BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("EnableKeyStoreKeyFactory:true"));
-
+        Assume.assumeFalse( "performNonSharedWpjWithHardwareKey flight is set, Test will be skipped",
+                BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("performNonSharedWpjWithHardwareKey:true"));
         // Fetch credentials
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
