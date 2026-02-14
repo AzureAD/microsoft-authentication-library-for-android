@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
+import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
@@ -33,6 +34,7 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 
 // If LTW is the active broker, and request is made through Authenticator from Legacy WorkplaceJoin API, nothing should break
@@ -43,6 +45,11 @@ public class TestCase2582294 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_2582294_LTW_LTWActiveBrokerShouldNotBreakNLegacyWPJAuthenticatorRequest() throws Throwable{
+        // Skip test if preconditions are not met
+        Assume.assumeFalse( "Only run this test if there are local flights",
+                BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.isEmpty()
+        );
+
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
         final String homeTenantId = mLabAccount.getHomeTenantId();
