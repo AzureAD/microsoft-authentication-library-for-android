@@ -543,11 +543,13 @@ jobs:
               '',
             ].join('\n');
 
+            const redactedUserRequest = redactSecrets(userRequest)
+
             const userPrompt = [
               'Please answer the following user request:',
               '',
               '=== USER REQUEST ===',
-              redactSecrets(userRequest),
+              redactedUserRequest,
               '',
             ].join('\n');
 
@@ -588,7 +590,7 @@ jobs:
               if (error.message.includes('413')) {
                 aiResponse = '⚠️ **Request Too Large**\n\n';
                 aiResponse += 'I apologize, but this issue thread has grown too large for me to process all at once.\n\n';
-                aiResponse += '**Your question:** "' + userRequest.slice(0, 100) + (userRequest.length > 100 ? '...' : '') + '"\n\n';
+                aiResponse += '**Your question:** "' + redactedUserRequest.slice(0, 100) + (redactedUserRequest.length > 100 ? '...' : '') + '"\n\n';
                 aiResponse += 'Please try one of these approaches:\n';
                 aiResponse += '1. Open a new issue with your specific question\n';
                 aiResponse += '2. Reference the specific comment or error you need help with\n';
@@ -596,7 +598,7 @@ jobs:
                 aiResponse += '4. Check the [Common Issues Guide](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/issue-responses/common-issues-guide-human-readable.md)\n\n';
                 aiResponse += 'A team member will assist you shortly.';
               } else {
-                aiResponse = 'I will help with: "' + userRequest.slice(0, 100) + (userRequest.length > 100 ? '...' : '') + '"\n\n';
+                aiResponse = 'I will help with: "' + redactedUserRequest.slice(0, 100) + (redactedUserRequest.length > 100 ? '...' : '') + '"\n\n';
                 aiResponse += 'Please review:\n';
                 aiResponse += '- Try using the GitHub Copilot agent by clicking the "Chat with Copilot" button in the top right\n';
                 aiResponse += '- [Common Issues Guide](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/issue-responses/common-issues-guide-human-readable.md)';
