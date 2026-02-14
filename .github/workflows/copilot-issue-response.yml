@@ -597,14 +597,14 @@ jobs:
                 aiResponse += 'Please try one of these approaches:\n';
                 aiResponse += '1. Open a new issue with your specific question\n';
                 aiResponse += '2. Reference the specific comment or error you need help with\n';
-                aiResponse += '3. Review the [MSAL Documentation](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki)\n';
-                aiResponse += '4. Check the [Common Issues Guide](.github/issue-responses/common-issues-guide.md)\n\n';
+                aiResponse += '3. Try using the GitHub Copilot agent by clicking the "Chat with Copilot" button in the top right\n';
+                aiResponse += '4. Check the [Common Issues Guide](.github/issue-responses/common-issues-guide-human-readable.md)\n\n';
                 aiResponse += 'A team member will assist you shortly.';
               } else {
                 aiResponse = 'I will help with: "' + userRequest.slice(0, 100) + (userRequest.length > 100 ? '...' : '') + '"\n\n';
                 aiResponse += 'Please review:\n';
-                aiResponse += '- [MSAL Documentation](https://github.com/AzureAD/microsoft-authentication-library-for-android)\n';
-                aiResponse += '- [Common Issues Guide](.github/issue-responses/common-issues-guide.md)';
+                aiResponse += '- Try using the GitHub Copilot agent by clicking the "Chat with Copilot" button in the top right\n';
+                aiResponse += '- [Common Issues Guide](.github/issue-responses/common-issues-guide-human-readable.md)';
               }
             }
 
