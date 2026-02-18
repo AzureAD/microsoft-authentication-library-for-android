@@ -29,11 +29,11 @@ jobs:
     outputs:
       issue_type: ${{ steps.ai_triage.outputs.issue_type }}
       issue_type_reason: ${{ steps.ai_triage.outputs.issue_type_reason }}
-      priority: ${{ steps.ai_triage.outputs.priority }}
       msal_version: ${{ steps.ai_triage.outputs.msal_version }}
       device_count: ${{ steps.ai_triage.outputs.device_count }}
       ai_solution: ${{ steps.ai_triage.outputs.ai_solution }}
       needs_info: ${{ steps.ai_triage.outputs.needs_info }}
+      needs_info_reason: ${{ steps.ai_triage.outputs.needs_info_reason }}
       related_issues: ${{ steps.ai_triage.outputs.related_issues }}
       very_old_msal: ${{ steps.ai_triage.outputs.very_old_msal }}
       version_age_days: ${{ steps.ai_triage.outputs.version_age_days }}
@@ -90,7 +90,7 @@ jobs:
             }
 
             const systemPrompt = [
-              'You are an expert MSAL Android support engineer. Analyze GitHub issues and provide classification, priority, and solutions.',
+              'You are an expert MSAL Android support engineer. Analyze GitHub issues and provide classification and solutions.',
               '',
               '=== COMMON ISSUES REFERENCE ===',
               'The following guide contains solutions for 250+ issues organized by category.',
@@ -100,12 +100,6 @@ jobs:
               commonIssuesGuide,
               '',
               '=== TRIAGE INSTRUCTIONS ===',
-              'PRIORITY THRESHOLDS (apply when user provides a device count):',
-              '- p1-High: 5000+ devices impacted',
-              '- p2-Medium: 4999-1000 devices impacted',
-              '- p3-Low: 100-999 devices impacted',
-              '- p4-Minor: <100 devices impacted',
-              'If no device impact is given, always assign p4-Minor.',
               'ISSUE TYPE CLASSIFICATION:',
               '- Bug: Library bug, unexpected behavior when MSAL used correctly',
               '- User-Error: Incorrect MSAL Implementation causing unexpected behavior',
@@ -124,10 +118,10 @@ jobs:
               '{',
               '  "issueType": "Bug|User-Error|Feature-Request|Question|Other",',
               '  "issueTypeReason": "string explaining reasoning for choosing a particular issue type",',
-              '  "priority": "p1-High|p2-Medium|p3-Low|p4-Minor",',
               '  "deviceCount": "number or null if not found in issue title or body",',
               '  "msalVersion": "extracted MSAL version string from the issue title/body or null if not found",',
               '  "needsMoreInfo": "boolean, true if issue has insufficient information for triage",',
+              '  "needsMoreInfoReason": "if needsMoreInfo = true, provide string explaining reasoning for the tag, what information is missing?",',
               '  "suggestedSolution": "detailed solution referencing Common Issues guide sections and related GitHub issues",',
               '  "relatedIssues": "array of related GitHub issue numbers from the guide, e.g. [1234, 5678]",',
               '}'
@@ -149,11 +143,11 @@ jobs:
 
             let result = {
               issueType: 'Other',
-              issueTypeReason: null,
-              priority: null,
+              issueTypeReason: '',
               deviceCount: null,
               msalVersion: null,
               needsMoreInfo: true,
+              needsMoreInfoReason: '',
               suggestedSolution: null,
               relatedIssues: []
             };
@@ -192,10 +186,10 @@ jobs:
 
             core.setOutput('issue_type', result.issueType);
             core.setOutput('issue_type_reason', result.issueTypeReason);
-            core.setOutput('priority', result.priority || '');
             core.setOutput('msal_version', result.msalVersion || '');
             core.setOutput('device_count', result.deviceCount);
             core.setOutput('needs_info', result.needsMoreInfo.toString());
+            core.setOutput('needs_info_reason', result.needsMoreInfoReason || '');
             core.setOutput('ai_solution', result.suggestedSolution || '');
             core.setOutput('related_issues', JSON.stringify(result.relatedIssues || []));
 
@@ -231,7 +225,6 @@ jobs:
         uses: actions/github-script@v7
         env:
           ISSUE_TYPE: ${{ steps.ai_triage.outputs.issue_type }}
-          PRIORITY: ${{ steps.ai_triage.outputs.priority }}
           DEVICE_COUNT: ${{ steps.ai_triage.outputs.device_count }}
           NEEDS_INFO: ${{ steps.ai_triage.outputs.needs_info }}
           MSAL_VERSION: ${{ steps.ai_triage.outputs.msal_version }}
@@ -239,19 +232,6 @@ jobs:
         with:
           script: |
             const labels = [process.env.ISSUE_TYPE];
-
-            // Priority Label
-            if (process.env.DEVICE_COUNT && process.env.DEVICE_COUNT !== null) {
-              if (process.env.PRIORITY) {
-                labels.push(process.env.PRIORITY);
-              } else {
-                // If AI did not come up with a priority label, mark it as p4-minor
-                labels.push('p4-Minor')
-              }
-            } else {
-              // If we don't have device count, mark it as p4-minor
-              labels.push('p4-Minor')
-            }
 
             // Check if MSAL version is older than 1.5 years (548 days)
             if (process.env.VERY_OLD_MSAL === 'true') {
@@ -328,9 +308,9 @@ jobs:
         env:
           ISSUE_TYPE: ${{ needs.triage.outputs.issue_type }}
           ISSUE_TYPE_REASON: ${{ needs.triage.outputs.issue_type_reason }}
-          PRIORITY: ${{ needs.triage.outputs.priority }}
           MSAL_VERSION: ${{ needs.triage.outputs.msal_version }}
           NEEDS_INFO: ${{ needs.triage.outputs.needs_info }}
+          NEEDS_INFO_REASON: ${{ needs.triage.outputs.needs_info_reason }}
           AI_SOLUTION: ${{ needs.triage.outputs.ai_solution }}
           RELATED_ISSUES: ${{ needs.triage.outputs.related_issues }}
           VERY_OLD_MSAL: ${{ needs.triage.outputs.very_old_msal }}
@@ -340,9 +320,9 @@ jobs:
           script: |
             const issueType = process.env.ISSUE_TYPE;
             const issueTypeReason = process.env.ISSUE_TYPE_REASON;
-            const priority = process.env.PRIORITY;
             const msalVersion = process.env.MSAL_VERSION;
             const needsInfo = process.env.NEEDS_INFO === 'true';
+            const needInfoReason = process.env.NEEDS_INFO_REASON;
             const aiSolution = process.env.AI_SOLUTION;
             const relatedIssues = JSON.parse(process.env.RELATED_ISSUES || '[]');
             const isVeryOld = process.env.VERY_OLD_MSAL === 'true';
@@ -378,9 +358,8 @@ jobs:
             }
 
             response += '**Labels Applied:**\n';
-            response += '`' + issueType + '`: ' + issueTypeReason + ".\n";
-            if (priority) response += '`' + priority + '`\n';
-            if (needsInfo) response += '`needs-more-info`\n';
+            response += '`' + issueType + '`: ' + issueTypeReason + '.\n';
+            if (needsInfo) response += '`needs-more-info`: ' + needInfoReason + '.\n';
             response += '\n';
 
             if (aiSolution) {
@@ -408,7 +387,9 @@ jobs:
 
             if (needsInfo) {
               response += '**To help us assist you, please provide:**\n';
-              response += '- MSAL version (latest: ' + latestVersion + ')\n';
+              if (!msalVersion || msalVersion === 'null') {
+                response += '- MSAL version (latest: ' + latestVersion + ')\n';
+              }
               response += '- Android version and device\n';
               response += '- Complete error message/stack trace\n';
               response += '- Steps to reproduce\n\n';
