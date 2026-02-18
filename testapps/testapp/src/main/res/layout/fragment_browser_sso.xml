@@ -46,7 +46,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Simulates a browser calling AccountManager.getAuthToken() with\naccountType = com.microsoft.entra\nauthTokenType = sso_header"
+            android:text="Simulates a browser calling AccountManager.getAuthToken() with a\nhardcoded placeholder Account (broker ignores account name and\nreturns SSO headers for all signed-in accounts on device).\n\naccountType = com.microsoft.entra\nauthTokenType = sso_header"
             android:textSize="12sp"
             android:paddingBottom="16dp" />
 
@@ -102,23 +102,6 @@
             android:layout_marginTop="8dp"
             android:textSize="12sp"
             android:textColor="#666666" />
-
-        <!-- Accounts list -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Entra Accounts on Device"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/txt_accounts"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textSize="12sp"
-            android:fontFamily="monospace" />
 
         <!-- Result area -->
         <TextView

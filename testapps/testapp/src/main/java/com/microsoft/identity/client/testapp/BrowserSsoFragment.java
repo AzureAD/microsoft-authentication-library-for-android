@@ -59,6 +59,10 @@ import java.util.Locale;
  *   <li>authTokenType = "sso_header"</li>
  * </ul>
  *
+ * <p>Per the design spec, callers pass a hardcoded placeholder {@link Account} — the
+ * broker ignores the account name and always returns SSO headers for all signed-in
+ * accounts on the device. No account enumeration is needed.
+ *
  * <p>The broker's debug allow-list must include this test app's package name
  * ({@code com.msft.identity.client.sample.local}) for the request to succeed.
  */
@@ -84,7 +88,6 @@ public class BrowserSsoFragment extends Fragment {
     private Button mBtnGetSsoHeaders;
     private ProgressBar mProgressBar;
     private TextView mTxtStatus;
-    private TextView mTxtAccounts;
     private TextView mTxtResult;
     private Button mBtnCopyResult;
 
@@ -103,58 +106,28 @@ public class BrowserSsoFragment extends Fragment {
         mBtnGetSsoHeaders = view.findViewById(R.id.btn_get_sso_headers);
         mProgressBar = view.findViewById(R.id.progress_bar);
         mTxtStatus = view.findViewById(R.id.txt_status);
-        mTxtAccounts = view.findViewById(R.id.txt_accounts);
         mTxtResult = view.findViewById(R.id.txt_result);
         mBtnCopyResult = view.findViewById(R.id.btn_copy_result);
 
         mBtnGetSsoHeaders.setOnClickListener(v -> onGetSsoHeadersClicked());
         mBtnCopyResult.setOnClickListener(v -> copyResultToClipboard());
 
-        refreshAccountsList();
-
         return view;
     }
 
     /**
-     * Queries AccountManager for all "com.microsoft.entra" accounts and
-     * displays them so the tester can see what's available.
-     */
-    private void refreshAccountsList() {
-        final AccountManager am = AccountManager.get(requireContext());
-        final Account[] accounts = am.getAccountsByType(ACCOUNT_TYPE_ENTRA);
-
-        if (accounts.length == 0) {
-            mTxtAccounts.setText("(none — sign in via AcquireToken first)");
-            return;
-        }
-
-        final StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < accounts.length; i++) {
-            sb.append(i + 1).append(". ").append(accounts[i].name).append('\n');
-        }
-        mTxtAccounts.setText(sb.toString().trim());
-    }
-
-    /**
      * Triggered when the "Get SSO Headers" button is clicked.
-     * Picks the first Entra account and calls {@link AccountManager#getAuthToken}.
+     *
+     * <p>Per the design spec, a hardcoded placeholder Account is passed to
+     * {@link AccountManager#getAuthToken}. The broker ignores the account name
+     * and returns SSO headers for all accounts on the device.
      */
     private void onGetSsoHeadersClicked() {
-        final AccountManager am = AccountManager.get(requireContext());
-        final Account[] accounts = am.getAccountsByType(ACCOUNT_TYPE_ENTRA);
-
-        if (accounts.length == 0) {
-            setStatus("❌ No Entra accounts found. Sign in first via AcquireToken.");
-            return;
-        }
-
-        // Use the first account.
-        final Account account = accounts[0];
         final String ssoUrl = getText(mEditSsoUrl);
         final String correlationId = getText(mEditCorrelationId);
 
         if (ssoUrl.isEmpty()) {
-            setStatus("❌ SSO URL is required.");
+            setStatus("SSO URL is required.");
             return;
         }
 
@@ -165,16 +138,21 @@ public class BrowserSsoFragment extends Fragment {
             options.putString(KEY_CORRELATION_ID, correlationId);
         }
 
-        setStatus("⏳ Requesting SSO headers for " + account.name + " …");
+        // Per the design spec, callers instantiate a placeholder Account with a
+        // dummy name. The broker doesn't care about the account name — it always
+        // returns headers for all signed-in accounts on the device.
+        final Account account = new Account("placeholder", ACCOUNT_TYPE_ENTRA);
+
+        setStatus("Requesting SSO headers …");
         mProgressBar.setVisibility(View.VISIBLE);
         mBtnGetSsoHeaders.setEnabled(false);
 
         // Call getAuthToken — this is exactly what a real browser would do.
-        am.getAuthToken(
+        AccountManager.get(requireContext()).getAuthToken(
                 account,
                 AUTH_TOKEN_TYPE_SSO_HEADER,
                 options,
-                requireActivity(),
+                false, // notifyAuthFailure
                 new SsoHeaderCallback(),
                 new Handler(Looper.getMainLooper())
         );
@@ -191,13 +169,12 @@ public class BrowserSsoFragment extends Fragment {
             requireActivity().runOnUiThread(() -> {
                 mProgressBar.setVisibility(View.GONE);
                 mBtnGetSsoHeaders.setEnabled(true);
-                refreshAccountsList();
 
                 try {
                     final Bundle result = future.getResult();
                     displayResult(result);
                 } catch (final Exception e) {
-                    final String error = "❌ Exception: " + e.getClass().getSimpleName()
+                    final String error = "Exception: " + e.getClass().getSimpleName()
                             + "\n" + e.getMessage();
                     setStatus(error);
                     mTxtResult.setText(error);
