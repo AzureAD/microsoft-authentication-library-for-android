@@ -181,15 +181,12 @@ public class TestCase832430 extends AbstractMsalBrokerTest {
 
     @Override
     public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .protectionPolicy(ProtectionPolicy.MAM_CA)
-                .build();
+        return null;
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return null;
+        return TempUserType.MAM_CA;
     }
 
     @Override
