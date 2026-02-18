@@ -24,6 +24,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
 import android.text.TextUtils;
 
+import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
@@ -37,6 +38,7 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Assert;
 import org.junit.Ignore;
+import org.junit.Assume;
 import org.junit.Test;
 
 import java.util.List;
@@ -51,6 +53,11 @@ import java.util.Map;
 public class TestCase2582297 extends AbstractMsalBrokerTest {
     @Test
     public void test_2582297_LTW_AuthenticatorHighestPriorityCPLTWAuth() throws Throwable {
+        // Skip test if preconditions are not met
+        Assume.assumeFalse( "Only run this test if there are local flights",
+                BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.isEmpty()
+        );
+
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
         final String tenantId = mLabAccount.getHomeTenantId();

@@ -39,7 +39,7 @@ stages:
     displayName: Build and Test
     jobs:
     - job: build_test
-      displayName: Build & Test (PR Branch)
+      displayName: PR Branch Testing
       cancelTimeoutInMinutes: 1
       variables:
         Codeql.Enabled: true
@@ -77,13 +77,11 @@ stages:
           tasks: msal:jacocoTestReport  -PcodeCoverageEnabled=true -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PmockApiUrl=$(MOCK_API_URL) -PnativeAuthConfigString=$(NATIVE_AUTH_CONFIG_STRING)
           javaHomeSelection: $(BuildParameters.javaHomeSelection)
           jdkVersion: 1.17
-      - script: tree "$(Build.SourcesDirectory)\msal" /F /A
-        displayName: 'Print File Structure Tree'
-      - script: tree "$(Build.SourcesDirectory)\msal\build\intermediates\javac\localDebug\compileLocalDebugJavaWithJavac\classes" /F /A
-        displayName: 'Print File Structure Tree (build/intermediates/javac/localDebug/compileLocalDebugJavaWithJavac/classes)'
       - publish: $(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
         artifact: jacocoReport
         displayName: 'Publish JaCoCo Report Artifact (PR Branch)'
+      - script: tree "$(Build.SourcesDirectory)\msal" /F /A
+        displayName: 'Print File Structure Tree'
       - task: PublishCodeCoverageResults@1
         displayName: Publish Code Coverage Results
         condition: always()
@@ -92,53 +90,50 @@ stages:
           summaryFileLocation: '$(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml'
           reportDirectory: '$(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport/html'
           failIfCoverageEmpty: false
-#  This needs to be commented for now, because dev doesn't have the jacocoTestReport task yet, will uncomment in the next PR.
-#    - job: build_test_dev
-#      displayName: Build & Test (Dev)
-#      cancelTimeoutInMinutes: 1
-#      variables:
-#        Codeql.Enabled: true
-#      steps:
-#        - checkout: msal-dev
-#          clean: true
-#          submodules: recursive
-#          persistCredentials: True
-#        - bash: |
-#            echo "##vso[task.setvariable variable=ENV_VSTS_MVN_CRED_USERNAME]VSTS"
-#            echo "##vso[task.setvariable variable=ENV_VSTS_MVN_CRED_ACCESSTOKEN]$(System.AccessToken)"
-#          displayName: 'Set VSTS Fields in Environment'
-#        - template: azure-pipelines/templates/steps/automation-cert.yml@common
-#        - task: JavaToolInstaller@0
-#          displayName: Use Java 17
-#          inputs:
-#            versionSpec: '17'
-#            jdkArchitectureOption: x64
-#            jdkSourceOption: PreInstalled
-#        - task: CodeQL3000Init@0
-#        - task: Gradle@2
-#          name: Gradle1
-#          displayName: Assemble Local
-#          inputs:
-#            tasks: clean msal:assembleLocal
-#            publishJUnitResults: false
-#            testResultsFiles: '**/build/test-results/TEST-*.xml'
-#            jdkVersion: $(BuildParameters.jdkVersion)
-#            jdkArchitecture: $(BuildParameters.jdkArchitecture)
-#            sqGradlePluginVersion: 2.0.1
-#        - task: CodeQL3000Finalize@0
-#        - task: Gradle@2
-#          displayName: Run Tests
-#          inputs:
-#            tasks: msal:jacocoTestReport  -PcodeCoverageEnabled=true -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PmockApiUrl=$(MOCK_API_URL) -PnativeAuthConfigString=$(NATIVE_AUTH_CONFIG_STRING)
-#            javaHomeSelection: $(BuildParameters.javaHomeSelection)
-#            jdkVersion: 1.17
-#        - script: tree "$(Build.SourcesDirectory)\msal" /F /A
-#          displayName: 'Print File Structure Tree'
-#        - publish: $(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
-#          artifact: jacocoReportDev
-#          displayName: 'Publish JaCoCo Report Artifact (Dev Branch)'
+    - job: build_test_dev
+      displayName: Dev Branch Testing
+      cancelTimeoutInMinutes: 1
+      variables:
+        Codeql.Enabled: true
+      steps:
+        - checkout: msal-dev
+          clean: true
+          submodules: recursive
+          persistCredentials: True
+        - bash: |
+            echo "##vso[task.setvariable variable=ENV_VSTS_MVN_CRED_USERNAME]VSTS"
+            echo "##vso[task.setvariable variable=ENV_VSTS_MVN_CRED_ACCESSTOKEN]$(System.AccessToken)"
+          displayName: 'Set VSTS Fields in Environment'
+        - template: azure-pipelines/templates/steps/automation-cert.yml@common
+        - task: JavaToolInstaller@0
+          displayName: Use Java 17
+          inputs:
+            versionSpec: '17'
+            jdkArchitectureOption: x64
+            jdkSourceOption: PreInstalled
+        - task: CodeQL3000Init@0
+        - task: Gradle@2
+          name: Gradle1
+          displayName: Assemble Local
+          inputs:
+            tasks: clean msal:assembleLocal
+            publishJUnitResults: false
+            testResultsFiles: '**/build/test-results/TEST-*.xml'
+            jdkVersion: $(BuildParameters.jdkVersion)
+            jdkArchitecture: $(BuildParameters.jdkArchitecture)
+            sqGradlePluginVersion: 2.0.1
+        - task: CodeQL3000Finalize@0
+        - task: Gradle@2
+          displayName: Run Tests
+          inputs:
+            tasks: msal:jacocoTestReport  -PcodeCoverageEnabled=true -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PmockApiUrl=$(MOCK_API_URL) -PnativeAuthConfigString=$(NATIVE_AUTH_CONFIG_STRING)
+            javaHomeSelection: $(BuildParameters.javaHomeSelection)
+            jdkVersion: 1.17
+        - publish: $(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+          artifact: jacocoReportDev
+          displayName: 'Publish JaCoCo Report Artifact (Dev Branch)'
     - job: spotbugs
-      displayName: SpotBugs
+      displayName: SpotBugs (PR)
       cancelTimeoutInMinutes: 1
       steps:
       - checkout: self
@@ -153,7 +148,7 @@ stages:
         parameters:
           project: msal
     - job: lint
-      displayName: Lint
+      displayName: Lint (PR)
       cancelTimeoutInMinutes: 1
       steps:
       - checkout: self
@@ -170,22 +165,9 @@ stages:
           tasks: clean msal:lintLocalDebug
           publishJUnitResults: false
           jdkVersion: 1.17
-#  - stage: compare_coverage
-#    displayName: Compare Code Coverage
-#    dependsOn:
-#      - build_and_test
-#    jobs:
-#      - job: compare
-#        displayName: Compare PR and Dev Coverage
-#        steps:
-#          - download: current
-#            artifact: jacocoReport # Adjust artifact name as needed
-#          - download: current
-#            artifact: jacocoReportDev # Adjust artifact name as needed
-#
-#          - script: |
-#              python compare_coverage.py \
-#                $(Pipeline.Workspace)/jacocoReport/jacocoTestReport.xml \
-#                $(Pipeline.Workspace)/jacocoReportDev/jacocoTestReport.xml
-#            displayName: Compare Jacoco Coverage
+  - template: azure-pipelines/code-coverage/compare-code-coverage.yml@common
+    parameters:
+      commonRepoAlias: common
+      dependsOn:
+        - build_and_test
 ...
