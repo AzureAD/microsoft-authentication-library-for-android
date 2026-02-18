@@ -138,7 +138,7 @@ public class SdmBigTest extends AbstractMsalBrokerTest {
             @Override
             public void onAccountLoaded(@Nullable IAccount activeAccount) {
                 assert activeAccount != null;
-                Assert.assertEquals(activeAccount.getUsername(), basicSccountPassword);
+                Assert.assertEquals(activeAccount.getUsername(), basicAccountUsername);
                 accounts[0] = activeAccount;
                 getAccountLatch.countDown();
             }
