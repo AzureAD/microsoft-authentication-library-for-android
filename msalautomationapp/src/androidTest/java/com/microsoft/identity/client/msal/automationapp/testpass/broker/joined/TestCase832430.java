@@ -137,8 +137,7 @@ public class TestCase832430 extends AbstractMsalBrokerTest {
                 .activity(mActivity)
                 .loginHint(username)
                 .authority(account.getAuthority())
-                .forceRefresh(true)
-                .scopes(Arrays.asList(mScopes))
+                .resource(mScopes[0])
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
@@ -148,9 +147,9 @@ public class TestCase832430 extends AbstractMsalBrokerTest {
 
         // fetch token in an interactive request
         final MsalAuthTestParams msalAuthTestParams2 = MsalAuthTestParams.builder()
-                .loginHint(username)
                 .activity(mActivity)
-                .scopes(Arrays.asList(mScopes))
+                .loginHint(username)
+                .resource(mScopes[0])
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
