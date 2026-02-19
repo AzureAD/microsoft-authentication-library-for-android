@@ -94,7 +94,7 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
                             .broker(mBroker)
                             .expectingLoginPageAccountPicker(false)
                             .registerPageExpected(true)
-                            .build();
+                            .build()
 
                     AadPromptHandler(promptHandlerParameters)
                         .handlePrompt(account.username, account.password)
