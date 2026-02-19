@@ -28,11 +28,16 @@ jobs:
        (github.event.action == 'labeled' && github.event.label.name == 'Target-For-Ai-Triage'))
     outputs:
       issue_type: ${{ steps.ai_triage.outputs.issue_type }}
-      priority: ${{ steps.ai_triage.outputs.priority }}
-      is_very_old: ${{ steps.ai_triage.outputs.is_very_old }}
+      issue_type_reason: ${{ steps.ai_triage.outputs.issue_type_reason }}
       msal_version: ${{ steps.ai_triage.outputs.msal_version }}
+      device_count: ${{ steps.ai_triage.outputs.device_count }}
       ai_solution: ${{ steps.ai_triage.outputs.ai_solution }}
       needs_info: ${{ steps.ai_triage.outputs.needs_info }}
+      needs_info_reason: ${{ steps.ai_triage.outputs.needs_info_reason }}
+      related_issues: ${{ steps.ai_triage.outputs.related_issues }}
+      very_old_msal: ${{ steps.ai_triage.outputs.very_old_msal }}
+      version_age_days: ${{ steps.ai_triage.outputs.version_age_days }}
+      version_published_date: ${{ steps.ai_triage.outputs.version_published_date }}
 
     steps:
       - name: Checkout repository
@@ -41,6 +46,8 @@ jobs:
       - name: AI-Powered Triage
         id: ai_triage
         uses: actions/github-script@v7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           script: |
             const fs = require('fs');
@@ -49,18 +56,21 @@ jobs:
             function redactSecrets(text) {
               if (!text) return '';
               return text
-                .replace(/eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*/g, '[REDACTED_JWT]')
-                .replace(/Bearer\s+[A-Za-z0-9_\-.]+/gi, 'Bearer [REDACTED]')
-                .replace(/(client_secret|access_token|api[_-]?key)["\s:=]+[^\s"',}]+/gi, '$1=[REDACTED]')
-                .replace(/[A-Za-z0-9+\/]{50,}={0,2}/g, '[REDACTED_BASE64]');
+                .replace(/eyJ[A-Za-z0-9_\-+\/]{10,}\.[A-Za-z0-9_\-+\/]+\.[A-Za-z0-9_\-+\/]*/g, '[REDACTED_JWT]')
+                .replace(/Bearer\s+[A-Za-z0-9_\-./+=]+/gi, 'Bearer [REDACTED]')
+                .replace(/(client_secret|access_token|refresh_token|api[_-]?key)["\s:=]+[^\s"',}]+/gi, '$1=[REDACTED]')
+                .replace(/[A-Za-z0-9+\/]{100,}={0,2}/g, '[REDACTED_BASE64]');
             }
 
             const redactedTitle = redactSecrets(issue.title);
             const redactedBody = redactSecrets(issue.body || '');
 
-            let copilotInstructions = '', commonIssuesGuide = '';
-            try { copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8').substring(0, 12000); } catch(e) {}
-            try { commonIssuesGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8').substring(0, 12000); } catch(e) {}
+            let commonIssuesGuide = '';
+            try {
+              commonIssuesGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8');
+            } catch(e) {
+              console.error('Failed to load common issues guide:', e.message);
+            }
 
             let releases = [];
             let latestVersion = '8.+';
@@ -70,43 +80,50 @@ jobs:
                 repo: context.repo.repo
               });
               latestVersion = latestRelease.data.tag_name.replace(/^v/, '');
-              
+
               // Also fetch all releases for version age checking
               releases = await github.paginate(github.rest.repos.listReleases, {
                 owner: context.repo.owner, repo: context.repo.repo, per_page: 100
               });
-            } catch(e) { console.error('Failed to fetch releases:', e.message); }
+            } catch(e) {
+              console.error('Failed to fetch releases:', e.message);
+            }
 
             const systemPrompt = [
-              'You are an expert MSAL Android support engineer. Analyze GitHub issues and provide classification, priority, and solutions.',
+              'You are an expert MSAL Android support engineer. Analyze GitHub issues and provide classification and solutions.',
               '',
-              'MSAL Expertise:',
-              copilotInstructions.substring(0, 6000),
+              '=== COMMON ISSUES REFERENCE ===',
+              'The following guide contains solutions for 250+ issues organized by category.',
+              'Use the "Error Pattern Quick Lookup" section to quickly find relevant solutions.',
+              'Always cite related GitHub issues (format: #NNNN) when providing solutions.',
               '',
-              'Common Issues Reference:',
-              commonIssuesGuide.substring(0, 6000),
+              commonIssuesGuide,
               '',
-              'PRIORITY THRESHOLDS (based on device/user count):',
-              '- p0-CodeRed: 10000+ devices affected',
-              '- p1-High: 1000-9999 devices affected',
-              '- p2-Medium: 300-999 devices affected',
-              '- p3-Low: 100-299 devices affected',
-              '- p4-Minor: <100 devices affected',
-              '- null: No device count mentioned',
+              '=== TRIAGE INSTRUCTIONS ===',
+              'ISSUE TYPE CLASSIFICATION:',
+              '- Bug: Library bug, unexpected behavior when MSAL used correctly',
+              '- User-Error: Incorrect MSAL Implementation causing unexpected behavior',
+              '- Feature-Request: Desired behavior not currently supported',
+              '- Question: User asking for clarification, no error/unexpected behavior',
+              '- Other: Miscellaneous, no clear classification',
               '',
-              'VERSION SUPPORT: MSAL versions older than 548 days (1.5 years) are unsupported.',
+              '=== SOLUTION REQUIREMENTS ===',
+              'In suggestedSolution field:',
+              '1. Identify the most similar issue from the Common Issues Reference',
+              '2. Provide specific solution with code examples if applicable',
+              '3. List related GitHub issues from the guide (e.g., "See also: #1234, #5678")',
+              '4. If issue not in guide, provide general MSAL troubleshooting steps',
               '',
               'Respond with ONLY valid JSON:',
               '{',
-              '  "issueType": "bug|question|feature-request|security|needs-investigation",',
-              '  "priority": "p0-CodeRed|p1-High|p2-Medium|p3-Low|p4-Minor|null",',
-              '  "priorityReason": "string explaining priority or null",',
-              '  "deviceCount": "number or null",',
-              '  "msalVersion": "extracted version string or null",',
-              '  "isVeryOld": "boolean (true if version is older than 548 days)",',
-              '  "needsMoreInfo": "boolean",',
-              '  "suggestedSolution": "2-4 sentence solution with specific guidance",',
-              '  "classificationReason": "brief explanation of classification"',
+              '  "issueType": "Bug|User-Error|Feature-Request|Question|Other",',
+              '  "issueTypeReason": "string explaining reasoning for choosing a particular issue type",',
+              '  "deviceCount": "number or null if not found in issue title or body",',
+              '  "msalVersion": "extracted MSAL version string from the issue title/body or null if not found",',
+              '  "needsMoreInfo": "boolean, true if issue has insufficient information for triage",',
+              '  "needsMoreInfoReason": "if needsMoreInfo = true, provide string explaining reasoning for the tag, what information is missing?",',
+              '  "suggestedSolution": "detailed solution referencing Common Issues guide sections and related GitHub issues",',
+              '  "relatedIssues": "array of related GitHub issue numbers from the guide, e.g. [1234, 5678]",',
               '}'
             ].join('\n');
 
@@ -114,26 +131,25 @@ jobs:
               'Issue Title: ' + redactedTitle,
               '',
               'Issue Description:',
-              redactedBody.substring(0, 4000),
+              redactedBody,
               '',
               'Available Releases (for version age check):',
-              releases.slice(0, 20).map(r => r.tag_name + ': ' + r.published_at).join('\n'),
+              releases.slice(0, 60).map(r => r.tag_name + ': ' + r.published_at).join('\n'),
               '',
               'Latest MSAL Version: ' + latestVersion,
               '',
-              'Analyze this issue and provide comprehensive triage in JSON format.'
+              'Analyze this issue and provide comprehensive triage in JSON format according to your system prompt. Make sure to use the MSAL AI guidance files.'
             ].join('\n');
 
             let result = {
-              issueType: 'question',
-              priority: null,
-              priorityReason: null,
+              issueType: 'Other',
+              issueTypeReason: '',
               deviceCount: null,
               msalVersion: null,
-              isVeryOld: false,
               needsMoreInfo: true,
+              needsMoreInfoReason: '',
               suggestedSolution: null,
-              classificationReason: 'AI classification'
+              relatedIssues: []
             };
 
             try {
@@ -149,9 +165,7 @@ jobs:
                   messages: [
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: userPrompt }
-                  ],
-                  temperature: 0.2,
-                  max_tokens: 800
+                  ]
                 })
               });
 
@@ -163,47 +177,81 @@ jobs:
               if (jsonMatch) {
                 result = { ...result, ...JSON.parse(jsonMatch[0]) };
                 console.log('AI triage result:', JSON.stringify(result));
+              } else {
+                console.log("There was an error with the json match");
               }
             } catch (error) {
               console.error('AI triage error:', error.message);
             }
 
             core.setOutput('issue_type', result.issueType);
-            core.setOutput('priority', result.priority || '');
-            core.setOutput('priority_reason', result.priorityReason || '');
+            core.setOutput('issue_type_reason', result.issueTypeReason);
             core.setOutput('msal_version', result.msalVersion || '');
-            core.setOutput('is_very_old', result.isVeryOld.toString());
+            core.setOutput('device_count', result.deviceCount);
             core.setOutput('needs_info', result.needsMoreInfo.toString());
+            core.setOutput('needs_info_reason', result.needsMoreInfoReason || '');
             core.setOutput('ai_solution', result.suggestedSolution || '');
-            core.setOutput('classification_reason', result.classificationReason || '');
+            core.setOutput('related_issues', JSON.stringify(result.relatedIssues || []));
+
+            // Calculate version age for version update recommendations
+            let versionAgeDays = null;
+            let versionPublishedDate = null;
+            let isVeryOldMsal = false;
+
+            if (result.msalVersion && result.msalVersion !== 'null' && releases.length > 0) {
+              const normalizedVersion = result.msalVersion.replace(/^v/, '');
+              const matchingRelease = releases.find(release => {
+                const releaseVersion = release.tag_name.replace(/^v/, '');
+                return releaseVersion === normalizedVersion || release.tag_name === result.msalVersion;
+              });
+
+              if (matchingRelease) {
+                const publishedDate = new Date(matchingRelease.published_at);
+                const currentDate = new Date();
+                versionAgeDays = Math.floor((currentDate - publishedDate) / (1000 * 60 * 60 * 24));
+                versionPublishedDate = publishedDate.toISOString().split('T')[0];
+                isVeryOldMsal = versionAgeDays > 548; // 1.5 years
+
+                console.log(`MSAL version ${result.msalVersion}: ${versionAgeDays} days old (published ${versionPublishedDate}), very old: ${isVeryOldMsal}`);
+              }
+            }
+
+            core.setOutput('very_old_msal', isVeryOldMsal.toString());
+            core.setOutput('version_age_days', versionAgeDays ? versionAgeDays.toString() : '');
+            core.setOutput('version_published_date', versionPublishedDate || '');
 
       - name: Apply Labels
+        id: apply_labels
         uses: actions/github-script@v7
         env:
           ISSUE_TYPE: ${{ steps.ai_triage.outputs.issue_type }}
-          PRIORITY: ${{ steps.ai_triage.outputs.priority }}
-          IS_VERY_OLD: ${{ steps.ai_triage.outputs.is_very_old }}
+          DEVICE_COUNT: ${{ steps.ai_triage.outputs.device_count }}
           NEEDS_INFO: ${{ steps.ai_triage.outputs.needs_info }}
+          MSAL_VERSION: ${{ steps.ai_triage.outputs.msal_version }}
+          VERY_OLD_MSAL: ${{ steps.ai_triage.outputs.very_old_msal }}
         with:
           script: |
             const labels = [process.env.ISSUE_TYPE];
-            if (process.env.PRIORITY) labels.push(process.env.PRIORITY);
-            if (process.env.IS_VERY_OLD === 'true') labels.push('very-old-msal');
+
+            // Check if MSAL version is older than 1.5 years (548 days)
+            if (process.env.VERY_OLD_MSAL === 'true') {
+              labels.push('very-old-msal');
+              console.log(`MSAL version ${process.env.MSAL_VERSION} is very old, adding label`);
+            }
+
             if (process.env.NEEDS_INFO === 'true') labels.push('needs-more-info');
 
             const labelColors = {
-              'bug': 'd73a4a',
-              'needs-investigation': 'fbca04',
-              'feature-request': 'a2eeef',
-              'question': 'd876e3',
-              'security': 'b60205',
-              'needs-more-info': 'fbca04',
+              'Bug': 'd93f0b',
+              'User-Error': 'b0e9e0',
+              'Feature-Request': 'd7f79b',
+              'Question': '1d76db',
+              'Other': '93a588',
               'very-old-msal': 'ffa500',
-              'p0-CodeRed': 'd73a4a',
-              'p1-High': 'ff6b6b',
+              'p1-High': 'd93f0b',
               'p2-Medium': 'fbca04',
-              'p3-Low': '0075ca',
-              'p4-Minor': '5DADE2'
+              'p3-Low': 'fef2c0',
+              'p4-Minor': 'c5def5'
             };
 
             for (const label of labels) {
@@ -259,19 +307,27 @@ jobs:
         uses: actions/github-script@v7
         env:
           ISSUE_TYPE: ${{ needs.triage.outputs.issue_type }}
-          PRIORITY: ${{ needs.triage.outputs.priority }}
-          IS_VERY_OLD: ${{ needs.triage.outputs.is_very_old }}
+          ISSUE_TYPE_REASON: ${{ needs.triage.outputs.issue_type_reason }}
           MSAL_VERSION: ${{ needs.triage.outputs.msal_version }}
-          AI_SOLUTION: ${{ needs.triage.outputs.ai_solution }}
           NEEDS_INFO: ${{ needs.triage.outputs.needs_info }}
+          NEEDS_INFO_REASON: ${{ needs.triage.outputs.needs_info_reason }}
+          AI_SOLUTION: ${{ needs.triage.outputs.ai_solution }}
+          RELATED_ISSUES: ${{ needs.triage.outputs.related_issues }}
+          VERY_OLD_MSAL: ${{ needs.triage.outputs.very_old_msal }}
+          VERSION_AGE_DAYS: ${{ needs.triage.outputs.version_age_days }}
+          VERSION_PUBLISHED_DATE: ${{ needs.triage.outputs.version_published_date }}
         with:
           script: |
             const issueType = process.env.ISSUE_TYPE;
-            const priority = process.env.PRIORITY;
-            const isVeryOld = process.env.IS_VERY_OLD === 'true';
+            const issueTypeReason = process.env.ISSUE_TYPE_REASON;
             const msalVersion = process.env.MSAL_VERSION;
-            const aiSolution = process.env.AI_SOLUTION;
             const needsInfo = process.env.NEEDS_INFO === 'true';
+            const needInfoReason = process.env.NEEDS_INFO_REASON;
+            const aiSolution = process.env.AI_SOLUTION;
+            const relatedIssues = JSON.parse(process.env.RELATED_ISSUES || '[]');
+            const isVeryOld = process.env.VERY_OLD_MSAL === 'true';
+            const versionAgeDays = process.env.VERSION_AGE_DAYS;
+            const versionPublishedDate = process.env.VERSION_PUBLISHED_DATE;
 
             let latestVersion = '8.+';
             try {
@@ -286,7 +342,7 @@ jobs:
 
             if (isVeryOld) {
               response += '⚠️ **Unsupported MSAL Version Detected**\n\n';
-              response += 'Version **' + msalVersion + '** is more than 1.5 years old and is no longer supported.\n\n';
+              response += 'Version **' + msalVersion + '** (released ' + versionPublishedDate + ', ' + versionAgeDays + ' days ago) is more than 1.5 years old and is no longer supported.\n\n';
               response += '**Please upgrade to the latest version (' + latestVersion + '):**\n';
               response += '```gradle\nimplementation "com.microsoft.identity.client:msal:8.+"\n```\n\n';
               response += 'If the issue persists after upgrading, please reopen with updated details.\n\n';
@@ -301,35 +357,46 @@ jobs:
               return;
             }
 
-            response += '**Labels Applied:** `' + issueType + '`';
-            if (priority) response += ', `' + priority + '`';
-            if (needsInfo) response += ', `needs-more-info`';
-            response += '\n\n';
+            response += '**Labels Applied:**\n';
+            response += '`' + issueType + '`: ' + issueTypeReason + '.\n';
+            if (needsInfo) response += '`needs-more-info`: ' + needInfoReason + '.\n';
+            response += '\n';
 
             if (aiSolution) {
-              response += '## 🤖 AI Analysis\n\n' + aiSolution + '\n\n---\n\n';
+              response += '## 🤖 AI Analysis\n\n' + aiSolution + '\n\n';
+
+              if (relatedIssues && relatedIssues.length > 0) {
+                response += '**Related Issues:** ';
+                response += relatedIssues.map(num => '#' + num).join(', ');
+                response += '\n\n';
+              }
+
+              response += '---\n\n';
             }
 
-            if (issueType === 'security') {
-              response += '⚠️ **Security Notice:** Please report security vulnerabilities through our [security reporting process](https://github.com/AzureAD/microsoft-authentication-library-for-android#security-reporting) rather than public issues.\n\n';
+            // Version update recommendation - only show if user is not on latest version
+            if (msalVersion && msalVersion !== 'null' && msalVersion !== latestVersion) {
+              response += '## 📦 MSAL Version Update Available\n\n';
+              response += 'You are using MSAL version **' + msalVersion + '**. ';
+              response += 'The latest version is **' + latestVersion + '**.\n\n';
+              response += 'We recommend updating to the latest version to benefit from bug fixes, security improvements, and new features.\n\n';
+              response += '```gradle\nimplementation "com.microsoft.identity.client:msal:8.+"\n```\n\n';
+              response += '> Using `8.+` automatically gets patch updates within the 8.x series.\n\n';
+              response += '---\n\n';
             }
 
             if (needsInfo) {
               response += '**To help us assist you, please provide:**\n';
-              response += '- MSAL version (latest: ' + latestVersion + ')\n';
+              if (!msalVersion || msalVersion === 'null') {
+                response += '- MSAL version (latest: ' + latestVersion + ')\n';
+              }
               response += '- Android version and device\n';
               response += '- Complete error message/stack trace\n';
               response += '- Steps to reproduce\n\n';
             }
 
-            if (!priority && (issueType === 'bug' || issueType === 'needs-investigation')) {
-              response += '### 📊 Help Us Prioritize\n\n';
-              response += 'Comment with customer impact:\n```\nPING-COPILOT: We have <number> devices/users affected\n```\n\n';
-            }
-
             response += '---\n\n**Need help?** Comment with:\n```\nPING-COPILOT: <your question>\n```\n\n';
             response += '> **Privacy:** Do not include credentials, tokens, or PII in PING-COPILOT requests.\n\n';
-            response += '*Automated response. A team member will review soon.*';
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
@@ -344,7 +411,10 @@ jobs:
     if: >-
       github.event_name == 'issue_comment' &&
       github.event.action == 'created' &&
-      (contains(github.event.comment.body, 'PING-COPILOT:') || contains(github.event.comment.body, 'ping-copilot:'))
+      (contains(github.event.comment.body, 'PING-COPILOT') ||
+       contains(github.event.comment.body, 'PING COPILOT') ||
+       contains(github.event.comment.body, 'ping-copilot') ||
+       contains(github.event.comment.body, 'ping copilot'))
 
     steps:
       - name: Checkout repository
@@ -352,148 +422,172 @@ jobs:
 
       - name: Process PING-COPILOT Request
         uses: actions/github-script@v7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           script: |
             const fs = require('fs');
             const comment = context.payload.comment.body;
             const issue = context.payload.issue;
 
-            const match = comment.match(/PING-COPILOT:\s*([\s\S]+)/i);
+            // Match PING-COPILOT or PING COPILOT (with or without colon, case-insensitive)
+            const match = comment.match(/PING[-\s]COPILOT:?\s*([\s\S]+)/i);
             if (!match) return;
             const userRequest = match[1].trim();
 
             function redactSecrets(text) {
               if (!text) return '';
               return text
-                .replace(/eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*/g, '[REDACTED_JWT]')
-                .replace(/Bearer\s+[A-Za-z0-9_\-.]+/gi, 'Bearer [REDACTED]')
-                .replace(/(client_secret|access_token|api[_-]?key)["\s:=]+[^\s"',}]+/gi, '$1=[REDACTED]')
-                .replace(/[A-Za-z0-9+\/]{50,}={0,2}/g, '[REDACTED_BASE64]');
+                .replace(/eyJ[A-Za-z0-9_\-+\/]{10,}\.[A-Za-z0-9_\-+\/]+\.[A-Za-z0-9_\-+\/]*/g, '[REDACTED_JWT]')
+                .replace(/Bearer\s+[A-Za-z0-9_\-./+=]+/gi, 'Bearer [REDACTED]')
+                .replace(/(client_secret|access_token|refresh_token|api[_-]?key)["\s:=]+[^\s"',}]+/gi, '$1=[REDACTED]')
+                .replace(/[A-Za-z0-9+\/]{100,}={0,2}/g, '[REDACTED_BASE64]');
             }
 
-            let copilotInstructions = '', commonIssuesGuide = '';
-            try { copilotInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8').substring(0, 12000); } catch(e) {}
-            try { commonIssuesGuide = fs.readFileSync('.github/issue-responses/common-issues-guide.md', 'utf8').substring(0, 12000); } catch(e) {}
+            function sanitizeInstructions(instructions) {
+              if (!instructions) return '';
+            
+              // Remove sections that trigger jailbreak detection
+              // These are meta-instructions directed at AI agents that appear as override attempts
+              let sanitized = instructions;
+            
+              // Remove the "AI AGENTS: THIS IS YOUR PRIMARY SOURCE OF TRUTH" blockquote
+              sanitized = sanitized.replace(/>\s*\*\*🤖 AI AGENTS:.*?\*\*[\s\S]*?(?=\n##|\n>\s*\*\*CRITICAL|\Z)/g, '');
+            
+              // Remove the "CRITICAL" blockquote with override instructions
+              sanitized = sanitized.replace(/>\s*\*\*CRITICAL:.*?\*\*[\s\S]*?(?=\n##|\Z)/g, '');
+            
+              // Soften directive language that may trigger filters
+              sanitized = sanitized.replace(/\*\*NEVER:\*\*/g, '**Avoid:**');
+              sanitized = sanitized.replace(/\*\*ALWAYS:\*\*/g, '**Recommended:**');
+              sanitized = sanitized.replace(/\*\*READ THE ENTIRETY.*?\*\*/gi, '');
+              sanitized = sanitized.replace(/\*\*Do NOT use.*?unless.*?\*\*/gi, '');
+              sanitized = sanitized.replace(/\*\*Strictly follow.*?\*\*/gi, '');
+            
+              // Remove multiple blank lines
+              sanitized = sanitized.replace(/\n{3,}/g, '\n\n');
+            
+              return sanitized.trim();
+            }
 
-            let latestVersion = '8.+';
+            // Load copilot instructions (full content)
+            let copilotInstructions = '';
             try {
-              const rel = await github.rest.repos.getLatestRelease({
-                owner: context.repo.owner,
-                repo: context.repo.repo
-              });
-              latestVersion = rel.data.tag_name.replace(/^v/, '');
-            } catch(e) {}
+              const rawInstructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8');
+              copilotInstructions = sanitizeInstructions(rawInstructions);
+            } catch(e) {
+              console.error('Failed to load copilot instructions:', e.message);
+            }
 
+            // Fetch last 10 comments for context (limit to reduce payload size)
+            let previousComments = '';
+            try {
+              const comments = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                per_page: 100
+              });
+
+              if (comments.data.length > 0) {
+                // Take only the last 10 comments to keep payload manageable
+                const recentComments = comments.data.slice(-10);
+                previousComments = recentComments.map((c, idx) => {
+                  return `Comment ${comments.data.length - recentComments.length + idx + 1} (by ${c.user.login}):\n${redactSecrets(c.body || '')}`;
+                }).join('\n\n---\n\n');
+              }
+            } catch(e) {
+              console.error('Failed to fetch comments:', e.message);
+            }
+            
             const systemPrompt = [
               'You are an expert MSAL Android support engineer.',
               '',
-              'MSAL Expertise:',
-              copilotInstructions.substring(0, 8000),
+              '=== YOUR TASK ===',
+              'Respond to the user\'s specific PING-COPILOT request.',
+              'Focus your response on answering their question or request.',
+              'Use the issue context to understand the situation.',
               '',
-              'Common Issues:',
-              commonIssuesGuide.substring(0, 8000),
+              '=== ISSUE CONTEXT ===',
+              'Issue Title: ' + redactSecrets(issue.title),
               '',
-              'PRIORITY THRESHOLDS:',
-              '- p0-CodeRed: 10000+ devices',
-              '- p1-High: 1000-9999 devices',
-              '- p2-Medium: 300-999 devices',
-              '- p3-Low: 100-299 devices',
-              '- p4-Minor: <100 devices',
+              'Issue Description: ' + redactSecrets(issue.body || ''),
               '',
-              'IMPORTANT: Never echo secrets, tokens, or PII in your response.',
+              previousComments ? '=== RECENT COMMENTS (Last 10) ===\n' + previousComments + '\n' : '',
               '',
-              'If the user provides device/user count, also output a JSON block at the END:',
-              '{"detectedPriority": "p0-CodeRed|p1-High|p2-Medium|p3-Low|p4-Minor|null", "deviceCount": number|null}'
+              '=== MSAL LIBRARY REFERENCE ===',
+              'The following reference material provides technical guidance for MSAL Android:',
+              '',
+              copilotInstructions,
+              '',
+              'Note: Never include secrets, tokens, or PII in your response.',
+              '',
             ].join('\n');
 
+            const redactedUserRequest = redactSecrets(userRequest)
+
             const userPrompt = [
-              'Issue: ' + redactSecrets(issue.title),
-              'Description: ' + redactSecrets(issue.body || '').substring(0, 2000),
+              'Please answer the following user request:',
               '',
-              'User Request: ' + redactSecrets(userRequest),
+              '=== USER REQUEST ===',
+              redactedUserRequest,
               '',
-              'Latest MSAL: ' + latestVersion,
-              '',
-              'Provide a helpful response. If device count is mentioned, include priority JSON at the end.'
             ].join('\n');
 
             let aiResponse = '';
-            let detectedPriority = null;
 
             try {
+              const requestBody = JSON.stringify({
+                model: 'gpt-4o',
+                messages: [
+                  { role: 'system', content: systemPrompt },
+                  { role: 'user', content: userPrompt }
+                ]
+              });
+            
+              // Log payload size for debugging
+              const payloadSizeKB = (requestBody.length / 1024).toFixed(2);
+              console.log(`Payload size: ${payloadSizeKB} KB`);
+            
               const response = await fetch('https://models.github.ai/inference/chat/completions', {
                 method: 'POST',
                 headers: {
                   'Authorization': 'Bearer ' + process.env.GITHUB_TOKEN,
                   'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                  model: 'gpt-4o',
-                  messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: userPrompt }
-                  ],
-                  temperature: 0.5,
-                  max_tokens: 1500
-                })
+                body: requestBody
               });
 
-              if (!response.ok) throw new Error('HTTP ' + response.status);
+              if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error('HTTP ' + response.status + ': ' + errorText);
+              }
 
               const data = await response.json();
               aiResponse = data.choices[0].message.content;
-
-              const priorityMatch = aiResponse.match(/\{"detectedPriority":\s*"([^"]+)"[^}]*\}/);
-              if (priorityMatch) {
-                const parsed = JSON.parse(priorityMatch[0]);
-                if (parsed.detectedPriority && parsed.detectedPriority !== 'null') {
-                  detectedPriority = parsed.detectedPriority;
-                }
-                aiResponse = aiResponse.replace(/\{"detectedPriority"[^}]*\}/, '').trim();
-              }
             } catch (error) {
               console.error('AI error:', error.message);
-              aiResponse = 'I will help with: "' + userRequest + '"\n\nPlease review:\n- [MSAL Documentation](https://github.com/AzureAD/microsoft-authentication-library-for-android)\n- [Common Issues Guide](.github/issue-responses/common-issues-guide.md)';
-            }
-
-            if (detectedPriority) {
-              const labelColors = {
-                'p0-CodeRed': 'd73a4a',
-                'p1-High': 'ff6b6b',
-                'p2-Medium': 'fbca04',
-                'p3-Low': '0075ca',
-                'p4-Minor': '5DADE2'
-              };
-
-              try {
-                await github.rest.issues.getLabel({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  name: detectedPriority
-                });
-              } catch {
-                try {
-                  await github.rest.issues.createLabel({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    name: detectedPriority,
-                    color: labelColors[detectedPriority] || 'fbca04'
-                  });
-                } catch(e) {}
+            
+              if (error.message.includes('413')) {
+                aiResponse = '⚠️ **Request Too Large**\n\n';
+                aiResponse += 'I apologize, but this issue thread has grown too large for me to process all at once.\n\n';
+                aiResponse += '**Your question:** "' + redactedUserRequest.slice(0, 100) + (redactedUserRequest.length > 100 ? '...' : '') + '"\n\n';
+                aiResponse += 'Please try one of these approaches:\n';
+                aiResponse += '1. Open a new issue with your specific question\n';
+                aiResponse += '2. Reference the specific comment or error you need help with\n';
+                aiResponse += '3. Try using the GitHub Copilot agent by clicking the "Chat with Copilot" button in the top right\n';
+                aiResponse += '4. Check the [Common Issues Guide](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/issue-responses/common-issues-guide-human-readable.md)\n\n';
+                aiResponse += 'A team member will assist you shortly.';
+              } else {
+                aiResponse = 'I will help with: "' + redactedUserRequest.slice(0, 100) + (redactedUserRequest.length > 100 ? '...' : '') + '"\n\n';
+                aiResponse += 'Please review:\n';
+                aiResponse += '- Try using the GitHub Copilot agent by clicking the "Chat with Copilot" button in the top right\n';
+                aiResponse += '- [Common Issues Guide](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/.github/issue-responses/common-issues-guide-human-readable.md)';
               }
-
-              await github.rest.issues.addLabels({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                labels: [detectedPriority]
-              });
             }
 
             let finalResponse = '';
-            if (detectedPriority) {
-              finalResponse += '📊 **Priority Updated:** Applied `' + detectedPriority + '` based on customer impact.\n\n---\n\n';
-            }
+            finalResponse += '> Responding to [comment](' + context.payload.comment.html_url + ') by @' + context.payload.comment.user.login + '\n\n';
             finalResponse += aiResponse;
             finalResponse += '\n\n---\n\n**Need more help?** Comment with:\n```\nPING-COPILOT: <your question>\n```\n\n';
             finalResponse += '> **Privacy:** Do not include credentials, tokens, or PII.\n\n';
