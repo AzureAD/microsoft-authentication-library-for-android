@@ -2,7 +2,7 @@
 
 Test cases in `msalautomationapp` grouped by directory. Shows planned combinations and tests to be dropped
 
-Total change in test count is 115 -> 82 (-28.7% decrease in total test cases, we will not exactly see a 1:1 decrease in execution time because some of these tests will now run longer)
+Total change in test count is 115 -> 76 (-34% decrease in total test cases, we will not exactly see a 1:1 decrease in execution time because some of these tests will now run longer)
 
 ---
 
@@ -16,15 +16,12 @@ Total change in test count is 115 -> 82 (-28.7% decrease in total test cases, we
   - TestCase1922515: [Joined] Generate SHR
   - Reasoning: Generate SHR after the silent request
 
-## broker/atpop/update/ (4) -> (2)
-- Combine Non-Joined Update Atpop
+## broker/atpop/update/ (4) -> (0, v5 scenarios no longer applicable)
+- Dropped
   - TestCase1922531: [Non-Joined][Update-old-to-V5] Acquire PoP token Silent
   - TestCase1922549: [Non-Joined][Update-old-to-V5] Generate SHR
-  - Reasoning: Generate SHR after the silent request
-- Combine Joined Update Atpop
   - TestCase1922530: [Joined][Update-old-to-V5] Acquire PoP token Silent
   - TestCase1922547: [Joined][Update-old-to-V5] Generate SHR
-  - Reasoning: Generate SHR after the silent request
 
 ## broker/brokerapi/ (6) -> (4)
 - Combine
@@ -155,10 +152,11 @@ Total change in test count is 115 -> 82 (-28.7% decrease in total test cases, we
 - TestCase833546: [MSAL] Broker Auth for Non-Joined Account - Multiple Resources
 - TestCase3139972, TestCase850455, TestCase497069 are very similar but test slighlty different scenarios that all seem applicable
 
-## broker/update/ (3) (No combinations, these seem very basic, maybe we can drop them or just keep one)
-- TestCaseUpdateAuthenticator: Update Microsoft Authenticator (LTW)
-- TestCaseUpdateCompanyPortal: Update Company Portal (LTW)
-- TestCaseUpdateLTW: Update LTW Broker (LTW)
+## broker/update/ (3) -> (0, dropping these)
+- Dropped:
+  - TestCaseUpdateAuthenticator: Update Microsoft Authenticator (LTW)
+  - TestCaseUpdateCompanyPortal: Update Company Portal (LTW)
+  - TestCaseUpdateLTW: Update LTW Broker (LTW)
 
 ## broker/usgov/ (5) (No combinations, each scenario requires fresh state)
 - TestCase796048: [USGOV][Broker][Non-Joined] Acquire Token with Resource with instance_aware = true
@@ -167,9 +165,9 @@ Total change in test count is 115 -> 82 (-28.7% decrease in total test cases, we
 - TestCase940421: [USGOV][Broker][Joined] In-line WPJ/MSAL - acquire token with deviceid claim request, and instance_aware=true
 - TestCase948676: [USGOV][Broker][Joined] Acquire token with instance_aware=true
 
-## broker/wpj/ (3) (These seem distinct, no combinations, maybe some can be dropped?)
-- TestCase831655: Verify WPJ Cert Installation on Non-Samsung Device with Authenticator
+## broker/wpj/ (3) -> (2)
 - TestCase833547: Broker Add Account via Account Manager
+  - TestCase831655 seems like a duplicate of this one, dropping TestCase831655
 - TestCase833561: [WPJ] Install WPJ Certificate for Browser Access
 
 ## msalonly/atpop/ (2) -> (1)
