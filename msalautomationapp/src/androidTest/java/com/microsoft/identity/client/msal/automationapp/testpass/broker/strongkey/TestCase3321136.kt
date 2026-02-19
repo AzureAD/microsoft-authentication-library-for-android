@@ -68,7 +68,7 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
 
         // Check that the registration was done with strong keys.
         val wpjRecordPreCA = brokerHost.multipleWpjApiFragment.getRecordByUpn(account.username)
-        Assert.assertEquals(wpjRecordPreCA["isRegisteredWithStrongKeys"], "false")
+        Assert.assertEquals("false", wpjRecordPreCA["isRegisteredWithStrongKeys"])
 
         val msalSdk = MsalSdk()
 
