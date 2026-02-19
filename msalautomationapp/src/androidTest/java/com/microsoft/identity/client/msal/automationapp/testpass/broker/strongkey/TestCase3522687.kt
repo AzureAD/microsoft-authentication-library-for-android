@@ -39,6 +39,7 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import org.junit.Assert
+import org.junit.Assume
 import org.junit.Before
 import org.junit.Test
 
@@ -57,10 +58,10 @@ class TestCase3522687 : AbstractMsalBrokerTest() {
 
     @Test
     fun test_3522687_WpjWithHardwareKeyByDefault() {
-        if (BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("performNonSharedWpjWithHardwareKey:false")) {
-            // The flight is not enabled, so WPJ would not be done with strong keys.
-            return
-        }
+        Assume.assumeFalse(
+            "performNonSharedWpjWithHardwareKey flight is not enabled, Test will be skipped",
+            BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("performNonSharedWpjWithHardwareKey:false")
+        )
 
         val account = mLabClient.getLabAccount("TPCAAndroid@msidlab4.onmicrosoft.com")
 
