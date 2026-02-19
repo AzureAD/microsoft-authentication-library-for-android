@@ -2,7 +2,7 @@
 
 Test cases in `msalautomationapp` grouped by directory. Shows planned combinations and tests to be dropped
 
-Total change in test count is 115 -> 77 (-33% decrease in total test cases, we will not exactly see a 1:1 decrease in execution time because some of these tests will now run longer)
+Total change in test count is 115 -> 78 (-33% decrease in total test cases, we will not exactly see a 1:1 decrease in execution time because some of these tests will now run longer)
 
 ---
 
@@ -150,14 +150,13 @@ Total change in test count is 115 -> 77 (-33% decrease in total test cases, we w
 - TestCase2688468: Nested App Interactive Token Request After Device is WPJd
 - TestCase2703171: Nested App Auth with US Gov Account
 
-## broker/nonjoined/ (9) -> (6)
+## broker/nonjoined/ (9) -> (7)
 - Combine
   - TestCase850455: [Non-Joined][MSAL] Acquire Token + Acquire Token Silent (Prompt.SELECT_ACCOUNT)
   - TestCase1561169: [Non-Joined][MSAL] Prompt.LOGIN
   - TestCase1561152: [Non-Joined][MSAL] Password Change (bad_token)
-- Combine
-  - TestCase497069: Broker Auth for non-joined account - select_account
-  - TestCase2139526: Acquire Token Silent After Policy Change Should Fail
+- TestCase497069: Broker Auth for non-joined account - select_account
+- TestCase2139526: Acquire Token Silent After Policy Change Should Fail
 - TestCase1592509: [MSAL] Mooncake: Silent Auth w/o cache w/o MFA w/ Prompt Auto w/ Broker
 - TestCase1600592: [Non-Joined] Single-Tenant App Silent Request with Common Authority Should Fail
 - TestCase3139972: [Non-Joined][MSAL] Acquire Token W/ Resource + Acquire Token Silent, no loginhint (Prompt.SELECT_ACCOUNT)

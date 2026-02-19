@@ -31,6 +31,7 @@ import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadLoginComponentHandler;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
+import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 
 import org.junit.Assert;
@@ -40,8 +41,10 @@ import java.util.Arrays;
 
 // Brokered Auth verify "Sign In from other device" option and remote login url.
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2828864
-@RetryOnFailure(retryCount = 2)
+//@RetryOnFailure(retryCount = 2)
 public class TestCase2828864 extends AbstractSignInFromOtherDeviceTest {
+
+    private final String TAG = TestCase2828864.class.getSimpleName();
 
     public TestCase2828864() {
         super(AzureEnvironment.AZURE_CLOUD);
@@ -65,8 +68,18 @@ public class TestCase2828864 extends AbstractSignInFromOtherDeviceTest {
         // ensure "Sign in from other device" option is no present.
         Assert.assertFalse(UiAutomatorUtils.obtainUiObjectWithText(SIGN_IN_FROM_OTHER_DEVICE).exists());
 
+        // exit the webview
+        UiAutomatorUtils.pressBack();
+        UiAutomatorUtils.pressBack();
+        UiAutomatorUtils.pressBack();
+
         // First, try with AZURE_CLOUD
         this.testSignInFromOtherDevice();
+
+        // exit the webview
+        UiAutomatorUtils.pressBack();
+        UiAutomatorUtils.pressBack();
+        UiAutomatorUtils.pressBack();
 
         // TODO: ADD TO ADO ITEM
         // Second, try with AZURE_US_GOVERNMENT

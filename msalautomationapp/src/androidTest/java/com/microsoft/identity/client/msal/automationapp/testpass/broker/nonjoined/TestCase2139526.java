@@ -22,47 +22,52 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.nonjoined;
 
+import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
+import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.LongUIAutomationTest;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
-import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
-import com.microsoft.identity.labapi.utilities.constants.UserType;
-
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
-// Broker Auth for non-joined account - select_account
-// https://identitydivision.visualstudio.com/DefaultCollection/DevEx/_workitems/edit/497069
-@RetryOnFailure(retryCount = 2)
-public class TestCase497069 extends AbstractMsalBrokerTest {
+// Acquire Token Silent After Policy Change Should Fail
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2139526
+@RetryOnFailure
+@LongUIAutomationTest
+public class TestCase2139526 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_497069_NonJoined_SelectAccount() throws Throwable {
+    public void test_2139526_NonJoined_PolicyChangeFailesATS() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
 
+        // Interactive call
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
-                .scopes(Arrays.asList(mScopes))
+                .scopes(Arrays.asList(getScopes()))
+                .resource("00000003-0000-0ff1-ce00-000000000000")
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
+        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
@@ -82,45 +87,41 @@ public class TestCase497069 extends AbstractMsalBrokerTest {
 
         authResult.assertSuccess();
 
-        // SECOND REQUEST WITHOUT LOGIN HINT
-        final MsalAuthTestParams noLoginHintParams = MsalAuthTestParams.builder()
+        // Change the policy to MAM_CA
+        mLabClient.enablePolicy(username, ProtectionPolicy.MAM_CA);
+
+        // It takes some time for the policy change to reflect
+        Thread.sleep(TimeUnit.MINUTES.toMillis(3));
+
+        // advance clock by more than an hour to expire AT in cache
+        TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
+
+        // Try silent call with sharepoint as the resource, this should fail
+        // Silent call
+        final IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),username);
+
+        final MsalAuthTestParams silentParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .scopes(Arrays.asList(mScopes))
-                .promptParameter(Prompt.SELECT_ACCOUNT)
+                .loginHint(username)
+                .authority(account.getAuthority())
+                .forceRefresh(true)
+                .scopes(Arrays.asList(getScopes()))
+                .resource("00000003-0000-0ff1-ce00-000000000000")
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        final MsalAuthResult noLoginHintauthResult = msalSdk.acquireTokenInteractive(noLoginHintParams, new OnInteractionRequired() {
-            @Override
-            public void handleUserInteraction() {
-                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                        .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .loginHint(null)
-                        .sessionExpected(true)
-                        .consentPageExpected(false)
-                        .speedBumpExpected(false)
-                        .broker(mBroker)
-                        .expectingBrokerAccountChooserActivity(true)
-                        .build();
-
-                new AadPromptHandler(promptHandlerParameters)
-                        .handlePrompt(username, password);
-            }
-        }, TokenRequestTimeout.MEDIUM);
-
-        noLoginHintauthResult.assertSuccess();
+        final MsalAuthResult silentAuthResult = msalSdk.acquireTokenSilent(silentParams,TokenRequestTimeout.SILENT);
+        silentAuthResult.assertFailure();
     }
 
     @Override
     public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .build();
+        return null;
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return null;
+        return TempUserType.BASIC;
     }
 
     @Override
@@ -130,12 +131,11 @@ public class TestCase497069 extends AbstractMsalBrokerTest {
 
     @Override
     public String getAuthority() {
-        return mApplication.getConfiguration().getDefaultAuthority().toString();
+        return "https://login.microsoftonline.us/common";
     }
 
     @Override
     public int getConfigFileResourceId() {
         return R.raw.msal_config_default;
     }
-
 }
