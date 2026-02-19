@@ -43,7 +43,7 @@ import org.junit.Test
 
 // Using TrueMAM account will require a broker, and will require CP instead of Authenticator
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2516571
-@RetryOnFailure
+//@RetryOnFailure
 class TestCase2516571 : AbstractMsalUiTest(){
 
     @Test
@@ -138,7 +138,17 @@ class TestCase2516571 : AbstractMsalUiTest(){
         outlook.launch()
         outlook.forceStop()
         outlook.launch()
-        outlook.signInThroughSnackBar(username, password, promptHandlerParameters)
+        val secondOutlookPromptHandler = FirstPartyAppPromptHandlerParameters.builder()
+            .broker(null)
+            .prompt(PromptParameter.SELECT_ACCOUNT)
+            .loginHint(username)
+            .consentPageExpected(false)
+            .sessionExpected(false)
+            .expectingBrokerAccountChooserActivity(false)
+            .expectingLoginPageAccountPicker(false)
+            .registerPageExpected(true)
+            .build()
+        outlook.signInThroughSnackBar(username, password, secondOutlookPromptHandler)
 
         // Not totally sure what prompts outlook to take the snackbar away, sometimes it still appears after re-authentication
         // We wait a bit and relaunch outlook twice, this seems improve the chance of the snackbar disappearing
