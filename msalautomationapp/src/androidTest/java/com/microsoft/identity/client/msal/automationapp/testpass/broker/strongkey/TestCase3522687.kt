@@ -48,14 +48,6 @@ import org.junit.Test
 @RetryOnFailure
 class TestCase3522687 : AbstractMsalBrokerTest() {
 
-    private lateinit var mBrokerHostApp: BrokerHost
-
-    @Before
-    fun before() {
-        mBrokerHostApp = broker as BrokerHost
-        mBrokerHostApp.enableMultipleWpj()
-    }
-
     @Test
     fun test_3522687_WpjWithHardwareKeyByDefault() {
         Assume.assumeFalse(
@@ -76,7 +68,7 @@ class TestCase3522687 : AbstractMsalBrokerTest() {
         // Check that the registration was done with strong keys.
         val deviceRegistrationRecords = brokerHost.multipleWpjApiFragment.allRecords
         Assert.assertEquals(1, deviceRegistrationRecords.size)
-        Assert.assertEquals(deviceRegistrationRecords[0]["isRegisteredWithStrongKeys"], "true")
+        Assert.assertEquals("true", deviceRegistrationRecords[0]["isRegisteredWithStrongKeys"])
 
         //acquiring token, no password prompt, no wpj upgrade prompt.
         val msalSdk = MsalSdk()

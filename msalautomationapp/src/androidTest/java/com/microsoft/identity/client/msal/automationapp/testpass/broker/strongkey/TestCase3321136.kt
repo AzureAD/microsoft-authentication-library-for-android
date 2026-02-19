@@ -42,6 +42,7 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import org.junit.Assert
+import org.junit.Assume
 import org.junit.Test
 
 //  [StrongKey] Upgrade from regular WPJ to StrongKey WPJ (via CA)
@@ -51,10 +52,10 @@ import org.junit.Test
 class TestCase3321136 : AbstractMsalBrokerTest() {
     @Test
     fun test_3321136_UpgradeFromRegularWpjToStrongKeyWpj() {
-        if (BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("performNonSharedWpjWithHardwareKey:true")) {
-            // WPJ would already be done with strong keys, so we can skip the test as the pre-CA scenario cannot be tested.
-            return;
-        }
+        Assume.assumeFalse(
+            "performNonSharedWpjWithHardwareKey flight is enabled, Test will be skipped",
+            BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("performNonSharedWpjWithHardwareKey:false")
+        )
 
         val account = mLabClient.getLabAccount("TPCAAndroid@msidlab4.onmicrosoft.com")
 
@@ -107,7 +108,7 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
 
         // Check that the registration was done with strong keys.
         val wpjRecord = brokerHost.multipleWpjApiFragment.getRecordByUpn(account.username)
-        Assert.assertEquals(wpjRecord["isRegisteredWithStrongKeys"], "true")
+        Assert.assertEquals("true", wpjRecord["isRegisteredWithStrongKeys"])
         Assert.assertEquals(wpjRecordPreCA["DeviceId"], wpjRecord["DeviceId"]) // device id mustn't change.
     }
 

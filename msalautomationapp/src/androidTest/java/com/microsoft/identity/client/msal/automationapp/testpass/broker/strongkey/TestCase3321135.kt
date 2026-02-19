@@ -75,7 +75,7 @@ class TestCase3321135 : AbstractMsalBrokerTest() {
                             .broker(mBroker)
                             .expectingLoginPageAccountPicker(false)
                             .registerPageExpected(true)
-                            .build();
+                            .build()
 
                     AadPromptHandler(promptHandlerParameters)
                         .handlePrompt(account.username, account.password)
@@ -91,7 +91,7 @@ class TestCase3321135 : AbstractMsalBrokerTest() {
 
         // Check that the registration was done with strong keys.
         val wpjRecord = brokerHost.multipleWpjApiFragment.getRecordByUpn(account.username)
-        Assert.assertEquals(wpjRecord["isRegisteredWithStrongKeys"], "true")
+        Assert.assertEquals("true", wpjRecord["isRegisteredWithStrongKeys"])
     }
 
     override fun getLabQuery(): LabQuery? {
