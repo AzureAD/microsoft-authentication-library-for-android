@@ -2,7 +2,7 @@
 
 Test cases in `msalautomationapp` grouped by directory. Shows planned combinations and tests to be dropped
 
-Total change in test count is 115 -> 78 (-33% decrease in total test cases, we will not exactly see a 1:1 decrease in execution time because some of these tests will now run longer)
+Total change in test count is 115 -> 82 (-28.7% decrease in total test cases, we will not exactly see a 1:1 decrease in execution time because some of these tests will now run longer)
 
 ---
 
@@ -49,22 +49,14 @@ Total change in test count is 115 -> 78 (-33% decrease in total test cases, we w
   - TestCase2828868: Check 'Sign In from Other Device' Option (US Gov)
   - Reasoning: First try without parameter, then try Azure Cloud, then US Gov
 
-## broker/flw/ (7) -> (3)
-- Combine 5 into one Big SDM Test
-  - Setup SDM
-  - Sign in with cloud user
-  - Check cloud user can use App A and B (833514)
-    - TestCase833514: End My Shift - SSO Across Apps in Shared Device Mode
-  - Check account from other tenant cannot sign in (833513)
-    - TestCase833513: Shared Device Mode - Only Same Tenant Can Acquire Token
-  - Try account from same tenant, should fail (833516)
-    - TestCase833516: End My Shift - Only One Sign-In Account Allowed
-  - Verify sign out (833515) and silent request interruption (2495140)
-    - TestCase833515: End My Shift - Global Sign Out in Shared Device Mode
-    - TestCase2495140: Shared Device Mode - Global Sign Out Clears Data and Requests
+## broker/flw/ (7) (No changes, attempts at combination resulted in inconsistent and failing tests)
 - TestCase833511: Shared Device Registration with Non-Admin Account should fail
+- TestCase833513: End My Shift - End My Shift - In Shared device mode, only account from the same tenant should be able to acquire token.
+- TestCase833514: End My Shift - In Shared device mode, an account signed in through App A can be used by App B.
+- TestCase833515: End My Shift - In Shared device mode, global sign out should work.
+- TestCase833516: End My Shift - In Shared device mode, there can be only one sign-in account.
 - TestCase833517: End My Shift - Account Sign Out Notification
-  - Seems very similar to 833515, signs out admin account rather than cloud account, do we need both?
+- TestCase2495140: End My Shift - In Shared device mode, global sign out should wait/cancel existing silent requests
 
 ## broker/foci/ (1) (Only one test, no combinations)
 - TestCase833544: FOCI SSO with Outlook and Word (Non-joined)
