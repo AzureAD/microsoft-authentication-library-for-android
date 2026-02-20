@@ -100,7 +100,7 @@ class TestCase3522687 : AbstractMsalBrokerTest() {
         return null
     }
 
-    override fun getScopes(): Array<String?> {
+    override fun getScopes(): Array<String> {
         return arrayOf("User.read")
     }
 
