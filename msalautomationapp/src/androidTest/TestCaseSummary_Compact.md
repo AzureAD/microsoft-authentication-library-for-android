@@ -2,7 +2,7 @@
 
 Test cases in `msalautomationapp` grouped by directory. Shows planned combinations and tests to be dropped
 
-Total change in test count is 115 -> 76 (-34% decrease in total test cases, we will not exactly see a 1:1 decrease in execution time because some of these tests will now run longer)
+Total change in test count is 115 -> 77 (-33% decrease in total test cases, we will not exactly see a 1:1 decrease in execution time because some of these tests will now run longer)
 
 ---
 
@@ -71,28 +71,25 @@ Total change in test count is 115 -> 76 (-34% decrease in total test cases, we w
   - TestCase714567: Device Registration via Settings Page
   - TestCase796050: Add Account in Account Chooser Activity
 
-## broker/ltw/ (16) -> (3)
+## broker/ltw/ (16) -> (4)
 - Keep some basic testing
+  - TestCase2584410: Authenticator Has Highest Priority (Auth, LTW, CP) (CLOUD)
+  - TestCase2582292: LTW Active Broker Should Not Break SDM MSAL Authenticator Request
+  - TestCase2572280: LTW Has Higher Priority Than Company Portal
   - Combine
     - TestCase3029738: Sign in with AAD and MSA account (LTW)
     - TestCase2572249: SSO After LTW Uninstall if Authenticator Present
-- Are these needed?
+- Drop, unnecessary testing
   - TestCase2582294: LTW Active Broker Should Not Break Legacy WPJ Authenticator Request
   - TestCase2582297: LTW Active Broker Should Not Break Multiple WPJ API from Legacy Broker Test App
-- Dropped, Old MSAL Test App Testing Broker Discovery (No longer needed as now enabled by default)
   - TestCase2582290: LTW Active Broker Should Not Break Non-SDM MSAL Authenticator Request
   - TestCase2582291: LTW Active Broker Should Not Break Non-SDM MSAL CP Request
-  - TestCase2582292: LTW Active Broker Should Not Break SDM MSAL Authenticator Request
-- Dropped, Priority testing
-  - TestCase2572280: LTW Has Higher Priority Than Company Portal
   - TestCase2572283: LTW Has Higher Priority Than Company Portal - Case 2
   - TestCase2572294: Authenticator Has Highest Priority (LTW, Auth, CP)
   - TestCase2584409: Authenticator Has Highest Priority (LTW, CP, Auth)
-  - TestCase2584410: Authenticator Has Highest Priority (Auth, LTW, CP)
   - TestCase2584411: Authenticator Has Highest Priority (Auth, CP, LTW)
   - TestCase2584412: Authenticator Has Highest Priority (CP, Auth, LTW)
   - TestCase2584414: Authenticator Has Highest Priority (CP, LTW, Auth)
-- Dropped, covered by above combined test through authenticator
   - TestCase2571361: SSO if Company Portal Installed After LTW
 
 ## broker/ltw/TransferToken/ (1) (Only one test, no combinations)
