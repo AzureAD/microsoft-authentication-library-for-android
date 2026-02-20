@@ -77,7 +77,6 @@ public class TestCase833553 extends AbstractMsalBrokerTest {
                 .activity(mActivity)
                 .loginHint(username)
                 .scopes(Arrays.asList(getScopes()))
-                .resource("00000002-0000-0000-c000-000000000000")
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
@@ -108,7 +107,6 @@ public class TestCase833553 extends AbstractMsalBrokerTest {
                 .activity(mActivity)
                 .loginHint(username)
                 .scopes(Arrays.asList(getScopes()))
-                .resource("00000002-0000-0000-c000-000000000000")
                 .promptParameter(Prompt.LOGIN)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
@@ -143,7 +141,6 @@ public class TestCase833553 extends AbstractMsalBrokerTest {
                 .authority(account.getAuthority())
                 .forceRefresh(true)
                 .scopes(Arrays.asList(getScopes()))
-                .resource("00000002-0000-0000-c000-000000000000")
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
@@ -169,6 +166,7 @@ public class TestCase833553 extends AbstractMsalBrokerTest {
     public String[] getScopes() {
         return new String[]{"User.read"};
     }
+
     @Override
     public String getAuthority() {
         return "https://login.microsoftonline.us/common";
