@@ -67,7 +67,7 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
         brokerHost.install()
         brokerHost.launch()
 
-        // Check that the registration was done with strong keys.
+        // Check that the initial registration is NOT using strong keys (pre-CA state).
         val wpjRecordPreCA = brokerHost.multipleWpjApiFragment.getRecordByUpn(account.username)
         Assert.assertEquals("false", wpjRecordPreCA["isRegisteredWithStrongKeys"])
 
