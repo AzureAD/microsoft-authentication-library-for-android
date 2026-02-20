@@ -49,7 +49,7 @@ import org.junit.Test
 @RetryOnFailure
 class TestCase3321135 : AbstractMsalBrokerTest() {
     @Test
-    fun test_3321135_SignInWithTbCaAccount() {
+    fun test_3321135_SignInWithTpCaAccount() {
         // the actual account we need is tpcaandroid@msidlab4.onmicrosoft.com
         // But for some reason, this is not seachable by the API.
         val account = mLabClient.getLabAccount("idlab@msidlab4.onmicrosoft.com")
