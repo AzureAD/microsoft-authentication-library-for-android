@@ -41,6 +41,7 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
+import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assert
 import org.junit.Assume
 import org.junit.Test
@@ -57,13 +58,10 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
             BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("performNonSharedWpjWithHardwareKey:true")
         )
 
-        // the actual account we need is tpcaandroid@msidlab4.onmicrosoft.com
-        // But for some reason, this is not seachable by the API.
-        val account = mLabClient.getLabAccount("idlab@msidlab4.onmicrosoft.com")
-        val username = "tpcaandroid@msidlab4.onmicrosoft.com"
+        val basicUser = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.TP_CA)
 
         (mBroker as BrokerMicrosoftAuthenticator).setShouldUseDeviceSettingsPage(false)
-        mBroker.performDeviceRegistration(username, account.password)
+        mBroker.performDeviceRegistration(basicUser.username, basicUser.password)
 
         // Install BrokerHost app
         val brokerHost = BrokerHost()
@@ -71,7 +69,7 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
         brokerHost.launch()
 
         // Check that the initial registration is NOT using strong keys (pre-CA state).
-        val wpjRecordPreCA = brokerHost.multipleWpjApiFragment.getRecordByUpn(username)
+        val wpjRecordPreCA = brokerHost.multipleWpjApiFragment.getRecordByUpn(basicUser.username)
         Assert.assertEquals("false", wpjRecordPreCA["isRegisteredWithStrongKeys"])
 
         val msalSdk = MsalSdk()
@@ -79,7 +77,7 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
         //acquiring token
         val authTestParams: MsalAuthTestParams = MsalAuthTestParams.builder()
             .activity(mActivity)
-            .loginHint(username)
+            .loginHint(basicUser.username)
             .resource(mScopes[0])
             .promptParameter(Prompt.SELECT_ACCOUNT)
             .msalConfigResourceId(configFileResourceId)
@@ -91,7 +89,7 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
                     val promptHandlerParameters: PromptHandlerParameters =
                         PromptHandlerParameters.builder()
                             .prompt(PromptParameter.SELECT_ACCOUNT)
-                            .loginHint(username)
+                            .loginHint(basicUser.username)
                             .passwordPageExpected(false)
                             .consentPageExpected(false)
                             .speedBumpExpected(false)
@@ -101,7 +99,7 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
                             .build()
 
                     AadPromptHandler(promptHandlerParameters)
-                        .handlePrompt(username, account.password)
+                        .handlePrompt(basicUser.username, basicUser.password)
                 }
             }, TokenRequestTimeout.MEDIUM)
 
@@ -110,7 +108,7 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
         brokerHost.launch()
 
         // Check that the registration was done with strong keys.
-        val wpjRecord = brokerHost.multipleWpjApiFragment.getRecordByUpn(username)
+        val wpjRecord = brokerHost.multipleWpjApiFragment.getRecordByUpn(basicUser.username)
         Assert.assertEquals("true", wpjRecord["isRegisteredWithStrongKeys"])
         Assert.assertEquals(wpjRecordPreCA["DeviceId"], wpjRecord["DeviceId"]) // device id mustn't change.
     }

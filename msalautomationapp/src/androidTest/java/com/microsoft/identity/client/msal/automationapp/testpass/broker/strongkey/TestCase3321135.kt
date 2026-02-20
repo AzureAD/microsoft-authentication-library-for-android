@@ -40,6 +40,7 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
+import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assert
 import org.junit.Test
 
@@ -50,17 +51,14 @@ import org.junit.Test
 class TestCase3321135 : AbstractMsalBrokerTest() {
     @Test
     fun test_3321135_SignInWithTpCaAccount() {
-        // the actual account we need is tpcaandroid@msidlab4.onmicrosoft.com
-        // But for some reason, this is not seachable by the API.
-        val account = mLabClient.getLabAccount("idlab@msidlab4.onmicrosoft.com")
-        val username = "tpcaandroid@msidlab4.onmicrosoft.com"
+        val basicUser = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.TP_CA)
 
         val msalSdk = MsalSdk()
 
         //acquiring token
         val authTestParams: MsalAuthTestParams = MsalAuthTestParams.builder()
             .activity(mActivity)
-            .loginHint(username)
+            .loginHint(basicUser.username)
             .resource(mScopes[0])
             .promptParameter(Prompt.SELECT_ACCOUNT)
             .msalConfigResourceId(configFileResourceId)
@@ -72,7 +70,7 @@ class TestCase3321135 : AbstractMsalBrokerTest() {
                     val promptHandlerParameters: PromptHandlerParameters =
                         PromptHandlerParameters.builder()
                             .prompt(PromptParameter.SELECT_ACCOUNT)
-                            .loginHint(username)
+                            .loginHint(basicUser.username)
                             .consentPageExpected(false)
                             .speedBumpExpected(false)
                             .broker(mBroker)
@@ -81,7 +79,7 @@ class TestCase3321135 : AbstractMsalBrokerTest() {
                             .build()
 
                     AadPromptHandler(promptHandlerParameters)
-                        .handlePrompt(username, account.password)
+                        .handlePrompt(basicUser.username, basicUser.password)
                 }
             }, TokenRequestTimeout.MEDIUM)
 
@@ -93,7 +91,7 @@ class TestCase3321135 : AbstractMsalBrokerTest() {
         brokerHost.launch()
 
         // Check that the registration was done with strong keys.
-        val wpjRecord = brokerHost.multipleWpjApiFragment.getRecordByUpn(username)
+        val wpjRecord = brokerHost.multipleWpjApiFragment.getRecordByUpn(basicUser.username)
         Assert.assertEquals("true", wpjRecord["isRegisteredWithStrongKeys"])
     }
 

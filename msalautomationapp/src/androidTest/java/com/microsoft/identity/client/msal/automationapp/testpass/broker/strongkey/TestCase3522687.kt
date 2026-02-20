@@ -38,6 +38,7 @@ import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequ
 import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
+import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assert
 import org.junit.Assume
 import org.junit.Before
@@ -55,13 +56,10 @@ class TestCase3522687 : AbstractMsalBrokerTest() {
             BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("performNonSharedWpjWithHardwareKey:false")
         )
 
-        // the actual account we need is tpcaandroid@msidlab4.onmicrosoft.com
-        // But for some reason, this is not seachable by the API.
-        val account = mLabClient.getLabAccount("idlab@msidlab4.onmicrosoft.com")
-        val username = "tpcaandroid@msidlab4.onmicrosoft.com"
+        val basicUser = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.TP_CA)
 
         (mBroker as BrokerMicrosoftAuthenticator).setShouldUseDeviceSettingsPage(false)
-        mBroker.performDeviceRegistration(username, account.password)
+        mBroker.performDeviceRegistration(basicUser.username, basicUser.password)
 
         // Install BrokerHost app
         val brokerHost = BrokerHost()
@@ -77,7 +75,7 @@ class TestCase3522687 : AbstractMsalBrokerTest() {
         val msalSdk = MsalSdk()
         val authTestParams: MsalAuthTestParams = MsalAuthTestParams.builder()
             .activity(mActivity)
-            .loginHint(username)
+            .loginHint(basicUser.username)
             .resource(mScopes[0])
             .promptParameter(Prompt.SELECT_ACCOUNT)
             .msalConfigResourceId(configFileResourceId)
