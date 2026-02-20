@@ -54,7 +54,7 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
     fun test_3321136_UpgradeFromRegularWpjToStrongKeyWpj() {
         Assume.assumeFalse(
             "performNonSharedWpjWithHardwareKey flight is enabled, Test will be skipped",
-            BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("performNonSharedWpjWithHardwareKey:false")
+            BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("performNonSharedWpjWithHardwareKey:true")
         )
 
         val account = mLabClient.getLabAccount("TPCAAndroid@msidlab4.onmicrosoft.com")
@@ -122,7 +122,7 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
         return null
     }
 
-    override fun getScopes(): Array<String> {
+    override fun getScopes(): Array<String?> {
         return arrayOf("User.read")
     }
 
