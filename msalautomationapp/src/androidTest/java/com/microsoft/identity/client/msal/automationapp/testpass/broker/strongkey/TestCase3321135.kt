@@ -49,7 +49,7 @@ import org.junit.Test
 @RetryOnFailure
 class TestCase3321135 : AbstractMsalBrokerTest() {
     @Test
-    fun test_3321135_SignInWithTbCaAccount() {
+    fun test_3321135_SignInWithTpCaAccount() {
         val account = mLabClient.getLabAccount("TPCAAndroid@msidlab4.onmicrosoft.com")
 
         val msalSdk = MsalSdk()
