@@ -50,14 +50,17 @@ import org.junit.Test
 class TestCase3321135 : AbstractMsalBrokerTest() {
     @Test
     fun test_3321135_SignInWithTbCaAccount() {
-        val account = mLabClient.getLabAccount("TPCAAndroid@msidlab4.onmicrosoft.com")
+        // the actual account we need is tpcaandroid@msidlab4.onmicrosoft.com
+        // But for some reason, this is not seachable by the API.
+        val account = mLabClient.getLabAccount("idlab@msidlab4.onmicrosoft.com")
+        val username = "tpcaandroid@msidlab4.onmicrosoft.com"
 
         val msalSdk = MsalSdk()
 
         //acquiring token
         val authTestParams: MsalAuthTestParams = MsalAuthTestParams.builder()
             .activity(mActivity)
-            .loginHint(account.username)
+            .loginHint(username)
             .resource(mScopes[0])
             .promptParameter(Prompt.SELECT_ACCOUNT)
             .msalConfigResourceId(configFileResourceId)
@@ -69,7 +72,7 @@ class TestCase3321135 : AbstractMsalBrokerTest() {
                     val promptHandlerParameters: PromptHandlerParameters =
                         PromptHandlerParameters.builder()
                             .prompt(PromptParameter.SELECT_ACCOUNT)
-                            .loginHint(account.username)
+                            .loginHint(username)
                             .consentPageExpected(false)
                             .speedBumpExpected(false)
                             .broker(mBroker)
@@ -78,7 +81,7 @@ class TestCase3321135 : AbstractMsalBrokerTest() {
                             .build()
 
                     AadPromptHandler(promptHandlerParameters)
-                        .handlePrompt(account.username, account.password)
+                        .handlePrompt(username, account.password)
                 }
             }, TokenRequestTimeout.MEDIUM)
 
@@ -90,7 +93,7 @@ class TestCase3321135 : AbstractMsalBrokerTest() {
         brokerHost.launch()
 
         // Check that the registration was done with strong keys.
-        val wpjRecord = brokerHost.multipleWpjApiFragment.getRecordByUpn(account.username)
+        val wpjRecord = brokerHost.multipleWpjApiFragment.getRecordByUpn(username)
         Assert.assertEquals("true", wpjRecord["isRegisteredWithStrongKeys"])
     }
 

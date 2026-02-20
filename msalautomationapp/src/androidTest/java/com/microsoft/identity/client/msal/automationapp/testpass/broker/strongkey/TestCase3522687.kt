@@ -55,10 +55,13 @@ class TestCase3522687 : AbstractMsalBrokerTest() {
             BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("performNonSharedWpjWithHardwareKey:false")
         )
 
-        val account = mLabClient.getLabAccount("TPCAAndroid@msidlab4.onmicrosoft.com")
+        // the actual account we need is tpcaandroid@msidlab4.onmicrosoft.com
+        // But for some reason, this is not seachable by the API.
+        val account = mLabClient.getLabAccount("idlab@msidlab4.onmicrosoft.com")
+        val username = "tpcaandroid@msidlab4.onmicrosoft.com"
 
         (mBroker as BrokerMicrosoftAuthenticator).setShouldUseDeviceSettingsPage(false)
-        mBroker.performDeviceRegistration(account.username, account.password)
+        mBroker.performDeviceRegistration(username, account.password)
 
         // Install BrokerHost app
         val brokerHost = BrokerHost()
@@ -74,17 +77,15 @@ class TestCase3522687 : AbstractMsalBrokerTest() {
         val msalSdk = MsalSdk()
         val authTestParams: MsalAuthTestParams = MsalAuthTestParams.builder()
             .activity(mActivity)
-            .loginHint(account.username)
+            .loginHint(username)
             .resource(mScopes[0])
             .promptParameter(Prompt.SELECT_ACCOUNT)
             .msalConfigResourceId(configFileResourceId)
             .build()
 
         val authResult: MsalAuthResult =
-            msalSdk.acquireTokenInteractive(authTestParams, object : OnInteractionRequired {
-                override fun handleUserInteraction() {
-                    // No action should be required.
-                }
+            msalSdk.acquireTokenInteractive(authTestParams, {
+                // No action should be required.
             }, TokenRequestTimeout.MEDIUM)
 
         authResult.assertSuccess()
