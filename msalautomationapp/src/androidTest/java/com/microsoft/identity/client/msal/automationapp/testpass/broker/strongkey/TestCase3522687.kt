@@ -34,14 +34,12 @@ import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator
-import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired
 import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assert
 import org.junit.Assume
-import org.junit.Before
 import org.junit.Test
 
 // [StrongKey] WPJ should be registered with strongkey by default - non shared device.
@@ -51,9 +49,9 @@ class TestCase3522687 : AbstractMsalBrokerTest() {
 
     @Test
     fun test_3522687_WpjWithHardwareKeyByDefault() {
-        Assume.assumeFalse(
+        Assume.assumeTrue(
             "performNonSharedWpjWithHardwareKey flight is not enabled, Test will be skipped",
-            BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("performNonSharedWpjWithHardwareKey:false")
+            BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("performNonSharedWpjWithHardwareKey:true")
         )
 
         val basicUser = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.TP_CA)
@@ -76,7 +74,7 @@ class TestCase3522687 : AbstractMsalBrokerTest() {
         val authTestParams: MsalAuthTestParams = MsalAuthTestParams.builder()
             .activity(mActivity)
             .loginHint(basicUser.username)
-            .resource(mScopes[0])
+            .scopes(listOf(*mScopes))
             .promptParameter(Prompt.SELECT_ACCOUNT)
             .msalConfigResourceId(configFileResourceId)
             .build()
@@ -100,7 +98,7 @@ class TestCase3522687 : AbstractMsalBrokerTest() {
     }
 
     override fun getScopes(): Array<String> {
-        return arrayOf("User.read")
+        return arrayOf("user.read")
     }
 
     override fun getAuthority(): String {

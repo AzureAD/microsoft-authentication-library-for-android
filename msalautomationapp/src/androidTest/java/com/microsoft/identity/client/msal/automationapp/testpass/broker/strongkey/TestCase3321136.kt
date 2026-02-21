@@ -78,7 +78,7 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
         val authTestParams: MsalAuthTestParams = MsalAuthTestParams.builder()
             .activity(mActivity)
             .loginHint(basicUser.username)
-            .resource(mScopes[0])
+            .scopes(listOf(*mScopes))
             .promptParameter(Prompt.SELECT_ACCOUNT)
             .msalConfigResourceId(configFileResourceId)
             .build()
@@ -124,7 +124,7 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
     }
 
     override fun getScopes(): Array<String> {
-        return arrayOf("User.read")
+        return arrayOf("user.read")
     }
 
     override fun getAuthority(): String {
