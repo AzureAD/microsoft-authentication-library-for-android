@@ -25,6 +25,7 @@ package com.microsoft.identity.client.e2e.tests.network;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_MOONCAKE_CONFIG_FILE_PATH;
@@ -54,19 +55,15 @@ public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
 
     public static class AzureWorldWideCloudUser extends AcquireTokenAADTest {
         @Override
-        public LabUserQuery getLabUserQuery() {
-            final LabUserQuery query = new LabUserQuery();
-            query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
-            return query;
+        public UserType getUserType() {
+            return UserType.BASIC;
         }
     }
 
     public static class AzureUsGovCloudUser extends AcquireTokenAADTest {
         @Override
-        public LabUserQuery getLabUserQuery() {
-            final LabUserQuery query = new LabUserQuery();
-            query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT;
-            return query;
+        public UserType getUserType() {
+            return UserType.USGOV;
         }
     }
 
@@ -77,10 +74,8 @@ public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
         }
 
         @Override
-        public LabUserQuery getLabUserQuery() {
-            final LabUserQuery query = new LabUserQuery();
-            query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CHINA_CLOUD;
-            return query;
+        public UserType getUserType() {
+            return UserType.CHINA;
         }
     }
 
@@ -91,10 +86,8 @@ public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
         }
 
         @Override
-        public LabUserQuery getLabUserQuery() {
-            final LabUserQuery query = new LabUserQuery();
-            query.protectionPolicy = LabConstants.ProtectionPolicy.MAM_CA;
-            return query;
+        public UserType getUserType() {
+            return UserType.MAM_CA;
         }
     }
 
@@ -105,10 +98,9 @@ public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
         }
 
         @Override
-        public LabUserQuery getLabUserQuery() {
-            final LabUserQuery query = new LabUserQuery();
-            query.protectionPolicy = LabConstants.ProtectionPolicy.MAM_SPO;
-            return query;
+        public UserType getUserType() {
+            return UserType.MAM_ON_SPO;
         }
+
     }
 }

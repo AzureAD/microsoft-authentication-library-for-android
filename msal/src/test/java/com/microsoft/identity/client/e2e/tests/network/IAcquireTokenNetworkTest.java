@@ -23,11 +23,13 @@
 package com.microsoft.identity.client.e2e.tests.network;
 
 import com.microsoft.identity.client.e2e.tests.IAcquireTokenTest;
+import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 public interface IAcquireTokenNetworkTest extends IAcquireTokenTest {
 
-    LabUserQuery getLabUserQuery();
+    UserType getUserType();
 
 }
 
