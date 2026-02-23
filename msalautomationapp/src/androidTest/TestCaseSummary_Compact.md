@@ -16,15 +16,12 @@ Total change in test count is 115 -> 77 (-33% decrease in total test cases, we w
   - TestCase1922515: [Joined] Generate SHR
   - Reasoning: Generate SHR after the silent request
 
-## broker/atpop/update/ (4) -> (2)
-- Combine Non-Joined Update Atpop
+## broker/atpop/update/ (4) -> (0, v5 scenarios no longer applicable)
+- Dropped
   - TestCase1922531: [Non-Joined][Update-old-to-V5] Acquire PoP token Silent
   - TestCase1922549: [Non-Joined][Update-old-to-V5] Generate SHR
-  - Reasoning: Generate SHR after the silent request
-- Combine Joined Update Atpop
   - TestCase1922530: [Joined][Update-old-to-V5] Acquire PoP token Silent
   - TestCase1922547: [Joined][Update-old-to-V5] Generate SHR
-  - Reasoning: Generate SHR after the silent request
 
 ## broker/brokerapi/ (6) -> (4)
 - Combine
@@ -49,22 +46,14 @@ Total change in test count is 115 -> 77 (-33% decrease in total test cases, we w
   - TestCase2828868: Check 'Sign In from Other Device' Option (US Gov)
   - Reasoning: First try without parameter, then try Azure Cloud, then US Gov
 
-## broker/flw/ (7) -> (3)
-- Combine 5 into one Big SDM Test
-  - Setup SDM
-  - Sign in with cloud user
-  - Check cloud user can use App A and B (833514)
-    - TestCase833514: End My Shift - SSO Across Apps in Shared Device Mode
-  - Check account from other tenant cannot sign in (833513)
-    - TestCase833513: Shared Device Mode - Only Same Tenant Can Acquire Token
-  - Try account from same tenant, should fail (833516)
-    - TestCase833516: End My Shift - Only One Sign-In Account Allowed
-  - Verify sign out (833515) and silent request interruption (2495140)
-    - TestCase833515: End My Shift - Global Sign Out in Shared Device Mode
-    - TestCase2495140: Shared Device Mode - Global Sign Out Clears Data and Requests
+## broker/flw/ (7) (No changes, attempts at combination resulted in inconsistent and failing tests)
 - TestCase833511: Shared Device Registration with Non-Admin Account should fail
+- TestCase833513: End My Shift - End My Shift - In Shared device mode, only account from the same tenant should be able to acquire token.
+- TestCase833514: End My Shift - In Shared device mode, an account signed in through App A can be used by App B.
+- TestCase833515: End My Shift - In Shared device mode, global sign out should work.
+- TestCase833516: End My Shift - In Shared device mode, there can be only one sign-in account.
 - TestCase833517: End My Shift - Account Sign Out Notification
-  - Seems very similar to 833515, signs out admin account rather than cloud account, do we need both?
+- TestCase2495140: End My Shift - In Shared device mode, global sign out should wait/cancel existing silent requests
 
 ## broker/foci/ (1) (Only one test, no combinations)
 - TestCase833544: FOCI SSO with Outlook and Word (Non-joined)
@@ -82,28 +71,25 @@ Total change in test count is 115 -> 77 (-33% decrease in total test cases, we w
   - TestCase714567: Device Registration via Settings Page
   - TestCase796050: Add Account in Account Chooser Activity
 
-## broker/ltw/ (16) -> (3)
+## broker/ltw/ (16) -> (4)
 - Keep some basic testing
+  - TestCase2584410: Authenticator Has Highest Priority (Auth, LTW, CP) (CLOUD)
+  - TestCase2582292: LTW Active Broker Should Not Break SDM MSAL Authenticator Request
+  - TestCase2572280: LTW Has Higher Priority Than Company Portal
   - Combine
     - TestCase3029738: Sign in with AAD and MSA account (LTW)
     - TestCase2572249: SSO After LTW Uninstall if Authenticator Present
-- Are these needed?
+- Drop, unnecessary testing
   - TestCase2582294: LTW Active Broker Should Not Break Legacy WPJ Authenticator Request
   - TestCase2582297: LTW Active Broker Should Not Break Multiple WPJ API from Legacy Broker Test App
-- Dropped, Old MSAL Test App Testing Broker Discovery (No longer needed as now enabled by default)
   - TestCase2582290: LTW Active Broker Should Not Break Non-SDM MSAL Authenticator Request
   - TestCase2582291: LTW Active Broker Should Not Break Non-SDM MSAL CP Request
-  - TestCase2582292: LTW Active Broker Should Not Break SDM MSAL Authenticator Request
-- Dropped, Priority testing
-  - TestCase2572280: LTW Has Higher Priority Than Company Portal
   - TestCase2572283: LTW Has Higher Priority Than Company Portal - Case 2
   - TestCase2572294: Authenticator Has Highest Priority (LTW, Auth, CP)
   - TestCase2584409: Authenticator Has Highest Priority (LTW, CP, Auth)
-  - TestCase2584410: Authenticator Has Highest Priority (Auth, LTW, CP)
   - TestCase2584411: Authenticator Has Highest Priority (Auth, CP, LTW)
   - TestCase2584412: Authenticator Has Highest Priority (CP, Auth, LTW)
   - TestCase2584414: Authenticator Has Highest Priority (CP, LTW, Auth)
-- Dropped, covered by above combined test through authenticator
   - TestCase2571361: SSO if Company Portal Installed After LTW
 
 ## broker/ltw/TransferToken/ (1) (Only one test, no combinations)
@@ -150,24 +136,24 @@ Total change in test count is 115 -> 77 (-33% decrease in total test cases, we w
 - TestCase2688468: Nested App Interactive Token Request After Device is WPJd
 - TestCase2703171: Nested App Auth with US Gov Account
 
-## broker/nonjoined/ (9) -> (6)
+## broker/nonjoined/ (9) -> (7)
 - Combine
   - TestCase850455: [Non-Joined][MSAL] Acquire Token + Acquire Token Silent (Prompt.SELECT_ACCOUNT)
   - TestCase1561169: [Non-Joined][MSAL] Prompt.LOGIN
   - TestCase1561152: [Non-Joined][MSAL] Password Change (bad_token)
-- Combine
-  - TestCase497069: Broker Auth for non-joined account - select_account
-  - TestCase2139526: Acquire Token Silent After Policy Change Should Fail
+- TestCase497069: Broker Auth for non-joined account - select_account
+- TestCase2139526: Acquire Token Silent After Policy Change Should Fail
 - TestCase1592509: [MSAL] Mooncake: Silent Auth w/o cache w/o MFA w/ Prompt Auto w/ Broker
 - TestCase1600592: [Non-Joined] Single-Tenant App Silent Request with Common Authority Should Fail
 - TestCase3139972: [Non-Joined][MSAL] Acquire Token W/ Resource + Acquire Token Silent, no loginhint (Prompt.SELECT_ACCOUNT)
 - TestCase833546: [MSAL] Broker Auth for Non-Joined Account - Multiple Resources
 - TestCase3139972, TestCase850455, TestCase497069 are very similar but test slighlty different scenarios that all seem applicable
 
-## broker/update/ (3) (No combinations, these seem very basic, maybe we can drop them or just keep one)
-- TestCaseUpdateAuthenticator: Update Microsoft Authenticator (LTW)
-- TestCaseUpdateCompanyPortal: Update Company Portal (LTW)
-- TestCaseUpdateLTW: Update LTW Broker (LTW)
+## broker/update/ (3) -> (0, dropping these)
+- Dropped:
+  - TestCaseUpdateAuthenticator: Update Microsoft Authenticator (LTW)
+  - TestCaseUpdateCompanyPortal: Update Company Portal (LTW)
+  - TestCaseUpdateLTW: Update LTW Broker (LTW)
 
 ## broker/usgov/ (5) (No combinations, each scenario requires fresh state)
 - TestCase796048: [USGOV][Broker][Non-Joined] Acquire Token with Resource with instance_aware = true
@@ -176,9 +162,9 @@ Total change in test count is 115 -> 77 (-33% decrease in total test cases, we w
 - TestCase940421: [USGOV][Broker][Joined] In-line WPJ/MSAL - acquire token with deviceid claim request, and instance_aware=true
 - TestCase948676: [USGOV][Broker][Joined] Acquire token with instance_aware=true
 
-## broker/wpj/ (3) (These seem distinct, no combinations, maybe some can be dropped?)
-- TestCase831655: Verify WPJ Cert Installation on Non-Samsung Device with Authenticator
+## broker/wpj/ (3) -> (2)
 - TestCase833547: Broker Add Account via Account Manager
+  - TestCase831655 seems like a duplicate of this one, dropping TestCase831655
 - TestCase833561: [WPJ] Install WPJ Certificate for Browser Access
 
 ## msalonly/atpop/ (2) -> (1)

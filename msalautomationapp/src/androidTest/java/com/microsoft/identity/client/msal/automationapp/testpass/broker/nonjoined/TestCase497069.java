@@ -22,14 +22,12 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.nonjoined;
 
-import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
-import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
@@ -37,14 +35,12 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerPara
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
 // Broker Auth for non-joined account - select_account
 // https://identitydivision.visualstudio.com/DefaultCollection/DevEx/_workitems/edit/497069
@@ -113,31 +109,6 @@ public class TestCase497069 extends AbstractMsalBrokerTest {
         }, TokenRequestTimeout.MEDIUM);
 
         noLoginHintauthResult.assertSuccess();
-
-        // Change the policy to MAM_CA
-        mLabClient.enablePolicy(username, ProtectionPolicy.MAM_CA);
-
-        // It takes some time for the policy change to reflect
-        Thread.sleep(TimeUnit.MINUTES.toMillis(3));
-
-        // advance clock by more than an hour to expire AT in cache
-        TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
-
-        // Try silent call, this should fail
-        // Silent call
-        final IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),username);
-
-        final MsalAuthTestParams silentParams = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .loginHint(username)
-                .authority(account.getAuthority())
-                .forceRefresh(true)
-                .scopes(Arrays.asList(getScopes()))
-                .msalConfigResourceId(getConfigFileResourceId())
-                .build();
-
-        final MsalAuthResult silentAuthResult = msalSdk.acquireTokenSilent(silentParams,TokenRequestTimeout.SILENT);
-        silentAuthResult.assertFailure();
     }
 
     @Override

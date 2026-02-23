@@ -98,7 +98,7 @@ public class TestCase796049 extends AbstractMsalBrokerTest {
 
     @Override
     public String[] getScopes() {
-        return new String[]{"00000002-0000-0000-c000-000000000000"};
+        return new String[]{"00000002-0000-0ff1-ce00-000000000000"}; // (Office365 Exchange Online)
     }
 
     @Override

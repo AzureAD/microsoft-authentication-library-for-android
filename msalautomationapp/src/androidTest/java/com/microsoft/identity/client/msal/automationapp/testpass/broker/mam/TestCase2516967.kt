@@ -22,32 +22,40 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.mam
 
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest
+import com.microsoft.identity.client.msal.automationapp.BuildConfig
 import com.microsoft.identity.client.msal.automationapp.R
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
+import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.app.OutlookApp
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator
+import com.microsoft.identity.client.ui.automation.broker.IMdmAgent
 import com.microsoft.identity.client.ui.automation.installer.LocalApkInstaller
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
-import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils
 import com.microsoft.identity.common.java.util.ThreadUtils
 import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assert
+import org.junit.Assume
 import org.junit.Test
 
-// Using TrueMAM account will require a broker, and will require CP instead of Authenticator
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2516571
-//@RetryOnFailure
-class TestCase2516571 : AbstractMsalUiTest(){
+// Can use Outlook with True MAM account upon re-registration
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2516967
+@SupportedBrokers(brokers = [BrokerCompanyPortal::class])
+@RetryOnFailure
+class TestCase2516967 : AbstractMsalBrokerTest(){
 
     @Test
-    fun test_2516571_MAM_BrokerRequired() {
+    fun test_2516967_MAM_CanUseOutlookAfterRegistration() {
+        // Skip test if preconditions are not met
+        Assume.assumeFalse( "Only run this test if there are local flights",
+            BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.isEmpty()
+        )
+
         // Fetch credentials
         val username: String = mLabAccount.username
         val password: String = mLabAccount.password
@@ -58,34 +66,7 @@ class TestCase2516571 : AbstractMsalUiTest(){
         outlook.handleFirstRun()
 
         val promptHandlerParameters = FirstPartyAppPromptHandlerParameters.builder()
-            .broker(null)
-            .prompt(PromptParameter.SELECT_ACCOUNT)
-            .loginHint(username)
-            .consentPageExpected(false)
-            .sessionExpected(false)
-            .expectingBrokerAccountChooserActivity(false)
-            .expectingLoginPageAccountPicker(false)
-            .registerPageExpected(false)
-            .build()
-
-        // add first account in Outlook
-        outlook.addFirstAccount(username, password, promptHandlerParameters)
-
-        // Check for GO TO STORE button
-        val intuneRequirementDialogConfirmBtn =
-            UiAutomatorUtils.obtainUiObjectWithText("Get the app")
-        Assert.assertTrue(intuneRequirementDialogConfirmBtn.exists())
-
-        outlook.forceStop()
-
-        // Test by installing Authenticator, this will remove need for 2516613, also 831545 seems
-        // redundant if we're running this test case
-        // Install authenticator, we should still see GO TO STORE page to download Company Portal
-        val authenticator = BrokerMicrosoftAuthenticator()
-        authenticator.install()
-
-        val promptHandlerParametersWithAuthenticator = FirstPartyAppPromptHandlerParameters.builder()
-            .broker(authenticator)
+            .broker(mBroker)
             .prompt(PromptParameter.SELECT_ACCOUNT)
             .loginHint(username)
             .consentPageExpected(false)
@@ -94,39 +75,13 @@ class TestCase2516571 : AbstractMsalUiTest(){
             .expectingLoginPageAccountPicker(false)
             .registerPageExpected(true)
             .build()
+
         // add first account in Outlook
-        outlook.launch()
-        outlook.addFirstAccount(username, password, promptHandlerParametersWithAuthenticator)
-
-        // Check for GO TO STORE button
-        val intuneRequirementDialogConfirmBtnAgain =
-            UiAutomatorUtils.obtainUiObjectWithText("GO TO STORE")
-        Assert.assertTrue(intuneRequirementDialogConfirmBtnAgain.exists())
-
-        outlook.forceStop()
-
-        // Install Company Portal, should now be able to log in with MAM account
-        val companyPortal = BrokerCompanyPortal()
-        companyPortal.install()
-
-        // add account in Outlook after CP install
-        outlook.launch()
-
-        // Sometimes we get "Found account page", but sometimes it doesn't appear, let's try, and
-        // try again by going back to the previous page if it doesn't work
-        try {
-            outlook.addExistingFirstAccount(username)
-        } catch (exception: AssertionError) {
-            // Return to starting screen to try again
-            UiAutomatorUtils.pressBack()
-            outlook.addExistingFirstAccount(username)
-        }
-
+        outlook.addFirstAccount(username, password, promptHandlerParameters)
         outlook.onAccountAdded()
-        companyPortal.handleAppProtectionPolicy()
-        outlook.confirmAccount(username)
+        // handle app protection policy in CP i.e. setup PIN when asked
+        (mBroker as IMdmAgent).handleAppProtectionPolicy()
 
-        // TODO: ADD TO ADO ITEM
         val brokerHost = BrokerHost()
         brokerHost.install()
         brokerHost.wpjLeave()
@@ -138,17 +93,7 @@ class TestCase2516571 : AbstractMsalUiTest(){
         outlook.launch()
         outlook.forceStop()
         outlook.launch()
-        val secondOutlookPromptHandler = FirstPartyAppPromptHandlerParameters.builder()
-            .broker(null)
-            .prompt(PromptParameter.SELECT_ACCOUNT)
-            .loginHint(username)
-            .consentPageExpected(false)
-            .sessionExpected(false)
-            .expectingBrokerAccountChooserActivity(false)
-            .expectingLoginPageAccountPicker(false)
-            .registerPageExpected(true)
-            .build()
-        outlook.signInThroughSnackBar(username, password, secondOutlookPromptHandler)
+        outlook.signInThroughSnackBar(username, password, promptHandlerParameters)
 
         // Not totally sure what prompts outlook to take the snackbar away, sometimes it still appears after re-authentication
         // We wait a bit and relaunch outlook twice, this seems improve the chance of the snackbar disappearing

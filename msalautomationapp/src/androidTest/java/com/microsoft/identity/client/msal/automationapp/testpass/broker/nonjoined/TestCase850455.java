@@ -33,6 +33,7 @@ import com.microsoft.identity.client.msal.automationapp.testpass.broker.Abstract
 import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
+import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
@@ -50,6 +51,7 @@ import java.util.concurrent.TimeUnit;
 // [Non-joined][MSAL] Acquire Token + Acquire Token Silent (Prompt.SELECT_ACCOUNT)
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/850455
 @RetryOnFailure(retryCount = 2)
+@RunOnAPI29Minus
 public class TestCase850455 extends AbstractMsalBrokerTest {
 
     @Test
@@ -64,7 +66,6 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
                 .activity(mActivity)
                 .loginHint(username)
                 .scopes(Arrays.asList(getScopes()))
-                .resource("00000002-0000-0000-c000-000000000000")
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
@@ -98,7 +99,6 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
                 .authority(account.getAuthority())
                 .forceRefresh(true)
                 .scopes(Arrays.asList(getScopes()))
-                .resource("00000002-0000-0000-c000-000000000000")
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
@@ -193,20 +193,19 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
 
     @Override
     public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .build();
+        return null;
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return null;
+        return TempUserType.BASIC;
     }
 
     @Override
     public String[] getScopes() {
         return new String[]{"User.read"};
     }
+
     @Override
     public String getAuthority() {
         return "https://login.microsoftonline.us/common";

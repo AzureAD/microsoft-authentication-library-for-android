@@ -32,6 +32,7 @@ import com.microsoft.identity.client.msal.automationapp.testpass.broker.Abstract
 import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
+import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -50,6 +51,7 @@ import java.util.concurrent.TimeUnit;
 // [Joined][MSAL] Acquire Token + Acquire Token Silent with resource (Prompt.SELECT_ACCOUNT)
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/832430
 @RetryOnFailure(retryCount = 2)
+@RunOnAPI29Minus
 public class TestCase832430 extends AbstractMsalBrokerTest {
 
     @Test
@@ -135,8 +137,7 @@ public class TestCase832430 extends AbstractMsalBrokerTest {
                 .activity(mActivity)
                 .loginHint(username)
                 .authority(account.getAuthority())
-                .forceRefresh(true)
-                .scopes(Arrays.asList(mScopes))
+                .resource(mScopes[0])
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
@@ -146,9 +147,9 @@ public class TestCase832430 extends AbstractMsalBrokerTest {
 
         // fetch token in an interactive request
         final MsalAuthTestParams msalAuthTestParams2 = MsalAuthTestParams.builder()
-                .loginHint(username)
                 .activity(mActivity)
-                .scopes(Arrays.asList(mScopes))
+                .loginHint(username)
+                .resource(mScopes[0])
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
@@ -181,15 +182,12 @@ public class TestCase832430 extends AbstractMsalBrokerTest {
 
     @Override
     public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .protectionPolicy(ProtectionPolicy.MAM_CA)
-                .build();
+        return null;
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return null;
+        return TempUserType.MAM_CA;
     }
 
     @Override

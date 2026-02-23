@@ -15,15 +15,6 @@ A comprehensive reference guide for diagnosing and resolving common MSAL Android
 - Single vs Multiple account mode issues
 - Silent token refresh issues
 
-### [customer-communication-guidelines.md](customer-communication-guidelines.md)
-Guidelines for professional and effective communication when responding to GitHub issues. Includes:
-- Communication principles and response time expectations
-- Response templates for various issue types
-- Issue triage guidelines
-- Escalation procedures
-- Quality checklist
-- Version-aware triage, label transparency, and PING-COPILOT follow-up mechanism (added December 2025)
-
 ## Automated Issue Response
 
 The repository includes a GitHub Actions workflow ([../workflows/copilot-issue-response.yml](../workflows/copilot-issue-response.yml)) that:
@@ -38,12 +29,11 @@ The repository includes a GitHub Actions workflow ([../workflows/copilot-issue-r
 
 ### For AI Agents
 1. Reference `common-issues-guide.md` when analyzing issue descriptions
-2. Use templates from `customer-communication-guidelines.md` for responses
-3. Always check MSAL version and apply version-aware triage rules (added December 2025)
-4. Include label explanations in every response (added December 2025)
-5. Add PING-COPILOT trigger instructions to initial responses (added December 2025)
-6. Follow the diagnostic checklist to request necessary information
-7. Link to relevant documentation and code snippets
+2. Always check MSAL version and apply version-aware triage rules (added December 2025)
+3. Include label explanations in every response (added December 2025)
+4. Add PING-COPILOT trigger instructions to initial responses (added December 2025)
+5. Follow the diagnostic checklist to request necessary information
+6. Link to relevant documentation and code snippets
 
 ### For Team Members
 1. Review and update these guides as new common issues emerge
