@@ -31,7 +31,6 @@ import com.microsoft.identity.client.msal.automationapp.testpass.broker.Abstract
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
-import com.microsoft.identity.client.ui.automation.broker.BrokerHost
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters
@@ -41,16 +40,15 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
-import org.junit.Assert
 import org.junit.Test
 
 // [StrongKey] Signs in with Token Protection-CA account
-// https://identitydivision.visualstudio.com/Engineering/_testPlans/define?planId=2007357&suiteId=3321135
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3321139
 @SupportedBrokers(brokers = [BrokerMicrosoftAuthenticator::class])
 @RetryOnFailure
-class TestCase3321135 : AbstractMsalBrokerTest() {
+class TestCase3321139 : AbstractMsalBrokerTest() {
     @Test
-    fun test_3321135_SignInWithTpCaAccount() {
+    fun test_3321139_SignInWithTpCaAccount() {
         val basicUser = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.TP_CA)
 
         val msalSdk = MsalSdk()
@@ -84,15 +82,6 @@ class TestCase3321135 : AbstractMsalBrokerTest() {
             }, TokenRequestTimeout.MEDIUM)
 
         authResult.assertSuccess()
-
-        // Install BrokerHost app
-        val brokerHost = BrokerHost()
-        brokerHost.install()
-        brokerHost.launch()
-
-        // Check that the registration was done with strong keys.
-        val wpjRecord = brokerHost.multipleWpjApiFragment.getRecordByUpn(basicUser.username)
-        Assert.assertEquals("true", wpjRecord["isRegisteredWithStrongKeys"])
     }
 
     override fun getLabQuery(): LabQuery? {

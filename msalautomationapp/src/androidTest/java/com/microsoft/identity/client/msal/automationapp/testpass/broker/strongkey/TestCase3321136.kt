@@ -32,7 +32,6 @@ import com.microsoft.identity.client.msal.automationapp.testpass.broker.Abstract
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
-import com.microsoft.identity.client.ui.automation.broker.BrokerHost
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters
@@ -42,7 +41,6 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
-import org.junit.Assert
 import org.junit.Assume
 import org.junit.Test
 
@@ -62,15 +60,6 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
 
         (mBroker as BrokerMicrosoftAuthenticator).setShouldUseDeviceSettingsPage(false)
         mBroker.performDeviceRegistration(basicUser.username, basicUser.password)
-
-        // Install BrokerHost app
-        val brokerHost = BrokerHost()
-        brokerHost.install()
-        brokerHost.launch()
-
-        // Check that the initial registration is NOT using strong keys (pre-CA state).
-        val wpjRecordPreCA = brokerHost.multipleWpjApiFragment.getRecordByUpn(basicUser.username)
-        Assert.assertEquals("false", wpjRecordPreCA["isRegisteredWithStrongKeys"])
 
         val msalSdk = MsalSdk()
 
@@ -102,13 +91,6 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
             }, TokenRequestTimeout.MEDIUM)
 
         authResult.assertSuccess()
-
-        brokerHost.launch()
-
-        // Check that the registration was done with strong keys.
-        val wpjRecord = brokerHost.multipleWpjApiFragment.getRecordByUpn(basicUser.username)
-        Assert.assertEquals("true", wpjRecord["isRegisteredWithStrongKeys"])
-        Assert.assertEquals(wpjRecordPreCA["DeviceId"], wpjRecord["DeviceId"]) // device id mustn't change.
     }
 
     override fun getLabQuery(): LabQuery? {

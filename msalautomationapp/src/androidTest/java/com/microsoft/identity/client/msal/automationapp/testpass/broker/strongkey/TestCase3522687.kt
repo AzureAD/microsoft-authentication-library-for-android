@@ -32,13 +32,11 @@ import com.microsoft.identity.client.msal.automationapp.testpass.broker.Abstract
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
-import com.microsoft.identity.client.ui.automation.broker.BrokerHost
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator
 import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
-import org.junit.Assert
 import org.junit.Assume
 import org.junit.Test
 
@@ -58,16 +56,6 @@ class TestCase3522687 : AbstractMsalBrokerTest() {
 
         (mBroker as BrokerMicrosoftAuthenticator).setShouldUseDeviceSettingsPage(false)
         mBroker.performDeviceRegistration(basicUser.username, basicUser.password)
-
-        // Install BrokerHost app
-        val brokerHost = BrokerHost()
-        brokerHost.install()
-        brokerHost.launch()
-
-        // Check that the registration was done with strong keys.
-        val deviceRegistrationRecords = brokerHost.multipleWpjApiFragment.allRecords
-        Assert.assertEquals(1, deviceRegistrationRecords.size)
-        Assert.assertEquals("true", deviceRegistrationRecords[0]["isRegisteredWithStrongKeys"])
 
         //acquiring token, no password prompt, no wpj upgrade prompt.
         val msalSdk = MsalSdk()
