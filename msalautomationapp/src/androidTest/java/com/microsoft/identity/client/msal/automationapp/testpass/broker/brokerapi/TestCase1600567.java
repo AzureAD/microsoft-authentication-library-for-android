@@ -41,6 +41,8 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
 
+import java.util.List;
+
 // Invoke each API from non-allowed apps. the request should be blocked.
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1600567
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
@@ -124,7 +126,12 @@ public class TestCase1600567 extends AbstractMsalBrokerTest {
      */
     private void confirmCallingAppNotVerified(@NonNull final BrokerHost brokerHost) {
         String dialogMessage = brokerHost.dismissDialog();
-        Assert.assertTrue(dialogMessage.contains("is not in the list of allowed callers"));
+        final List<String> validDialogMessages = List.of(
+                "Calling app could not be verified", // This is the client message for older versions of Broker.
+                "is not in the list of allowed callers", // This is the broker auth message for latest version of Broker.
+                "Only apps hosting the broker can invoke this API" // This is the client message for the latest version of Broker.
+        );
+        Assert.assertTrue(validDialogMessages.contains(dialogMessage));
     }
 
 }
