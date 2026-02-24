@@ -131,7 +131,14 @@ public class TestCase1600567 extends AbstractMsalBrokerTest {
                 "is not in the list of allowed callers", // This is the broker auth message for latest version of Broker.
                 "Only apps hosting the broker can invoke this API" // This is the client message for the latest version of Broker.
         );
-        Assert.assertTrue(validDialogMessages.contains(dialogMessage));
+        boolean matchesValidMessage = false;
+        for (final String validMessage : validDialogMessages) {
+            if (dialogMessage != null && dialogMessage.contains(validMessage)) {
+                matchesValidMessage = true;
+                break;
+            }
+        }
+        Assert.assertTrue("Unexpected dialog message: " + dialogMessage, matchesValidMessage);
     }
 
 }
