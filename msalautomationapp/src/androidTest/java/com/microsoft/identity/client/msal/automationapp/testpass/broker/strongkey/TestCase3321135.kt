@@ -75,7 +75,7 @@ class TestCase3321135 : AbstractMsalBrokerTest() {
                             .speedBumpExpected(false)
                             .broker(mBroker)
                             .expectingLoginPageAccountPicker(false)
-                            .registerPageExpected(true)
+                            .enrollPageExpected(true)
                             .build()
 
                     AadPromptHandler(promptHandlerParameters)
