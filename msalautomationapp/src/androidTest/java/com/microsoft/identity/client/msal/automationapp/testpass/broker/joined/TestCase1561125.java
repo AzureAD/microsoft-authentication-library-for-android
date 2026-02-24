@@ -115,7 +115,6 @@ public class TestCase1561125 extends AbstractMsalBrokerTest {
         Map<String, ?> tokens = IDToken.parseJWT(authResult.getAccessToken());
         Assert.assertNotNull(tokens.get("deviceid"));
 
-        // TODO: ADD TO ADO ITEM
         // remove the device registration owner account from settings page. following AT should be interactive
         Logger.i(TAG, "Remove device registration owner account from settings page");
         getSettingsScreen().removeAccount(username);

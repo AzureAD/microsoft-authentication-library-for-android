@@ -115,7 +115,7 @@ Total change in test count is 115 -> 77 (-33% decrease in total test cases, we w
 - TestCase2637882: [PRTv3] Brokered Auth for MSA Account - Consumers Authority
 - TestCase3007768: [Brokered] Sign Up Flow for MSA Accounts
 
-## broker/mwpj/ (11) (TODO: DISCUSS WITH PEDRO)
+## broker/mwpj/ (11) (no combinations)
 - TestCase2519783: [MWPJ] Install WPJ Certificate for Browser Access in Both Registrations
 - TestCase2519809: [MWPJ] Unregister 2 WPJ Entries
 - TestCase2519833: [MWPJ] Get Records by Tenant ID and UPN

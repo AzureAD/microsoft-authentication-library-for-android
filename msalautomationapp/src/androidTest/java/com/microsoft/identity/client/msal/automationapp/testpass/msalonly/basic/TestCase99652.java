@@ -111,8 +111,6 @@ public class TestCase99652 extends AbstractMsalUiTest {
 
         forceLoginAuthResult.assertSuccess();
 
-        // TODO: ADD TO ADO ITEM
-        // 2016158
         // Silent with https://login.microsoftonline.com/common
         final MsalAuthTestParams silentParams = MsalAuthTestParams.builder()
                 .activity(mActivity)

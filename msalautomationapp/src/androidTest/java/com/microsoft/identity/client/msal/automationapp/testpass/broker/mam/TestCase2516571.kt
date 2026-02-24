@@ -43,7 +43,7 @@ import org.junit.Test
 
 // Using TrueMAM account will require a broker, and will require CP instead of Authenticator
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2516571
-//@RetryOnFailure
+@RetryOnFailure
 class TestCase2516571 : AbstractMsalUiTest(){
 
     @Test
@@ -126,7 +126,6 @@ class TestCase2516571 : AbstractMsalUiTest(){
         companyPortal.handleAppProtectionPolicy()
         outlook.confirmAccount(username)
 
-        // TODO: ADD TO ADO ITEM
         val brokerHost = BrokerHost()
         brokerHost.install()
         brokerHost.wpjLeave()

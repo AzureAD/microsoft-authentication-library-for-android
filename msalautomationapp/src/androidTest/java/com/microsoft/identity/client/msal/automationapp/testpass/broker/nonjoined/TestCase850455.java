@@ -105,7 +105,6 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
         final MsalAuthResult silentResult1 = msalSdk.acquireTokenSilent(silentParams1,TokenRequestTimeout.SILENT);
         silentResult1.assertSuccess();
 
-        // TODO: ADD TO ADO ITEM
         // Interactive call with Prompt.LOGIN
         final MsalAuthTestParams interactiveParams2 = MsalAuthTestParams.builder()
                 .activity(mActivity)
@@ -134,7 +133,6 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
 
         interactiveResult2.assertSuccess();
 
-        // TODO: ADD TO ADO ITEM
         // Reset password
         Thread.sleep(TimeUnit.MINUTES.toMillis(1));
         Assert.assertTrue(mLabClient.resetPassword(username, 3));

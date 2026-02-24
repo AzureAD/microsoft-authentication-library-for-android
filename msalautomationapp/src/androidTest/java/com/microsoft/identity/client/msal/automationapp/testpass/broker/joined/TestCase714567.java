@@ -53,7 +53,7 @@ import org.junit.Test;
 import java.util.Arrays;
 
 // [Broker] Device registration via Settings page (with Authenticator as broker)
-// https://identitydivision.visualstudio.com/Engineering/_testPlans/define?planId=2007357&suiteId=2008868
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/714567
 @SupportedBrokers(brokers = BrokerMicrosoftAuthenticator.class)
 @RetryOnFailure
 public class TestCase714567 extends AbstractMsalBrokerTest {
@@ -68,11 +68,9 @@ public class TestCase714567 extends AbstractMsalBrokerTest {
         final String username2 = labAccount.getUsername();
         final String password2 = labAccount.getPassword();
 
-        // TODO: Recheck this
         ((BrokerMicrosoftAuthenticator) mBroker).setShouldUseDeviceSettingsPage(false);
         mBroker.performDeviceRegistration(username1, password1);
 
-        // TODO: ADD TO ADO ITEM
         final MsalSdk msalSdk = new MsalSdk();
 
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()

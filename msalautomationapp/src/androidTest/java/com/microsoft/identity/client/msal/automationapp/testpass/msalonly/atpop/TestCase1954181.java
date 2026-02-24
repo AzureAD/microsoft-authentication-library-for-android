@@ -100,7 +100,6 @@ public class TestCase1954181 extends AbstractMsalUiTest {
         authSilentResult.assertSuccess();
         MsalAuthResult.verifyATForPop(authSilentResult.getAccessToken());
 
-        // TODO: ADD TO ADO ITEM
         final String shr = msalSdk.generateSHR(authTestParams, TokenRequestTimeout.SHORT);
         Assert.assertNotNull(shr);
         MsalAuthResult.verifyATForPop(shr);

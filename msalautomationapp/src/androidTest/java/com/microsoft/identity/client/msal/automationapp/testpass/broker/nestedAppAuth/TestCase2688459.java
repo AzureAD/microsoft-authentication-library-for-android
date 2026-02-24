@@ -78,7 +78,6 @@ public class TestCase2688459 extends AbstractMsalBrokerTest {
             throw new AssertionError(e);
         }
 
-        // TODO: ADD TO ADO ITEM
         nestedAppHelper.performInteractiveATForNestedApp(false);
     }
 

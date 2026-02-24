@@ -45,7 +45,7 @@ import java.util.*
 @SupportedBrokers(brokers = [BrokerHost::class])
 @LocalBrokerHostDebugUiTest
 @RetryOnFailure
-class TestCase2637829And2637846 : AbstractMsaBrokerTest() {
+class TestCase2637829 : AbstractMsaBrokerTest() {
     @Test
     @Throws(Throwable::class)
     fun test_2637829_2637846_BasicMSAAuthWithPromptLogin() {
@@ -110,7 +110,6 @@ class TestCase2637829And2637846 : AbstractMsaBrokerTest() {
         }, TokenRequestTimeout.MEDIUM)
         authResult2.assertSuccess()
 
-        // TODO: ADD TO ADO ITEM
         // SECOND SILENT REQUEST WITHOUT LOGIN HINT
         val noLoginHintParams = MsalAuthTestParams.builder()
             .activity(mActivity)

@@ -41,10 +41,8 @@ import java.util.Arrays;
 
 // Brokered Auth verify "Sign In from other device" option and remote login url.
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2828864
-//@RetryOnFailure(retryCount = 2)
+@RetryOnFailure(retryCount = 2)
 public class TestCase2828864 extends AbstractSignInFromOtherDeviceTest {
-
-    private final String TAG = TestCase2828864.class.getSimpleName();
 
     public TestCase2828864() {
         super(AzureEnvironment.AZURE_CLOUD);
@@ -52,7 +50,6 @@ public class TestCase2828864 extends AbstractSignInFromOtherDeviceTest {
 
     @Test
     public void test_2828864_DCF_CheckSignInFromOtherDeviceOptionAvailable() throws Throwable {
-        // TODO: ADD TO ADO ITEM
         final MsalSdk msalSdk = new MsalSdk();
 
         // don't pass "is_remote_login_allowed=true" query parameter
@@ -81,7 +78,6 @@ public class TestCase2828864 extends AbstractSignInFromOtherDeviceTest {
         UiAutomatorUtils.pressBack();
         UiAutomatorUtils.pressBack();
 
-        // TODO: ADD TO ADO ITEM
         // Second, try with AZURE_US_GOVERNMENT
         this.setAzureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT);
         this.testSignInFromOtherDevice();

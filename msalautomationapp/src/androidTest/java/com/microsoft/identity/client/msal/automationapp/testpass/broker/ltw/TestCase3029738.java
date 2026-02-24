@@ -123,7 +123,6 @@ public class TestCase3029738 extends AbstractMsalBrokerTest {
             Assert.assertTrue(UiAutomatorUtils.obtainUiObjectWithText("Work or school account").exists());
         }
 
-        // TODO: ADD TO ADO ITEM
         if (BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("EnableBrokerDiscoveryV2Protocol:true")) {
             // No longer applicable with V2 protocol.
             return;

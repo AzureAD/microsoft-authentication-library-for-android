@@ -98,7 +98,6 @@ public class TestCase1922513 extends AbstractMsalBrokerTest {
         authSilentResult.assertSuccess();
         MsalAuthResult.verifyATForPop(authSilentResult.getAccessToken());
 
-        // TODO: ADD TO ADO ITEM
         String shr = msalSdk.generateSHR(authTestParams, TokenRequestTimeout.SHORT);
         Assert.assertNotNull(shr);
         MsalAuthResult.verifyATForPop(shr);

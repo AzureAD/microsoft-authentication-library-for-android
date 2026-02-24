@@ -121,7 +121,6 @@ public class TestCase832430 extends AbstractMsalBrokerTest {
         final MsalAuthResult refreshTokenAuthResult = msalSdk.acquireTokenSilent(refreshTokenParams, TokenRequestTimeout.MEDIUM);
         refreshTokenAuthResult.assertSuccess();
 
-        // TODO: ADD TO ADO ITEM
         /*
             Note that password reset doesn't take effect by ESTS at least user being logged in for 1 min.
             Therefore we have a Thread.sleep after first successful token acquisition before resetting password.
