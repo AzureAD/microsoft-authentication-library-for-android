@@ -91,10 +91,8 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
                             .prompt(PromptParameter.SELECT_ACCOUNT)
                             .loginHint(basicUser.username)
                             .passwordPageExpected(false)
-                            .consentPageExpected(false)
-                            .speedBumpExpected(false)
+                            .sessionExpected(true)
                             .broker(mBroker)
-                            .expectingLoginPageAccountPicker(false)
                             .enrollPageExpected(true)
                             .build()
 
