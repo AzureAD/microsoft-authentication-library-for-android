@@ -50,10 +50,8 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
-
 import org.junit.Assert;
 import org.junit.Test;
-
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;

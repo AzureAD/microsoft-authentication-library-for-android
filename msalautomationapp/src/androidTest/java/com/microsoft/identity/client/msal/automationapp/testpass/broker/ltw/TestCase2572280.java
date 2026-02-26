@@ -89,6 +89,7 @@ public class TestCase2572280 extends AbstractMsalBrokerTest {
         final String activeBroker = msalTestApp.getActiveBrokerPackageName();
         Assert.assertEquals("Active broker pkg name : " + BrokerLTW.BROKER_LTW_APP_PACKAGE_NAME, activeBroker);
     }
+
     @Override
     public UserType getJsonUserType() {
         return UserType.BASIC;
