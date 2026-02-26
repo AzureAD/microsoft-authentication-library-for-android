@@ -37,18 +37,23 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import org.junit.Test
 import java.util.*
 
-// [PRTv3] Brokered Auth for MSA account - Select_Account
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2637853
+// [PRTv3] Brokered Auth for MSA account - Prompt.Login
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2637829
+// and
+// [PRTv3] Brokered Auth for MSA account - Acquire Token Silent
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2637846
 @SupportedBrokers(brokers = [BrokerHost::class])
 @LocalBrokerHostDebugUiTest
 @RetryOnFailure
-class TestCase2637853 : AbstractMsaBrokerTest() {
+class TestCase2637829 : AbstractMsaBrokerTest() {
     @Test
     @Throws(Throwable::class)
-    fun test_2637853_BasicMSAAuthWithPromptSelectAccount() {
+    fun test_2637829_2637846_BasicMSAAuthWithPromptLogin() {
         val username = mLabAccount.username
         val password = mLabAccount.password
         val msalSdk = MsalSdk()
+
+        // Interactive call
         val authTestParams = MsalAuthTestParams.builder()
             .activity(mActivity)
             .loginHint(username)
@@ -56,22 +61,56 @@ class TestCase2637853 : AbstractMsaBrokerTest() {
             .promptParameter(Prompt.SELECT_ACCOUNT)
             .msalConfigResourceId(configFileResourceId)
             .build()
-        val authResult = msalSdk.acquireTokenInteractive(authTestParams, {
+        val authResult1 = msalSdk.acquireTokenInteractive(authTestParams, {
             val promptHandlerParameters = PromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)
                 .loginHint(username)
                 .sessionExpected(false)
                 .consentPageExpected(false)
                 .speedBumpExpected(false)
-                .broker(mBroker)
                 .expectingBrokerAccountChooserActivity(false)
                 .build()
             AadPromptHandler(promptHandlerParameters)
                 .handlePrompt(username, password)
         }, TokenRequestTimeout.MEDIUM)
-        authResult.assertSuccess()
+        authResult1.assertSuccess()
 
-        // SECOND REQUEST WITHOUT LOGIN HINT
+        // Silent call
+        val account = msalSdk.getAccount(mActivity, configFileResourceId, username)
+        val silentParams = MsalAuthTestParams.builder()
+            .activity(mActivity)
+            .loginHint(username)
+            .authority(account.authority)
+            .forceRefresh(true)
+            .scopes(Arrays.asList(*mScopes))
+            .msalConfigResourceId(configFileResourceId)
+            .build()
+        val silentResult = msalSdk.acquireTokenSilent(silentParams, TokenRequestTimeout.MEDIUM)
+        silentResult.assertSuccess()
+
+        // Interactive call with Prompt.LOGIN
+        val anotherAuthTestParams = MsalAuthTestParams.builder()
+            .activity(mActivity)
+            .loginHint(username)
+            .scopes(Arrays.asList(*mScopes))
+            .promptParameter(Prompt.LOGIN)
+            .msalConfigResourceId(configFileResourceId)
+            .build()
+        val authResult2 = msalSdk.acquireTokenInteractive(anotherAuthTestParams, {
+            val promptHandlerParameters = PromptHandlerParameters.builder()
+                .prompt(PromptParameter.LOGIN)
+                .loginHint(username)
+                .sessionExpected(false)
+                .consentPageExpected(false)
+                .speedBumpExpected(false)
+                .expectingBrokerAccountChooserActivity(false)
+                .build()
+            AadPromptHandler(promptHandlerParameters)
+                .handlePrompt(username, password)
+        }, TokenRequestTimeout.MEDIUM)
+        authResult2.assertSuccess()
+
+        // SECOND SILENT REQUEST WITHOUT LOGIN HINT
         val noLoginHintParams = MsalAuthTestParams.builder()
             .activity(mActivity)
             .scopes(Arrays.asList(*mScopes))
