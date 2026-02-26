@@ -56,10 +56,6 @@ abstract class AbstractSignInFromOtherDeviceTest extends AbstractMsalBrokerTest 
         mUserType = userType;
     }
 
-    public void setAzureEnvironment(@NonNull AzureEnvironment environment) {
-        mAzureEnvironment = environment;
-    }
-
     @Override
     public TempUserType getTempUserType() {
         return null;
