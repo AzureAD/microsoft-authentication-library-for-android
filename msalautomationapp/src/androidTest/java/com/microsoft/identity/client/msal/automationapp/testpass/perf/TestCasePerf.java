@@ -43,6 +43,7 @@ import com.microsoft.identity.common.java.marker.CodeMarkerManager;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Test;
 
@@ -143,7 +144,7 @@ public class TestCasePerf extends AbstractMsalUiTest {
 
 
     @Override
-    public LabQuery getLabQuery() {
+    public UserType getJsonUserType() {
         return LabQuery.builder()
                 .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
                 .build();

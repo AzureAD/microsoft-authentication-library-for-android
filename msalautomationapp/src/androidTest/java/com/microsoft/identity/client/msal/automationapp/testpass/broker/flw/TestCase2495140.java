@@ -50,9 +50,7 @@ import com.microsoft.identity.client.ui.automation.logging.Logger;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.client.ILabAccount;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
-import com.microsoft.identity.labapi.utilities.constants.UserRole;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
@@ -91,14 +89,10 @@ public class TestCase2495140 extends AbstractMsalBrokerTest {
         ICurrentAccountResult currentAccountResult = singleAccountPCA.getCurrentAccount();
         Assert.assertNull("There is already a signed in account...", currentAccountResult.getCurrentAccount());
         Logger.i(TAG, "Fetching another user from same tenant from lab account");
-        final LabQuery labQuery = LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .build();
+        final ILabAccount labAccount2 = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.BASIC);
 
-        final ILabAccount labAccount = mLabClient.getLabAccount(labQuery);
-
-        final String username2 = labAccount.getUsername();
-        final String password2 = labAccount.getPassword();
+        final String username2 = labAccount2.getUsername();
+        final String password2 = labAccount2.getPassword();
 
         Assert.assertNotEquals(username1, username2);
 
@@ -205,10 +199,8 @@ public class TestCase2495140 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .userRole(UserRole.CLOUD_DEVICE_ADMINISTRATOR)
-                .build();
+    public UserType getJsonUserType() {
+        return UserType.DEVICE_ADMIN;
     }
 
     @Override

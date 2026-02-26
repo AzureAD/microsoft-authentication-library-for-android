@@ -48,9 +48,7 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.client.ILabAccount;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
-import com.microsoft.identity.labapi.utilities.constants.UserRole;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
@@ -63,7 +61,7 @@ import java.util.concurrent.TimeUnit;
 // End My Shift - In Shared device mode, global sign out should work.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833515
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
-@RetryOnFailure(retryCount = 2)
+//@RetryOnFailure(retryCount = 2)
 public class TestCase833515 extends AbstractMsalBrokerTest {
 
     @Test
@@ -99,11 +97,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         Assert.assertNull("There is already a signed in account...", currentAccountResult.getCurrentAccount());
 
         // fetching another user from lab account
-        final LabQuery labQuery = LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .build();
-
-        final ILabAccount labAccount = mLabClient.getLabAccount(labQuery);
+        final ILabAccount labAccount = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.BASIC);
         final String username2 = labAccount.getUsername();
         final String password2 = labAccount.getPassword();
         Thread.sleep(TimeUnit.SECONDS.toMillis(30));
@@ -194,10 +188,8 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .userRole(UserRole.CLOUD_DEVICE_ADMINISTRATOR)
-                .build();
+    public UserType getJsonUserType() {
+        return UserType.DEVICE_ADMIN;
     }
 
     @Override

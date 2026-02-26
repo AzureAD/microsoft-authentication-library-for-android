@@ -51,10 +51,7 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.logging.Logger;
 import com.microsoft.identity.labapi.utilities.client.ILabAccount;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
-import com.microsoft.identity.labapi.utilities.constants.UserRole;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
@@ -78,8 +75,7 @@ public class TestCase833517 extends AbstractMsalBrokerTest {
                 (SingleAccountPublicClientApplication) PublicClientApplication.create(mContext, getConfigFileResourceId());
 
         Logger.i(TAG, "Fetching another user from same tenant from lab account");
-        final LabQuery labQuery = LabQuery.builder().userType(UserType.CLOUD).build();
-        final ILabAccount labAccount = mLabClient.getLabAccount(labQuery);
+        final ILabAccount labAccount = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.BASIC);
         final String username = labAccount.getUsername();
         final String password = labAccount.getPassword();
 
@@ -142,11 +138,8 @@ public class TestCase833517 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .userRole(UserRole.CLOUD_DEVICE_ADMINISTRATOR)
-                .build();
+    public UserType getJsonUserType() {
+        return UserType.DEVICE_ADMIN;
     }
 
     @Override

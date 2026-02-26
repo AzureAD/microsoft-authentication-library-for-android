@@ -40,10 +40,6 @@ import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequ
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
-import com.microsoft.identity.labapi.utilities.constants.GuestHomeAzureEnvironment;
-import com.microsoft.identity.labapi.utilities.constants.GuestHomedIn;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
@@ -52,35 +48,19 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
-import java.util.Collection;
 
 // [CrossCloud] AcquireToken from Cross/foreign Cloud after acquiring token from home cloud
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1616315
 @RunWith(Parameterized.class)
 @RunOnAPI29Minus("Keep me signed in")
 public class TestCase1616315 extends AbstractGuestAccountMsalUiTest {
-
-    private final GuestHomeAzureEnvironment mGuestHomeAzureEnvironment;
-    private final String mHomeCloud;
-    private final String mCrossCloud;
-
-    public TestCase1616315(final String name, final @NonNull GuestHomeAzureEnvironment guestHomeAzureEnvironment, final String homeCloud, final String crossCloud) {
-        mGuestHomeAzureEnvironment = guestHomeAzureEnvironment;
-        mHomeCloud = homeCloud;
-        mCrossCloud = crossCloud;
-    }
-
-    @Parameterized.Parameters(name = "{0}")
-    public static Collection guestHomeAzureEnvironment() {
-        return Arrays.asList(new Object[][]{
-                {"AZURE_US_GOV", GuestHomeAzureEnvironment.AZURE_US_GOVERNMENT, /*homeCloud*/"https://login.microsoftonline.us", /*crossCloud*/"https://login.microsoftonline.com"},
-        });
-    }
+    private final String mHomeCloud = "https://login.microsoftonline.us";
+    private final String mCrossCloud = "https://login.microsoftonline.com";
 
     @Test
     public void test_1616315_CrossCloud_MsalOnlyATFromCrossCloudAfterATFromHomeCloud() throws Throwable {
-        final String userName = mGuestUser.getHomeUpn();
-        final String password = mLabClient.getPasswordForGuestUser(mGuestUser);
+        final String userName = mGuestUser.getUsername();
+        final String password = mGuestUser.getPassword();
         mBrowser.clear();
         final OnInteractionRequired homeCloudInteractionHandler = () -> {
             mBrowser.handleFirstRun();
@@ -145,13 +125,8 @@ public class TestCase1616315 extends AbstractGuestAccountMsalUiTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .userType(UserType.GUEST)
-                .guestHomeAzureEnvironment(mGuestHomeAzureEnvironment)
-                .guestHomedIn(GuestHomedIn.HOST_AZURE_AD)
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .build();
+    public UserType getJsonUserType() {
+        return UserType.GUEST;
     }
 
     @Override
@@ -169,6 +144,6 @@ public class TestCase1616315 extends AbstractGuestAccountMsalUiTest {
     }
 
     private String getCrossCloudAuthority() {
-        return mCrossCloud + "/" + mGuestUser.getGuestLabTenants().get(0);
+        return mCrossCloud + "/" + "mGuestUser.getGuestLabTenants().get(0)";
     }
 }

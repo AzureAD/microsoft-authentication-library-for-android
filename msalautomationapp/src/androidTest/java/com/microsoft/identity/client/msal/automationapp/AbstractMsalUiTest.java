@@ -111,9 +111,9 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
     }
 
     private void loadLabUser() {
-        if (getLabQuery() != null) {
+        if (getJsonUserType() != null) {
             try {
-                mLabAccount = mLabClient.getLabAccount(getLabQuery());
+                mLabAccount = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(getJsonUserType());
             } catch (final LabApiException e) {
                 throw new AssertionError(e);
             }

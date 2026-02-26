@@ -34,8 +34,6 @@ import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppProm
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils
 import com.microsoft.identity.common.java.util.ThreadUtils
-import com.microsoft.identity.labapi.utilities.client.LabQuery
-import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assert
@@ -173,11 +171,8 @@ class TestCase2516571 : AbstractMsalUiTest(){
         return R.raw.msal_config_default
     }
 
-    override fun getLabQuery(): LabQuery {
-        return LabQuery.builder()
-            .userType(UserType.CLOUD)
-            .protectionPolicy(ProtectionPolicy.TRUE_MAM_CA)
-            .build()
+    override fun getJsonUserType(): UserType? {
+        return UserType.TRUE_MAM_CA
     }
 
     override fun getTempUserType(): TempUserType? {

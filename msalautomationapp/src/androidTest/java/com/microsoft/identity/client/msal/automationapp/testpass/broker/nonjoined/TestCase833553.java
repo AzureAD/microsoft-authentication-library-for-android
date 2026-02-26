@@ -34,8 +34,8 @@ import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
+import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabGuestAccount;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.FederationProvider;
 import com.microsoft.identity.labapi.utilities.constants.GuestHomedIn;
@@ -56,19 +56,11 @@ public class TestCase833553 extends AbstractMsalBrokerTest {
     public void test_833553_NonJoined_Federated() throws Throwable {
         final String username = mLabAccount.getUsername();
 
-        // query to load another user from the same tenant
-        final LabQuery queryForUserB = LabQuery.builder()
-                .userType(UserType.GUEST)
-                .guestHomedIn(GuestHomedIn.ON_PREM)
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .federationProvider(FederationProvider.ADFS_V4)
-                .build();
-
         // load this other user
-        final LabGuestAccount userB = mLabClient.loadGuestAccountFromLab(queryForUserB);
+        final ILabAccount userB = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.ONPREM);
 
-        final String usernameB = userB.getHomeUpn();
-        final String password = mLabClient.getPasswordForGuestUser(userB);
+        final String usernameB = userB.getUsername();
+        final String password = userB.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
 
@@ -149,12 +141,8 @@ public class TestCase833553 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .userType(UserType.FEDERATED)
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .federationProvider(FederationProvider.ADFS_V4)
-                .build();
+    public UserType getJsonUserType() {
+        return UserType.FEDERATED;
     }
 
     @Override

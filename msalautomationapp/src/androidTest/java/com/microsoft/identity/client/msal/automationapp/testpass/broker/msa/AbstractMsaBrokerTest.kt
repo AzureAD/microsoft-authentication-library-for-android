@@ -23,15 +23,8 @@
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.msa
 
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
-import com.microsoft.identity.client.ui.automation.broker.BrokerHost
-import com.microsoft.identity.client.ui.automation.utils.CommonUtils
-import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils
-import com.microsoft.identity.labapi.utilities.client.ILabAccount
-import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
-import org.junit.Assert
-import org.junit.Before
 
 /**
  * Parent class for Brokered MSA tests. Ensures PRTv3 is enabled before tests are run
@@ -42,10 +35,8 @@ abstract class AbstractMsaBrokerTest : AbstractMsalBrokerTest() {
         return mApplication.configuration.defaultAuthority.toString()
     }
 
-    override fun getLabQuery(): LabQuery {
-        return LabQuery.builder()
-            .userType(UserType.MSA)
-            .build()
+    override fun getJsonUserType(): UserType? {
+        return UserType.MSA
     }
 
     override fun getTempUserType(): TempUserType? {

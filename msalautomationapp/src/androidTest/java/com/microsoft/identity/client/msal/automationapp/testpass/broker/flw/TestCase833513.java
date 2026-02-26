@@ -41,10 +41,8 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.labapi.utilities.client.ILabAccount;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
-import com.microsoft.identity.labapi.utilities.constants.UserRole;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.Assert;
@@ -63,11 +61,7 @@ public class TestCase833513 extends AbstractMsalBrokerTest {
         final String password1 = mLabAccount.getPassword();
 
         // query to load a user from a different tenant that is used for WPJ
-        final LabQuery query = LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
-                .build();
-
-        final ILabAccount difTenantAccount = mLabClient.getLabAccount(query);
+        final ILabAccount difTenantAccount = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.USGOV);
         final String username2 = difTenantAccount.getUsername();
         final String password2 = difTenantAccount.getPassword();
 
@@ -115,10 +109,8 @@ public class TestCase833513 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .userRole(UserRole.CLOUD_DEVICE_ADMINISTRATOR)
-                .build();
+    public UserType getJsonUserType() {
+        return UserType.DEVICE_ADMIN;
     }
 
     @Override

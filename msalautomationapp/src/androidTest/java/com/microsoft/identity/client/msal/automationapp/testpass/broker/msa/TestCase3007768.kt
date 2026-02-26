@@ -36,7 +36,6 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler
 import com.microsoft.identity.client.ui.automation.utils.CommonUtils
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils
-import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assert
@@ -122,10 +121,8 @@ class TestCase3007768 : AbstractMsalBrokerTest(){
         return R.raw.msal_config_msa_only
     }
 
-    override fun getLabQuery(): LabQuery {
-        return LabQuery.builder()
-            .userType(UserType.MSA)
-            .build()
+    override fun getJsonUserType(): UserType? {
+        return UserType.BASIC
     }
 
     override fun getTempUserType(): TempUserType? {

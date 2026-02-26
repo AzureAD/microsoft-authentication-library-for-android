@@ -28,14 +28,9 @@ import static org.junit.Assert.fail;
 
 import androidx.test.uiautomator.UiObject;
 
-import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.msal.automationapp.R;
-import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
-import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
-import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
-import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.OutlookApp;
@@ -47,16 +42,11 @@ import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppProm
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
-import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.Arrays;
 
 // [Joined][MDM] Device Admin MDM: MDM Account with Microsoft Outlook and Word
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/831126
@@ -150,12 +140,8 @@ public class TestCase831126 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .protectionPolicy(ProtectionPolicy.MDM_CA)
-                .build();
+    public UserType getJsonUserType() {
+        return UserType.MDM_CA;
     }
 
     @Override

@@ -29,8 +29,6 @@ import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost
 import com.microsoft.identity.labapi.utilities.client.ILabAccount
-import com.microsoft.identity.labapi.utilities.client.LabQuery
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assert
@@ -61,26 +59,17 @@ class TestCase2519783 : AbstractMsalBrokerTest() {
         mBrokerHostApp.multipleWpjApiFragment.installCertificate(deviceRegistrationRecords[1]["TenantId"] as String)
     }
 
-    override fun getLabQuery(): LabQuery {
-        return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .build()
+    override fun getJsonUserType(): UserType? {
+        return UserType.BASIC
     }
 
     override fun getTempUserType(): TempUserType? {
         return null
     }
 
-    private fun getUsGovLabQuery(): LabQuery {
-        return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
-                .build()
-    }
-
     @Before
     fun before() {
-        mUsGovAccount = mLabClient.getLabAccount(getUsGovLabQuery())
+        mUsGovAccount = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.USGOV)
         mBrokerHostApp = broker as BrokerHost
         Assume.assumeFalse( "performNonSharedWpjWithHardwareKey flight is enabled, Test will be skipped",
             mBrokerHostApp.flights.contains("\"performNonSharedWpjWithHardwareKey\":\"true\""));

@@ -37,10 +37,7 @@ import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthent
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.ILabAccount;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
-import com.microsoft.identity.labapi.utilities.constants.UserRole;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
@@ -103,11 +100,7 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
         Assert.assertTrue(mode.contains("Single Account - Shared device"));
 
         // performs AcquireToken with an account from the same tenant with the WPJed account.
-        final LabQuery query = LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .build();
-
-        final ILabAccount difAccount = mLabClient.getLabAccount(query);
+        final ILabAccount difAccount = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.BASIC);
         final String username2 = difAccount.getUsername();
         final String password2 = difAccount.getPassword();
 
@@ -149,11 +142,8 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .userRole(UserRole.CLOUD_DEVICE_ADMINISTRATOR)
-                .build();
+    public UserType getJsonUserType() {
+        return UserType.DEVICE_ADMIN;
     }
 
     @Override

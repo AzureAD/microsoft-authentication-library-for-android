@@ -33,6 +33,7 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadL
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -45,7 +46,7 @@ import java.util.Arrays;
 public class TestCase2828864 extends AbstractSignInFromOtherDeviceTest {
 
     public TestCase2828864() {
-        super(AzureEnvironment.AZURE_CLOUD);
+        super(UserType.BASIC);
     }
 
     @Test
@@ -69,6 +70,7 @@ public class TestCase2828864 extends AbstractSignInFromOtherDeviceTest {
         UiAutomatorUtils.pressBack();
         UiAutomatorUtils.pressBack();
         UiAutomatorUtils.pressBack();
+        UiAutomatorUtils.pressBack();
 
         // First, try with AZURE_CLOUD
         this.testSignInFromOtherDevice();
@@ -77,9 +79,10 @@ public class TestCase2828864 extends AbstractSignInFromOtherDeviceTest {
         UiAutomatorUtils.pressBack();
         UiAutomatorUtils.pressBack();
         UiAutomatorUtils.pressBack();
+        UiAutomatorUtils.pressBack();
 
         // Second, try with AZURE_US_GOVERNMENT
-        this.setAzureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT);
+        this.setJsonUserType(UserType.USGOV);
         this.testSignInFromOtherDevice();
     }
 

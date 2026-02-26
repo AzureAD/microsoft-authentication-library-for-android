@@ -34,10 +34,8 @@ import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequ
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.labapi.utilities.client.ILabAccount;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -48,9 +46,8 @@ import org.junit.Test;
 public class TestCase1592509 extends AbstractMsalBrokerTest {
     @Test
     public void test_1592509_NonJoined_Mooncake() throws Throwable {
-        final ILabAccount labAccount = mLabClient.getLabAccount("idlab@mncmsidlab1.partner.onmschina.cn");
-        final String username = labAccount.getUsername();
-        final String password = labAccount.getPassword();
+        final String username = mLabAccount.getUsername();
+        final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
 
@@ -104,10 +101,8 @@ public class TestCase1592509 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .build();
+    public UserType getJsonUserType() {
+        return UserType.CHINA;
     }
 
     @Override

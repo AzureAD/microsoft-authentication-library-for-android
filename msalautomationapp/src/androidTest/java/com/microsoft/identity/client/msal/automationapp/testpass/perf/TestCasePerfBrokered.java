@@ -43,6 +43,7 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Test;
 
@@ -145,7 +146,7 @@ public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
+    public UserType getJsonUserType() {
         return LabQuery.builder()
                 .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
                 .protectionPolicy(ProtectionPolicy.MAM_CA)
