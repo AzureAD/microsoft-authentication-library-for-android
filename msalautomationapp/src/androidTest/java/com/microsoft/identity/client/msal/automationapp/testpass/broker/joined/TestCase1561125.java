@@ -58,7 +58,6 @@ import java.util.concurrent.CountDownLatch;
 
 // [Joined][MSAL] In-line WPJ: Perform Device registration with deviceid claim
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561125
-@RetryOnFailure(retryCount = 2)
 public class TestCase1561125 extends AbstractMsalBrokerTest {
     final String TAG = TestCase1561125.class.getSimpleName();
     private IAccount mTempAccount = null;

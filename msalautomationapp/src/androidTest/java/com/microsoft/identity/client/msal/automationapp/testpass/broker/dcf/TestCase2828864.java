@@ -40,7 +40,6 @@ import java.util.Arrays;
 
 // Brokered Auth verify "Sign In from other device" option and remote login url.
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2828864
-@RetryOnFailure(retryCount = 2)
 public class TestCase2828864 extends AbstractSignInFromOtherDeviceTest {
 
     public TestCase2828864() {

@@ -61,7 +61,6 @@ import java.util.concurrent.TimeUnit;
 // End My Shift - In Shared device mode, global sign out should work.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833515
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
-//@RetryOnFailure(retryCount = 2)
 public class TestCase833515 extends AbstractMsalBrokerTest {
 
     @Test

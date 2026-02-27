@@ -47,7 +47,6 @@ import java.util.concurrent.TimeUnit;
 
 // [Joined][MSAL] Acquire Token + Acquire Token Silent with resource (Prompt.SELECT_ACCOUNT)
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/832430
-@RetryOnFailure(retryCount = 2)
 @RunOnAPI29Minus
 public class TestCase832430 extends AbstractMsalBrokerTest {
 

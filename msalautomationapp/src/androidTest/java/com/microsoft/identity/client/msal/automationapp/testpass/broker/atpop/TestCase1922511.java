@@ -45,7 +45,6 @@ import java.util.Arrays;
 
 // [Non-Joined] Acquire PoP token interactive followed by Silent
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1922511
-@RetryOnFailure(retryCount = 2)
 public class TestCase1922511 extends AbstractMsalBrokerTest {
     @Test
     public void test_1922511_Pop_NonJoined_ATPopTokenThenATS() throws Throwable {

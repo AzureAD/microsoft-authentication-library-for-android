@@ -52,7 +52,6 @@ import java.util.Arrays;
 // [Broker] Device registration via Settings page (with Authenticator as broker)
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/714567
 @SupportedBrokers(brokers = BrokerMicrosoftAuthenticator.class)
-@RetryOnFailure
 public class TestCase714567 extends AbstractMsalBrokerTest {
 
     @Test
