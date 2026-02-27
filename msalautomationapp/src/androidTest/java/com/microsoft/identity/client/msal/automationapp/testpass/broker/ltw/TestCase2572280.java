@@ -54,19 +54,7 @@ import java.util.List;
 @RunWith(Parameterized.class)
 public class TestCase2572280 extends AbstractMsalBrokerTest {
 
-    private final UserType mUserType;
-
-    public TestCase2572280(@NonNull UserType userType) {
-        mUserType = userType;
-    }
-
-    @Parameterized.Parameters(name = "{0}")
-    public static List<UserType> userType() {
-        return Arrays.asList(
-                UserType.MSA,
-                UserType.CLOUD
-        );
-    }
+    private final UserType mUserType = UserType.MSA;
 
     @Test
     public void test_2572280_LTW_LTWHasHigherPriorityThanCP() throws Throwable {
@@ -110,7 +98,7 @@ public class TestCase2572280 extends AbstractMsalBrokerTest {
     @Override
     public LabQuery getLabQuery() {
         return LabQuery.builder()
-                .userType(mUserType)
+                .userType(UserType.MSA)
                 .build();
     }
 

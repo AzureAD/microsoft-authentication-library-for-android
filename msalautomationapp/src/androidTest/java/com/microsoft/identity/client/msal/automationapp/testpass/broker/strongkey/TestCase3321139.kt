@@ -20,88 +20,70 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.update
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.strongkey
 
 import com.microsoft.identity.client.Prompt
 import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk
-import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalCustomBrokerInstallationTest
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout
-import com.microsoft.identity.client.ui.automation.annotations.LTWTests
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
-import com.microsoft.identity.client.ui.automation.broker.BrokerLTW
-import com.microsoft.identity.client.ui.automation.constants.AuthScheme
+import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
+import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator
+import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler
 import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
-import org.junit.Ignore
 import org.junit.Test
-import java.util.*
 
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2516681
+// [StrongKey] Signs in with Token Protection-CA account
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3321139
+@SupportedBrokers(brokers = [BrokerMicrosoftAuthenticator::class])
 @RetryOnFailure
-@LTWTests
-class TestCaseUpdateLTW : AbstractMsalCustomBrokerInstallationTest() {
-
+class TestCase3321139 : AbstractMsalBrokerTest() {
     @Test
-    @Throws(Throwable::class)
-    fun test_UpdateLTW() {
-        val username = mLabAccount.username
-        val password = mLabAccount.password
-
-        val mBrokerLTW: BrokerLTW = installOldLtw()
+    fun test_3321139_SignInWithTpCaAccount() {
+        val basicUser = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.TP_CA)
 
         val msalSdk = MsalSdk()
-        val authTestParams = MsalAuthTestParams.builder()
+
+        //acquiring token
+        val authTestParams: MsalAuthTestParams = MsalAuthTestParams.builder()
             .activity(mActivity)
-            .loginHint(username)
-            .scopes(Arrays.asList(*mScopes))
-            .promptParameter(Prompt.LOGIN)
-            .authScheme(AuthScheme.BEARER)
+            .loginHint(basicUser.username)
+            .scopes(listOf(*mScopes))
+            .promptParameter(Prompt.SELECT_ACCOUNT)
             .msalConfigResourceId(configFileResourceId)
             .build()
 
-        val authResult = msalSdk.acquireTokenInteractive(authTestParams, {
-            val promptHandlerParameters = PromptHandlerParameters.builder()
-                .prompt(PromptParameter.LOGIN)
-                .loginHint(username)
-                .sessionExpected(false)
-                .consentPageExpected(false)
-                .speedBumpExpected(false)
-                .broker(mBrokerLTW)
-                .expectingBrokerAccountChooserActivity(false)
-                .build()
-            AadPromptHandler(promptHandlerParameters)
-                .handlePrompt(username, password)
-        }, TokenRequestTimeout.MEDIUM)
+        val authResult: MsalAuthResult =
+            msalSdk.acquireTokenInteractive(authTestParams, object : OnInteractionRequired {
+                override fun handleUserInteraction() {
+                    val promptHandlerParameters: PromptHandlerParameters =
+                        PromptHandlerParameters.builder()
+                            .prompt(PromptParameter.SELECT_ACCOUNT)
+                            .loginHint(basicUser.username)
+                            .consentPageExpected(false)
+                            .speedBumpExpected(false)
+                            .broker(mBroker)
+                            .expectingLoginPageAccountPicker(false)
+                            .enrollPageExpected(true)
+                            .build()
 
-        // Check if auth result is success
+                    AadPromptHandler(promptHandlerParameters)
+                        .handlePrompt(basicUser.username, basicUser.password)
+                }
+            }, TokenRequestTimeout.MEDIUM)
+
         authResult.assertSuccess()
-
-        // Update the LTW app
-        mBrokerLTW.update()
-        // start silent token request in MSAL
-
-        val authTestSilentParams = MsalAuthTestParams.builder()
-            .activity(mActivity)
-            .loginHint(username)
-            .scopes(Arrays.asList(*mScopes))
-            .authority(authority)
-            .authScheme(AuthScheme.BEARER)
-            .msalConfigResourceId(configFileResourceId)
-            .build()
-
-        val authResultPostUpdate: MsalAuthResult =
-            msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.SILENT)
-        authResultPostUpdate.assertSuccess()
     }
 
-    override fun getLabQuery(): LabQuery {
+    override fun getLabQuery(): LabQuery? {
         return LabQuery.builder()
             .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
             .build()
@@ -111,11 +93,11 @@ class TestCaseUpdateLTW : AbstractMsalCustomBrokerInstallationTest() {
         return null
     }
 
-    override fun getScopes(): Array<String>? {
-        return arrayOf("User.read")
+    override fun getScopes(): Array<String> {
+        return arrayOf("user.read")
     }
 
-    override fun getAuthority(): String? {
+    override fun getAuthority(): String {
         return mApplication.configuration.defaultAuthority.authorityURL.toString()
     }
 

@@ -39,6 +39,7 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -97,6 +98,10 @@ public class TestCase1922511 extends AbstractMsalBrokerTest {
         final MsalAuthResult authSilentResult = msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.MEDIUM);
         authSilentResult.assertSuccess();
         MsalAuthResult.verifyATForPop(authSilentResult.getAccessToken());
+
+        String shr = msalSdk.generateSHR(authTestParams, TokenRequestTimeout.SHORT);
+        Assert.assertNotNull(shr);
+        MsalAuthResult.verifyATForPop(shr);
     }
 
     @Override
