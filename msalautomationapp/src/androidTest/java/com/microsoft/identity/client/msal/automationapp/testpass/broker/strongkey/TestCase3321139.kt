@@ -39,6 +39,7 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
+import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Test
 
 // [StrongKey] Signs in with Token Protection-CA account
