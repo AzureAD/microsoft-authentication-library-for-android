@@ -52,7 +52,6 @@ import org.junit.rules.TestRule
 // [MWPJ] After entry migration PRT is still usable without extra prompts.
 @LocalBrokerHostDebugUiTest
 @SupportedBrokers(brokers = [BrokerHost::class])
-@RetryOnFailure
 class TestCase2579654 : AbstractMsalBrokerTest() {
 
     private lateinit var mUsGovAccount: ILabAccount

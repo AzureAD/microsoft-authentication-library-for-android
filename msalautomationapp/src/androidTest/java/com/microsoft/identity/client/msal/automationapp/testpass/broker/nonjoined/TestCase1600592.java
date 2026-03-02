@@ -46,7 +46,6 @@ import java.util.Arrays;
 
 // [Non-joined] A single-tenant app makes a silent request with common authority. It should fail.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/1600592
-@RetryOnFailure(retryCount = 2)
 @RunOnAPI29Minus("Consent Page")
 public class TestCase1600592 extends AbstractMsalBrokerTest {
 

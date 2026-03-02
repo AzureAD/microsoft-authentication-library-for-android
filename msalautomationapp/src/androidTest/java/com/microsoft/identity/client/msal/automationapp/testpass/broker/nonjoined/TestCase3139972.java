@@ -43,7 +43,6 @@ import java.util.Arrays;
 
 // [Non-joined][MSAL] Acquire Token + Acquire Token Silent, no loginhint (Prompt.SELECT_ACCOUNT)
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3139972
-@RetryOnFailure(retryCount = 2)
 public class TestCase3139972 extends AbstractMsalBrokerTest {
 
     @Test

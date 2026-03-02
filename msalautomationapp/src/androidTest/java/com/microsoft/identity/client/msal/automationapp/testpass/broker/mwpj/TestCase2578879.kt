@@ -49,7 +49,6 @@ import org.junit.Test
 // [MWPJ] An account with no PRT use no Joined flow even if the tenant is registered (Pkey AUth enable)
 @SupportedBrokers(brokers = [BrokerHost::class])
 @LocalBrokerHostDebugUiTest
-@RetryOnFailure
 class TestCase2578879 : AbstractMsalBrokerTest() {
 
     private lateinit var mLabAccount2: ILabAccount

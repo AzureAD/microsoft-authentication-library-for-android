@@ -41,7 +41,6 @@ import org.junit.rules.TestRule
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2521960
 // [MWPJ] Device registration entry migration (different upn - same tenant)
 @LocalBrokerHostDebugUiTest
-@RetryOnFailure
 @SupportedBrokers(brokers = [BrokerHost::class])
 class TestCase2521960 : AbstractMsalBrokerTest() {
 

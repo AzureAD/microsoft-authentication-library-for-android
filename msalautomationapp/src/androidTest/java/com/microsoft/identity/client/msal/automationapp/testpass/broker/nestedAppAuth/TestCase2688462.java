@@ -44,7 +44,6 @@ import java.util.List;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2688462
 @SupportedBrokers(brokers = BrokerHost.class)
 @LocalBrokerHostDebugUiTest
-@RetryOnFailure
 @RunWith(Parameterized.class)
 public class TestCase2688462 extends AbstractMsalBrokerTest {
     private final UserType mUserType;

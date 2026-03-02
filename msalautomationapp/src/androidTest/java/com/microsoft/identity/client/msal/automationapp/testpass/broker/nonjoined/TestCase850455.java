@@ -49,7 +49,6 @@ import java.util.concurrent.TimeUnit;
 
 // [Non-joined][MSAL] Acquire Token + Acquire Token Silent (Prompt.SELECT_ACCOUNT)
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/850455
-@RetryOnFailure(retryCount = 2)
 @RunOnAPI29Minus
 public class TestCase850455 extends AbstractMsalBrokerTest {
 
@@ -145,7 +144,7 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
                 .activity(mActivity)
                 .loginHint(username)
                 .authority(account.getAuthority())
-                .resource(mScopes[0])
+                .resource("https://graph.windows.net/user.read")
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 

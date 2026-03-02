@@ -37,7 +37,6 @@ import org.junit.Test;
 
 // Nested app interactive token request after device is WPJd
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2688468
-@RetryOnFailure
 @LocalBrokerHostDebugUiTest
 @SupportedBrokers(brokers = {BrokerHost.class})
 public class TestCase2688468 extends AbstractMsalBrokerTest {

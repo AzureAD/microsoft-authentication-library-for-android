@@ -47,7 +47,6 @@ import java.util.concurrent.TimeUnit;
 
 // Acquire Token Silent After Policy Change Should Fail
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2139526
-@RetryOnFailure
 @LongUIAutomationTest
 public class TestCase2139526 extends AbstractMsalBrokerTest {
 
