@@ -45,7 +45,6 @@ import org.junit.runners.Parameterized;
 @LTWTests
 @RetryOnFailure
 @SupportedBrokers(brokers = {BrokerLTW.class})
-@RunWith(Parameterized.class)
 public class TestCase2572280 extends AbstractMsalBrokerTest {
 
     private final UserType mUserType = UserType.MSA;

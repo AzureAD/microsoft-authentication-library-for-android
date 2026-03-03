@@ -144,7 +144,7 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
                 .activity(mActivity)
                 .loginHint(username)
                 .authority(account.getAuthority())
-                .resource("https://graph.windows.net/user.read")
+                .resource("mScopes[0]")
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 

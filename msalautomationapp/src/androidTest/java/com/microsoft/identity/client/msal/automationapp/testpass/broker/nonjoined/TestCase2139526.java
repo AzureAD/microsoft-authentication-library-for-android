@@ -88,7 +88,7 @@ public class TestCase2139526 extends AbstractMsalBrokerTest {
         authResult.assertSuccess();
 
         // Change the policy to MAM_CA
-        mLabClient.enablePolicy(username, ProtectionPolicy.MAM_CA);
+        mLabClient.enablePolicy(username, ProtectionPolicy.GLOBAL_MFA);
 
         // It takes some time for the policy change to reflect
         Thread.sleep(TimeUnit.MINUTES.toMillis(3));

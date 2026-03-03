@@ -52,7 +52,6 @@ import java.util.List;
 // Sign in with AAD and MSA account
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3029738
 @LTWTests
-@RetryOnFailure
 @SupportedBrokers(brokers = {BrokerLTW.class})
 @RunWith(Parameterized.class)
 public class TestCase3029738 extends AbstractMsalBrokerTest {
@@ -62,8 +61,6 @@ public class TestCase3029738 extends AbstractMsalBrokerTest {
     public TestCase3029738(@NonNull UserType userType) {
         mUserType = userType;
     }
-
-    private final String TAG = TestCase3029738.class.getSimpleName();
 
     @Parameterized.Parameters(name = "{0}")
     public static List<UserType> userType() {
@@ -121,31 +118,6 @@ public class TestCase3029738 extends AbstractMsalBrokerTest {
         } else {
             Assert.assertTrue(UiAutomatorUtils.obtainUiObjectWithText("Work or school account").exists());
         }
-
-        if (BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("EnableBrokerDiscoveryV2Protocol:true")) {
-            // No longer applicable with V2 protocol.
-            return;
-        }
-
-        // install updated auth app
-        final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator();
-        brokerMicrosoftAuthenticator.install();
-
-        ThreadUtils.sleepSafely(5000, TAG, "Waiting for 5 seconds to let the Authenticator app settle.");
-
-        // uninstall LTW
-        mBroker.uninstall();
-
-        // install OneAuthTestApp
-        final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
-        oneAuthTestApp.install();
-        oneAuthTestApp.launch();
-        oneAuthTestApp.handleFirstRunBasedOnUserType(mUserType);
-
-        // sign in to OneAuthTestApp
-        // should not prompt for password
-        oneAuthTestApp.handleUserNameInput(username);
-        oneAuthTestApp.handleSignInWithoutPrompt();
     }
 
     @Override
