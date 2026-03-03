@@ -54,7 +54,6 @@ import java.util.List;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2582292
 @LTWTests
 @SupportedBrokers(brokers = {BrokerLTW.class})
-@RetryOnFailure
 public class TestCase2582292 extends AbstractMsalBrokerTest {
 
     @Test

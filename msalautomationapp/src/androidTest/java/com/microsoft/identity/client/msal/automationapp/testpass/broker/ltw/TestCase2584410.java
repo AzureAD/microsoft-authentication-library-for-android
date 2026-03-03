@@ -51,9 +51,7 @@ import java.util.List;
 // Authenticator has highest priority  - Case3 (Auth, LTW, CP)
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2584410
 @LTWTests
-@RetryOnFailure
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
-@RunWith(Parameterized.class)
 public class TestCase2584410 extends AbstractMsalBrokerTest {
     private final UserType mUserType = UserType.CLOUD;
 
