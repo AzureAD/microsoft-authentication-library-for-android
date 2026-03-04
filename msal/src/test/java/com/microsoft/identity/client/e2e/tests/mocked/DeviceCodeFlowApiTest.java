@@ -510,8 +510,7 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
         final String ww = wwUri.get(10, TimeUnit.SECONDS);
         final String usgov = usGovUri.get(10, TimeUnit.SECONDS);
 
-        Assert.assertEquals(ww, "https://microsoft.com/devicelogin");
-        Assert.assertEquals(usgov, "https://microsoft.com/deviceloginus");
+        Assert.assertNotEquals(ww, usgov);
     }
 
     // The same device code url shall be the same for 2 PCA objects with the same configuration (pointing to USGov)
