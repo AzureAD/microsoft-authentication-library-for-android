@@ -84,6 +84,16 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
     private boolean mUserCodeReceived;
 
+    private ArrayList<String> allowedWWUrls =  new ArrayList<String>() {{
+        add("https://login.microsoft.com/device");
+        add("https://microsoft.com/devicelogin");
+    }};
+
+    private ArrayList<String> allowedUsGovUrls =  new ArrayList<String>() {{
+        add("https://microsoft.com/deviceloginus");
+        add("https://login.microsoftonline.us/device");
+    }};
+
     @Before
     public void setup() {
         super.setup();
@@ -510,7 +520,8 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
         final String ww = wwUri.get(10, TimeUnit.SECONDS);
         final String usgov = usGovUri.get(10, TimeUnit.SECONDS);
 
-        Assert.assertNotEquals(ww, usgov);
+        Assert.assertTrue(allowedWWUrls.contains(ww));
+        Assert.assertTrue(allowedUsGovUrls.contains(usgov));
     }
 
     // The same device code url shall be the same for 2 PCA objects with the same configuration (pointing to USGov)
@@ -567,7 +578,7 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
             }
         });
 
-        Assert.assertEquals("https://microsoft.com/deviceloginus", uri1.get(10, TimeUnit.SECONDS));
+        Assert.assertTrue(allowedUsGovUrls.contains(uri1.get(10, TimeUnit.SECONDS)));
 
         //3. then create another public client application with the same configuration file in step 1.
         PublicClientApplication.create(context, new File(MULTIPLE_ACCOUNT_MODE_AAD_USGOV_CONFIG_FILE_PATH),
@@ -612,6 +623,6 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
         });
 
         // Should still get USGOV back.
-        Assert.assertEquals("https://microsoft.com/deviceloginus", uri2.get(10, TimeUnit.SECONDS));
+        Assert.assertTrue(allowedUsGovUrls.contains(uri2.get(10, TimeUnit.SECONDS)));
     }
 }
