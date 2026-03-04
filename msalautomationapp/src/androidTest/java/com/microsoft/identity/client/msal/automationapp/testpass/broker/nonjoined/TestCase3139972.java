@@ -59,7 +59,6 @@ public class TestCase3139972 extends AbstractMsalBrokerTest {
                 .activity(mActivity)
                 .loginHint(null)
                 .scopes(Arrays.asList(getScopes()))
-                .resource("00000002-0000-0000-c000-000000000000")
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
@@ -93,7 +92,6 @@ public class TestCase3139972 extends AbstractMsalBrokerTest {
                 .authority(account.getAuthority())
                 .forceRefresh(true)
                 .scopes(Arrays.asList(getScopes()))
-                .resource("00000002-0000-0000-c000-000000000000")
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 

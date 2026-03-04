@@ -77,6 +77,8 @@ public class TestCase2688459 extends AbstractMsalBrokerTest {
         } catch (Throwable e) {
             throw new AssertionError(e);
         }
+
+        nestedAppHelper.performInteractiveATForNestedApp(false);
     }
 
     @Override

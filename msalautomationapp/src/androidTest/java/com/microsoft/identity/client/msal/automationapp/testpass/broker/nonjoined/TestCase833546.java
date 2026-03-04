@@ -55,8 +55,7 @@ public class TestCase833546 extends AbstractMsalBrokerTest {
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
-                .scopes(Arrays.asList(getScopes()))
-                .resource("00000003-0000-0ff1-ce00-000000000000")
+                .resource("00000003-0000-0ff1-ce00-000000000000") // Office 365 SharePoint Online
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
@@ -89,8 +88,7 @@ public class TestCase833546 extends AbstractMsalBrokerTest {
                 .loginHint(username)
                 .authority(account.getAuthority())
                 .forceRefresh(true)
-                .scopes(Arrays.asList(getScopes()))
-                .resource("00000002-0000-0000-c000-000000000000")
+                .resource("00000002-0000-0ff1-ce00-000000000000") // Office365 Exchange Online
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
@@ -114,6 +112,7 @@ public class TestCase833546 extends AbstractMsalBrokerTest {
     public String[] getScopes() {
         return new String[]{"User.read"};
     }
+
     @Override
     public String getAuthority() {
         return "https://login.microsoftonline.us/common";

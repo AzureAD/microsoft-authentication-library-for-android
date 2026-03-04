@@ -31,16 +31,18 @@ import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
+import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
+import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
+import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -61,6 +63,8 @@ public class TestCase3029738 extends AbstractMsalBrokerTest {
     public TestCase3029738(@NonNull UserType userType) {
         mUserType = userType;
     }
+
+    private final String TAG = TestCase3029738.class.getSimpleName();
 
     @Parameterized.Parameters(name = "{0}")
     public static List<UserType> userType() {
@@ -118,6 +122,31 @@ public class TestCase3029738 extends AbstractMsalBrokerTest {
         } else {
             Assert.assertTrue(UiAutomatorUtils.obtainUiObjectWithText("Work or school account").exists());
         }
+
+        if (BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("EnableBrokerDiscoveryV2Protocol:true")) {
+            // No longer applicable with V2 protocol.
+            return;
+        }
+
+        // install updated auth app
+        final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator();
+        brokerMicrosoftAuthenticator.install();
+
+        ThreadUtils.sleepSafely(5000, TAG, "Waiting for 5 seconds to let the Authenticator app settle.");
+
+        // uninstall LTW
+        mBroker.uninstall();
+
+        // install OneAuthTestApp
+        final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
+        oneAuthTestApp.install();
+        oneAuthTestApp.launch();
+        oneAuthTestApp.handleFirstRunBasedOnUserType(mUserType);
+
+        // sign in to OneAuthTestApp
+        // should not prompt for password
+        oneAuthTestApp.handleUserNameInput(username);
+        oneAuthTestApp.handleSignInWithoutPrompt();
     }
 
     @Override

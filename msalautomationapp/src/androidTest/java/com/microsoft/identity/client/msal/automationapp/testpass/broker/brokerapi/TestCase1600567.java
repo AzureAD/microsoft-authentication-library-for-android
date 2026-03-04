@@ -25,6 +25,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.brokera
 import androidx.annotation.NonNull;
 import androidx.test.uiautomator.UiObject;
 
+import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
@@ -37,7 +38,11 @@ import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.List;
 
 // Invoke each API from non-allowed apps. the request should be blocked.
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1600567
@@ -46,6 +51,10 @@ import org.junit.Test;
 public class TestCase1600567 extends AbstractMsalBrokerTest {
     @Test
     public void test_1600567_nonAllowedBrokerApp() throws Throwable {
+        // Skip test if preconditions are not met
+        Assume.assumeTrue("Only run this test if there are no local flights",
+                BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.isEmpty()
+        );
         final BrokerHost brokerHost = new BrokerHost();
         brokerHost.install();
         brokerHost.launch();
@@ -118,7 +127,19 @@ public class TestCase1600567 extends AbstractMsalBrokerTest {
      */
     private void confirmCallingAppNotVerified(@NonNull final BrokerHost brokerHost) {
         String dialogMessage = brokerHost.dismissDialog();
-        Assert.assertTrue(dialogMessage.contains("is not in the list of allowed callers"));
+        final List<String> validDialogMessages = Arrays.asList(
+                "Calling app could not be verified", // This is the client message for older versions of Broker.
+                "is not in the list of allowed callers", // This is the broker auth message for latest version of Broker.
+                "Only apps hosting the broker can invoke this API" // This is the client message for the latest version of Broker.
+        );
+        boolean matchesValidMessage = false;
+        for (final String validMessage : validDialogMessages) {
+            if (dialogMessage != null && dialogMessage.contains(validMessage)) {
+                matchesValidMessage = true;
+                break;
+            }
+        }
+        Assert.assertTrue("Unexpected dialog message: " + dialogMessage, matchesValidMessage);
     }
 
 }
