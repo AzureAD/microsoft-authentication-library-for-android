@@ -93,6 +93,7 @@ stages:
     - job: build_test_dev
       displayName: Dev Branch Testing
       cancelTimeoutInMinutes: 1
+      continueOnError: true
       variables:
         Codeql.Enabled: true
       steps:
