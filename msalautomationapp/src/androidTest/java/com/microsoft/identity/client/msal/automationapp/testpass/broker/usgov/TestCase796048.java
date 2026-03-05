@@ -38,10 +38,12 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 // [USGOV][Broker][Non-Joined] Acquire Token with Resource with instance_aware = true
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/796048
+@Ignore("Ignoring for now, cross cloud not supported in id4slab2 yet")
 public class TestCase796048 extends AbstractMsalBrokerTest {
 
     @Test

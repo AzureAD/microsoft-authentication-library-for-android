@@ -45,6 +45,7 @@ import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.json.JSONObject;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -57,6 +58,7 @@ import java.util.Collection;
 @RetryOnFailure(retryCount = 2)
 @RunWith(Parameterized.class)
 @RunOnAPI29Minus("Keep me signed in")
+@Ignore("Ignoring for now, cross cloud not supported in id4slab2 yet")
 public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
 
     private final GuestHomeAzureEnvironment mGuestHomeAzureEnvironment;

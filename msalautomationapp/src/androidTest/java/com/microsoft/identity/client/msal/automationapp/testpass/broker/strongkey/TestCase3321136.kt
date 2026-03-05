@@ -47,7 +47,6 @@ import org.junit.Test
 //  [StrongKey] Upgrade from regular WPJ to StrongKey WPJ (via CA)
 // https://identitydivision.visualstudio.com/Engineering/_testPlans/define?planId=2007357&suiteId=3321136
 @SupportedBrokers(brokers = [BrokerMicrosoftAuthenticator::class])
-@RetryOnFailure
 class TestCase3321136 : AbstractMsalBrokerTest() {
     @Test
     fun test_3321136_UpgradeFromRegularWpjToStrongKeyWpj() {
@@ -93,10 +92,8 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
         authResult.assertSuccess()
     }
 
-    override fun getLabQuery(): LabQuery? {
-        return LabQuery.builder()
-            .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-            .build()
+    override fun getJsonUserType(): UserType? {
+        return UserType.BASIC
     }
 
     override fun getTempUserType(): TempUserType? {

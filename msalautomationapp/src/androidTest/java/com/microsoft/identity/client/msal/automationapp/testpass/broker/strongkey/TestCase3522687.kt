@@ -42,7 +42,6 @@ import org.junit.Test
 
 // [StrongKey] WPJ should be registered with strongkey by default - non shared device.
 @SupportedBrokers(brokers = [BrokerMicrosoftAuthenticator::class])
-@RetryOnFailure
 class TestCase3522687 : AbstractMsalBrokerTest() {
 
     @Test
@@ -75,10 +74,8 @@ class TestCase3522687 : AbstractMsalBrokerTest() {
         authResult.assertSuccess()
     }
 
-    override fun getLabQuery(): LabQuery? {
-        return LabQuery.builder()
-            .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-            .build()
+    override fun getJsonUserType(): UserType? {
+        return UserType.BASIC
     }
 
     override fun getTempUserType(): TempUserType? {

@@ -43,6 +43,7 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -51,6 +52,7 @@ import java.util.Arrays;
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1592510
 @RetryOnFailure(retryCount = 2)
 @RunOnAPI29Minus("Keep me signed in")
+@Ignore("Ignoring for now, cross cloud not supported in id4slab2 yet")
 public class TestCase1592510 extends AbstractGuestAccountMsalBrokerUiTest {
     private final String mHomeCloud = "https://login.microsoftonline.us";
     private final String mCrossCloud = "https://login.microsoftonline.com";
