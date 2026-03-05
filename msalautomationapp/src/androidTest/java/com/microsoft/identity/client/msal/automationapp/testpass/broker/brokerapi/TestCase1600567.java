@@ -143,3 +143,4 @@ public class TestCase1600567 extends AbstractMsalBrokerTest {
     }
 
 }
+
