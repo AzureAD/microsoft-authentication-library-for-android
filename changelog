@@ -4,6 +4,10 @@ vNext
 ----------
 - [PATCH] Update Moshi version to 1.15.2 to address okio vulnerability (CVE-2023-3635) (#2480)
 
+Version 8.2.3
+----------
+- [PATCH] Update common @24.0.1
+
 Version 8.2.2
 ----------
 - [PATCH] Update common @24.0.0
