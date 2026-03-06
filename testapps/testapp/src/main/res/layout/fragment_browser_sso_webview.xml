@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ // Copyright (c) Microsoft Corporation.
+  ~ // All rights reserved.
+  ~ //
+  ~ // This code is licensed under the MIT License.
+  ~ //
+  ~ // Permission is hereby granted, free of charge, to any person obtaining a copy
+  ~ // of this software and associated documentation files(the "Software"), to deal
+  ~ // in the Software without restriction, including without limitation the rights
+  ~ // to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+  ~ // copies of the Software, and to permit persons to whom the Software is
+  ~ // furnished to do so, subject to the following conditions :
+  ~ //
+  ~ // The above copyright notice and this permission notice shall be included in
+  ~ // all copies or substantial portions of the Software.
+  ~ //
+  ~ // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  ~ // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  ~ // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  ~ // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  ~ // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  ~ // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  ~ // THE SOFTWARE.
+  -->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.microsoft.identity.client.testapp.BrowserSsoWebViewFragment">
+
+    <!-- URL bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="8dp">
+
+        <EditText
+            android:id="@+id/edit_text_url"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:inputType="textUri"
+            android:text="https://www.office.com"
+            android:textSize="14sp"
+            android:hint="Enter URL"
+            android:imeOptions="actionGo"
+            android:singleLine="true" />
+
+        <Button
+            android:id="@+id/button_go"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Go" />
+    </LinearLayout>
+
+    <!-- Progress indicator -->
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        android:indeterminate="true"
+        android:visibility="gone" />
+
+    <!-- WebView -->
+    <WebView
+        android:id="@+id/webview_browser_sso"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Collapsible log panel -->
+    <LinearLayout
+        android:id="@+id/log_panel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="?android:attr/colorBackground">
+
+        <!-- Toggle + clear bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="4dp"
+            android:background="?attr/colorControlHighlight">
+
+            <TextView
+                android:id="@+id/text_status"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="SSO injection ready"
+                android:textSize="12sp"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <Button
+                android:id="@+id/button_toggle_log"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                style="?android:attr/borderlessButtonStyle"
+                android:text="Log"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/button_clear_log"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                style="?android:attr/borderlessButtonStyle"
+                android:text="Clear"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <ScrollView
+            android:id="@+id/scroll_log"
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:visibility="gone"
+            android:background="#212121">
+
+            <TextView
+                android:id="@+id/text_log"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="8dp"
+                android:textColor="#B9F6CA"
+                android:textSize="11sp"
+                android:fontFamily="monospace" />
+        </ScrollView>
+    </LinearLayout>
+
+</LinearLayout>

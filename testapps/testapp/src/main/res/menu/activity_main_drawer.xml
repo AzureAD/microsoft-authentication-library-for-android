@@ -42,6 +42,9 @@
         <item
             android:id="@+id/nav_browser_sso"
             android:title="Browser SSO" />
+        <item
+            android:id="@+id/nav_browser_sso_webview"
+            android:title="Browser SSO E2E" />
     </group>
 
 </menu>

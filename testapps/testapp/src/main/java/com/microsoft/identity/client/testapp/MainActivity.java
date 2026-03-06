@@ -264,6 +264,11 @@ public class MainActivity extends AppCompatActivity
                 return false;
             }
             fragment = new BrowserSsoFragment();
+        } else if (menuItemId == R.id.nav_browser_sso_webview) {
+            if (getCurrentFragment() instanceof BrowserSsoWebViewFragment) {
+                return false;
+            }
+            fragment = new BrowserSsoWebViewFragment();
         } else {
             fragment = null;
         }
