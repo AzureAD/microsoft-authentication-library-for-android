@@ -128,7 +128,7 @@ class TestCase2516571 : AbstractMsalUiTest(){
 
         val brokerHost = BrokerHost()
         brokerHost.install()
-        brokerHost.wpjLeave()
+        brokerHost.wpjLeave(username)
 
         // advance clock by more than an hour to expire AT in cache
         settingsScreen.forwardDeviceTimeForOneDay()

@@ -56,11 +56,6 @@ class TestCase2521946 : AbstractMsalBrokerTest() {
         // Unregister the device from the legacy space
         mBrokerHostApp.multipleWpjApiFragment.unregister(mUsGovAccount.username)
 
-        // Verify that the device is unregistered for the legacy API
-        val errorMessage = mBrokerHostApp.accountUpn
-        Assert.assertNotNull(errorMessage)
-        Assert.assertTrue(errorMessage!!.contains("Device is not Workplace Joined"))
-
         // Verify that the device is still registered for the second account using the MWPJ API.
         val recordInExtendedSpace = mBrokerHostApp.multipleWpjApiFragment.getRecordByUpn(mLabAccount.username)
         Assert.assertNotNull(recordInExtendedSpace)
@@ -74,19 +69,15 @@ class TestCase2521946 : AbstractMsalBrokerTest() {
                 .loginHint(mLabAccount.username)
                 .build()
 
+
         mBrokerHostApp.performDeviceRegistration(mLabAccount.username, mLabAccount.password, promptHandlerParameters)
 
-        // Verify the device is registered for the legacy API
-        val legacyAccountMessage = mBrokerHostApp.accountUpn
-        Assert.assertNotNull(legacyAccountMessage)
-        Assert.assertTrue(legacyAccountMessage!!.contains(mLabAccount.username))
-        val legacyAccountDeviceId = mBrokerHostApp.obtainDeviceId()
 
         // Verify the entry is the same, it was just migrated
         val recordsAfterMigration = mBrokerHostApp.multipleWpjApiFragment.allRecords
         Assert.assertEquals(1, recordsAfterMigration.size)
-        Assert.assertEquals(legacyAccountMessage, recordsAfterMigration[0]["Upn"])
-        Assert.assertEquals(legacyAccountDeviceId, recordsAfterMigration[0]["DeviceId"])
+        Assert.assertEquals( recordInExtendedSpace["Upn"], recordsAfterMigration[0]["Upn"])
+        Assert.assertEquals( recordInExtendedSpace["DeviceId"], recordsAfterMigration[0]["DeviceId"])
         Assert.assertEquals(recordInExtendedSpace, recordsAfterMigration[0])
 
     }

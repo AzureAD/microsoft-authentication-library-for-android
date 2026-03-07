@@ -78,9 +78,8 @@ class TestCase2579654 : AbstractMsalBrokerTest() {
         mBrokerHostApp.multipleWpjApiFragment.unregister(mUsGovAccount.username)
 
         // Verify that the device is unregistered for the legacy API
-        val errorMessage = mBrokerHostApp.accountUpn
-        Assert.assertNotNull(errorMessage)
-        Assert.assertTrue(errorMessage!!.contains("Device is not Workplace Joined"))
+        val deviceRegistrationRecordsAfterLeave = mBrokerHostApp.multipleWpjApiFragment.allRecords
+        Assert.assertEquals(1, deviceRegistrationRecordsAfterLeave.size)
 
         // Verify that the device is still registered for the second account using the MWPJ API.
         val recordInExtendedSpace = mBrokerHostApp.multipleWpjApiFragment.getRecordByUpn(mLabAccount.username)

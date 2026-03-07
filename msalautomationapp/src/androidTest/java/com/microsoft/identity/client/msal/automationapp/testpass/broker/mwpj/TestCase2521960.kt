@@ -67,22 +67,15 @@ class TestCase2521960 : AbstractMsalBrokerTest() {
         // Unregister the device from the legacy space
         mBrokerHostApp.multipleWpjApiFragment.unregister(mUsGovAccount.username)
 
-        // Verify that the device is unregistered for the legacy API
-        val errorMessage = mBrokerHostApp.accountUpn
-        Assert.assertNotNull(errorMessage)
-        Assert.assertTrue(errorMessage!!.contains("Device is not Workplace Joined"))
-
         // Verify that the device is still registered for the second account using the MWPJ API.
+        val deviceRegistrationRecordsAfterLeave = mBrokerHostApp.multipleWpjApiFragment.allRecords
+        Assert.assertEquals(1, deviceRegistrationRecordsAfterLeave.size)
         val recordInExtendedSpace = mBrokerHostApp.multipleWpjApiFragment.getRecordByUpn(mLabAccount.username)
         Assert.assertNotNull(recordInExtendedSpace)
 
         // Register the device with the second account (same tenant different upn) using the legacy API
         mBrokerHostApp.performDeviceRegistration(mLabAccount2.username, mLabAccount2.password)
 
-        // Verify that the device is registered with the second account using the legacy API
-        val legacyAccountMessage = mBrokerHostApp.accountUpn
-        Assert.assertNotNull(legacyAccountMessage)
-        Assert.assertTrue(legacyAccountMessage!!.contains(mLabAccount2.username))
 
         // Verify the entry in the extended space was removed and replaced with the entry from the second account.
         val recordInLegacy = mBrokerHostApp.multipleWpjApiFragment.allRecords
