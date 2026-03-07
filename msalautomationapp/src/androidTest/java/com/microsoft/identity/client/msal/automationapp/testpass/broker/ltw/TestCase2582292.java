@@ -77,7 +77,7 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
         brokerHost.launch();
 
         // In brokerHost Multiple WPJ mode: perform a shared device registration with a cloud device admin account from the LAB API
-        brokerHost.multipleWpjApiFragment.performSharedDeviceRegistration(username1, password1);
+        brokerHost.performSharedDeviceRegistration(username1, password1);
 
         // Uninstall BrokerHost App
         brokerHost.uninstall();
