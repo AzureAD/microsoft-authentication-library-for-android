@@ -48,6 +48,10 @@ class TestCase2516571 : AbstractMsalUiTest(){
 
     @Test
     fun test_2516571_MAM_BrokerRequired() {
+        Assume.assumeFalse( "Only run this test if there are local flights",
+                BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.isEmpty()
+        );
+        
         // Fetch credentials
         val username: String = mLabAccount.username
         val password: String = mLabAccount.password
