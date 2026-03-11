@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.mam
 
+import com.microsoft.identity.client.msal.automationapp.BuildConfig
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest
 import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
@@ -39,6 +40,7 @@ import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assert
+import org.junit.Assume
 import org.junit.Test
 
 // Using TrueMAM account will require a broker, and will require CP instead of Authenticator
