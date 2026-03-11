@@ -24,7 +24,6 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.mam
 
 import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.app.TeamsApp
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal
@@ -39,7 +38,6 @@ import org.junit.Test
 // TrueMAM: Sign In with Teams and then SignOut and Sign Back In
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2506936
 @SupportedBrokers(brokers = [BrokerCompanyPortal::class])
-@RetryOnFailure
 class TestCase2506936 : AbstractMsalBrokerTest(){
 
     @Test

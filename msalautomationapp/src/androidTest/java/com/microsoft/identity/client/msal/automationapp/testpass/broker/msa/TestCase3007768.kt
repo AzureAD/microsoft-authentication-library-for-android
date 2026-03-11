@@ -28,7 +28,6 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters
@@ -46,7 +45,6 @@ import java.util.Arrays
 // [Brokered] Sign up flow for MSA Accounts
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3007768
 @SupportedBrokers(brokers = [BrokerMicrosoftAuthenticator::class])
-@RetryOnFailure
 class TestCase3007768 : AbstractMsalBrokerTest(){
     @Test
     @Throws(Throwable::class)
@@ -122,7 +120,7 @@ class TestCase3007768 : AbstractMsalBrokerTest(){
     }
 
     override fun getJsonUserType(): UserType? {
-        return UserType.BASIC
+        return UserType.MSA
     }
 
     override fun getTempUserType(): TempUserType? {

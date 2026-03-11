@@ -24,7 +24,6 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.mam
 
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest
 import com.microsoft.identity.client.msal.automationapp.R
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.app.OutlookApp
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost
@@ -41,7 +40,6 @@ import org.junit.Test
 
 // Using TrueMAM account will require a broker, and will require CP instead of Authenticator
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2516571
-@RetryOnFailure
 class TestCase2516571 : AbstractMsalUiTest(){
 
     @Test
@@ -149,7 +147,7 @@ class TestCase2516571 : AbstractMsalUiTest(){
 
         // Not totally sure what prompts outlook to take the snackbar away, sometimes it still appears after re-authentication
         // We wait a bit and relaunch outlook twice, this seems improve the chance of the snackbar disappearing
-        ThreadUtils.sleepSafely(20000, "sleeping", "interrupted sleep")
+        ThreadUtils.sleepSafely(35000, "sleeping", "interrupted sleep")
         outlook.forceStop()
         outlook.launch()
         outlook.forceStop()

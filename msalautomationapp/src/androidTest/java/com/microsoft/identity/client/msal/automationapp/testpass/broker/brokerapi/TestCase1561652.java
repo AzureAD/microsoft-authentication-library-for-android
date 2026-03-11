@@ -30,7 +30,6 @@ import com.google.gson.Gson;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.common.java.util.StringUtil;
@@ -47,7 +46,6 @@ import java.util.Set;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561652
 @SupportedBrokers(brokers = {BrokerHost.class})
 @LocalBrokerHostDebugUiTest
-@RetryOnFailure
 public class TestCase1561652 extends AbstractMsalBrokerTest {
     @Test
     public void test_1561652_brokerhostSSOToken() {

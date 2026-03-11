@@ -32,7 +32,6 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
@@ -52,7 +51,6 @@ import java.util.List;
 // Transfer token generation and restore
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3026421
 @LTWTests
-@RetryOnFailure
 @SupportedBrokers(brokers = {BrokerHost.class})
 public class TestCase3026421 extends AbstractMsalBrokerTest {
 

@@ -31,7 +31,6 @@ import androidx.test.uiautomator.UiObject;
 import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.OutlookApp;
 import com.microsoft.identity.client.ui.automation.app.WordApp;
@@ -51,7 +50,6 @@ import org.junit.Test;
 // [Joined][MDM] Device Admin MDM: MDM Account with Microsoft Outlook and Word
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/831126
 @SupportedBrokers(brokers = {BrokerCompanyPortal.class})
-@RetryOnFailure
 public class TestCase831126 extends AbstractMsalBrokerTest {
 
     @Test

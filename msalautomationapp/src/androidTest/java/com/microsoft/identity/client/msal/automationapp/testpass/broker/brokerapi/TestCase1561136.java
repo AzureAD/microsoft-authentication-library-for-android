@@ -30,7 +30,6 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
@@ -49,7 +48,6 @@ import java.util.List;
 // Get Broker Accounts
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561136
 @SupportedBrokers(brokers = BrokerHost.class)
-@RetryOnFailure(retryCount = 2)
 @LocalBrokerHostDebugUiTest
 public class TestCase1561136 extends AbstractMsalBrokerTest {
 
