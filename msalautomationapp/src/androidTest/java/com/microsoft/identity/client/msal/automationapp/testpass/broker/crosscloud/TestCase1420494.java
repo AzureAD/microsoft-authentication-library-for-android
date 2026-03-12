@@ -134,7 +134,7 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
 
     @Override
     public String getAuthority() {
-        return "https://login.microsoftonline.com/" + "mGuestUser.getGuestLabTenants().get(0)";
+        return "https://login.microsoftonline.com/" + mGuestUser.getHomeTenantId();
     }
 }
 

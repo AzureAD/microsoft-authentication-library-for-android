@@ -24,7 +24,6 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.crosscl
 
 import android.text.TextUtils;
 
-import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
@@ -129,6 +128,6 @@ public class TestCase1592510 extends AbstractGuestAccountMsalBrokerUiTest {
     }
 
     private String getCrossCloudAuthority() {
-        return mCrossCloud + "/" + "mGuestUser.getGuestLabTenants().get(0)";
+        return mCrossCloud + "/" + mGuestUser.getHomeTenantId();
     }
 }

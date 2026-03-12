@@ -40,16 +40,12 @@ import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequ
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.labapi.utilities.constants.GuestHomeAzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
-import java.util.Collection;
 
 // [CrossCloud] AcquireToken from home Cloud after acquiring token from cross/foreign cloud
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1616315
@@ -149,6 +145,6 @@ public class TestCase1616316 extends AbstractGuestAccountMsalUiTest {
     }
 
     private String getCrossCloudAuthority() {
-        return mCrossCloud + "/" + "mGuestUser.getGuestLabTenants().get(0)";
+        return mCrossCloud + "/" + mGuestUser.getHomeTenantId();
     }
 }

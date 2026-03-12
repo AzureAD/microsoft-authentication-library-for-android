@@ -128,6 +128,6 @@ public class TestCase1592465 extends AbstractGuestAccountMsalBrokerUiTest {
     }
 
     private String getCrossCloudAuthority() {
-        return mCrossCloud + "/" + "mGuestUser.getGuestLabTenants().get(0)";
+        return mCrossCloud + "/" + mGuestUser.getHomeTenantId();
     }
 }

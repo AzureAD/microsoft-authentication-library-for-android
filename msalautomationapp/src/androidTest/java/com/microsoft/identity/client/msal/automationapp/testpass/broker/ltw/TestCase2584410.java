@@ -38,15 +38,13 @@ import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 // Authenticator has highest priority  - Case3 (Auth, LTW, CP)
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2584410
 @LTWTests
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 public class TestCase2584410 extends AbstractMsalBrokerTest {
-    private final UserType mUserType = UserType.CLOUD;
+    private final UserType mUserType = UserType.BASIC;
 
     @Test
     public void test_2584410_LTW_AuthenticatorHighestPriorityAuthLTWCP() throws Throwable {

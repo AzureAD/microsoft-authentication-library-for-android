@@ -63,7 +63,7 @@ public class TestCase2572249 extends AbstractMsalBrokerTest {
     public static List<UserType> userType() {
         return Arrays.asList(
                 UserType.MSA,
-                UserType.CLOUD
+                UserType.BASIC
         );
     }
 

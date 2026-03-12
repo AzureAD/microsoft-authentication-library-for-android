@@ -143,7 +143,7 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
                 .activity(mActivity)
                 .loginHint(username)
                 .authority(account.getAuthority())
-                .resource("mScopes[0]")
+                .resource(mScopes[0])
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 

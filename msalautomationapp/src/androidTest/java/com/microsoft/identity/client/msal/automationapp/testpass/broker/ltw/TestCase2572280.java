@@ -36,8 +36,6 @@ import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 // LTW has higher priority than CP
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2572280
@@ -89,7 +87,7 @@ public class TestCase2572280 extends AbstractMsalBrokerTest {
 
     @Override
     public UserType getJsonUserType() {
-        return UserType.BASIC;
+        return mUserType;
     }
 
     @Override

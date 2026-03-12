@@ -76,7 +76,7 @@ public class TestCase832430 extends AbstractMsalBrokerTest {
                         .speedBumpExpected(false)
                         .broker(mBroker)
                         .expectingBrokerAccountChooserActivity(false)
-                        .registerPageExpected(true)
+                        .registerPageExpected(false)
                         .build();
 
                 new AadPromptHandler(promptHandlerParameters)
