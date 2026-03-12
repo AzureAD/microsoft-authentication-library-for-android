@@ -34,33 +34,29 @@ import com.microsoft.identity.client.msal.automationapp.testpass.broker.Abstract
 import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.constants.GlobalConstants;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.GuestHomeAzureEnvironment;
-import com.microsoft.identity.labapi.utilities.constants.GuestHomedIn;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.json.JSONObject;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.concurrent.TimeUnit;
 
 // Acquire token for cross cloud guest account (with broker)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1420494
-@RetryOnFailure(retryCount = 2)
 @RunWith(Parameterized.class)
 @RunOnAPI29Minus("Keep me signed in")
+@Ignore("Ignoring for now, cross cloud not supported in id4slab2 yet")
 public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
 
     private final GuestHomeAzureEnvironment mGuestHomeAzureEnvironment;
@@ -82,8 +78,8 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
      */
     @Test
     public void test_1420494_CrossCloud_NonJoined_GuestATThenATS() throws Throwable {
-        final String userName = mGuestUser.getHomeUpn();
-        final String password = mLabClient.getPasswordForGuestUser(mGuestUser);
+        final String userName = mGuestUser.getUsername();
+        final String password = mGuestUser.getPassword();
 
         // Handler for Interactive auth call
         final OnInteractionRequired interactionHandler = () -> {
@@ -127,13 +123,8 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .userType(UserType.GUEST)
-                .guestHomeAzureEnvironment(mGuestHomeAzureEnvironment)
-                .guestHomedIn(GuestHomedIn.HOST_AZURE_AD)
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .build();
+    public UserType getJsonUserType() {
+        return UserType.GUEST;
     }
 
     @Override
@@ -143,7 +134,7 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
 
     @Override
     public String getAuthority() {
-        return "https://login.microsoftonline.com/" + mGuestUser.getGuestLabTenants().get(0);
+        return "https://login.microsoftonline.com/" + mGuestUser.getHomeTenantId();
     }
 }
 

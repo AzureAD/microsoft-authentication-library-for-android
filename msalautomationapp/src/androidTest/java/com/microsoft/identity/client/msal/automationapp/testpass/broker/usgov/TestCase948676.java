@@ -29,22 +29,20 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
 
 // [USGOV][Broker][Joined] Acquire token with instance_aware=true
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/948676
-@RetryOnFailure
+@Ignore("Ignoring for now, cross cloud not supported in id4slab2 yet")
 public class TestCase948676 extends AbstractMsalBrokerTest {
 
     @Test
@@ -89,11 +87,8 @@ public class TestCase948676 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
-                .build();
+    public UserType getJsonUserType() {
+        return UserType.USGOV;
     }
 
     @Override

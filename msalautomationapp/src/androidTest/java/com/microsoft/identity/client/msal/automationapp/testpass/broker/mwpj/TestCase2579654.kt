@@ -31,7 +31,6 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
@@ -39,8 +38,6 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.Micr
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.rules.LoadLabUserTestRule
 import com.microsoft.identity.labapi.utilities.client.ILabAccount
-import com.microsoft.identity.labapi.utilities.client.LabQuery
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import com.microsoft.identity.labapi.utilities.jwt.JWTParserFactory
@@ -54,7 +51,6 @@ import org.junit.rules.TestRule
 // [MWPJ] After entry migration PRT is still usable without extra prompts.
 @LocalBrokerHostDebugUiTest
 @SupportedBrokers(brokers = [BrokerHost::class])
-@RetryOnFailure
 class TestCase2579654 : AbstractMsalBrokerTest() {
 
     private lateinit var mUsGovAccount: ILabAccount
@@ -62,7 +58,7 @@ class TestCase2579654 : AbstractMsalBrokerTest() {
     private lateinit var mBrokerHostApp: BrokerHost
 
     @get:Rule
-    val loadUsGovLabAccountUserRule: TestRule = LoadLabUserTestRule(getAdditionalLabQuery())
+    val loadUsGovLabAccountUserRule: TestRule = LoadLabUserTestRule(UserType.USGOV)
     @get:Rule
     val loadAdditionalLabUserRule: TestRule = LoadLabUserTestRule(TempUserType.BASIC)
 
@@ -123,21 +119,12 @@ class TestCase2579654 : AbstractMsalBrokerTest() {
         Assert.assertTrue("Device id claim is present", claims2.containsKey("deviceid"))
     }
 
-    override fun getLabQuery(): LabQuery {
-        return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .build()
+    override fun getJsonUserType(): UserType? {
+        return UserType.BASIC
     }
 
     override fun getTempUserType(): TempUserType? {
         return null
-    }
-
-    private fun getAdditionalLabQuery(): LabQuery {
-        return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
-                .build()
     }
 
     @Before

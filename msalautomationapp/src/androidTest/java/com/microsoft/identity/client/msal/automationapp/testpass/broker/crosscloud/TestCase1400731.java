@@ -24,8 +24,6 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.crosscl
 
 import android.text.TextUtils;
 
-import androidx.annotation.NonNull;
-
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
@@ -33,30 +31,26 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
-import com.microsoft.identity.labapi.utilities.client.LabGuestAccount;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.LabConstants;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
 
 // [Joined] Guest Support: Interactive and Silent Auth with MSAL Test app (Authenticator or Company Portal)
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1400731/
-@RetryOnFailure(retryCount = 2)
+@Ignore("Ignoring for now, cross cloud not supported in id4slab2 yet")
 public class TestCase1400731 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_1400731_CrossCloud_Joined_GuestATThenATS() throws Throwable {
         // load a guest user account from the Lab
-        final LabGuestAccount labGuest = mLabClient.loadGuestAccountFromLab(getLabQuery());
-
-        final String username = "gcidlab@msidlab4.onmicrosoft.com";
-        final String password = mLabClient.getPasswordForGuestUser(labGuest);
+        final String username = mLabAccount.getUsername(); //"gcidlab@msidlab4.onmicrosoft.com";
+        final String password = mLabAccount.getPassword();
 
         //perform device registration
         mBroker.performDeviceRegistration(username, password);
@@ -132,10 +126,8 @@ public class TestCase1400731 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .userType(UserType.GUEST)
-                .build();
+    public UserType getJsonUserType() {
+        return UserType.GUEST;
     }
 
     @Override

@@ -28,7 +28,7 @@ In order to use PoP with MSAL, the `minimum_required_broker_protocol_version` mu
 `app_config.json`
 ```json
 {
-  "client_id" : "4b0db8c2-9f26-4417-8bde-3f0e3656f8e0",
+  "client_id" : "c6bb302a-1e38-408e-9754-87c18fe81c80",
   "redirect_uri" : "msauth://com.microsoft.identity.client.sample.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D",
   "broker_redirect_uri_registered": true,
   "minimum_required_broker_protocol_version" : "4.0",

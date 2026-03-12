@@ -3,6 +3,11 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 vNext
 ----------
 - [MAJOR] Bump TargetSdk to 35, minSdk to 24, AGP to 8.10.0 (#3164)
+- [PATCH] Update Moshi version to 1.15.2 to address okio vulnerability (CVE-2023-3635) (#2480)
+
+Version 8.2.3
+----------
+- [PATCH] Update common @24.0.1
 
 Version 8.2.2
 ----------

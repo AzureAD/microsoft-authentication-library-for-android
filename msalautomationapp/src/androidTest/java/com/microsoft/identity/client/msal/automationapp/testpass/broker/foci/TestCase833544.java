@@ -27,7 +27,6 @@ import androidx.test.uiautomator.UiObject;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LongUIAutomationTest;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.AzureSampleApp;
 import com.microsoft.identity.client.ui.automation.app.OutlookApp;
@@ -41,8 +40,6 @@ import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.client.ILabAccount;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
@@ -55,7 +52,6 @@ import java.util.concurrent.TimeUnit;
 // [Non-joined][FoCl] FoCl (Multi-users) with Outlook and Word
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833544
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
-@RetryOnFailure
 @LongUIAutomationTest
 public class TestCase833544 extends AbstractMsalBrokerTest {
 
@@ -125,12 +121,7 @@ public class TestCase833544 extends AbstractMsalBrokerTest {
         azureSample.confirmSignedIn("None");
 
         // fetch another account from lab - someone from a different tenant
-        final LabQuery govAccountQuery = LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
-                .build();
-
-        final ILabAccount govAccount = mLabClient.getLabAccount(govAccountQuery);
+        final ILabAccount govAccount = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.USGOV);
 
         final String usernameGov = govAccount.getUsername();
         final String passwordGov = govAccount.getPassword();
@@ -206,10 +197,8 @@ public class TestCase833544 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .build();
+    public UserType getJsonUserType() {
+        return UserType.BASIC;
     }
 
     @Override

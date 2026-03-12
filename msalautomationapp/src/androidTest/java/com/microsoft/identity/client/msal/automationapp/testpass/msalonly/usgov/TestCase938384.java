@@ -29,15 +29,13 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Test;
 
@@ -45,7 +43,6 @@ import java.util.Arrays;
 
 // [USGOV][MSAL-ONLY] Acquire token with USGov Authority
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938384
-@RetryOnFailure(retryCount = 2)
 public class TestCase938384 extends AbstractMsalUiTest {
 
     @Test
@@ -85,10 +82,8 @@ public class TestCase938384 extends AbstractMsalUiTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
-                .build();
+    public UserType getJsonUserType() {
+        return UserType.USGOV;
     }
 
     @Override

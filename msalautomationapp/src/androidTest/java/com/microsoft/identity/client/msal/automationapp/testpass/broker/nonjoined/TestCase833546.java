@@ -33,13 +33,10 @@ import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Test;
-
-import java.util.Arrays;
 
 // [MSAL] Broker Auth for Non-Joined Account - Multiple Resources
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833546
@@ -97,10 +94,8 @@ public class TestCase833546 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .build();
+    public UserType getJsonUserType() {
+        return UserType.BASIC;
     }
 
     @Override

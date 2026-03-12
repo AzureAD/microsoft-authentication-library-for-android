@@ -30,13 +30,10 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
@@ -47,8 +44,7 @@ import java.util.Arrays;
 
 // [Joined][MSAL] Broker Auth - Federated User
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561147
-@RetryOnFailure(retryCount = 2)
-@Ignore("Federated Account in LAB is not working at the moment")
+//@Ignore("Federated Account in LAB is not working at the moment")
 public class TestCase1561147 extends AbstractMsalBrokerTest {
     @Test
     public void test_1561147_Joined_FederatedUser() throws Throwable {
@@ -100,11 +96,8 @@ public class TestCase1561147 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .userType(UserType.FEDERATED)
-                .build();
+    public UserType getJsonUserType() {
+        return UserType.FEDERATED;
     }
 
     @Override

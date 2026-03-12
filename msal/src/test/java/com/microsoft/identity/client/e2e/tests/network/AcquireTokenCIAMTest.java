@@ -30,6 +30,7 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -62,10 +63,8 @@ public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
     }
 
     @Override
-    public LabUserQuery getLabUserQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.federationProvider = LabConstants.FederationProvider.CIAM;
-        return query;
+    public UserType getUserType() {
+        return UserType.CIAM;
     }
 
     public static AuthenticationCallback successfulVerifyIssuerCallback() {

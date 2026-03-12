@@ -28,14 +28,12 @@ import androidx.test.uiautomator.UiObject;
 import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
 import org.junit.Assume;
@@ -47,7 +45,6 @@ import java.util.List;
 // Invoke each API from non-allowed apps. the request should be blocked.
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1600567
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
-@RetryOnFailure
 public class TestCase1600567 extends AbstractMsalBrokerTest {
     @Test
     public void test_1600567_nonAllowedBrokerApp() throws Throwable {
@@ -96,10 +93,8 @@ public class TestCase1600567 extends AbstractMsalBrokerTest {
 
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .build();
+    public UserType getJsonUserType() {
+        return UserType.BASIC;
     }
 
     @Override

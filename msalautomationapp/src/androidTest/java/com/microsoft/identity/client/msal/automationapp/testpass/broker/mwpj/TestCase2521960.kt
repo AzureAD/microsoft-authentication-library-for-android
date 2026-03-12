@@ -25,13 +25,10 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.mwpj
 import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost
 import com.microsoft.identity.client.ui.automation.rules.LoadLabUserTestRule
 import com.microsoft.identity.labapi.utilities.client.ILabAccount
-import com.microsoft.identity.labapi.utilities.client.LabQuery
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assert
@@ -43,7 +40,6 @@ import org.junit.rules.TestRule
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2521960
 // [MWPJ] Device registration entry migration (different upn - same tenant)
 @LocalBrokerHostDebugUiTest
-@RetryOnFailure
 @SupportedBrokers(brokers = [BrokerHost::class])
 class TestCase2521960 : AbstractMsalBrokerTest() {
 
@@ -52,7 +48,7 @@ class TestCase2521960 : AbstractMsalBrokerTest() {
     private lateinit var mBrokerHostApp: BrokerHost
 
     @get:Rule
-    val loadUsGovLabAccountUserRule: TestRule = LoadLabUserTestRule(getAdditionalLabQuery())
+    val loadUsGovLabAccountUserRule: TestRule = LoadLabUserTestRule(UserType.USGOV)
     @get:Rule
     val loadAdditionalLabUserRule: TestRule = LoadLabUserTestRule(TempUserType.BASIC)
 
@@ -92,21 +88,12 @@ class TestCase2521960 : AbstractMsalBrokerTest() {
         Assert.assertNotEquals(recordInExtendedSpace["DeviceId"], recordInLegacy[0]["DeviceId"])
     }
 
-    override fun getLabQuery(): LabQuery {
-        return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .build()
+    override fun getJsonUserType(): UserType? {
+        return UserType.BASIC
     }
 
     override fun getTempUserType(): TempUserType? {
         return null
-    }
-
-    private fun getAdditionalLabQuery(): LabQuery {
-        return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
-                .build()
     }
 
     @Before

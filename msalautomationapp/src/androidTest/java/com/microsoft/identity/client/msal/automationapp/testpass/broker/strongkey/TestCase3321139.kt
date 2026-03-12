@@ -29,15 +29,12 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler
-import com.microsoft.identity.labapi.utilities.client.LabQuery
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Test
@@ -45,7 +42,6 @@ import org.junit.Test
 // [StrongKey] Signs in with Token Protection-CA account
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3321139
 @SupportedBrokers(brokers = [BrokerMicrosoftAuthenticator::class])
-@RetryOnFailure
 class TestCase3321139 : AbstractMsalBrokerTest() {
     @Test
     fun test_3321139_SignInWithTpCaAccount() {
@@ -84,10 +80,8 @@ class TestCase3321139 : AbstractMsalBrokerTest() {
         authResult.assertSuccess()
     }
 
-    override fun getLabQuery(): LabQuery? {
-        return LabQuery.builder()
-            .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-            .build()
+    override fun getJsonUserType(): UserType? {
+        return UserType.BASIC
     }
 
     override fun getTempUserType(): TempUserType? {

@@ -28,7 +28,6 @@ import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.common.java.dto.AccountRecord;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
@@ -58,7 +57,7 @@ public class TestCase2688459 extends AbstractMsalBrokerTest {
     public static List<UserType> userType() {
         return Arrays.asList(
                 UserType.MSA,
-                UserType.CLOUD
+                UserType.BASIC
         );
     }
 
@@ -82,10 +81,8 @@ public class TestCase2688459 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .userType(mUserType)
-                .build();
+    public UserType getJsonUserType() {
+        return mUserType;
     }
 
     @Override

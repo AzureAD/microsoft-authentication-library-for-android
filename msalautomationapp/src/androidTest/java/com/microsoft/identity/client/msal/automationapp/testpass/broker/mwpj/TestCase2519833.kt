@@ -28,8 +28,6 @@ import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDe
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost
 import com.microsoft.identity.labapi.utilities.client.ILabAccount
-import com.microsoft.identity.labapi.utilities.client.LabQuery
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assert
@@ -65,26 +63,17 @@ class TestCase2519833 : AbstractMsalBrokerTest() {
         Assert.assertEquals(deviceRegistrationRecords[1], record3)
     }
 
-    override fun getLabQuery(): LabQuery {
-        return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .build()
+    override fun getJsonUserType(): UserType? {
+        return UserType.BASIC
     }
 
     override fun getTempUserType(): TempUserType? {
         return null
     }
 
-    private fun getUsGovLabQuery(): LabQuery {
-        return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
-                .build()
-    }
-
     @Before
     fun before() {
-        mUsGovAccount = mLabClient.getLabAccount(getUsGovLabQuery())
+        mUsGovAccount = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.USGOV)
         mBrokerHostApp = broker as BrokerHost
         mBrokerHostApp.enableMultipleWpj()
     }
