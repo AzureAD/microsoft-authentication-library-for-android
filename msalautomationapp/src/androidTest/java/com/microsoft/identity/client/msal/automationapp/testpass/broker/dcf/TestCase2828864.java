@@ -82,14 +82,4 @@ public class TestCase2828864 extends AbstractSignInFromOtherDeviceTest {
         this.setAzureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT);
         this.testSignInFromOtherDevice();
     }
-
-    @Override
-    public int getConfigFileResourceId() {
-        return R.raw.msal_config_default;
-    }
-
-    @Override
-    protected String getExpectedDeviceCodeUrl() {
-        return "https://microsoft.com/devicelogin";
-    }
 }
