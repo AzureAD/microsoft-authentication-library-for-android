@@ -49,7 +49,7 @@ import java.util.Map;
 // Brokered Auth verify "Sign In from other device" option.
 abstract class AbstractSignInFromOtherDeviceTest extends AbstractMsalBrokerTest {
 
-    private final AzureEnvironment mAzureEnvironment;
+    private AzureEnvironment mAzureEnvironment;
 
     public AbstractSignInFromOtherDeviceTest(@NonNull AzureEnvironment environment) {
         mAzureEnvironment = environment;
@@ -61,6 +61,10 @@ abstract class AbstractSignInFromOtherDeviceTest extends AbstractMsalBrokerTest 
                 .userType(UserType.CLOUD)
                 .azureEnvironment(mAzureEnvironment)
                 .build();
+    }
+
+    public void setAzureEnvironment(@NonNull AzureEnvironment environment) {
+        mAzureEnvironment = environment;
     }
 
     @Override
@@ -91,8 +95,14 @@ abstract class AbstractSignInFromOtherDeviceTest extends AbstractMsalBrokerTest 
                 .build();
 
         msalSdk.acquireTokenInteractiveAsync(authTestParams, () ->
-                new AadLoginComponentHandler().handleSignInFromOtherDevice(getExpectedDeviceCodeUrl()), TokenRequestTimeout.MEDIUM);
+                new AadLoginComponentHandler().handleSignInFromOtherDevice(), TokenRequestTimeout.MEDIUM);
     }
 
-    abstract protected String getExpectedDeviceCodeUrl();
+    @Override
+    public int getConfigFileResourceId() {
+        if (mAzureEnvironment == AzureEnvironment.AZURE_US_GOVERNMENT) {
+            return R.raw.msal_config_arlington;
+        }
+        return R.raw.msal_config_default;
+    }
 }

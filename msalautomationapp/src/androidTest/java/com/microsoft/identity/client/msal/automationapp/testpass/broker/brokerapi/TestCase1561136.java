@@ -106,6 +106,11 @@ public class TestCase1561136 extends AbstractMsalBrokerTest {
         // get accounts this time must show two accounts - to verify this we have check for 2 dialog boxes
         accounts = brokerHost.getAllAccounts();
         Assert.assertEquals(2, accounts.size());
+
+        // Remove the added account
+        brokerHost.removeAccount(username);
+        // Check getAccounts returns 1 accounts after removal
+        Assert.assertEquals(1, brokerHost.getAllAccounts().size());
     }
 
     @Override

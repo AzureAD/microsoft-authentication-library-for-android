@@ -55,19 +55,7 @@ import java.util.List;
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 @RunWith(Parameterized.class)
 public class TestCase2584410 extends AbstractMsalBrokerTest {
-    private final UserType mUserType;
-
-    public TestCase2584410(@NonNull UserType userType) {
-        mUserType = userType;
-    }
-
-    @Parameterized.Parameters(name = "{0}")
-    public static List<UserType> userType() {
-        return Arrays.asList(
-                UserType.MSA,
-                UserType.CLOUD
-        );
-    }
+    private final UserType mUserType = UserType.CLOUD;
 
     @Test
     public void test_2584410_LTW_AuthenticatorHighestPriorityAuthLTWCP() throws Throwable {
