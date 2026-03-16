@@ -37,6 +37,7 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -44,6 +45,7 @@ import java.util.Arrays;
 // [USGOV][MSAL-ONLY] Acquire token acquisition with instance_aware=true, login hint present,
 // and cloud account, and WW organizations authority
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938367
+@Ignore("Ignoring for now, cross cloud not supported in id4slab2 yet")
 public class TestCase938367 extends AbstractMsalUiTest {
 
     @Test

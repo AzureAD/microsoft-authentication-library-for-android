@@ -37,22 +37,25 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
+import org.junit.Ignore
 import org.junit.Test
 
 // [StrongKey] Signs in with Token Protection-CA account
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3321139
 @SupportedBrokers(brokers = [BrokerMicrosoftAuthenticator::class])
+@Ignore("Ignore until tp-ca accounts are available in ID4SLab2")
 class TestCase3321139 : AbstractMsalBrokerTest() {
     @Test
     fun test_3321139_SignInWithTpCaAccount() {
-        val basicUser = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.TP_CA)
+        val username = mLabAccount.username
+        val password = mLabAccount.password
 
         val msalSdk = MsalSdk()
 
         //acquiring token
         val authTestParams: MsalAuthTestParams = MsalAuthTestParams.builder()
             .activity(mActivity)
-            .loginHint(basicUser.username)
+            .loginHint(username)
             .scopes(listOf(*mScopes))
             .promptParameter(Prompt.SELECT_ACCOUNT)
             .msalConfigResourceId(configFileResourceId)
@@ -64,7 +67,7 @@ class TestCase3321139 : AbstractMsalBrokerTest() {
                     val promptHandlerParameters: PromptHandlerParameters =
                         PromptHandlerParameters.builder()
                             .prompt(PromptParameter.SELECT_ACCOUNT)
-                            .loginHint(basicUser.username)
+                            .loginHint(username)
                             .consentPageExpected(false)
                             .speedBumpExpected(false)
                             .broker(mBroker)
@@ -73,7 +76,7 @@ class TestCase3321139 : AbstractMsalBrokerTest() {
                             .build()
 
                     AadPromptHandler(promptHandlerParameters)
-                        .handlePrompt(basicUser.username, basicUser.password)
+                        .handlePrompt(username, password)
                 }
             }, TokenRequestTimeout.MEDIUM)
 
@@ -81,7 +84,7 @@ class TestCase3321139 : AbstractMsalBrokerTest() {
     }
 
     override fun getJsonUserType(): UserType? {
-        return UserType.BASIC
+        return UserType.TP_CA
     }
 
     override fun getTempUserType(): TempUserType? {

@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.mam
 
+import com.microsoft.identity.client.msal.automationapp.BuildConfig
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest
 import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.ui.automation.app.OutlookApp
@@ -36,6 +37,7 @@ import com.microsoft.identity.common.java.util.ThreadUtils
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assert
+import org.junit.Assume
 import org.junit.Test
 
 // Using TrueMAM account will require a broker, and will require CP instead of Authenticator
@@ -44,6 +46,10 @@ class TestCase2516571 : AbstractMsalUiTest(){
 
     @Test
     fun test_2516571_MAM_BrokerRequired() {
+        Assume.assumeFalse( "Only run this test if there are local flights",
+                BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.isEmpty()
+        );
+        
         // Fetch credentials
         val username: String = mLabAccount.username
         val password: String = mLabAccount.password

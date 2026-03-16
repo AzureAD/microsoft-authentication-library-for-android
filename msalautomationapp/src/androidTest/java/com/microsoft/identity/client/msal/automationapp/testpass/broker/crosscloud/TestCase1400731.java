@@ -36,20 +36,18 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
 
 // [Joined] Guest Support: Interactive and Silent Auth with MSAL Test app (Authenticator or Company Portal)
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1400731/
-@Ignore("Ignoring for now, cross cloud not supported in id4slab2 yet")
 public class TestCase1400731 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_1400731_CrossCloud_Joined_GuestATThenATS() throws Throwable {
         // load a guest user account from the Lab
-        final String username = mLabAccount.getUsername(); //"gcidlab@msidlab4.onmicrosoft.com";
+        final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         //perform device registration
@@ -62,7 +60,7 @@ public class TestCase1400731 extends AbstractMsalBrokerTest {
                 .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
-                .authority(LabConstants.MSID_LAB3)
+                .authority(LabConstants.ID4SLAB1)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
@@ -81,11 +79,11 @@ public class TestCase1400731 extends AbstractMsalBrokerTest {
                 .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
-                .authority(LabConstants.MSID_LAB4)
+                .authority(LabConstants.ID4SLAB2)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        // start interactive acquire token request in MSAL for msidlab4 (should succeed and be silent)
+        // start interactive acquire token request in MSAL for id4slab2 (should succeed and be silent)
         final MsalAuthResult authResult2 = msalSdk.acquireTokenInteractive(authTestParams2, new com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
@@ -101,26 +99,26 @@ public class TestCase1400731 extends AbstractMsalBrokerTest {
         final MsalAuthTestParams silentParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
-                .authority(LabConstants.MSID_LAB3)
+                .authority(LabConstants.ID4SLAB1)
                 .forceRefresh(true)
                 .scopes(Arrays.asList(mScopes))
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        // get a token silently for msidlab3
+        // get a token silently for id4slab1
         final MsalAuthResult silentAuthResult = msalSdk.acquireTokenSilent(silentParams, TokenRequestTimeout.SILENT);
         silentAuthResult.assertSuccess();
 
         final MsalAuthTestParams silentParams2 = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
-                .authority(LabConstants.MSID_LAB4)
+                .authority(LabConstants.ID4SLAB2)
                 .forceRefresh(true)
                 .scopes(Arrays.asList(mScopes))
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        // get a token silently for msidlab4
+        // get a token silently for id4slab2
         final MsalAuthResult silentAuthResult2 = msalSdk.acquireTokenSilent(silentParams2, TokenRequestTimeout.SILENT);
         silentAuthResult2.assertSuccess();
     }

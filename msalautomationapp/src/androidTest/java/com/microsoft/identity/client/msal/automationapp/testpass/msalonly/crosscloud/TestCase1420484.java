@@ -24,8 +24,6 @@ package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.cross
 
 import android.text.TextUtils;
 
-import androidx.annotation.NonNull;
-
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.AbstractGuestAccountMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.sdk.Constants;
@@ -35,7 +33,6 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
-import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.constants.GlobalConstants;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -45,6 +42,7 @@ import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.json.JSONObject;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -52,6 +50,7 @@ import java.util.Arrays;
 // [CrossCloud] Acquire token (Interactive and silent) for cross cloud guest account (Msal Only)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1420484
 @RunOnAPI29Minus("Keep me signed in")
+@Ignore("Ignoring for now, cross cloud not supported in id4slab2 yet")
 public class TestCase1420484 extends AbstractGuestAccountMsalUiTest {
 
     /**
@@ -67,7 +66,7 @@ public class TestCase1420484 extends AbstractGuestAccountMsalUiTest {
 
         // Handler for Interactive auth call
         final OnInteractionRequired interactionHandler = () -> {
-            ((IApp) mBrowser).handleFirstRun();
+            (mBrowser).handleFirstRun();
             final PromptHandlerParameters promptHandlerParameters =
                     PromptHandlerParameters.builder()
                     .prompt(PromptParameter.SELECT_ACCOUNT)
@@ -110,7 +109,7 @@ public class TestCase1420484 extends AbstractGuestAccountMsalUiTest {
 
     @Override
     public UserType getJsonUserType() {
-        return UserType.CHINA;
+        return UserType.CHINA_GUEST;
     }
 
     @Override
@@ -120,6 +119,6 @@ public class TestCase1420484 extends AbstractGuestAccountMsalUiTest {
 
     @Override
     public String getAuthority() {
-        return "https://login.microsoftonline.com/" + "mGuestUser.getGuestLabTenants().get(0)";
+        return "https://login.microsoftonline.com/" + mGuestUser.getGuestTenantId();
     }
 }

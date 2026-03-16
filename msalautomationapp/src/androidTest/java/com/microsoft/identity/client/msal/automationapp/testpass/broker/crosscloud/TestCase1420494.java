@@ -24,7 +24,6 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.crosscl
 
 import android.text.TextUtils;
 
-import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
@@ -39,40 +38,20 @@ import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequ
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.labapi.utilities.constants.GuestHomeAzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
-import java.util.Collection;
 
 // Acquire token for cross cloud guest account (with broker)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1420494
-@RunWith(Parameterized.class)
 @RunOnAPI29Minus("Keep me signed in")
 @Ignore("Ignoring for now, cross cloud not supported in id4slab2 yet")
 public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
-
-    private final GuestHomeAzureEnvironment mGuestHomeAzureEnvironment;
-
-    public TestCase1420494(final String name, final @NonNull GuestHomeAzureEnvironment guestHomeAzureEnvironment) {
-        mGuestHomeAzureEnvironment = guestHomeAzureEnvironment;
-    }
-
-    // US GOV is covered by other tests, will just test china here
-    @Parameterized.Parameters(name = "{0}")
-    public static Collection guestHomeAzureEnvironment() {
-        return Arrays.asList(new Object[][]{
-                {"AZURE_CHINA_CLOUD", GuestHomeAzureEnvironment.AZURE_CHINA_CLOUD},
-        });
-    }
-
     /**
      * Tests Acquiring token for Cross cloud Guest account with broker.
      */
@@ -124,7 +103,7 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
 
     @Override
     public UserType getJsonUserType() {
-        return UserType.GUEST;
+        return UserType.CHINA_GUEST;
     }
 
     @Override
@@ -134,7 +113,7 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
 
     @Override
     public String getAuthority() {
-        return "https://login.microsoftonline.com/" + mGuestUser.getHomeTenantId();
+        return "https://login.microsoftonline.com/" + mGuestUser.getGuestTenantId();
     }
 }
 

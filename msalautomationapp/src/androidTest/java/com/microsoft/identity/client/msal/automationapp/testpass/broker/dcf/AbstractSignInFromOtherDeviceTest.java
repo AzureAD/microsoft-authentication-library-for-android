@@ -24,6 +24,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.dcf;
 
 import androidx.annotation.NonNull;
 
+import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
@@ -84,8 +85,14 @@ abstract class AbstractSignInFromOtherDeviceTest extends AbstractMsalBrokerTest 
                 .build();
 
         msalSdk.acquireTokenInteractiveAsync(authTestParams, () ->
-                new AadLoginComponentHandler().handleSignInFromOtherDevice(getExpectedDeviceCodeUrl()), TokenRequestTimeout.MEDIUM);
+                new AadLoginComponentHandler().handleSignInFromOtherDevice(), TokenRequestTimeout.MEDIUM);
     }
 
-    abstract protected String getExpectedDeviceCodeUrl();
+    @Override
+    public int getConfigFileResourceId() {
+        if (mUserType == UserType.USGOV) {
+            return R.raw.msal_config_arlington;
+        }
+        return R.raw.msal_config_default;
+    }
 }
