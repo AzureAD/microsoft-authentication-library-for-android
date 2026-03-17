@@ -49,7 +49,13 @@ public enum AzureCloudInstance {
      * US Government cloud.
      * Maps to https://login.microsoftonline.us.
      */
-    AzureUsGov("https://login.microsoftonline.us");
+    AzureUsGov("https://login.microsoftonline.us"),
+
+    /**
+     * France sovereign cloud.
+     * Maps to https://login.sovcloud-identity.fr.
+     */
+    AzureFranceSov("https://login.sovcloud-identity.fr");
 
     private String cloudInstanceUri;
 
