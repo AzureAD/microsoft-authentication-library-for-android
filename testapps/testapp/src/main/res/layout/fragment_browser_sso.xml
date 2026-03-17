@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ // Copyright (c) Microsoft Corporation.
+  ~ // All rights reserved.
+  ~ //
+  ~ // This code is licensed under the MIT License.
+  ~ //
+  ~ // Permission is hereby granted, free of charge, to any person obtaining a copy
+  ~ // of this software and associated documentation files(the "Software"), to deal
+  ~ // in the Software without restriction, including without limitation the rights
+  ~ // to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+  ~ // copies of the Software, and to permit persons to whom the Software is
+  ~ // furnished to do so, subject to the following conditions :
+  ~ //
+  ~ // The above copyright notice and this permission notice shall be included in
+  ~ // all copies or substantial portions of the Software.
+  ~ //
+  ~ // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  ~ // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  ~ // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  ~ // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  ~ // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  ~ // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  ~ // THE SOFTWARE.
+  -->
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.microsoft.identity.client.testapp.BrowserSsoFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Browser SSO — E2E Test"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:paddingBottom="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Simulates a browser calling AccountManager.getAuthToken() with a\nhardcoded placeholder Account (broker ignores account name and\nreturns SSO headers for all signed-in accounts on device).\n\naccountType = com.microsoft.entra\nauthTokenType = sso_header"
+            android:textSize="12sp"
+            android:paddingBottom="16dp" />
+
+        <!-- SSO URL input -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="SSO URL">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edit_sso_url"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textUri"
+                android:text="https://login.microsoftonline.com/?sso_nonce=AQABAAAAAAD--" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Correlation ID input -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Correlation ID (optional)"
+            android:layout_marginTop="8dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edit_correlation_id"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Action button -->
+        <Button
+            android:id="@+id/btn_get_sso_headers"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Get SSO Headers" />
+
+        <!-- Status / progress -->
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="8dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/txt_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="12sp"
+            android:textColor="#666666" />
+
+        <!-- Result area -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Result"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/txt_result"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textIsSelectable="true"
+            android:fontFamily="monospace"
+            android:textSize="11sp"
+            android:background="#F5F5F5"
+            android:padding="8dp" />
+
+        <Button
+            android:id="@+id/btn_copy_result"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Copy Result" />
+
+    </LinearLayout>
+</ScrollView>
