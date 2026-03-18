@@ -74,7 +74,7 @@ class TestCase2521960 : AbstractMsalBrokerTest() {
         Assert.assertNotNull(recordInExtendedSpace)
 
         // Register the device with the second account (same tenant different upn) using the legacy API
-        mBrokerHostApp.performDeviceRegistration(mLabAccount2.username, mLabAccount2.password)
+        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mLabAccount2.username, mLabAccount2.password)
 
 
         // Verify the entry in the extended space was removed and replaced with the entry from the second account.
