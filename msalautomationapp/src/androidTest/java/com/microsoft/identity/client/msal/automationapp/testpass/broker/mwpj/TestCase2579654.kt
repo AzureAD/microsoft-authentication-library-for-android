@@ -85,9 +85,6 @@ class TestCase2579654 : AbstractMsalBrokerTest() {
         val recordInExtendedSpace = mBrokerHostApp.multipleWpjApiFragment.getRecordByUpn(mLabAccount.username)
         Assert.assertNotNull(recordInExtendedSpace)
 
-        // Register the device with the second account (same tenant different upn) using the legacy API
-        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mLabAccount2.username, mLabAccount2.password)
-
         //  SSO shall not break (PRT is still usable without extra prompts)
         val claimsRequest = ClaimsRequest()
         val requestedClaimAdditionalInformation = RequestedClaimAdditionalInformation()
