@@ -31,9 +31,7 @@ resources:
     endpoint: ANDROID_GITHUB
 
 pool:
-  name: MSSecurity-1ES-Build-Agents-Pool
-  image: MSSecurity-1ES-Windows-2022
-  os: windows
+  vmImage: 'windows-latest'
 stages:
   - stage: build_and_test
     displayName: Build and Test
