@@ -2571,7 +2571,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         final AdalMigrationAdapter adalMigrationAdapter = new AdalMigrationAdapter(
                 mPublicClientConfiguration.getAppContext(),
                 redirects,
-                false
+                false,
+                mPublicClientConfiguration.getDefaultAuthority()
         );
 
         if (adalMigrationAdapter.getMigrationStatus()) {
