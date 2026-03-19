@@ -77,7 +77,7 @@ class TestCase2579654 : AbstractMsalBrokerTest() {
         // Unregister the device from the legacy space
         mBrokerHostApp.multipleWpjApiFragment.unregister(mUsGovAccount.username)
 
-        // Verify that the device is unregistered for the legacy API
+        // Verify the device registration records via the MWPJ API after unregistering
         val deviceRegistrationRecordsAfterLeave = mBrokerHostApp.multipleWpjApiFragment.allRecords
         Assert.assertEquals(1, deviceRegistrationRecordsAfterLeave.size)
 
