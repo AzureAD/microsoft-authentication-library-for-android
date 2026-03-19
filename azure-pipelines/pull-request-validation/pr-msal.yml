@@ -31,7 +31,7 @@ resources:
     endpoint: ANDROID_GITHUB
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'windows-2022'
 stages:
   - stage: build_and_test
     displayName: Build and Test
