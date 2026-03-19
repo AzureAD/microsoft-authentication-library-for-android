@@ -107,7 +107,7 @@ class TestCase2579654 : AbstractMsalBrokerTest() {
                             .prompt(PromptParameter.WHEN_REQUIRED)
                             .loginHint(mLabAccount2.username)
                             .consentPageExpected(false)
-                            .passwordPageExpected(false)
+                            .passwordPageExpected(true)
                             .sessionExpected(true)
                             .build()
                     MicrosoftStsPromptHandler(promptHandlerParameters).handlePrompt(mLabAccount2.username, mLabAccount2.password)
