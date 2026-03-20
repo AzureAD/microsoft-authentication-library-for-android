@@ -52,7 +52,7 @@ class TestCase3522687 : AbstractMsalBrokerTest() {
             BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("performNonSharedWpjWithHardwareKey:true")
         )
 
-        val basicUser = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.TP_CA)
+        val basicUser = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.TOKEN_BINDING)
 
         (mBroker as BrokerMicrosoftAuthenticator).setShouldUseDeviceSettingsPage(false)
         mBroker.performDeviceRegistration(basicUser.username, basicUser.password)

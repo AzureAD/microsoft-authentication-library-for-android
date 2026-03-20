@@ -49,7 +49,7 @@ import org.junit.Test
 class TestCase3321139 : AbstractMsalBrokerTest() {
     @Test
     fun test_3321139_SignInWithTpCaAccount() {
-        val basicUser = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.TP_CA)
+        val basicUser = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.TOKEN_BINDING)
 
         val msalSdk = MsalSdk()
 
