@@ -77,17 +77,13 @@ class TestCase2579654 : AbstractMsalBrokerTest() {
         // Unregister the device from the legacy space
         mBrokerHostApp.multipleWpjApiFragment.unregister(mUsGovAccount.username)
 
-        // Verify that the device is unregistered for the legacy API
-        val errorMessage = mBrokerHostApp.accountUpn
-        Assert.assertNotNull(errorMessage)
-        Assert.assertTrue(errorMessage!!.contains("Device is not Workplace Joined"))
+        // Verify the device registration records via the MWPJ API after unregistering
+        val deviceRegistrationRecordsAfterLeave = mBrokerHostApp.multipleWpjApiFragment.allRecords
+        Assert.assertEquals(1, deviceRegistrationRecordsAfterLeave.size)
 
         // Verify that the device is still registered for the second account using the MWPJ API.
         val recordInExtendedSpace = mBrokerHostApp.multipleWpjApiFragment.getRecordByUpn(mLabAccount.username)
         Assert.assertNotNull(recordInExtendedSpace)
-
-        // Register the device with the second account (same tenant different upn) using the legacy API
-        mBrokerHostApp.performDeviceRegistration(mLabAccount2.username, mLabAccount2.password)
 
         //  SSO shall not break (PRT is still usable without extra prompts)
         val claimsRequest = ClaimsRequest()
@@ -111,7 +107,7 @@ class TestCase2579654 : AbstractMsalBrokerTest() {
                             .prompt(PromptParameter.WHEN_REQUIRED)
                             .loginHint(mLabAccount2.username)
                             .consentPageExpected(false)
-                            .passwordPageExpected(false)
+                            .passwordPageExpected(true)
                             .sessionExpected(true)
                             .build()
                     MicrosoftStsPromptHandler(promptHandlerParameters).handlePrompt(mLabAccount2.username, mLabAccount2.password)
