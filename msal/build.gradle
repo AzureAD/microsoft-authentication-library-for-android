@@ -237,12 +237,12 @@ task sourcesJar(type: Jar) {
 
 // In dev, we want to keep the dependencies (common4j, common) to 1.0.+ to be able to be consumed by daily dev pipeline.
 // In release/*, we change these to specific versions being consumed.
-def commonVersion = "24.1.0"
+def commonVersion = "1.0.+"
 if (project.hasProperty("distCommonVersion")) {
     commonVersion = project.distCommonVersion
 }
 // Used for testfixtures
-def common4jVersion = "24.1.0"
+def common4jVersion = "1.0.+"
 if (project.hasProperty("distCommon4jVersion")) {
     distCommon4jVersion = project.distCommon4jVersion
 }
@@ -271,7 +271,7 @@ dependencies {
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
     testImplementation "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
     testImplementation ("org.robolectric:robolectric:$rootProject.ext.robolectricVersion")
-    testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"    
+    testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
     testLocalImplementation project(':testutils')
     testDistImplementation("com.microsoft.identity:testutils:0.0+") {
         exclude module: 'common'
@@ -287,7 +287,7 @@ dependencies {
     testImplementation "org.powermock:powermock-module-junit4-rule:$rootProject.ext.powerMockVersion"
     testImplementation "org.powermock:powermock-api-mockito2:$rootProject.ext.powerMockVersion"
     testImplementation "org.powermock:powermock-classloading-xstream:$rootProject.ext.powerMockVersion"
-    
+
     // instrumentation test dependencies
     androidTestImplementation "androidx.test.ext:junit:$rootProject.ext.androidxJunitVersion"
     // Set this dependency to use JUnit 4 rules
