@@ -5,6 +5,14 @@ pluginManagement {
          //  mavenCentral()
          google()
          gradlePluginPortal()
+         maven {
+             name "vsts-maven-new-android"
+             url "https://identitydivision.pkgs.visualstudio.com/_packaging/NewAndroid/maven/v1"
+             credentials {
+                 username System.getenv("ENV_VSTS_MVN_CRED_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_CRED_USERNAME") : settings.ext.find("vstsUsername")
+                 password System.getenv("ENV_VSTS_MVN_CRED_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_CRED_ACCESSTOKEN") : settings.ext.find("vstsMavenAccessToken")
+             }
+         }
      }
  }
 include ':msal', ':common', ':keyvault', ':labapi', ':testutils', ':pop-benchmarker',
