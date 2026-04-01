@@ -2,6 +2,8 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+- [PATCH] Fix onNewIntent nullability for Android SDK 36 compatibility (#2491)
+- [PATCH] Update compileSdkVersion to 36, buildToolsVersion to 36.0.0, browserVersion to 1.9.0
 
 Version 8.3.0
 ----------
