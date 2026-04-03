@@ -58,7 +58,7 @@ public class TestCase1600567 extends AbstractMsalBrokerTest {
         final BrokerHost brokerHost = new BrokerHost();
         brokerHost.install();
         brokerHost.launch();
-
+        confirmCallingAppNotVerified(brokerHost);
         brokerHost.brokerApiFragment.launch();
         // verify getAccounts call gives calling app not verified
         UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/button_get_accounts");
