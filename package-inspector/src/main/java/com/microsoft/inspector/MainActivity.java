@@ -153,7 +153,20 @@ public class MainActivity extends AppCompatActivity {
                         digestSha512.update(signature.toByteArray());
                         final String packageSigningSha512 = Base64.encodeToString(digestSha512.digest(), Base64.NO_WRAP);
 
-                        signingCertificateHashes = "SHA-1: " + packageSigningSha1 + "\nSHA-512: " + packageSigningSha512;
+
+
+                        MessageDigest md = MessageDigest.getInstance("SHA-256");
+                        byte[] digest = md.digest(signature.toByteArray());
+
+                        StringBuilder sb = new StringBuilder();
+                        for (byte b : digest) {
+                            sb.append(String.format("%02X:", b));
+                        }
+                        sb.setLength(sb.length() - 1); // remove last ':'
+                        String sha256 = sb.toString();
+
+
+                        signingCertificateHashes = "SHA-1: " + packageSigningSha1 + "\nSHA-512: " + packageSigningSha512 + "\nSHA-256: " + sha256;
                     }
 
                     String msg = signingCertificateHashes;
