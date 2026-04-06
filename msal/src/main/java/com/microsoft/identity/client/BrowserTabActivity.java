@@ -27,8 +27,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
 
-import androidx.annotation.Nullable;
-
 import com.microsoft.identity.common.internal.providers.oauth2.BrowserAuthorizationFragment;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.common.logging.Logger;
@@ -69,23 +67,6 @@ public final class BrowserTabActivity extends Activity {
                 && getIntent() != null
                 && !StringUtil.isEmpty(getIntent().getDataString())) {
             final Intent responseIntent = BrowserAuthorizationFragment.createCustomTabResponseIntent(this, getIntent().getDataString());
-            if (responseIntent != null) {
-                startActivity(responseIntent);
-            } else {
-                Logger.warn(methodTag, "Received NULL response intent. Unable to complete authorization.");
-                Toast.makeText(getApplicationContext(), "Unable to complete authorization as there is no interactive call in progress. This can be due to closing the app while the authorization was in process.", Toast.LENGTH_LONG).show();
-            }
-            finish();
-        }
-    }
-
-    @Override
-    protected void onNewIntent(@Nullable final Intent intent) {
-        super.onNewIntent(intent);
-        setIntent(intent);
-        if (intent != null && !StringUtil.isEmpty(intent.getDataString())) {
-            final String methodTag = TAG + ":onNewIntent";
-            final Intent responseIntent = BrowserAuthorizationFragment.createCustomTabResponseIntent(this, intent.getDataString());
             if (responseIntent != null) {
                 startActivity(responseIntent);
             } else {

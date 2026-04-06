@@ -2,7 +2,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
-- [PATCH] Update compileSdkVersion to 36, buildToolsVersion to 36.0.0, browserVersion to 1.9.0 (#2491)
+- [PATCH] Update compileSdkVersion to 36 and  buildToolsVersion to 36.0.0 (#2491)
 
 Version 8.3.0
 ----------
