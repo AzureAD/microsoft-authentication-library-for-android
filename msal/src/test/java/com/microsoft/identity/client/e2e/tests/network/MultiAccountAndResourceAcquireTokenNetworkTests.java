@@ -26,7 +26,6 @@ import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.e2e.rules.NetworkTestsRuleChain;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
-import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
@@ -52,7 +51,7 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.OFF
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {ShadowAndroidSdkStorageEncryptionManager.class, ShadowAuthority.class, ShadowPublicClientApplicationConfiguration.class})
+@Config(shadows = {ShadowAndroidSdkStorageEncryptionManager.class, ShadowAuthority.class})
 public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireTokenAbstractTest {
 
     @Rule
