@@ -4,8 +4,8 @@ ext {
     // SDK
     minSdkVersion = 24
     targetSdkVersion = 35
-    compileSdkVersion = 35
-    buildToolsVersion = "35.0.0"
+    compileSdkVersion = 36
+    buildToolsVersion = "36.0.0"
 
     // Plugins
     gradleVersion = '8.10.0'
