@@ -37,10 +37,8 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
-import com.microsoft.identity.common.java.commands.webapps.WebAppsGetTokenSubOperationEnvelope;
 import com.microsoft.identity.common.java.commands.webapps.WebAppsGetTokenSubOperationResponse;
 import com.microsoft.identity.common.java.util.ObjectMapper;
-import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.HomeUpn;
@@ -59,7 +57,6 @@ import org.junit.Test;
 @RetryOnFailure(retryCount = 2)
 public class TestCase3571739 extends AbstractMsalBrokerTest {
 
-    private static final String TAG = TestCase3571739.class.getSimpleName();
     private static final String BROKER_HOST_PKG = "com.microsoft.identity.testuserapp";
 
     // WebApps UI resource IDs
@@ -79,8 +76,9 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
     // Constants
     private static final String LEMON_GLACIER = "https://lemon-glacier-0fa89f11e.1.azurestaticapps.net/";
     private static final String MICROSOFT_ONLINE = "https://login.microsoftonline.com";
-    private static final String SCOPE = "User.read";
+    private static final String SCOPE = "User.Read";
     private static final String ACCESS_TOKEN_DESCRIPTION = "access_token";
+    private static final long DIALOG_WAIT_TIMEOUT_MS = 5000L;
 
     @Test
     public void test_3571739_webAppsOperations() throws Throwable {
@@ -94,15 +92,15 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
         brokerHost.brokerApiFragment.launch();
 
         // Scroll down to make the form fields and execute button visible
-        new UiScrollable(new UiSelector().scrollable(true)).scrollForward();
+        new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().resourceId(INPUT_LOGIN_HINT));
 
         // Fill the WebApps GetToken form for interactive auth
+        setCheckbox(CHECKBOX_CAN_SHOW_UI, true);
         UiAutomatorUtils.handleInput(INPUT_PROMPT, "select_account");
         UiAutomatorUtils.handleInput(INPUT_LOGIN_HINT, username);
-        setCheckbox(CHECKBOX_CAN_SHOW_UI, true);
 
         // Scroll down to make the execute button visible
-        new UiScrollable(new UiSelector().scrollable(true)).scrollForward();
+        new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().resourceId(BUTTON_EXECUTE_GET_TOKEN));
 
         // Click Execute getToken
         UiAutomatorUtils.handleButtonClick(BUTTON_EXECUTE_GET_TOKEN);
@@ -120,8 +118,6 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
         new MicrosoftStsPromptHandler(interactivePromptParams)
                 .handlePrompt(username, password);
 
-        // Wait for and read the result dialog
-        ThreadUtils.sleepSafely(5000, TAG, "Waiting for interactive result");
         final String interactiveResult = dismissDialogAndGetText();
 
         Assert.assertNotNull("Interactive GetToken result should not be null", interactiveResult);
@@ -132,10 +128,9 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
 
         // Extract the homeAccountId from the interactive result for silent requests
         final int jsonStart = interactiveResult.indexOf("{");
-        ObjectMapper.deserializeJsonStringToObject(
-                interactiveResult.substring(jsonStart),
-                WebAppsGetTokenSubOperationEnvelope.class
-        );
+        if (jsonStart < 0) {
+            throw new AssertionError("Interactive result does not contain JSON: " + interactiveResult);
+        }
         final WebAppsGetTokenSubOperationResponse resultJson = ObjectMapper.deserializeJsonStringToObject(
                 interactiveResult.substring(jsonStart),
                 WebAppsGetTokenSubOperationResponse.class
@@ -148,23 +143,21 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
         brokerHost.brokerApiFragment.launch();
 
         // Scroll down to make the form fields visible
-        new UiScrollable(new UiSelector().scrollable(true)).scrollForward();
+        new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().resourceId(INPUT_LOGIN_HINT));
 
         // Fill the WebApps GetToken form for silent eSTS auth (isSts defaults to true)
-        UiAutomatorUtils.handleInput(INPUT_HOME_ACCOUNT_ID, homeAccountId);
-        UiAutomatorUtils.handleInput(INPUT_LOGIN_HINT, username);
-        UiAutomatorUtils.handleInput(INPUT_PROMPT, "");
         setCheckbox(CHECKBOX_CAN_SHOW_UI, false);
         setCheckbox(CHECKBOX_IS_STS, true);
+        UiAutomatorUtils.handleInput(INPUT_HOME_ACCOUNT_ID, homeAccountId);
+        UiAutomatorUtils.handleInput(INPUT_PROMPT, "");
+        UiAutomatorUtils.handleInput(INPUT_LOGIN_HINT, username);
 
         // Scroll down to make the execute button visible
-        new UiScrollable(new UiSelector().scrollable(true)).scrollForward();
+        new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().resourceId(BUTTON_EXECUTE_GET_TOKEN));
 
         // Click Execute getToken
         UiAutomatorUtils.handleButtonClick(BUTTON_EXECUTE_GET_TOKEN);
 
-        // Wait for the result dialog (no interactive prompt expected)
-        ThreadUtils.sleepSafely(5000, TAG, "Waiting for silent eSTS result");
         final String silentEstsResult = dismissDialogAndGetText();
 
         Assert.assertNotNull("Silent eSTS GetToken result should not be null", silentEstsResult);
@@ -178,26 +171,24 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
         brokerHost.brokerApiFragment.launch();
 
         // Scroll down to make the form fields visible
-        new UiScrollable(new UiSelector().scrollable(true)).scrollForward();
+        new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().resourceId(INPUT_LOGIN_HINT));
 
         // Set sender origin for MSAL JS
         UiAutomatorUtils.handleInput(INPUT_SENDER_ORIGIN, LEMON_GLACIER);
 
         // Fill the WebApps GetToken form for silent MSAL JS auth
-        UiAutomatorUtils.handleInput(INPUT_HOME_ACCOUNT_ID, homeAccountId);
-        UiAutomatorUtils.handleInput(INPUT_LOGIN_HINT, username);
-        UiAutomatorUtils.handleInput(INPUT_PROMPT, "");
         setCheckbox(CHECKBOX_CAN_SHOW_UI, false);
         setCheckbox(CHECKBOX_IS_STS, false);
+        UiAutomatorUtils.handleInput(INPUT_HOME_ACCOUNT_ID, homeAccountId);
+        UiAutomatorUtils.handleInput(INPUT_PROMPT, "");
+        UiAutomatorUtils.handleInput(INPUT_LOGIN_HINT, username);
 
         // Scroll down to make the execute button visible
-        new UiScrollable(new UiSelector().scrollable(true)).scrollForward();
+        new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().resourceId(BUTTON_EXECUTE_GET_TOKEN));
 
         // Click Execute getToken
         UiAutomatorUtils.handleButtonClick(BUTTON_EXECUTE_GET_TOKEN);
 
-        // Wait for the result dialog (no interactive prompt expected)
-        ThreadUtils.sleepSafely(5000, TAG, "Waiting for silent MSAL JS result");
         final String silentMsalJsResult = dismissDialogAndGetText();
 
         Assert.assertNotNull("Silent MSAL JS GetToken result should not be null", silentMsalJsResult);
@@ -211,12 +202,11 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
         brokerHost.brokerApiFragment.launch();
 
         // Scroll down to make the cookies URL field and button visible
-        new UiScrollable(new UiSelector().scrollable(true)).scrollForward();
+        new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().resourceId(BUTTON_GET_COOKIES));
 
         UiAutomatorUtils.handleInput(EDIT_TEXT_COOKIES_URL, MICROSOFT_ONLINE);
         UiAutomatorUtils.handleButtonClick(BUTTON_GET_COOKIES);
 
-        ThreadUtils.sleepSafely(5000, TAG, "Waiting for cookies result");
         final String cookiesResult = dismissDialogAndGetText();
 
         Assert.assertNotNull("GetCookies result should not be null", cookiesResult);
@@ -230,14 +220,13 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
         brokerHost.brokerApiFragment.launch();
 
         // Scroll down to make the form fields visible
-        new UiScrollable(new UiSelector().scrollable(true)).scrollForward();
+        new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().resourceId(INPUT_HOME_ACCOUNT_ID));
 
         UiAutomatorUtils.handleInput(INPUT_HOME_ACCOUNT_ID, homeAccountId);
 
-        new UiScrollable(new UiSelector().scrollable(true)).scrollForward();
+        new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().resourceId(BUTTON_EXECUTE_SIGN_OUT));
         UiAutomatorUtils.handleButtonClick(BUTTON_EXECUTE_SIGN_OUT);
 
-        ThreadUtils.sleepSafely(5000, TAG, "Waiting for sign out result");
         final String signOutResult = dismissDialogAndGetText();
 
         Assert.assertNotNull("SignOut result should not be null", signOutResult);
@@ -252,7 +241,10 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
      */
     private String dismissDialogAndGetText() {
         final UiObject dialogBox = UiAutomatorUtils.obtainUiObjectWithResourceId(DIALOG_MESSAGE);
-        Assert.assertTrue("Dialog box should be present", dialogBox.exists());
+        Assert.assertTrue(
+                "Dialog box should be present",
+                dialogBox.waitForExists(DIALOG_WAIT_TIMEOUT_MS)
+        );
         try {
             final String text = dialogBox.getText();
             UiAutomatorUtils.handleButtonClick(DIALOG_OK_BUTTON);
