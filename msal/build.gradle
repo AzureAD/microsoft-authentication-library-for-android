@@ -204,6 +204,9 @@ android {
             testLogging {
                 exceptionFormat = "full"
             }
+            it.systemProperty("robolectric.dependency.repo.url", "https://identitydivision.pkgs.visualstudio.com/_packaging/NewAndroid/maven/v1")
+            it.systemProperty("robolectric.dependency.repo.username", System.getenv("ENV_VSTS_MVN_CRED_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_CRED_USERNAME") : project.findProperty("vstsUsername"))
+            it.systemProperty("robolectric.dependency.repo.password", System.getenv("ENV_VSTS_MVN_CRED_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_CRED_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken"))
         }
     }
 }
