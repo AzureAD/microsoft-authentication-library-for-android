@@ -5,6 +5,10 @@ vNext
 - [MINOR] [Bleu support] Add AzureFranceSov to AzureCloudInstance enum for France sovereign cloud support
 - [PATCH] Update Moshi version to 1.15.2 to address okio vulnerability (CVE-2023-3635) (#2480)
 
+Version 8.3.1-RC1
+----------
+- [PATCH] Update common @24.1.1-RC1
+
 Version 8.2.3
 ----------
 - [PATCH] Update common @24.0.1
