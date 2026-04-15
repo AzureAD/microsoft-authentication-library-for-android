@@ -39,9 +39,9 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.Micr
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.common.java.commands.webapps.WebAppsGetTokenSubOperationResponse;
 import com.microsoft.identity.common.java.util.ObjectMapper;
+import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
-import com.microsoft.identity.labapi.utilities.constants.HomeUpn;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
@@ -82,8 +82,9 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_3571739_webAppsOperations() throws Throwable {
-        final String username = mLabAccount.getUsername();
-        final String password = mLabAccount.getPassword();
+        final ILabAccount basicLabAccount = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.BASIC);
+        final String username = basicLabAccount.getUsername();
+        final String password = basicLabAccount.getPassword();
 
         final BrokerHost brokerHost = (BrokerHost) mBroker;
 
@@ -271,8 +272,6 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
     @Override
     public LabQuery getLabQuery() {
         return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .homeUpn(HomeUpn.MSIDLAB4)
                 .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
                 .build();
     }
