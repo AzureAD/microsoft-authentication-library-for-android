@@ -26,16 +26,18 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import com.microsoft.identity.client.IAuthenticationResult
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 class ConcurrentAcquireTokenExecutor(
     val threadId: Int,
     val totalCount: Int
 ) {
-
-    private val randomDelayInMs = (10..50).random().toLong()
 
     // Flag to track if execution should stop
     private val isStopped = AtomicBoolean(false)
@@ -46,6 +48,7 @@ class ConcurrentAcquireTokenExecutor(
     interface IUIUpdateCallback {
         fun updateProgress(threadId: Int, successCount: Int, completedCount: Int)
         fun onStopped(threadId: Int)
+        fun onError(threadId: Int, message: String)
     }
 
     fun execute(context: Context,
@@ -78,6 +81,49 @@ class ConcurrentAcquireTokenExecutor(
         )
     }
 
+    companion object {
+        /**
+         * Shared barrier across all executor instances.
+         * Set by the caller before starting executors.
+         * All executors wait at this barrier before each iteration,
+         * ensuring all threads fire simultaneously on each wave.
+         */
+        @JvmStatic
+        var sharedBarrier: CyclicBarrier? = null
+
+        /**
+         * Pool of legitimate Microsoft Graph scopes.
+         * Each thread uses a different scope to bypass calling-side command dedup
+         * (CommandDispatcher collapses commands with identical parameters).
+         */
+        private val SCOPE_POOL = listOf(
+            "user.read",
+            "user.readbasic.all",
+            "mail.read",
+            "calendars.read",
+            "contacts.read",
+            "files.read",
+            "files.read.all",
+            "people.read",
+            "notes.read",
+            "tasks.read",
+            "sites.read.all",
+            "directory.read.all",
+            "group.read.all",
+            "openid",
+            "profile"
+        )
+
+        /**
+         * Returns a legitimate scope for the given thread ID.
+         * Wraps around the pool if threadId exceeds the pool size.
+         */
+        @JvmStatic
+        fun getScopeForThread(threadId: Int): String {
+            return SCOPE_POOL[threadId % SCOPE_POOL.size]
+        }
+    }
+
     /**
      * Stop the executor and cancel any pending operations
      */
@@ -92,8 +138,13 @@ class ConcurrentAcquireTokenExecutor(
                                           completedCount: Int,
                                           requestOptions: RequestOptions,
                                           uiCallback: IUIUpdateCallback) {
-        msalWrapper.acquireTokenSilent(
+        // Use a per-thread scope from the pool to bypass calling-side command dedup.
+        val threadOptions = RequestOptions.withDifferentScopes(
             requestOptions,
+            getScopeForThread(threadId)
+        )
+        msalWrapper.acquireTokenSilent(
+            threadOptions,
             object : INotifyOperationResultCallback<IAuthenticationResult> {
                 override fun onSuccess(result: IAuthenticationResult) {
                     val newSuccessCount = successCount + 1
@@ -146,24 +197,22 @@ class ConcurrentAcquireTokenExecutor(
         if (newCompletedCount < totalCount) {
             executor.execute {
                 try {
-                    Thread.sleep(randomDelayInMs)
+                    // If a shared barrier is set, wait for all sibling threads
+                    // to reach this point before firing the next request.
+                    // This ensures all threads fire each iteration simultaneously.
+                    sharedBarrier?.await(30, TimeUnit.SECONDS)
+                } catch (e: Exception) {
+                    // Barrier broken or timeout — continue anyway
+                }
 
-                    // Post back to main thread to call acquireTokenSilent
-                    // (required since MSAL needs to be called from main thread)
-                    Handler(Looper.getMainLooper()).post {
-                        executeAcquireTokenSilent(
-                            msalWrapper,
-                            newSuccessCount,
-                            newCompletedCount,
-                            requestOptions,
-                            uiCallback
-                        )
-                    }
-                } catch (e: InterruptedException) {
-                    // Interrupted - likely due to stop request
-                    Handler(Looper.getMainLooper()).post {
-                        uiCallback.onStopped(threadId)
-                    }
+                if (!isStopped.get()) {
+                    executeAcquireTokenSilent(
+                        msalWrapper,
+                        newSuccessCount,
+                        newCompletedCount,
+                        requestOptions,
+                        uiCallback
+                    )
                 }
             }
         }

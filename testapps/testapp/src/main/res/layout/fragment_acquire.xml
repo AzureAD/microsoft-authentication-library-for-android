@@ -764,7 +764,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="7"
                 android:inputType="number"
-                android:text="5"
+                android:text="20"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -788,7 +788,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="7"
                 android:inputType="number"
-                android:text="10"
+                android:text="1000"
                 android:textSize="12sp" />
         </LinearLayout>
 

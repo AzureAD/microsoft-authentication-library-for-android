@@ -716,7 +716,6 @@ public class AcquireTokenFragment extends Fragment {
 
     /**
      * Concurrent AcquireTokenSilent
-     * Note: In order for this to work, the build config shouldSkipSilentTokenCommandCacheForStressTest must be set to true.
      */
     private void runConcurrentAcquireTokenSilent() {
         try {
@@ -746,6 +745,12 @@ public class AcquireTokenFragment extends Fragment {
                 mThreadProgressViews.add(threadProgress);
             }
 
+            // Set up a shared CyclicBarrier so all executor threads synchronize
+            // on each iteration. This ensures all N threads fire their ATS request
+            // at the exact same moment on each wave.
+            ConcurrentAcquireTokenExecutor.setSharedBarrier(
+                    new java.util.concurrent.CyclicBarrier(concurrency));
+
             // Create and start one executor per thread
             for (int i = 0; i < concurrency; i++) {
                 final int threadId = i;
@@ -754,6 +759,9 @@ public class AcquireTokenFragment extends Fragment {
                 final ConcurrentAcquireTokenExecutor executor =
                     new ConcurrentAcquireTokenExecutor(threadId, countForThisThread);
 
+                // Each executor fires requests on its own background thread.
+                // The shared CyclicBarrier ensures all executors synchronize at each
+                // iteration, so all threads fire simultaneously on each wave.
                 executor.execute(
                     getContext(),
                     getCurrentRequestOptions(),
@@ -763,12 +771,20 @@ public class AcquireTokenFragment extends Fragment {
                             if (tid >= 0 && tid < mThreadProgressViews.size()) {
                                 mThreadProgressViews.get(tid).setText(
                                         String.format(Locale.US,
-                                                "Thread %d: %d/%d", tid, successCount, completedCount));
+                                                "Thread %d: %d/%d (success/total)", tid, successCount, completedCount));
                             }
                         }
 
                         @Override
                         public void onStopped(final int tid) {
+                        }
+
+                        @Override
+                        public void onError(final int tid, final String message) {
+                            if (tid >= 0 && tid < mThreadProgressViews.size()) {
+                                final String current = mThreadProgressViews.get(tid).getText().toString();
+                                mThreadProgressViews.get(tid).setText(current + "\n  ERROR: " + message);
+                            }
                         }
                     }
                 );

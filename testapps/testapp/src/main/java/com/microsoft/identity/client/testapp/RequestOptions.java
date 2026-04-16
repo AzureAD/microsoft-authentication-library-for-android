@@ -56,4 +56,29 @@ public class RequestOptions {
     public Constants.ConfigFile getConfigFile(){
         return mConfigFile;
     }
+
+    /**
+     * Creates a copy of the given RequestOptions with different scopes.
+     * Used by burst mode to avoid command dedup in the broker.
+     */
+    public static RequestOptions withDifferentScopes(RequestOptions source, String newScopes) {
+        return new RequestOptions(
+                source.mConfigFile,
+                source.mLoginHint,
+                source.mAccount,
+                source.mPrompt,
+                newScopes,
+                source.mExtraScope,
+                source.mExtraQueryParams,
+                source.mClaims,
+                source.mEnablePII,
+                source.mForceRefresh,
+                source.mAuthority,
+                source.mAuthScheme,
+                source.mPopHttpMethod,
+                source.mPopResourceUrl,
+                source.mPoPClientClaims,
+                source.mAllowSignInFromOtherDevice
+        );
+    }
 }
