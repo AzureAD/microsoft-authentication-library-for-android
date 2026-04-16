@@ -2,12 +2,16 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+
+Version 8.3.0
+----------
+- [PATCH] Update common @24.1.0
 - [MINOR] [Bleu support] Add AzureFranceSov to AzureCloudInstance enum for France sovereign cloud support
 - [PATCH] Update Moshi version to 1.15.2 to address okio vulnerability (CVE-2023-3635) (#2480)
 
-Version 8.3.1-RC1
+Version 8.3.1-RC2
 ----------
-- [PATCH] Update common @24.1.1-RC1
+- [PATCH] Update common @24.1.1-RC2
 
 Version 8.2.3
 ----------
