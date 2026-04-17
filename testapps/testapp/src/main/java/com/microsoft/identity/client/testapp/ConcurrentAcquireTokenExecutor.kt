@@ -90,6 +90,7 @@ class ConcurrentAcquireTokenExecutor(
                         executor.shutdown()
                         dispatchToMainThread {
                             uiCallback.onError(threadId, "MsalWrapper is null")
+                            uiCallback.updateProgress(threadId, 0, 0)
                             uiCallback.onStopped(threadId)
                         }
                     }
@@ -99,6 +100,7 @@ class ConcurrentAcquireTokenExecutor(
                     executor.shutdown()
                     dispatchToMainThread {
                         uiCallback.onError(threadId, message ?: "MsalWrapper creation failed")
+                        uiCallback.updateProgress(threadId, 0, 0)
                         uiCallback.onStopped(threadId)
                     }
                 }
