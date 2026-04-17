@@ -42,6 +42,15 @@ class ConcurrentAcquireTokenExecutor(
 
     // Use a dedicated executor for background work
     private val executor: ExecutorService = Executors.newSingleThreadExecutor()
+    private val mainThreadHandler = Handler(Looper.getMainLooper())
+
+    private fun dispatchToMainThread(action: () -> Unit) {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            action()
+        } else {
+            mainThreadHandler.post(action)
+        }
+    }
 
     interface IUIUpdateCallback {
         fun updateProgress(threadId: Int, successCount: Int, completedCount: Int)
@@ -52,7 +61,7 @@ class ConcurrentAcquireTokenExecutor(
     fun execute(context: Context,
                 requestOptions: RequestOptions,
                 uiCallback: IUIUpdateCallback){
-        // MsalWrapper.create callbacks run on main thread, so call it directly
+        // Do not assume MsalWrapper.create callbacks are delivered on the main thread.
         MsalWrapper.create(
             context.applicationContext,
             Constants.getResourceIdFromConfigFile(requestOptions.configFile),
@@ -78,15 +87,19 @@ class ConcurrentAcquireTokenExecutor(
                     } else {
                         // Handle the null case appropriately, e.g., notify UI or log error
                         executor.shutdown()
-                        uiCallback.onError(threadId, "MsalWrapper is null")
-                        uiCallback.onStopped(threadId)
+                        dispatchToMainThread {
+                            uiCallback.onError(threadId, "MsalWrapper is null")
+                            uiCallback.onStopped(threadId)
+                        }
                     }
                 }
 
                 override fun showMessage(message: String?) {
                     executor.shutdown()
-                    uiCallback.onError(threadId, message ?: "MsalWrapper creation failed")
-                    uiCallback.onStopped(threadId)
+                    dispatchToMainThread {
+                        uiCallback.onError(threadId, message ?: "MsalWrapper creation failed")
+                        uiCallback.onStopped(threadId)
+                    }
                 }
             }
         )
