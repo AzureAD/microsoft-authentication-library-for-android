@@ -87,6 +87,9 @@ tasks.register("jacocoTestReport", JacocoReport) {
     ))
 }
 
+def robolectricRepoUsername = System.getenv("ENV_VSTS_MVN_CRED_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_CRED_USERNAME") : project.findProperty("vstsUsername")
+def robolectricRepoPassword = System.getenv("ENV_VSTS_MVN_CRED_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_CRED_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
+
 android {
     namespace "com.microsoft.identity.msal"
     compileOptions {
@@ -204,6 +207,11 @@ android {
             testLogging {
                 exceptionFormat = "full"
             }
+            if (robolectricRepoUsername?.toString()?.trim() && robolectricRepoPassword?.toString()?.trim()) {
+                it.systemProperty("robolectric.dependency.repo.url", "https://identitydivision.pkgs.visualstudio.com/_packaging/NewAndroid/maven/v1")
+                it.systemProperty("robolectric.dependency.repo.username", robolectricRepoUsername)
+                it.systemProperty("robolectric.dependency.repo.password", robolectricRepoPassword)
+            }
         }
     }
 }
@@ -237,12 +245,12 @@ task sourcesJar(type: Jar) {
 
 // In dev, we want to keep the dependencies (common4j, common) to 1.0.+ to be able to be consumed by daily dev pipeline.
 // In release/*, we change these to specific versions being consumed.
-def commonVersion = "1.0.+"
+def commonVersion = "24.1.1"
 if (project.hasProperty("distCommonVersion")) {
     commonVersion = project.distCommonVersion
 }
 // Used for testfixtures
-def common4jVersion = "1.0.+"
+def common4jVersion = "24.1.1"
 if (project.hasProperty("distCommon4jVersion")) {
     distCommon4jVersion = project.distCommon4jVersion
 }
