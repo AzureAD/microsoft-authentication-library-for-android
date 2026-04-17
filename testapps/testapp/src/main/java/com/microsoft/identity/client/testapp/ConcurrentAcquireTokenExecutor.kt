@@ -58,13 +58,23 @@ class ConcurrentAcquireTokenExecutor(
             Constants.getResourceIdFromConfigFile(requestOptions.configFile),
             object : INotifyOperationResultCallback<MsalWrapper?> {
                 override fun onSuccess(result: MsalWrapper?) {
-                    // Start the first iteration immediately (no initial sleep)
                     if (result != null) {
-                        executeAcquireTokenSilent(result,
-                            0,
-                            0,
-                            requestOptions,
-                            uiCallback)
+                        // Wait at the barrier before the first iteration so all
+                        // threads start their first request simultaneously.
+                        executor.execute {
+                            try {
+                                sharedBarrier?.await(30, TimeUnit.SECONDS)
+                            } catch (e: Exception) {
+                                // Barrier broken or timeout — continue anyway
+                            }
+                            if (!isStopped.get()) {
+                                executeAcquireTokenSilent(result,
+                                    0,
+                                    0,
+                                    requestOptions,
+                                    uiCallback)
+                            }
+                        }
                     } else {
                         // Handle the null case appropriately, e.g., notify UI or log error
                         // For now, we'll notify the UI that the operation has stopped
@@ -210,6 +220,11 @@ class ConcurrentAcquireTokenExecutor(
                         uiCallback
                     )
                 }
+            }
+        } else {
+            // All iterations completed — notify the UI
+            Handler(Looper.getMainLooper()).post {
+                uiCallback.onStopped(threadId)
             }
         }
     }

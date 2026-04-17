@@ -795,6 +795,10 @@ public class AcquireTokenFragment extends Fragment {
 
                         @Override
                         public void onStopped(final int tid) {
+                            mRunningExecutors.removeIf(e -> e.getThreadId() == tid);
+                            if (mRunningExecutors.isEmpty()) {
+                                updateConcurrentButtonState();
+                            }
                         }
 
                         @Override
