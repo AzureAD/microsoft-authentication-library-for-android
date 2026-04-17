@@ -109,9 +109,7 @@ class ConcurrentAcquireTokenExecutor(
             "tasks.read",
             "sites.read.all",
             "directory.read.all",
-            "group.read.all",
-            "openid",
-            "profile"
+            "group.read.all"
         )
 
         /**
@@ -164,7 +162,7 @@ class ConcurrentAcquireTokenExecutor(
                 override fun showMessage(message: String?) {
                     val newCompletedCount = completedCount + 1
 
-                    // MSAL callbacks already run on main thread - update UI directly
+                    uiCallback.onError(threadId, message ?: "Unknown error")
                     uiCallback.updateProgress(threadId, successCount, newCompletedCount)
 
                     executeNext(
