@@ -29,6 +29,7 @@ import com.microsoft.identity.client.IAuthenticationResult
 import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -217,24 +218,37 @@ class ConcurrentAcquireTokenExecutor(
         }
 
         if (newCompletedCount < iterations) {
-            executor.execute {
-                try {
-                    // If a shared barrier is set, wait for all sibling threads
-                    // to reach this point before firing the next request.
-                    // This ensures all threads fire each iteration simultaneously.
-                    sharedBarrier?.await(30, TimeUnit.SECONDS)
-                } catch (e: Exception) {
-                    // Barrier broken or timeout — continue anyway
+            if (executor.isShutdown || executor.isTerminated) {
+                Handler(Looper.getMainLooper()).post {
+                    uiCallback.onStopped(threadId)
                 }
+                return
+            }
 
-                if (!isStopped.get()) {
-                    executeAcquireTokenSilent(
-                        msalWrapper,
-                        newSuccessCount,
-                        newCompletedCount,
-                        requestOptions,
-                        uiCallback
-                    )
+            try {
+                executor.execute {
+                    try {
+                        // If a shared barrier is set, wait for all sibling threads
+                        // to reach this point before firing the next request.
+                        // This ensures all threads fire each iteration simultaneously.
+                        sharedBarrier?.await(30, TimeUnit.SECONDS)
+                    } catch (e: Exception) {
+                        // Barrier broken or timeout — continue anyway
+                    }
+
+                    if (!isStopped.get()) {
+                        executeAcquireTokenSilent(
+                            msalWrapper,
+                            newSuccessCount,
+                            newCompletedCount,
+                            requestOptions,
+                            uiCallback
+                        )
+                    }
+                }
+            } catch (e: RejectedExecutionException) {
+                Handler(Looper.getMainLooper()).post {
+                    uiCallback.onStopped(threadId)
                 }
             }
         } else {
