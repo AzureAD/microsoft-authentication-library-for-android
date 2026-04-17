@@ -26,13 +26,11 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import com.microsoft.identity.client.IAuthenticationResult
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 
 class ConcurrentAcquireTokenExecutor(
     val threadId: Int,
