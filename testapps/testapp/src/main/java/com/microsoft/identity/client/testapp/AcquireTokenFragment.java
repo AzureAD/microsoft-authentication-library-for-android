@@ -808,7 +808,7 @@ public class AcquireTokenFragment extends Fragment {
             }
             updateConcurrentButtonState();
         } catch (NumberFormatException e) {
-            showMessage("Please enter valid numbers for concurrency and total count");
+            showMessage("Please enter valid numbers for concurrency and iterations");
         }
     }
 
