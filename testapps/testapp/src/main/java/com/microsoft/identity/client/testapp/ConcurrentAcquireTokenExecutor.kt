@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class ConcurrentAcquireTokenExecutor(
     val threadId: Int,
-    val totalCount: Int
+    val iterations: Int
 ) {
 
     // Flag to track if execution should stop
@@ -77,13 +77,16 @@ class ConcurrentAcquireTokenExecutor(
                         }
                     } else {
                         // Handle the null case appropriately, e.g., notify UI or log error
-                        // For now, we'll notify the UI that the operation has stopped
+                        executor.shutdown()
+                        uiCallback.onError(threadId, "MsalWrapper is null")
                         uiCallback.onStopped(threadId)
                     }
                 }
 
                 override fun showMessage(message: String?) {
-                    // do nothing.
+                    executor.shutdown()
+                    uiCallback.onError(threadId, message ?: "MsalWrapper creation failed")
+                    uiCallback.onStopped(threadId)
                 }
             }
         )
@@ -200,7 +203,7 @@ class ConcurrentAcquireTokenExecutor(
             return
         }
 
-        if (newCompletedCount < totalCount) {
+        if (newCompletedCount < iterations) {
             executor.execute {
                 try {
                     // If a shared barrier is set, wait for all sibling threads
@@ -222,7 +225,8 @@ class ConcurrentAcquireTokenExecutor(
                 }
             }
         } else {
-            // All iterations completed — notify the UI
+            // All iterations completed — clean up and notify the UI
+            executor.shutdown()
             Handler(Looper.getMainLooper()).post {
                 uiCallback.onStopped(threadId)
             }

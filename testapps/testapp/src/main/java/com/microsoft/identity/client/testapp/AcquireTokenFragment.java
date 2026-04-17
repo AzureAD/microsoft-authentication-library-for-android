@@ -126,7 +126,7 @@ public class AcquireTokenFragment extends Fragment {
 
     // Concurrent execution UI elements
     private EditText mConcurrentCount;
-    private EditText mConcurrentTotalCount;
+    private EditText mConcurrentIterations;
     private Button mRunConcurrent;
     private LinearLayout mThreadProgressContainer;
     private List<TextView> mThreadProgressViews = new ArrayList<>();
@@ -437,7 +437,7 @@ public class AcquireTokenFragment extends Fragment {
 
         // Initialize concurrent execution UI elements
         mConcurrentCount = view.findViewById(R.id.concurrent_count);
-        mConcurrentTotalCount = view.findViewById(R.id.concurrent_total_count);
+        mConcurrentIterations = view.findViewById(R.id.concurrent_iterations);
         mRunConcurrent = view.findViewById(R.id.btn_run_concurrent);
         mThreadProgressContainer = view.findViewById(R.id.concurrent_thread_progress_container);
 
@@ -720,7 +720,7 @@ public class AcquireTokenFragment extends Fragment {
     private void runConcurrentAcquireTokenSilent() {
         try {
             final int concurrency = Integer.parseInt(mConcurrentCount.getText().toString());
-            final int iterations = Integer.parseInt(mConcurrentTotalCount.getText().toString());
+            final int iterations = Integer.parseInt(mConcurrentIterations.getText().toString());
 
             if (concurrency <= 0 || iterations <= 0) {
                 showConcurrentStatus("Concurrency and iterations must be greater than 0");

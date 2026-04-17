@@ -774,7 +774,7 @@
                 android:text="Iterations" />
 
             <EditText
-                android:id="@+id/concurrent_total_count"
+                android:id="@+id/concurrent_iterations"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="7"
