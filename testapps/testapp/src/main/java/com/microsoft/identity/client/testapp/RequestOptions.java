@@ -59,7 +59,8 @@ public class RequestOptions {
 
     /**
      * Creates a copy of the given RequestOptions with different scopes.
-     * Used by burst mode to avoid command dedup in the broker.
+     * Used by the concurrent acquire-token-silent stress scenario to avoid command
+     * deduplication in the broker.
      */
     public static RequestOptions withDifferentScopes(RequestOptions source, String newScopes) {
         return new RequestOptions(
