@@ -738,6 +738,13 @@ public class AcquireTokenFragment extends Fragment {
             mLatestErrors.clear();
 
             // Create per-thread progress views
+            final TextView header = new TextView(getContext());
+            header.setText("Progress (success/completed):");
+            header.setTextSize(12);
+            header.setTypeface(null, android.graphics.Typeface.BOLD);
+            header.setPadding(0, 5, 0, 5);
+            mThreadProgressContainer.addView(header);
+
             for (int i = 0; i < concurrency; i++) {
                 TextView threadProgress = new TextView(getContext());
                 threadProgress.setText("Thread " + i + ": 0/" + iterations);
@@ -771,7 +778,7 @@ public class AcquireTokenFragment extends Fragment {
                         public void updateProgress(final int tid, final int successCount, final int completedCount) {
                             if (tid >= 0 && tid < mThreadProgressViews.size()) {
                                 final String progress = String.format(Locale.US,
-                                        "Thread %d [%s]: %d/%d (success/completed)",
+                                        "Thread %d [%s]: %d/%d",
                                         tid,
                                         ConcurrentAcquireTokenExecutor.getScopeForThread(tid),
                                         successCount,
