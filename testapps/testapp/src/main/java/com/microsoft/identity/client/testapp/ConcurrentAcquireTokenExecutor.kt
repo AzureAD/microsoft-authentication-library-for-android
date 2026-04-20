@@ -26,56 +26,127 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import com.microsoft.identity.client.IAuthenticationResult
+import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.RejectedExecutionException
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 class ConcurrentAcquireTokenExecutor(
     val threadId: Int,
-    val totalCount: Int
+    val iterations: Int
 ) {
-
-    private val randomDelayInMs = (10..50).random().toLong()
 
     // Flag to track if execution should stop
     private val isStopped = AtomicBoolean(false)
 
     // Use a dedicated executor for background work
     private val executor: ExecutorService = Executors.newSingleThreadExecutor()
+    private val mainThreadHandler = Handler(Looper.getMainLooper())
+
+    private fun dispatchToMainThread(action: () -> Unit) {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            action()
+        } else {
+            mainThreadHandler.post(action)
+        }
+    }
 
     interface IUIUpdateCallback {
         fun updateProgress(threadId: Int, successCount: Int, completedCount: Int)
         fun onStopped(threadId: Int)
+        fun onError(threadId: Int, message: String)
     }
 
     fun execute(context: Context,
                 requestOptions: RequestOptions,
                 uiCallback: IUIUpdateCallback){
-        // MsalWrapper.create callbacks run on main thread, so call it directly
+        // Do not assume MsalWrapper.create callbacks are delivered on the main thread.
         MsalWrapper.create(
             context.applicationContext,
             Constants.getResourceIdFromConfigFile(requestOptions.configFile),
             object : INotifyOperationResultCallback<MsalWrapper?> {
                 override fun onSuccess(result: MsalWrapper?) {
-                    // Start the first iteration immediately (no initial sleep)
                     if (result != null) {
-                        executeAcquireTokenSilent(result,
-                            0,
-                            0,
-                            requestOptions,
-                            uiCallback)
+                        // Wait at the barrier before the first iteration so all
+                        // threads start their first request simultaneously.
+                        executor.execute {
+                            try {
+                                sharedBarrier?.await(30, TimeUnit.SECONDS)
+                            } catch (e: Exception) {
+                                // Barrier broken or timeout — continue anyway
+                            }
+                            if (!isStopped.get()) {
+                                executeAcquireTokenSilent(result,
+                                    0,
+                                    0,
+                                    requestOptions,
+                                    uiCallback)
+                            }
+                        }
                     } else {
                         // Handle the null case appropriately, e.g., notify UI or log error
-                        // For now, we'll notify the UI that the operation has stopped
-                        uiCallback.onStopped(threadId)
+                        executor.shutdown()
+                        dispatchToMainThread {
+                            uiCallback.onError(threadId, "MsalWrapper is null")
+                            uiCallback.updateProgress(threadId, 0, 0)
+                            uiCallback.onStopped(threadId)
+                        }
                     }
                 }
 
                 override fun showMessage(message: String?) {
-                    // do nothing.
+                    executor.shutdown()
+                    dispatchToMainThread {
+                        uiCallback.onError(threadId, message ?: "MsalWrapper creation failed")
+                        uiCallback.updateProgress(threadId, 0, 0)
+                        uiCallback.onStopped(threadId)
+                    }
                 }
             }
         )
+    }
+
+    companion object {
+        /**
+         * Shared barrier across all executor instances.
+         * Set by the caller before starting executors.
+         * All executors wait at this barrier before each iteration,
+         * ensuring all threads fire simultaneously on each wave.
+         */
+        @JvmStatic
+        var sharedBarrier: CyclicBarrier? = null
+
+        /**
+         * Pool of legitimate Microsoft Graph scopes.
+         * Each thread uses a different scope to bypass calling-side command dedup
+         * (CommandDispatcher collapses commands with identical parameters).
+         */
+        private val SCOPE_POOL = listOf(
+            "user.read",
+            "user.readbasic.all",
+            "mail.read",
+            "calendars.read",
+            "contacts.read",
+            "files.read",
+            "files.read.all",
+            "people.read",
+            "notes.read",
+            "tasks.read",
+            "sites.read.all",
+            "directory.read.all",
+            "group.read.all"
+        )
+
+        /**
+         * Returns a legitimate scope for the given thread ID.
+         * Wraps around the pool if threadId exceeds the pool size.
+         */
+        @JvmStatic
+        fun getScopeForThread(threadId: Int): String {
+            return SCOPE_POOL[threadId % SCOPE_POOL.size]
+        }
     }
 
     /**
@@ -92,8 +163,13 @@ class ConcurrentAcquireTokenExecutor(
                                           completedCount: Int,
                                           requestOptions: RequestOptions,
                                           uiCallback: IUIUpdateCallback) {
-        msalWrapper.acquireTokenSilent(
+        // Use a per-thread scope from the pool to bypass calling-side command dedup.
+        val threadOptions = RequestOptions.withDifferentScopes(
             requestOptions,
+            getScopeForThread(threadId)
+        )
+        msalWrapper.acquireTokenSilent(
+            threadOptions,
             object : INotifyOperationResultCallback<IAuthenticationResult> {
                 override fun onSuccess(result: IAuthenticationResult) {
                     val newSuccessCount = successCount + 1
@@ -113,7 +189,7 @@ class ConcurrentAcquireTokenExecutor(
                 override fun showMessage(message: String?) {
                     val newCompletedCount = completedCount + 1
 
-                    // MSAL callbacks already run on main thread - update UI directly
+                    uiCallback.onError(threadId, message ?: "Unknown error")
                     uiCallback.updateProgress(threadId, successCount, newCompletedCount)
 
                     executeNext(
@@ -143,14 +219,26 @@ class ConcurrentAcquireTokenExecutor(
             return
         }
 
-        if (newCompletedCount < totalCount) {
-            executor.execute {
-                try {
-                    Thread.sleep(randomDelayInMs)
+        if (newCompletedCount < iterations) {
+            if (executor.isShutdown || executor.isTerminated) {
+                Handler(Looper.getMainLooper()).post {
+                    uiCallback.onStopped(threadId)
+                }
+                return
+            }
 
-                    // Post back to main thread to call acquireTokenSilent
-                    // (required since MSAL needs to be called from main thread)
-                    Handler(Looper.getMainLooper()).post {
+            try {
+                executor.execute {
+                    try {
+                        // If a shared barrier is set, wait for all sibling threads
+                        // to reach this point before firing the next request.
+                        // This ensures all threads fire each iteration simultaneously.
+                        sharedBarrier?.await(30, TimeUnit.SECONDS)
+                    } catch (e: Exception) {
+                        // Barrier broken or timeout — continue anyway
+                    }
+
+                    if (!isStopped.get()) {
                         executeAcquireTokenSilent(
                             msalWrapper,
                             newSuccessCount,
@@ -159,12 +247,17 @@ class ConcurrentAcquireTokenExecutor(
                             uiCallback
                         )
                     }
-                } catch (e: InterruptedException) {
-                    // Interrupted - likely due to stop request
-                    Handler(Looper.getMainLooper()).post {
-                        uiCallback.onStopped(threadId)
-                    }
                 }
+            } catch (e: RejectedExecutionException) {
+                Handler(Looper.getMainLooper()).post {
+                    uiCallback.onStopped(threadId)
+                }
+            }
+        } else {
+            // All iterations completed — clean up and notify the UI
+            executor.shutdown()
+            Handler(Looper.getMainLooper()).post {
+                uiCallback.onStopped(threadId)
             }
         }
     }
