@@ -64,7 +64,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
 
 import java.io.File;
 import java.io.IOException;
@@ -80,7 +79,6 @@ import java.util.concurrent.TimeUnit;
  */
 @Ignore
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {})
 @SuppressWarnings("unchecked")
 public class DeviceCodeFlowWithClaimsApiTest extends PublicClientApplicationAbstractTest {
 
