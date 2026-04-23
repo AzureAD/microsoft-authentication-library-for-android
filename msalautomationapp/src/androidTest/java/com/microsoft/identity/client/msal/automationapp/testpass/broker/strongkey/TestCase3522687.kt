@@ -48,16 +48,17 @@ class TestCase3522687 : AbstractMsalBrokerTest() {
             BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("performNonSharedWpjWithHardwareKey:true")
         )
 
-        val basicUser = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.TP_CA)
+        val username = mLabAccount.getUsername()
+        val password = mLabAccount.getPassword()
 
         (mBroker as BrokerMicrosoftAuthenticator).setShouldUseDeviceSettingsPage(false)
-        mBroker.performDeviceRegistration(basicUser.username, basicUser.password)
+        mBroker.performDeviceRegistration(username, password)
 
         //acquiring token, no password prompt, no wpj upgrade prompt.
         val msalSdk = MsalSdk()
         val authTestParams: MsalAuthTestParams = MsalAuthTestParams.builder()
             .activity(mActivity)
-            .loginHint(basicUser.username)
+            .loginHint(username)
             .scopes(listOf(*mScopes))
             .promptParameter(Prompt.SELECT_ACCOUNT)
             .msalConfigResourceId(configFileResourceId)
@@ -72,7 +73,7 @@ class TestCase3522687 : AbstractMsalBrokerTest() {
     }
 
     override fun getJsonUserType(): UserType? {
-        return UserType.BASIC
+        return UserType.TOKEN_BINDING
     }
 
     override fun getTempUserType(): TempUserType? {

@@ -87,6 +87,9 @@ tasks.register("jacocoTestReport", JacocoReport) {
     ))
 }
 
+def robolectricRepoUsername = System.getenv("ENV_VSTS_MVN_CRED_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_CRED_USERNAME") : project.findProperty("vstsUsername")
+def robolectricRepoPassword = System.getenv("ENV_VSTS_MVN_CRED_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_CRED_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
+
 android {
     namespace "com.microsoft.identity.msal"
     compileOptions {
@@ -204,6 +207,11 @@ android {
             testLogging {
                 exceptionFormat = "full"
             }
+            if (robolectricRepoUsername?.toString()?.trim() && robolectricRepoPassword?.toString()?.trim()) {
+                it.systemProperty("robolectric.dependency.repo.url", "https://identitydivision.pkgs.visualstudio.com/_packaging/NewAndroid/maven/v1")
+                it.systemProperty("robolectric.dependency.repo.username", robolectricRepoUsername)
+                it.systemProperty("robolectric.dependency.repo.password", robolectricRepoPassword)
+            }
         }
     }
 }
@@ -271,7 +279,7 @@ dependencies {
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
     testImplementation "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
     testImplementation ("org.robolectric:robolectric:$rootProject.ext.robolectricVersion")
-    testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"    
+    testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
     testLocalImplementation project(':testutils')
     testLocalImplementation project(':LabApiUtilities')
     testDistImplementation("com.microsoft.identity:testutils:0.0+") {
@@ -287,7 +295,7 @@ dependencies {
     testImplementation "org.powermock:powermock-module-junit4-rule:$rootProject.ext.powerMockVersion"
     testImplementation "org.powermock:powermock-api-mockito2:$rootProject.ext.powerMockVersion"
     testImplementation "org.powermock:powermock-classloading-xstream:$rootProject.ext.powerMockVersion"
-    
+
     // instrumentation test dependencies
     androidTestImplementation "androidx.test.ext:junit:$rootProject.ext.androidxJunitVersion"
     // Set this dependency to use JUnit 4 rules

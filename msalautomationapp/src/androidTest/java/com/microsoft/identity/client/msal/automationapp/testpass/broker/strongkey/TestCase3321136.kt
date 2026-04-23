@@ -36,8 +36,6 @@ import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequ
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler
-import com.microsoft.identity.labapi.utilities.client.LabQuery
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assume
@@ -54,17 +52,18 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
             BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("performNonSharedWpjWithHardwareKey:true")
         )
 
-        val basicUser = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.TP_CA)
+        val username = mLabAccount.getUsername()
+        val password = mLabAccount.getPassword()
 
         (mBroker as BrokerMicrosoftAuthenticator).setShouldUseDeviceSettingsPage(false)
-        mBroker.performDeviceRegistration(basicUser.username, basicUser.password)
+        mBroker.performDeviceRegistration(username, password)
 
         val msalSdk = MsalSdk()
 
         //acquiring token
         val authTestParams: MsalAuthTestParams = MsalAuthTestParams.builder()
             .activity(mActivity)
-            .loginHint(basicUser.username)
+            .loginHint(username)
             .scopes(listOf(*mScopes))
             .promptParameter(Prompt.SELECT_ACCOUNT)
             .msalConfigResourceId(configFileResourceId)
@@ -76,7 +75,7 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
                     val promptHandlerParameters: PromptHandlerParameters =
                         PromptHandlerParameters.builder()
                             .prompt(PromptParameter.SELECT_ACCOUNT)
-                            .loginHint(basicUser.username)
+                            .loginHint(username)
                             .passwordPageExpected(false)
                             .sessionExpected(true)
                             .broker(mBroker)
@@ -84,7 +83,7 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
                             .build()
 
                     AadPromptHandler(promptHandlerParameters)
-                        .handlePrompt(basicUser.username, basicUser.password)
+                        .handlePrompt(username, password)
                 }
             }, TokenRequestTimeout.MEDIUM)
 
@@ -92,7 +91,7 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
     }
 
     override fun getJsonUserType(): UserType? {
-        return UserType.BASIC
+        return UserType.TOKEN_BINDING
     }
 
     override fun getTempUserType(): TempUserType? {

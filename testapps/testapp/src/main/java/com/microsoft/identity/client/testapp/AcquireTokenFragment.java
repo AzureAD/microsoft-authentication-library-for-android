@@ -64,6 +64,8 @@ import com.microsoft.identity.common.java.opentelemetry.SpanExtension;
 import com.microsoft.identity.common.java.util.StringUtil;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.Locale;
 
@@ -124,12 +126,12 @@ public class AcquireTokenFragment extends Fragment {
 
     // Concurrent execution UI elements
     private EditText mConcurrentCount;
-    private EditText mConcurrentTotalCount;
+    private EditText mConcurrentIterations;
     private Button mRunConcurrent;
-    private Button mStopConcurrent;
     private LinearLayout mThreadProgressContainer;
     private List<TextView> mThreadProgressViews = new ArrayList<>();
     private List<ConcurrentAcquireTokenExecutor> mRunningExecutors = new ArrayList<>();
+    private final Map<Integer, String> mLatestErrors = new HashMap<>();
 
     private IClientActiveBrokerCache mCache;
     public AcquireTokenFragment() {
@@ -435,24 +437,22 @@ public class AcquireTokenFragment extends Fragment {
 
         // Initialize concurrent execution UI elements
         mConcurrentCount = view.findViewById(R.id.concurrent_count);
-        mConcurrentTotalCount = view.findViewById(R.id.concurrent_total_count);
+        mConcurrentIterations = view.findViewById(R.id.concurrent_iterations);
         mRunConcurrent = view.findViewById(R.id.btn_run_concurrent);
-        mStopConcurrent = view.findViewById(R.id.btn_stop_concurrent);
         mThreadProgressContainer = view.findViewById(R.id.concurrent_thread_progress_container);
 
         mRunConcurrent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                runConcurrentAcquireTokenSilent();
+                if (mRunningExecutors.isEmpty()) {
+                    runConcurrentAcquireTokenSilent();
+                } else {
+                    stopConcurrentExecutors();
+                }
             }
         });
 
-        mStopConcurrent.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                stopConcurrentExecutors();
-            }
-        });
+        updateConcurrentButtonState();
 
         return view;
     }
@@ -716,44 +716,60 @@ public class AcquireTokenFragment extends Fragment {
 
     /**
      * Concurrent AcquireTokenSilent
-     * Note: In order for this to work, the build config shouldSkipSilentTokenCommandCacheForStressTest must be set to true.
      */
     private void runConcurrentAcquireTokenSilent() {
         try {
             final int concurrency = Integer.parseInt(mConcurrentCount.getText().toString());
-            final int totalCount = Integer.parseInt(mConcurrentTotalCount.getText().toString());
+            final int iterations = Integer.parseInt(mConcurrentIterations.getText().toString());
 
-            if (concurrency <= 0 || totalCount <= 0) {
-                showMessage("Concurrency and total count must be greater than 0");
+            if (concurrency <= 0 || iterations <= 0) {
+                showConcurrentStatus("Concurrency and iterations must be greater than 0");
                 return;
             }
 
-            // Calculate requests per thread
-            final int requestsPerThread = totalCount / concurrency;
-            final int remainder = totalCount % concurrency;
+            if (getAccountFromSpinner() == null) {
+                showConcurrentStatus("Please sign in first. An account is required for AcquireTokenSilent.");
+                return;
+            }
 
             // Reset progress
             mThreadProgressContainer.removeAllViews();
             mThreadProgressViews.clear();
+            mLatestErrors.clear();
 
             // Create per-thread progress views
+            final TextView header = new TextView(getContext());
+            header.setText("Progress (success/completed):");
+            header.setTextSize(12);
+            header.setTypeface(null, android.graphics.Typeface.BOLD);
+            header.setPadding(0, 5, 0, 5);
+            mThreadProgressContainer.addView(header);
+
             for (int i = 0; i < concurrency; i++) {
                 TextView threadProgress = new TextView(getContext());
-                threadProgress.setText("Thread " + i + ": 0/0");
+                threadProgress.setText("Thread " + i + ": 0/" + iterations);
                 threadProgress.setTextSize(12);
                 threadProgress.setPadding(0, 5, 0, 5);
                 mThreadProgressContainer.addView(threadProgress);
                 mThreadProgressViews.add(threadProgress);
             }
 
+            // Set up a shared CyclicBarrier so all executor threads synchronize
+            // on each iteration. This ensures all N threads fire their ATS request
+            // at the exact same moment on each wave.
+            ConcurrentAcquireTokenExecutor.setSharedBarrier(
+                    new java.util.concurrent.CyclicBarrier(concurrency));
+
             // Create and start one executor per thread
             for (int i = 0; i < concurrency; i++) {
                 final int threadId = i;
-                final int countForThisThread = requestsPerThread + (i < remainder ? 1 : 0);
 
                 final ConcurrentAcquireTokenExecutor executor =
-                    new ConcurrentAcquireTokenExecutor(threadId, countForThisThread);
+                    new ConcurrentAcquireTokenExecutor(threadId, iterations);
 
+                // Each executor fires requests on its own background thread.
+                // The shared CyclicBarrier ensures all executors synchronize at each
+                // iteration, so all threads fire simultaneously on each wave.
                 executor.execute(
                     getContext(),
                     getCurrentRequestOptions(),
@@ -761,31 +777,84 @@ public class AcquireTokenFragment extends Fragment {
                         @Override
                         public void updateProgress(final int tid, final int successCount, final int completedCount) {
                             if (tid >= 0 && tid < mThreadProgressViews.size()) {
-                                mThreadProgressViews.get(tid).setText(
-                                        String.format(Locale.US,
-                                                "Thread %d: %d/%d", tid, successCount, completedCount));
+                                final String progress = String.format(Locale.US,
+                                        "Thread %d [%s]: %d/%d",
+                                        tid,
+                                        ConcurrentAcquireTokenExecutor.getScopeForThread(tid),
+                                        successCount,
+                                        completedCount);
+
+                                if (mLatestErrors.containsKey(tid)) {
+                                    final String full = progress + "\nLast error: " + mLatestErrors.get(tid);
+                                    final android.text.SpannableString spannable = new android.text.SpannableString(full);
+                                    final int boldStart = progress.length() + 1; // after \n
+                                    final int boldEnd = boldStart + "Last error:".length();
+                                    spannable.setSpan(
+                                            new android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+                                            boldStart, boldEnd,
+                                            android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                    mThreadProgressViews.get(tid).setText(spannable);
+                                } else {
+                                    mThreadProgressViews.get(tid).setText(progress);
+                                }
                             }
                         }
 
                         @Override
                         public void onStopped(final int tid) {
+                            mRunningExecutors.removeIf(e -> e.getThreadId() == tid);
+                            if (mRunningExecutors.isEmpty()) {
+                                updateConcurrentButtonState();
+                            }
+                        }
+
+                        @Override
+                        public void onError(final int tid, final String message) {
+                            mLatestErrors.put(tid, message);
                         }
                     }
                 );
 
                 mRunningExecutors.add(executor);
             }
+            updateConcurrentButtonState();
         } catch (NumberFormatException e) {
-            showMessage("Please enter valid numbers for concurrency and total count");
+            showMessage("Please enter valid numbers for concurrency and iterations");
         }
     }
 
     private void stopConcurrentExecutors() {
+        if (mRunningExecutors.isEmpty()) {
+            return;
+        }
         for (ConcurrentAcquireTokenExecutor executor : mRunningExecutors) {
             executor.stop();
         }
         mRunningExecutors.clear();
-        showMessage("Stopped all running tasks");
+        // Append stop message without clearing existing thread progress
+        final TextView stopView = new TextView(getContext());
+        stopView.setText("Stopped all running tasks");
+        stopView.setTextSize(12);
+        stopView.setPadding(0, 10, 0, 5);
+        stopView.setTextColor(0xFF999999);
+        mThreadProgressContainer.addView(stopView);
+        updateConcurrentButtonState();
+    }
+
+    private void updateConcurrentButtonState() {
+        final boolean hasRunning = !mRunningExecutors.isEmpty();
+        mRunConcurrent.setText(hasRunning ? "Stop" : "Run Concurrent");
+    }
+
+    private void showConcurrentStatus(final String message) {
+        mThreadProgressContainer.removeAllViews();
+        mThreadProgressViews.clear();
+        final TextView statusView = new TextView(getContext());
+        statusView.setText(message);
+        statusView.setTextSize(14);
+        statusView.setPadding(0, 10, 0, 10);
+        statusView.setTextColor(0xFFCC0000);
+        mThreadProgressContainer.addView(statusView);
     }
 
     public interface OnFragmentInteractionListener {

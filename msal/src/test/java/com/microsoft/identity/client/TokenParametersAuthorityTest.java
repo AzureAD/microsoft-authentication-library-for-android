@@ -84,6 +84,8 @@ public class TokenParametersAuthorityTest {
                 {AzureCloudInstance.AzureUsGov, AadAuthorityAudience.AzureAdAndPersonalMicrosoftAccount, "https://login.microsoftonline.us/common"},
                 {AzureCloudInstance.AzureUsGov, AadAuthorityAudience.AzureAdMultipleOrgs, "https://login.microsoftonline.us/organizations"},
                 {AzureCloudInstance.AzureUsGov, AadAuthorityAudience.PersonalMicrosoftAccount, "https://login.microsoftonline.us/consumers"},
+                {AzureCloudInstance.AzureFranceSov, AadAuthorityAudience.AzureAdAndPersonalMicrosoftAccount, "https://login.sovcloud-identity.fr/common"},
+                {AzureCloudInstance.AzureFranceSov, AadAuthorityAudience.AzureAdMultipleOrgs, "https://login.sovcloud-identity.fr/organizations"},
 
         });
     }

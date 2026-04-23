@@ -2,6 +2,12 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+- [PATCH] Update compileSdkVersion to 36 and buildToolsVersion to 36.0.0 (#2491)
+
+Version 8.3.0
+----------
+- [PATCH] Update common @24.1.0
+- [MINOR] [Bleu support] Add AzureFranceSov to AzureCloudInstance enum for France sovereign cloud support
 - [PATCH] Update Moshi version to 1.15.2 to address okio vulnerability (CVE-2023-3635) (#2480)
 
 Version 8.2.3

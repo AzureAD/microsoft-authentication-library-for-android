@@ -259,6 +259,16 @@ public class MainActivity extends AppCompatActivity
             final Bundle bundle = new Bundle();
             bundle.putString(LogFragment.LOG_MSG, logs);
             fragment.setArguments(bundle);
+        } else if (menuItemId == R.id.nav_browser_sso) {
+            if (getCurrentFragment() instanceof BrowserSsoFragment) {
+                return false;
+            }
+            fragment = new BrowserSsoFragment();
+        } else if (menuItemId == R.id.nav_browser_sso_webview) {
+            if (getCurrentFragment() instanceof BrowserSsoWebViewFragment) {
+                return false;
+            }
+            fragment = new BrowserSsoWebViewFragment();
         } else {
             fragment = null;
         }
