@@ -103,6 +103,9 @@ public class TestCase833544 extends AbstractMsalBrokerTest {
         final UiObject fileFetchScreen = UiAutomatorUtils.obtainUiObjectWithText("Fetching your files", TimeUnit.SECONDS.toMillis(45));
         Assert.assertTrue(fileFetchScreen.exists());
 
+        // Word may show a "Your privacy option" dialog after sign-in; dismiss it if present
+        UiAutomatorUtils.handleButtonClickForObjectWithTextSafely("Close", CommonUtils.FIND_UI_ELEMENT_TIMEOUT_SHORT);
+
         // Make sure the account exists in Word
         wordApp.confirmAccount(username);
 
