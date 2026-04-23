@@ -73,7 +73,7 @@ public class TestCase833544 extends AbstractMsalBrokerTest {
         outlook.launch();
         outlook.handleFirstRun();
 
-        final FirstPartyAppPromptHandlerParameters promptHandlerParameters= FirstPartyAppPromptHandlerParameters.builder()
+        final FirstPartyAppPromptHandlerParameters promptHandlerParameters = FirstPartyAppPromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)
                 .loginHint(username)
                 .broker(mBroker)
