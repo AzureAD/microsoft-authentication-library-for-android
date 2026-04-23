@@ -77,7 +77,6 @@ import java.util.concurrent.TimeUnit;
  * of the protocol. Will be extended to test individual aspects of the flow.
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {})
 @SuppressWarnings("unchecked")
 public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
