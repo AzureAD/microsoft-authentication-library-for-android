@@ -44,15 +44,10 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEBAUTHN_VERSION;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_CONTROLS_ENABLED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_ENABLED;
-import static com.microsoft.identity.client.exception.MsalClientException.APP_MANIFEST_VALIDATION_ERROR;
-
 import android.Manifest;
 import android.content.Context;
-import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.content.pm.Signature;
 import android.net.Uri;
 import android.text.TextUtils;
@@ -76,7 +71,6 @@ import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.java.authorities.Environment;
 import com.microsoft.identity.common.java.authorities.UnknownAuthority;
-import com.microsoft.identity.common.java.configuration.LibraryConfiguration;
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.java.ui.AuthorizationAgent;
 import com.microsoft.identity.common.java.ui.BrowserDescriptor;
@@ -641,106 +635,9 @@ public class PublicClientApplicationConfiguration {
         }
     }
 
-    /**
-     * Ensures that the developer has properly configured their
-     * AndroidManifest to expose the BrowserTabActivity.
-     *
-     * @param context the context of the application
-     * @param url     the redirect uri of the app
-     * @return a boolean indicating if BrowserTabActivity is configured or not
-     */
-    private static boolean validateCustomTabRedirectActivity(@NonNull final Context context,
-                                                             @NonNull final String url) throws MsalClientException {
-        final String methodTag = TAG + ":validateCustomTabRedirectActivity";
-        final PackageManager packageManager = context.getPackageManager();
-
-        if (packageManager == null) {
-            return false;
-        }
-
-        final Intent intent = new Intent();
-        intent.setAction(Intent.ACTION_VIEW);
-        intent.addCategory(Intent.CATEGORY_DEFAULT);
-        intent.addCategory(Intent.CATEGORY_BROWSABLE);
-        intent.setDataAndNormalize(Uri.parse(url));
-
-        final List<ResolveInfo> resolveInfoList = packageManager.queryIntentActivities(
-                intent,
-                PackageManager.GET_RESOLVED_FILTER
-        );
-
-        // resolve info list will never be null, if no matching activities are found, empty list will be returned.
-        boolean hasActivity = false;
-
-        for (final ResolveInfo info : resolveInfoList) {
-            final ActivityInfo activityInfo = info.activityInfo;
-            String activityClassName = BrowserTabActivity.class.getName();
-
-            //If we're using authorization in current task... then we need to look for that activity
-            if(LibraryConfiguration.getInstance().isAuthorizationInCurrentTask()){
-                activityClassName = CurrentTaskBrowserTabActivity.class.getName();
-            }
-
-            if (activityInfo.name.equals(activityClassName) &&
-                    activityInfo.packageName.equals(context.getPackageName())) {
-                hasActivity = true;
-            } else {
-                // another application is listening for this url scheme, don't open
-                // Custom Tab for security reasons
-                com.microsoft.identity.common.logging.Logger.warn(
-                        methodTag,
-                        String.format("Another application %s is listening for the URL scheme %s", activityInfo.packageName, url)
-                );
-                throw new MsalClientException(
-                        MsalClientException.MULTIPLE_APPS_LISTENING_CUSTOM_URL_SCHEME,
-                        "More than one app is listening for the URL scheme defined for BrowserTabActivity in the AndroidManifest." +
-                                " The package name of this other app is: " + activityInfo.packageName
-                );
-            }
-        }
-
-        return hasActivity;
-    }
-
     @SuppressWarnings("PMD")
     public void checkIntentFilterAddedToAppManifestForBrokerFlow() throws MsalClientException {
         final String methodTag = TAG + ":checkIntentFilterAddedToAppManifestForBrokerFlow";
-        if ((getAuthorizationAgent() == AuthorizationAgent.DEFAULT
-                || getAuthorizationAgent() == AuthorizationAgent.BROWSER)) {
-
-            final boolean hasCustomTabRedirectActivity = validateCustomTabRedirectActivity(
-                    mAppContext,
-                    mRedirectUri
-            );
-
-            if (!hasCustomTabRedirectActivity) {
-                String activityClassName = BrowserTabActivity.class.getSimpleName();
-
-                if (LibraryConfiguration.getInstance().isAuthorizationInCurrentTask()){
-                    activityClassName = CurrentTaskBrowserTabActivity.class.getSimpleName();
-                }
-
-                final Uri redirectUri = Uri.parse(mRedirectUri);
-
-                throw new MsalClientException(
-                        APP_MANIFEST_VALIDATION_ERROR,
-                        "Intent filter for: " +
-                                activityClassName +
-                                " is missing. " +
-                                " Please make sure you have the following activity in your AndroidManifest.xml \n\n" +
-                                "<activity android:name=\"com.microsoft.identity.client." + activityClassName + "\">" + "\n" +
-                                "\t" + "<intent-filter>" + "\n" +
-                                "\t\t" + "<action android:name=\"android.intent.action.VIEW\" />" + "\n" +
-                                "\t\t" + "<category android:name=\"android.intent.category.DEFAULT\" />" + "\n" +
-                                "\t\t" + "<category android:name=\"android.intent.category.BROWSABLE\" />" + "\n" +
-                                "\t\t" + "<data" + "\n" +
-                                "\t\t\t" + "android:host=\"" + redirectUri.getHost() + "\"" + "\n" +
-                                "\t\t\t" + "android:path=\"" + redirectUri.getPath() + "\"" + "\n" +
-                                "\t\t\t" + "android:scheme=\"" + redirectUri.getScheme() + "\" />" + "\n" +
-                                "\t" + "</intent-filter>" + "\n" +
-                                "</activity>" + "\n");
-            }
-        }
 
         if (!mUseBroker) {
             return;
