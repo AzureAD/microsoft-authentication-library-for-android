@@ -24,8 +24,6 @@ package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.cross
 
 import android.text.TextUtils;
 
-import androidx.annotation.NonNull;
-
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.msal.automationapp.AbstractGuestAccountMsalUiTest;
@@ -43,7 +41,6 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -51,7 +48,6 @@ import java.util.Arrays;
 // [CrossCloud] AcquireToken from Cross/foreign Cloud after acquiring token from home cloud
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1616315
 @RunOnAPI29Minus("Keep me signed in")
-@Ignore("Ignoring for now, cross cloud not supported in id4slab2 yet")
 public class TestCase1616315 extends AbstractGuestAccountMsalUiTest {
     private final String mHomeCloud = "https://login.microsoftonline.us";
     private final String mCrossCloud = "https://login.microsoftonline.com";
@@ -92,7 +88,7 @@ public class TestCase1616315 extends AbstractGuestAccountMsalUiTest {
                 .scopes(Arrays.asList(getScopes()))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .authority(getHomeAuthority())
-                .msalConfigResourceId(getConfigFileResourceId())
+                .msalConfigResourceId(getMSIDLAB4ConfigFileResourceId())
                 .build();
 
         final MsalAuthTestParams acquireTokenCrossCloudAuthParams = MsalAuthTestParams.builder()
@@ -101,7 +97,7 @@ public class TestCase1616315 extends AbstractGuestAccountMsalUiTest {
                 .scopes(Arrays.asList(getScopes()))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .authority(getCrossCloudAuthority())
-                .msalConfigResourceId(getConfigFileResourceId())
+                .msalConfigResourceId(getMSIDLAB4ConfigFileResourceId())
                 .build();
 
         final MsalSdk msalSdk = new MsalSdk();

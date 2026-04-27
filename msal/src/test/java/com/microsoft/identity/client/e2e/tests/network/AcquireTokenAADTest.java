@@ -29,6 +29,7 @@ import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_MOONCAKE_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_USGOV_CONFIG_FILE_PATH;
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.AD_GRAPH_USER_READ_SCOPE;
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.OFFICE_USER_READ_SCOPE;
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
@@ -61,6 +62,11 @@ public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
     }
 
     public static class AzureUsGovCloudUser extends AcquireTokenAADTest {
+        @Override
+        public String getConfigFilePath() {
+            return MULTIPLE_ACCOUNT_MODE_AAD_USGOV_CONFIG_FILE_PATH;
+        }
+
         @Override
         public UserType getUserType() {
             return UserType.USGOV;

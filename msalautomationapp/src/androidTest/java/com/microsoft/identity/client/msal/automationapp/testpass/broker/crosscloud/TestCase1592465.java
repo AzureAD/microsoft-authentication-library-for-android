@@ -39,14 +39,12 @@ import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
 
 // Acquire Token from Cross Cloud after acquiring token from home cloud
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1592465
-@Ignore("Ignoring for now, cross cloud not supported in id4slab2 yet")
 public class TestCase1592465 extends AbstractGuestAccountMsalBrokerUiTest {
 
     private final String mHomeCloud = "https://login.microsoftonline.us";
@@ -74,7 +72,7 @@ public class TestCase1592465 extends AbstractGuestAccountMsalBrokerUiTest {
                 .scopes(Arrays.asList(getScopes()))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .authority(getHomeCloudAuthority())
-                .msalConfigResourceId(getConfigFileResourceId())
+                .msalConfigResourceId(getMSIDLAB4ConfigFileResourceId())
                 .build();
 
         final MsalSdk msalSdk = new MsalSdk();
@@ -88,7 +86,7 @@ public class TestCase1592465 extends AbstractGuestAccountMsalBrokerUiTest {
                 .scopes(Arrays.asList(getScopes()))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .authority(getCrossCloudAuthority())
-                .msalConfigResourceId(getConfigFileResourceId())
+                .msalConfigResourceId(getMSIDLAB4ConfigFileResourceId())
                 .build();
 
         // Acquire token silently from cross cloud, expected to throw UiRequired exception
@@ -103,7 +101,7 @@ public class TestCase1592465 extends AbstractGuestAccountMsalBrokerUiTest {
         // We expect that this does not prompt for credentials
         final OnInteractionRequired crossCloudInteractionHandler = () -> { };
         final MsalAuthResult acquireTokenCrossCloudResult = msalSdk.acquireTokenInteractive(acquireTokenCrossCloudAuthParams, crossCloudInteractionHandler, TokenRequestTimeout.SILENT);
-        Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenCrossCloudResult.getAccessToken()));
+        Assert.assertFalse("Verify accessToken is empty", TextUtils.isEmpty(acquireTokenCrossCloudResult.getAccessToken()));
 
         Assert.assertNotEquals("CrossCloud request gets new access token", acquireTokenCrossCloudResult.getAccessToken(), acquireTokenHomeCloudResult.getAccessToken());
     }

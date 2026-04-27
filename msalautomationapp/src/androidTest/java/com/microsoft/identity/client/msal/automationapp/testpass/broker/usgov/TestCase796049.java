@@ -36,12 +36,10 @@ import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequ
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 // [USGOV][Broker][Non-Joined] Acquire Token with Resource
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/796049
-@Ignore("Ignoring for now, cross cloud not supported in id4slab2 yet")
 public class TestCase796049 extends AbstractMsalBrokerTest {
 
     @Test
@@ -103,6 +101,6 @@ public class TestCase796049 extends AbstractMsalBrokerTest {
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_instance_aware_common;
+        return R.raw.msal_config_msidlab4_instance_aware;
     }
 }

@@ -41,7 +41,6 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -49,7 +48,6 @@ import java.util.Arrays;
 // [CrossCloud] AcquireToken from home Cloud after acquiring token from cross/foreign cloud
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1616315
 @RunOnAPI29Minus("Keep me signed in")
-@Ignore("Ignoring for now, cross cloud not supported in id4slab2 yet")
 public class TestCase1616316 extends AbstractGuestAccountMsalUiTest {
 
     private final String mHomeCloud = "https://login.microsoftonline.us";
@@ -95,7 +93,7 @@ public class TestCase1616316 extends AbstractGuestAccountMsalUiTest {
                 .scopes(Arrays.asList(getScopes()))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .authority(getHomeAuthority())
-                .msalConfigResourceId(getConfigFileResourceId())
+                .msalConfigResourceId(getMSIDLAB4ConfigFileResourceId())
                 .build();
 
         final MsalAuthTestParams acquireTokenCrossCloudAuthParams = MsalAuthTestParams.builder()
@@ -104,7 +102,7 @@ public class TestCase1616316 extends AbstractGuestAccountMsalUiTest {
                 .scopes(Arrays.asList(getScopes()))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .authority(getCrossCloudAuthority())
-                .msalConfigResourceId(getConfigFileResourceId())
+                .msalConfigResourceId(getMSIDLAB4ConfigFileResourceId())
                 .build();
 
         final MsalSdk msalSdk = new MsalSdk();

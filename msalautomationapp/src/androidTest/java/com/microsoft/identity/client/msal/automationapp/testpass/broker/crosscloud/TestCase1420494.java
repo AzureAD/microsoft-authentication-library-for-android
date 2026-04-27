@@ -42,7 +42,6 @@ import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.json.JSONObject;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -50,7 +49,6 @@ import java.util.Arrays;
 // Acquire token for cross cloud guest account (with broker)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1420494
 @RunOnAPI29Minus("Keep me signed in")
-@Ignore("Ignoring for now, cross cloud not supported in id4slab2 yet")
 public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
     /**
      * Tests Acquiring token for Cross cloud Guest account with broker.

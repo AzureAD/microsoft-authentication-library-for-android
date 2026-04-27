@@ -45,15 +45,15 @@ import org.junit.Test
 class TestCase3321139 : AbstractMsalBrokerTest() {
     @Test
     fun test_3321139_SignInWithTpCaAccount() {
-        val username = mLabAccount.
-        val basicUser = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.TOKEN_BINDING)
+        val username = mLabAccount.username
+        val password = mLabAccount.password
 
         val msalSdk = MsalSdk()
 
         //acquiring token
         val authTestParams: MsalAuthTestParams = MsalAuthTestParams.builder()
             .activity(mActivity)
-            .loginHint(basicUser.username)
+            .loginHint(username)
             .scopes(listOf(*mScopes))
             .promptParameter(Prompt.SELECT_ACCOUNT)
             .msalConfigResourceId(configFileResourceId)
@@ -65,7 +65,7 @@ class TestCase3321139 : AbstractMsalBrokerTest() {
                     val promptHandlerParameters: PromptHandlerParameters =
                         PromptHandlerParameters.builder()
                             .prompt(PromptParameter.SELECT_ACCOUNT)
-                            .loginHint(basicUser.username)
+                            .loginHint(username)
                             .consentPageExpected(false)
                             .speedBumpExpected(false)
                             .broker(mBroker)
@@ -74,7 +74,7 @@ class TestCase3321139 : AbstractMsalBrokerTest() {
                             .build()
 
                     AadPromptHandler(promptHandlerParameters)
-                        .handlePrompt(basicUser.username, basicUser.password)
+                        .handlePrompt(username, password)
                 }
             }, TokenRequestTimeout.MEDIUM)
 
@@ -98,6 +98,6 @@ class TestCase3321139 : AbstractMsalBrokerTest() {
     }
 
     override fun getConfigFileResourceId(): Int {
-        return R.raw.msal_config_default
+        return R.raw.msal_config_msidlab4
     }
 }

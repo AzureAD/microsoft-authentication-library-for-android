@@ -37,14 +37,12 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.Micr
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
 
 // [Joined][MSAL] Broker Auth - Federated User
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561147
-//@Ignore("Federated Account in LAB is not working at the moment")
 public class TestCase1561147 extends AbstractMsalBrokerTest {
     @Test
     public void test_1561147_Joined_FederatedUser() throws Throwable {

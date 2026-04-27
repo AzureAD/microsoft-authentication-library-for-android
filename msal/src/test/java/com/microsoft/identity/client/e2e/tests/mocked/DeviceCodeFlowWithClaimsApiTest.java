@@ -22,58 +22,19 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.mocked;
 
-import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
-import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_USGOV_CONFIG_FILE_PATH;
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.SINGLE_ACCOUNT_DCF_TEST_CONFIG_FILE_PATH;
-
-import android.content.Context;
-
-import androidx.annotation.NonNull;
-import androidx.test.core.app.ApplicationProvider;
-
-import com.microsoft.identity.client.IAuthenticationResult;
-import com.microsoft.identity.client.IPublicClientApplication;
-import com.microsoft.identity.client.PublicClientApplication;
-import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
-import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandAuthError;
-import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandSuccessful;
-import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandTokenError;
 import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest;
-import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
-import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.common.java.authorities.Authority;
-import com.microsoft.identity.common.java.exception.ClientException;
-import com.microsoft.identity.common.java.exception.ErrorStrings;
-import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationErrorResponse;
-import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
-import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationResponse;
-import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsTokenRequest;
-import com.microsoft.identity.common.java.providers.oauth2.AuthorizationResult;
-import com.microsoft.identity.common.java.providers.oauth2.OAuth2Strategy;
-import com.microsoft.identity.common.java.providers.oauth2.OAuth2StrategyParameters;
-import com.microsoft.identity.common.java.providers.oauth2.TokenRequest;
-import com.microsoft.identity.common.java.providers.oauth2.TokenResult;
-import com.microsoft.identity.common.java.util.ResultFuture;
-import com.microsoft.identity.common.java.util.StringUtil;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Testing class for the device code flow protocol. Currently only supporting testing for the API-side

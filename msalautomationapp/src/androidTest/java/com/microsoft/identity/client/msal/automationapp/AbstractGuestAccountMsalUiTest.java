@@ -122,4 +122,8 @@ public abstract class AbstractGuestAccountMsalUiTest implements IMsalTest, ILabT
     public int getConfigFileResourceId() {
         return R.raw.msal_config_default;
     }
+
+    public int getMSIDLAB4ConfigFileResourceId() {
+        return R.raw.msal_config_msidlab4;
+    }
 }

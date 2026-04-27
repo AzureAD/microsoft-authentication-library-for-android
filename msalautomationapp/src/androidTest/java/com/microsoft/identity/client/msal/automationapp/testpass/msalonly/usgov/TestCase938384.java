@@ -37,14 +37,12 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
 
 // [USGOV][MSAL-ONLY] Acquire token with USGov Authority
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938384
-@Ignore("Ignoring for now, cross cloud not supported in id4slab2 yet")
 public class TestCase938384 extends AbstractMsalUiTest {
 
     @Test
@@ -105,6 +103,6 @@ public class TestCase938384 extends AbstractMsalUiTest {
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_default;
+        return R.raw.msal_config_msidlab4;
     }
 }
