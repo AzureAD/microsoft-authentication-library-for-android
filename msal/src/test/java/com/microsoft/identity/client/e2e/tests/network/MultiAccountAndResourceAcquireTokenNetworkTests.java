@@ -84,7 +84,7 @@ public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireToke
         for (int i = 0; i < userTypes.length; i++) {
             final String username;
             try {
-                username = labClient.getAccountFromLabJsonStringInMobileBuildVault(new AcquireTokenAADTest.AzureWorldWideCloudUser().getUserType()).getUsername();
+                username = labClient.getAccountFromLabJsonStringInMobileBuildVault(userTypes[i]).getUsername();
             } catch (Exception e) {
                 throw new AssertionError(e);
             }
