@@ -29,7 +29,6 @@ import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
-import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Rule;
