@@ -86,7 +86,7 @@ public class TestCase2139526 extends AbstractMsalBrokerTest {
 
         authResult.assertSuccess();
 
-        // Change the policy to MAM_CA
+        // Change the policy to GLOBAL_MFA, any policy will work as long as it blocks silent request
         mLabClient.enablePolicy(username, ProtectionPolicy.GLOBAL_MFA);
 
         // It takes some time for the policy change to reflect

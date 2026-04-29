@@ -101,7 +101,7 @@ public class TestCase1592465 extends AbstractGuestAccountMsalBrokerUiTest {
         // We expect that this does not prompt for credentials
         final OnInteractionRequired crossCloudInteractionHandler = () -> { };
         final MsalAuthResult acquireTokenCrossCloudResult = msalSdk.acquireTokenInteractive(acquireTokenCrossCloudAuthParams, crossCloudInteractionHandler, TokenRequestTimeout.SILENT);
-        Assert.assertFalse("Verify accessToken is empty", TextUtils.isEmpty(acquireTokenCrossCloudResult.getAccessToken()));
+        Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenCrossCloudResult.getAccessToken()));
 
         Assert.assertNotEquals("CrossCloud request gets new access token", acquireTokenCrossCloudResult.getAccessToken(), acquireTokenHomeCloudResult.getAccessToken());
     }
