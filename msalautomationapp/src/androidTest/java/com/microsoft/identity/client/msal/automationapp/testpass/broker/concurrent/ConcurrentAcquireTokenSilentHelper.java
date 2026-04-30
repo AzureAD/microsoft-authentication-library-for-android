@@ -158,6 +158,16 @@ public final class ConcurrentAcquireTokenSilentHelper {
             final long perWaveTimeoutSec,
             final SilentTokenRequester requester) throws InterruptedException {
 
+        if (threadCount <= 0) {
+            throw new IllegalArgumentException("threadCount must be > 0");
+        }
+        if (iterations <= 0) {
+            throw new IllegalArgumentException("iterations must be > 0");
+        }
+        if (perWaveTimeoutSec <= 0) {
+            throw new IllegalArgumentException("perWaveTimeoutSec must be > 0");
+        }
+
         final AtomicBoolean stopped = new AtomicBoolean(false);
         final AtomicReference<CountDownLatch> currentWaveLatch = new AtomicReference<>();
         final List<String> errors = Collections.synchronizedList(new ArrayList<>());
@@ -181,11 +191,14 @@ public final class ConcurrentAcquireTokenSilentHelper {
                         // Synchronise all threads so every wave fires together.
                         try {
                             waveBarrier.await();
+                        } catch (final InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            break;
                         } catch (final Exception barrierEx) {
                             if (!stopped.get()) {
                                 errors.add("Thread " + threadIndex
                                         + " barrier failed at wave " + iter
-                                        + ": " + barrierEx.getMessage());
+                                        + ": " + barrierEx);
                             }
                             break;
                         }
@@ -200,7 +213,13 @@ public final class ConcurrentAcquireTokenSilentHelper {
                         final CountDownLatch waveDone = currentWaveLatch.get();
                         final int currentIter = iter;
 
-                        requester.request(threadIndex, currentIter, waveDone, errors);
+                        try {
+                            requester.request(threadIndex, currentIter, waveDone, errors);
+                        } catch (final Throwable dispatchError) {
+                            errors.add("Thread " + threadIndex + " iter " + currentIter
+                                    + " dispatch failed: " + dispatchError);
+                            waveDone.countDown();
+                        }
 
                         // Wait for every callback in this wave before starting the next.
                         try {

@@ -177,8 +177,9 @@ public class TestCaseConcurrentAcquireTokenSilent extends AbstractMsalBrokerTest
                                                 public void onError(
                                                         final MsalException exception) {
                                                     errors.add("Thread " + threadIndex
-                                                            + " iter " + iteration + ": "
-                                                            + exception.getMessage());
+                                                            + " iter " + iteration + " ["
+                                                            + exception.getErrorCode() + "]: "
+                                                            + exception);
                                                     done.countDown();
                                                 }
                                             })
