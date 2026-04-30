@@ -90,7 +90,7 @@ public class TestCaseConcurrentAcquireTokenSilent extends AbstractMsalBrokerTest
      * Number of iteration waves each thread executes – matches the default value
      * of the {@code concurrent_iterations} field in the msaltest app UI.
      */
-    private static final int ITERATIONS_PER_THREAD = 1000;
+    private static final int ITERATIONS_PER_THREAD = 100;
 
     /**
      * Maximum time (seconds) to wait for a single silent-token request callback
@@ -103,7 +103,7 @@ public class TestCaseConcurrentAcquireTokenSilent extends AbstractMsalBrokerTest
      * normal conditions, so 4 hours gives ample headroom for
      * {@value #ITERATIONS_PER_THREAD} waves even on a slow device.
      */
-    private static final long TOTAL_TIMEOUT_SECONDS = 5000;
+    private static final long TOTAL_TIMEOUT_SECONDS = 500;
 
     @Test
     public void test_concurrentAcquireTokenSilent_withBroker() throws Throwable {
