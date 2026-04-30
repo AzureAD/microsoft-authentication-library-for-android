@@ -224,8 +224,9 @@ public class ConcurrentAcquireTokenExecutor {
             try {
                 final boolean completed = latch.await(2, TimeUnit.MINUTES);
                 if (!completed) {
+                    final int iterationNumber = i + 1;
                     postToMain(() -> callback.onError(mThreadId,
-                            "Request timed out on iteration " + mIterations));
+                            "Request timed out on iteration " + iterationNumber));
                     break;
                 }
             } catch (final InterruptedException e) {

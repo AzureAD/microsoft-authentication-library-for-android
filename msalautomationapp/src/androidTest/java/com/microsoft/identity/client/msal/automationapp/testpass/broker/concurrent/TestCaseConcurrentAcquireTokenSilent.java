@@ -79,10 +79,12 @@ public class TestCaseConcurrentAcquireTokenSilent extends AbstractMsalBrokerTest
     private static final int CONCURRENT_THREADS = 5;
 
     /**
-     * Per-thread timeout (seconds) for a single silent-token request.
-     * Each request goes through the broker, so allow generous headroom.
+     * Timeout (seconds) for the entire concurrent wave to complete.
+     * All threads run concurrently, so a 2x safety margin over a single
+     * per-request timeout is sufficient. Keeping it tight ensures a real
+     * deadlock is caught quickly rather than letting the test hang for minutes.
      */
-    private static final long PER_REQUEST_TIMEOUT_SECONDS = 120;
+    private static final long CONCURRENT_TIMEOUT_SECONDS = 240;
 
     /**
      * Scopes rotated per-thread to prevent the CommandDispatcher from
@@ -207,12 +209,11 @@ public class TestCaseConcurrentAcquireTokenSilent extends AbstractMsalBrokerTest
         //           All CONCURRENT_THREADS callbacks must fire within the total
         //           timeout window.
         // -----------------------------------------------------------------------
-        final long totalTimeoutSeconds = CONCURRENT_THREADS * PER_REQUEST_TIMEOUT_SECONDS;
-        final boolean allCompleted = allDone.await(totalTimeoutSeconds, TimeUnit.SECONDS);
+        final boolean allCompleted = allDone.await(CONCURRENT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
         Assert.assertTrue(
                 "Concurrent AcquireTokenSilent got stuck – not all " + CONCURRENT_THREADS
-                        + " requests completed within " + totalTimeoutSeconds + "s",
+                        + " requests completed within " + CONCURRENT_TIMEOUT_SECONDS + "s",
                 allCompleted);
 
         Assert.assertTrue(
