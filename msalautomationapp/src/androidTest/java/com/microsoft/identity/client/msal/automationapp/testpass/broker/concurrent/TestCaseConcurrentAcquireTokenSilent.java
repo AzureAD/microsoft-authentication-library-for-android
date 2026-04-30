@@ -36,6 +36,7 @@ import com.microsoft.identity.client.msal.automationapp.testpass.broker.Abstract
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.LongUIAutomationTest;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
+import com.microsoft.identity.client.ui.automation.annotations.StressTest;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
@@ -76,15 +77,15 @@ import java.util.Arrays;
  *       does not get stuck) and that no request returns an error.</li>
  * </ol>
  */
-@RetryOnFailure(retryCount = 2)
+@StressTest
 @LongUIAutomationTest
+@RetryOnFailure(retryCount = 2)
 public class TestCaseConcurrentAcquireTokenSilent extends AbstractMsalBrokerTest {
 
     /**
-     * Number of threads fired simultaneously – matches the default value of the
-     * {@code concurrent_count} field in the msaltest app UI.
+     * Number of threads fired simultaneously.
      */
-    private static final int CONCURRENT_THREADS = 13;
+    private static final int CONCURRENT_THREADS = 20;
 
     /**
      * Number of iteration waves each thread executes – matches the default value
@@ -96,7 +97,7 @@ public class TestCaseConcurrentAcquireTokenSilent extends AbstractMsalBrokerTest
      * Maximum time (seconds) for all {@value #CONCURRENT_THREADS} callbacks in
      * a single wave to complete before the run is aborted.
      */
-    private static final long PER_WAVE_TIMEOUT_SECONDS = 10;
+    private static final long PER_WAVE_TIMEOUT_SECONDS = 6;
 
     @Test
     public void test_concurrentAcquireTokenSilent_withBroker() throws Throwable {
