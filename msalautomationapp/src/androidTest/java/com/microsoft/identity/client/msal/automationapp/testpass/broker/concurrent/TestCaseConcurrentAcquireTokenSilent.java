@@ -57,45 +57,73 @@ import java.util.concurrent.TimeUnit;
 /**
  * Concurrent / stress test for AcquireTokenSilent via broker.
  *
+ * <p>Thread count ({@value #CONCURRENT_THREADS}) and iteration count
+ * ({@value #ITERATIONS_PER_THREAD}) mirror the default values shown in the
+ * msaltest app's Concurrent AcquireTokenSilent UI section
+ * ({@code concurrent_count = 13}, {@code concurrent_iterations = 1000}).
+ *
  * <p>Test flow:</p>
  * <ol>
  *   <li>Broker app is installed automatically by the rule chain inherited from
  *       {@link AbstractMsalBrokerTest}.</li>
  *   <li>Interactive sign-in with a basic lab account.</li>
- *   <li>{@value #CONCURRENT_THREADS} threads are launched simultaneously, each
- *       calling {@code acquireTokenSilentAsync} with {@code forceRefresh=true}.
- *       A {@link CyclicBarrier} ensures all threads fire at the exact same
- *       moment, maximising contention in the MSAL command dispatcher and the
- *       broker IPC layer.</li>
- *   <li>The test asserts that every request completes (i.e. the operation does
- *       not get stuck) and returns a valid access token.</li>
+ *   <li>{@value #CONCURRENT_THREADS} threads are launched; on each of
+ *       {@value #ITERATIONS_PER_THREAD} iteration waves every thread waits at a
+ *       {@link CyclicBarrier} so all threads fire {@code acquireTokenSilentAsync}
+ *       with {@code forceRefresh=true} at the exact same moment, maximising
+ *       contention in the MSAL command dispatcher and the broker IPC layer.</li>
+ *   <li>The test asserts that every single request completes (i.e. the operation
+ *       does not get stuck) and that no request returns an error.</li>
  * </ol>
  */
 @RetryOnFailure(retryCount = 2)
 @LongUIAutomationTest
 public class TestCaseConcurrentAcquireTokenSilent extends AbstractMsalBrokerTest {
 
-    /** Number of threads fired simultaneously for the stress wave. */
-    private static final int CONCURRENT_THREADS = 5;
+    /**
+     * Number of threads fired simultaneously – matches the default value of the
+     * {@code concurrent_count} field in the msaltest app UI.
+     */
+    private static final int CONCURRENT_THREADS = 13;
 
     /**
-     * Timeout (seconds) for the entire concurrent wave to complete.
-     * All threads run concurrently, so a 2x safety margin over a single
-     * per-request timeout is sufficient. Keeping it tight ensures a real
-     * deadlock is caught quickly rather than letting the test hang for minutes.
+     * Number of iteration waves each thread executes – matches the default value
+     * of the {@code concurrent_iterations} field in the msaltest app UI.
      */
-    private static final long CONCURRENT_TIMEOUT_SECONDS = 240;
+    private static final int ITERATIONS_PER_THREAD = 1000;
+
+    /**
+     * Maximum time (seconds) to wait for a single silent-token request callback
+     * via the broker before declaring it stuck.
+     */
+    private static final long PER_REQUEST_TIMEOUT_SECONDS = 120;
+
+    /**
+     * Overall test timeout.  Each wave should complete in a few seconds under
+     * normal conditions, so 4 hours gives ample headroom for
+     * {@value #ITERATIONS_PER_THREAD} waves even on a slow device.
+     */
+    private static final long TOTAL_TIMEOUT_SECONDS = 14400;
 
     /**
      * Scopes rotated per-thread to prevent the CommandDispatcher from
      * collapsing concurrent requests that share identical parameters.
+     * Covers all {@value #CONCURRENT_THREADS} threads (cycles when needed).
      */
     private static final String[][] THREAD_SCOPES = {
             {"User.read"},
             {"User.read", "profile"},
             {"User.read", "openid"},
             {"User.read", "email"},
-            {"User.read", "offline_access"}
+            {"User.read", "offline_access"},
+            {"User.read", "profile", "openid"},
+            {"User.read", "profile", "email"},
+            {"User.read", "openid", "email"},
+            {"User.read", "openid", "offline_access"},
+            {"User.read", "email", "offline_access"},
+            {"User.read", "profile", "openid", "email"},
+            {"User.read", "profile", "offline_access"},
+            {"User.read", "openid", "email", "offline_access"}
     };
 
     @Test
@@ -149,71 +177,104 @@ public class TestCaseConcurrentAcquireTokenSilent extends AbstractMsalBrokerTest
                 account);
 
         // -----------------------------------------------------------------------
-        // Step 3 – Fire CONCURRENT_THREADS silent requests simultaneously with
-        //           forceRefresh=true (equivalent to enabling the Force Refresh
-        //           toggle in the test app UI and triggering the concurrent
-        //           AcquireTokenSilent section).
+        // Step 3 – Stress: CONCURRENT_THREADS threads each run ITERATIONS_PER_THREAD
+        //           iteration waves.  On every wave all threads synchronise at a
+        //           CyclicBarrier so every acquireTokenSilentAsync(forceRefresh=true)
+        //           call is dispatched at the exact same instant, maximising
+        //           contention in both the MSAL command dispatcher and the broker
+        //           IPC layer.
         //
-        //           A CyclicBarrier ensures every thread waits until all have
-        //           been scheduled before any of them actually calls the MSAL
-        //           library, maximising concurrency.
+        //           Each thread waits for its own per-request latch before moving
+        //           to the next iteration, so the barrier ensures the START of each
+        //           wave is simultaneous.
         // -----------------------------------------------------------------------
-        final CyclicBarrier startBarrier = new CyclicBarrier(CONCURRENT_THREADS);
-        final CountDownLatch allDone = new CountDownLatch(CONCURRENT_THREADS);
+        final CyclicBarrier waveBarrier = new CyclicBarrier(CONCURRENT_THREADS);
+        final CountDownLatch allThreadsDone = new CountDownLatch(CONCURRENT_THREADS);
         final List<String> errors = Collections.synchronizedList(new ArrayList<>());
 
-        for (int i = 0; i < CONCURRENT_THREADS; i++) {
-            final int threadIndex = i;
-            // Use per-thread scopes to avoid CommandDispatcher request deduplication.
+        for (int t = 0; t < CONCURRENT_THREADS; t++) {
+            final int threadIndex = t;
+            // Per-thread scope set to prevent CommandDispatcher request deduplication.
             final List<String> threadScopes = Arrays.asList(
                     THREAD_SCOPES[threadIndex % THREAD_SCOPES.length]);
 
             new Thread(() -> {
                 try {
-                    // Wait until every thread is ready to fire.
-                    startBarrier.await();
+                    for (int iter = 0; iter < ITERATIONS_PER_THREAD; iter++) {
+                        if (Thread.currentThread().isInterrupted()) {
+                            break;
+                        }
 
-                    final AcquireTokenSilentParameters silentParameters =
-                            new AcquireTokenSilentParameters.Builder()
-                                    .forAccount(account)
-                                    .fromAuthority(account.getAuthority())
-                                    .withScopes(new ArrayList<>(threadScopes))
-                                    .forceRefresh(true)
-                                    .withCallback(new SilentAuthenticationCallback() {
-                                        @Override
-                                        public void onSuccess(
-                                                final IAuthenticationResult authenticationResult) {
-                                            allDone.countDown();
-                                        }
+                        // Synchronise all threads so every wave fires together.
+                        try {
+                            waveBarrier.await();
+                        } catch (final Exception barrierEx) {
+                            errors.add("Thread " + threadIndex + " barrier failed at iter "
+                                    + iter + ": " + barrierEx.getMessage());
+                            break;
+                        }
 
-                                        @Override
-                                        public void onError(final MsalException exception) {
-                                            errors.add("Thread " + threadIndex + ": "
-                                                    + exception.getMessage());
-                                            allDone.countDown();
-                                        }
-                                    })
-                                    .build();
+                        final CountDownLatch requestDone = new CountDownLatch(1);
+                        final int currentIter = iter;
 
-                    mApplication.acquireTokenSilentAsync(silentParameters);
+                        final AcquireTokenSilentParameters silentParameters =
+                                new AcquireTokenSilentParameters.Builder()
+                                        .forAccount(account)
+                                        .fromAuthority(account.getAuthority())
+                                        .withScopes(new ArrayList<>(threadScopes))
+                                        .forceRefresh(true)
+                                        .withCallback(new SilentAuthenticationCallback() {
+                                            @Override
+                                            public void onSuccess(
+                                                    final IAuthenticationResult result) {
+                                                requestDone.countDown();
+                                            }
 
-                } catch (final Exception e) {
-                    errors.add("Thread " + threadIndex + " setup failed: " + e.getMessage());
-                    allDone.countDown();
+                                            @Override
+                                            public void onError(
+                                                    final MsalException exception) {
+                                                errors.add("Thread " + threadIndex
+                                                        + " iter " + currentIter + ": "
+                                                        + exception.getMessage());
+                                                requestDone.countDown();
+                                            }
+                                        })
+                                        .build();
+
+                        mApplication.acquireTokenSilentAsync(silentParameters);
+
+                        // Wait for this request to complete before the next iteration
+                        // so the barrier correctly aligns the next wave.
+                        try {
+                            if (!requestDone.await(PER_REQUEST_TIMEOUT_SECONDS,
+                                    TimeUnit.SECONDS)) {
+                                errors.add("Thread " + threadIndex + " iter " + currentIter
+                                        + " timed out after " + PER_REQUEST_TIMEOUT_SECONDS + "s");
+                                break;
+                            }
+                        } catch (final InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                    }
+                } finally {
+                    allThreadsDone.countDown();
                 }
-            }, "ConcurrentATS-" + i).start();
+            }, "ConcurrentATS-" + t).start();
         }
 
         // -----------------------------------------------------------------------
         // Step 4 – Assert that no request gets stuck.
-        //           All CONCURRENT_THREADS callbacks must fire within the total
-        //           timeout window.
+        //           All CONCURRENT_THREADS threads must finish all their iterations
+        //           within the total timeout window.
         // -----------------------------------------------------------------------
-        final boolean allCompleted = allDone.await(CONCURRENT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        final boolean allCompleted = allThreadsDone.await(TOTAL_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
         Assert.assertTrue(
-                "Concurrent AcquireTokenSilent got stuck – not all " + CONCURRENT_THREADS
-                        + " requests completed within " + CONCURRENT_TIMEOUT_SECONDS + "s",
+                "Concurrent AcquireTokenSilent stress test got stuck – not all "
+                        + CONCURRENT_THREADS + " threads completed "
+                        + ITERATIONS_PER_THREAD + " iterations within "
+                        + TOTAL_TIMEOUT_SECONDS + "s",
                 allCompleted);
 
         Assert.assertTrue(
