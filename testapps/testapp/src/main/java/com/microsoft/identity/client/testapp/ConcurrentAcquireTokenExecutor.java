@@ -45,6 +45,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <p>Each thread is assigned a scope from {@link #SCOPE_POOL} (cycling by
  * thread-id) so that the CommandDispatcher does not collapse identical
  * in-flight requests.</p>
+ *
+ * <p>The automation library mirrors this design in
+ * {@code ConcurrentAcquireTokenSilentHelper} so that both the interactive
+ * testapp and the instrumented E2E stress test exercise the same
+ * concurrency pattern.</p>
  */
 public class ConcurrentAcquireTokenExecutor {
 
