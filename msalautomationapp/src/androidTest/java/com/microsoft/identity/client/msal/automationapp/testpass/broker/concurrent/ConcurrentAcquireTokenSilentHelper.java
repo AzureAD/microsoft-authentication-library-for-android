@@ -23,7 +23,6 @@
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.concurrent;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -41,9 +40,9 @@ import java.util.concurrent.atomic.AtomicReference;
  * call per (thread, iteration) slot; the helper manages thread creation,
  * synchronization, error collection, and timeout enforcement.</p>
  *
- * <p>The scope pool ({@link #THREAD_SCOPES}) mirrors the design used in the
+ * <p>The scope pool ({@link #SCOPE_POOL}) mirrors the design used in the
  * msaltestapp's {@code ConcurrentAcquireTokenExecutor}: each thread is
- * assigned a distinct scope set so that the MSAL {@code CommandDispatcher}
+ * assigned a distinct scope so that the MSAL {@code CommandDispatcher}
  * cannot collapse concurrent in-flight requests that would otherwise be
  * identical.</p>
  */
@@ -52,37 +51,37 @@ public final class ConcurrentAcquireTokenSilentHelper {
     private ConcurrentAcquireTokenSilentHelper() { /* utility class */ }
 
     /**
-     * Scope combinations rotated per-thread to prevent the
-     * {@code CommandDispatcher} from deduplicating concurrent requests that
-     * share identical parameters.
+     * Scopes rotated per-thread to prevent the {@code CommandDispatcher}
+     * from deduplicating concurrent requests that share identical parameters.
      *
-     * <p>The array contains exactly 13 entries, matching the default value of
-     * the {@code concurrent_count} field in the msaltestapp UI.</p>
+     * <p>Matches the {@code SCOPE_POOL} used in the msaltestapp's
+     * {@code ConcurrentAcquireTokenExecutor.kt}, with 13 entries to cover
+     * the default {@code concurrent_count} value in the msaltestapp UI.</p>
      */
-    public static final String[][] THREAD_SCOPES = {
-            {"User.read"},
-            {"User.read", "profile"},
-            {"User.read", "openid"},
-            {"User.read", "email"},
-            {"User.read", "offline_access"},
-            {"User.read", "profile", "openid"},
-            {"User.read", "profile", "email"},
-            {"User.read", "openid", "email"},
-            {"User.read", "openid", "offline_access"},
-            {"User.read", "email", "offline_access"},
-            {"User.read", "profile", "openid", "email"},
-            {"User.read", "profile", "offline_access"},
-            {"User.read", "openid", "email", "offline_access"}
+    public static final String[] SCOPE_POOL = {
+            "user.read",
+            "user.readbasic.all",
+            "mail.read",
+            "calendars.read",
+            "contacts.read",
+            "files.read",
+            "files.read.all",
+            "people.read",
+            "notes.read",
+            "tasks.read",
+            "sites.read.all",
+            "directory.read.all",
+            "group.read.all"
     };
 
     /**
-     * Returns a mutable {@link List} of scopes assigned to {@code threadIndex},
-     * cycling through {@link #THREAD_SCOPES} when
-     * {@code threadIndex >= THREAD_SCOPES.length}.
+     * Returns a mutable {@link List} containing the single scope assigned to
+     * {@code threadIndex}, cycling through {@link #SCOPE_POOL} when
+     * {@code threadIndex >= SCOPE_POOL.length}.
      */
     public static List<String> scopesForThread(final int threadIndex) {
         return new ArrayList<>(
-                Arrays.asList(THREAD_SCOPES[threadIndex % THREAD_SCOPES.length]));
+                Collections.singletonList(SCOPE_POOL[threadIndex % SCOPE_POOL.length]));
     }
 
     // -------------------------------------------------------------------------
