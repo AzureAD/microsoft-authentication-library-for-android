@@ -103,7 +103,7 @@ public class TestCaseConcurrentAcquireTokenSilent extends AbstractMsalBrokerTest
      * normal conditions, so 4 hours gives ample headroom for
      * {@value #ITERATIONS_PER_THREAD} waves even on a slow device.
      */
-    private static final long TOTAL_TIMEOUT_SECONDS = 14400;
+    private static final long TOTAL_TIMEOUT_SECONDS = 5000;
 
     @Test
     public void test_concurrentAcquireTokenSilent_withBroker() throws Throwable {
