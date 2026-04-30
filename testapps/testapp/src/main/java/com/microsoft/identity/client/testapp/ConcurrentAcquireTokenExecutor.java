@@ -147,13 +147,17 @@ public class ConcurrentAcquireTokenExecutor {
             final RequestOptions requestOptions,
             final IUIUpdateCallback callback) {
 
+        final Context applicationContext = context.getApplicationContext() != null
+                ? context.getApplicationContext()
+                : context;
+
         new Thread(() -> {
             final RequestOptions scopedOptions = RequestOptions.withDifferentScopes(
                     requestOptions,
                     getScopeForThread(mThreadId));
 
             MsalWrapper.create(
-                    context,
+                    applicationContext,
                     Constants.getResourceIdFromConfigFile(requestOptions.getConfigFile()),
                     new INotifyOperationResultCallback<MsalWrapper>() {
                         @Override
