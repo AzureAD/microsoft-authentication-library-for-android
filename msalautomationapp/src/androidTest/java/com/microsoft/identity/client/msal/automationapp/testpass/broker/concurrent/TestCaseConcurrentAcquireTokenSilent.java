@@ -99,13 +99,13 @@ public class TestCaseConcurrentAcquireTokenSilent extends AbstractMsalBrokerTest
     private static final long PER_WAVE_TIMEOUT_SECONDS = 10;
 
     /**
-     * Overall test timeout (safety backstop).  In the absolute worst case every
-     * one of the {@value #ITERATIONS_PER_THREAD} waves fully consumes
-     * {@value #PER_WAVE_TIMEOUT_SECONDS}s, giving
-     * {@value #ITERATIONS_PER_THREAD} × {@value #PER_WAVE_TIMEOUT_SECONDS} = 1000 s.
-     * An extra buffer is added for setup overhead.
+     * Overall test timeout (safety backstop): exactly
+     * {@value #ITERATIONS_PER_THREAD} waves × {@value #PER_WAVE_TIMEOUT_SECONDS} s/wave = 1000 s.
+     * The per-wave timeout already aborts the run on the first stuck wave,
+     * so the total can never exceed this bound.
      */
-    private static final long TOTAL_TIMEOUT_SECONDS = 1200;
+    private static final long TOTAL_TIMEOUT_SECONDS =
+            ITERATIONS_PER_THREAD * PER_WAVE_TIMEOUT_SECONDS;
 
     @Test
     public void test_concurrentAcquireTokenSilent_withBroker() throws Throwable {
