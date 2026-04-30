@@ -56,7 +56,7 @@ import java.util.Arrays;
  * msaltest app's Concurrent AcquireTokenSilent UI section
  * ({@code concurrent_count = 13}, {@code concurrent_iterations = 1000}).
  *
- * <p>The concurrency machinery (barrier synchronisation, per-request latches,
+ * <p>The concurrency machinery (barrier synchronization, per-request latches,
  * scope rotation, error collection) is shared via
  * {@link ConcurrentAcquireTokenSilentHelper}, which parallels the design of
  * the msaltestapp's {@code ConcurrentAcquireTokenExecutor}.
@@ -157,7 +157,7 @@ public class TestCaseConcurrentAcquireTokenSilent extends AbstractMsalBrokerTest
 
         // -----------------------------------------------------------------------
         // Step 3 – Stress: CONCURRENT_THREADS threads × ITERATIONS_PER_THREAD
-        //           waves, all synchronised via ConcurrentAcquireTokenSilentHelper
+        //           waves, all synchronized via ConcurrentAcquireTokenSilentHelper
         //           (mirrors the msaltestapp's ConcurrentAcquireTokenExecutor design).
         // -----------------------------------------------------------------------
         final ConcurrentAcquireTokenSilentHelper.StressResult result =

@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
  * orchestration that would otherwise be duplicated in every concurrent stress
  * test. Callers supply a {@link SilentTokenRequester} that issues one MSAL
  * call per (thread, iteration) slot; the helper manages thread creation,
- * synchronisation, error collection, and timeout enforcement.</p>
+ * synchronization, error collection, and timeout enforcement.</p>
  *
  * <p>The scope pool ({@link #THREAD_SCOPES}) mirrors the design used in the
  * msaltestapp's {@code ConcurrentAcquireTokenExecutor}: each thread is
