@@ -98,15 +98,6 @@ public class TestCaseConcurrentAcquireTokenSilent extends AbstractMsalBrokerTest
      */
     private static final long PER_WAVE_TIMEOUT_SECONDS = 10;
 
-    /**
-     * Overall test timeout (safety backstop): exactly
-     * {@value #ITERATIONS_PER_THREAD} waves × {@value #PER_WAVE_TIMEOUT_SECONDS} s/wave = 1000 s.
-     * The per-wave timeout already aborts the run on the first stuck wave,
-     * so the total can never exceed this bound.
-     */
-    private static final long TOTAL_TIMEOUT_SECONDS =
-            ITERATIONS_PER_THREAD * PER_WAVE_TIMEOUT_SECONDS;
-
     @Test
     public void test_concurrentAcquireTokenSilent_withBroker() throws Throwable {
         final String username = mLabAccount.getUsername();
@@ -167,7 +158,6 @@ public class TestCaseConcurrentAcquireTokenSilent extends AbstractMsalBrokerTest
                         CONCURRENT_THREADS,
                         ITERATIONS_PER_THREAD,
                         PER_WAVE_TIMEOUT_SECONDS,
-                        TOTAL_TIMEOUT_SECONDS,
                         (threadIndex, iteration, done, errors) -> {
                             final AcquireTokenSilentParameters silentParameters =
                                     new AcquireTokenSilentParameters.Builder()
@@ -203,9 +193,8 @@ public class TestCaseConcurrentAcquireTokenSilent extends AbstractMsalBrokerTest
         Assert.assertTrue(
                 "Concurrent AcquireTokenSilent stress test got stuck – not all "
                         + CONCURRENT_THREADS + " threads completed "
-                        + ITERATIONS_PER_THREAD + " iterations within "
-                        + TOTAL_TIMEOUT_SECONDS + "s (per-wave timeout: "
-                        + PER_WAVE_TIMEOUT_SECONDS + "s)",
+                        + ITERATIONS_PER_THREAD + " iterations"
+                        + " (per-wave timeout: " + PER_WAVE_TIMEOUT_SECONDS + "s)",
                 result.allCompleted);
 
         Assert.assertTrue(

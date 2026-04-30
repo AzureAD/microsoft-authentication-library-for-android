@@ -139,12 +139,15 @@ public final class ConcurrentAcquireTokenSilentHelper {
      * that counts from {@code threadCount} down to zero, so callers must
      * still call {@code done.countDown()} exactly once per request.</p>
      *
+     * <p>A safety backstop of {@code iterations × perWaveTimeoutSec} seconds is
+     * enforced internally on the final {@link CountDownLatch#await} to guard
+     * against unexpected hangs; in practice the per-wave timeout unblocks all
+     * threads before this ceiling is reached.</p>
+     *
      * @param threadCount       number of concurrent threads
      * @param iterations        number of iteration waves per thread
      * @param perWaveTimeoutSec maximum seconds for all {@code threadCount}
      *                          callbacks in one wave to complete
-     * @param totalTimeoutSec   seconds to wait for all threads to finish all
-     *                          iterations (safety backstop)
      * @param requester         supplies one MSAL call per (thread, iteration)
      * @return the {@link StressResult} containing the completion flag and any errors
      * @throws InterruptedException if the calling thread is interrupted while awaiting
@@ -154,7 +157,6 @@ public final class ConcurrentAcquireTokenSilentHelper {
             final int threadCount,
             final int iterations,
             final long perWaveTimeoutSec,
-            final long totalTimeoutSec,
             final SilentTokenRequester requester) throws InterruptedException {
 
         final AtomicBoolean stopped = new AtomicBoolean(false);
@@ -224,7 +226,9 @@ public final class ConcurrentAcquireTokenSilentHelper {
             }, "ConcurrentATS-" + threadIndex).start();
         }
 
-        final boolean allCompleted = allThreadsDone.await(totalTimeoutSec, TimeUnit.SECONDS);
+        final boolean allCompleted =
+                allThreadsDone.await(
+                        (long) iterations * perWaveTimeoutSec, TimeUnit.SECONDS);
         return new StressResult(allCompleted, errors);
     }
 }
