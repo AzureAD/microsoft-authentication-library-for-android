@@ -93,17 +93,19 @@ public class TestCaseConcurrentAcquireTokenSilent extends AbstractMsalBrokerTest
     private static final int ITERATIONS_PER_THREAD = 100;
 
     /**
-     * Maximum time (seconds) to wait for a single silent-token request callback
-     * via the broker before declaring it stuck.
+     * Maximum time (seconds) for all {@value #CONCURRENT_THREADS} callbacks in
+     * a single wave to complete before the run is aborted.
      */
-    private static final long PER_REQUEST_TIMEOUT_SECONDS = 120;
+    private static final long PER_WAVE_TIMEOUT_SECONDS = 10;
 
     /**
-     * Overall test timeout.  Each wave should complete in a few seconds under
-     * normal conditions, so 4 hours gives ample headroom for
-     * {@value #ITERATIONS_PER_THREAD} waves even on a slow device.
+     * Overall test timeout (safety backstop).  In the absolute worst case every
+     * one of the {@value #ITERATIONS_PER_THREAD} waves fully consumes
+     * {@value #PER_WAVE_TIMEOUT_SECONDS}s, giving
+     * {@value #ITERATIONS_PER_THREAD} × {@value #PER_WAVE_TIMEOUT_SECONDS} = 1000 s.
+     * An extra buffer is added for setup overhead.
      */
-    private static final long TOTAL_TIMEOUT_SECONDS = 500;
+    private static final long TOTAL_TIMEOUT_SECONDS = 1200;
 
     @Test
     public void test_concurrentAcquireTokenSilent_withBroker() throws Throwable {
@@ -164,7 +166,7 @@ public class TestCaseConcurrentAcquireTokenSilent extends AbstractMsalBrokerTest
                 ConcurrentAcquireTokenSilentHelper.run(
                         CONCURRENT_THREADS,
                         ITERATIONS_PER_THREAD,
-                        PER_REQUEST_TIMEOUT_SECONDS,
+                        PER_WAVE_TIMEOUT_SECONDS,
                         TOTAL_TIMEOUT_SECONDS,
                         (threadIndex, iteration, done, errors) -> {
                             final AcquireTokenSilentParameters silentParameters =
@@ -202,7 +204,8 @@ public class TestCaseConcurrentAcquireTokenSilent extends AbstractMsalBrokerTest
                 "Concurrent AcquireTokenSilent stress test got stuck – not all "
                         + CONCURRENT_THREADS + " threads completed "
                         + ITERATIONS_PER_THREAD + " iterations within "
-                        + TOTAL_TIMEOUT_SECONDS + "s",
+                        + TOTAL_TIMEOUT_SECONDS + "s (per-wave timeout: "
+                        + PER_WAVE_TIMEOUT_SECONDS + "s)",
                 result.allCompleted);
 
         Assert.assertTrue(

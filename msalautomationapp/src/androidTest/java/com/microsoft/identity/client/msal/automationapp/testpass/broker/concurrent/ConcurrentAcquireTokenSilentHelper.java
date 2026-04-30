@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Reusable helper that drives a concurrent {@code AcquireTokenSilent} stress run.
@@ -128,14 +130,22 @@ public final class ConcurrentAcquireTokenSilentHelper {
      * <p>Launches {@code threadCount} threads. On each of {@code iterations}
      * waves, every thread waits at a {@link CyclicBarrier} before calling
      * {@code requester.request(...)}, ensuring all requests are dispatched
-     * simultaneously. Each thread then waits for its per-request latch before
-     * proceeding to the next wave.</p>
+     * simultaneously. All {@code threadCount} callbacks for the wave must
+     * arrive within {@code perWaveTimeoutSec} seconds; if any wave exceeds
+     * this deadline the run is aborted and an error is recorded.</p>
      *
-     * @param threadCount          number of concurrent threads
-     * @param iterations           number of iteration waves per thread
-     * @param perRequestTimeoutSec seconds to wait for each individual request callback
-     * @param totalTimeoutSec      seconds to wait for all threads to finish all iterations
-     * @param requester            supplies one MSAL call per (thread, iteration)
+     * <p>The {@code done} latch passed to
+     * {@link SilentTokenRequester#request} is a <em>shared</em> wave latch
+     * that counts from {@code threadCount} down to zero, so callers must
+     * still call {@code done.countDown()} exactly once per request.</p>
+     *
+     * @param threadCount       number of concurrent threads
+     * @param iterations        number of iteration waves per thread
+     * @param perWaveTimeoutSec maximum seconds for all {@code threadCount}
+     *                          callbacks in one wave to complete
+     * @param totalTimeoutSec   seconds to wait for all threads to finish all
+     *                          iterations (safety backstop)
+     * @param requester         supplies one MSAL call per (thread, iteration)
      * @return the {@link StressResult} containing the completion flag and any errors
      * @throws InterruptedException if the calling thread is interrupted while awaiting
      *                              completion
@@ -143,20 +153,27 @@ public final class ConcurrentAcquireTokenSilentHelper {
     public static StressResult run(
             final int threadCount,
             final int iterations,
-            final long perRequestTimeoutSec,
+            final long perWaveTimeoutSec,
             final long totalTimeoutSec,
             final SilentTokenRequester requester) throws InterruptedException {
 
-        final CyclicBarrier waveBarrier = new CyclicBarrier(threadCount);
-        final CountDownLatch allThreadsDone = new CountDownLatch(threadCount);
+        final AtomicBoolean stopped = new AtomicBoolean(false);
+        final AtomicReference<CountDownLatch> currentWaveLatch = new AtomicReference<>();
         final List<String> errors = Collections.synchronizedList(new ArrayList<>());
+
+        // Barrier action: executed by the last arriving thread before any is released.
+        // Creates a fresh shared latch for the wave that is about to start.
+        final CyclicBarrier waveBarrier = new CyclicBarrier(threadCount,
+                () -> currentWaveLatch.set(new CountDownLatch(threadCount)));
+
+        final CountDownLatch allThreadsDone = new CountDownLatch(threadCount);
 
         for (int t = 0; t < threadCount; t++) {
             final int threadIndex = t;
             new Thread(() -> {
                 try {
                     for (int iter = 0; iter < iterations; iter++) {
-                        if (Thread.currentThread().isInterrupted()) {
+                        if (stopped.get()) {
                             break;
                         }
 
@@ -164,22 +181,36 @@ public final class ConcurrentAcquireTokenSilentHelper {
                         try {
                             waveBarrier.await();
                         } catch (final Exception barrierEx) {
-                            errors.add("Thread " + threadIndex + " barrier failed at iter "
-                                    + iter + ": " + barrierEx.getMessage());
+                            if (!stopped.get()) {
+                                errors.add("Thread " + threadIndex
+                                        + " barrier failed at wave " + iter
+                                        + ": " + barrierEx.getMessage());
+                            }
                             break;
                         }
 
-                        final CountDownLatch requestDone = new CountDownLatch(1);
+                        if (stopped.get()) {
+                            break;
+                        }
+
+                        // All threads in this wave share the same latch (counts
+                        // from threadCount to 0). Each thread fires its request
+                        // and counts down once via its callback.
+                        final CountDownLatch waveDone = currentWaveLatch.get();
                         final int currentIter = iter;
 
-                        requester.request(threadIndex, currentIter, requestDone, errors);
+                        requester.request(threadIndex, currentIter, waveDone, errors);
 
-                        // Wait for this request to complete before the next iteration
-                        // so the barrier correctly aligns the next wave.
+                        // Wait for every callback in this wave before starting the next.
                         try {
-                            if (!requestDone.await(perRequestTimeoutSec, TimeUnit.SECONDS)) {
-                                errors.add("Thread " + threadIndex + " iter " + currentIter
-                                        + " timed out after " + perRequestTimeoutSec + "s");
+                            if (!waveDone.await(perWaveTimeoutSec, TimeUnit.SECONDS)) {
+                                // Only the first thread to detect the timeout logs + stops.
+                                if (stopped.compareAndSet(false, true)) {
+                                    errors.add("Wave " + currentIter + " timed out after "
+                                            + perWaveTimeoutSec + "s");
+                                    // Unblock any threads already waiting at the next barrier.
+                                    waveBarrier.reset();
+                                }
                                 break;
                             }
                         } catch (final InterruptedException ie) {
