@@ -40,7 +40,6 @@ import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandAuthError;
 import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandSuccessful;
 import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandTokenError;
-import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalException;
@@ -65,7 +64,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
 
 import java.io.File;
 import java.io.IOException;
@@ -81,7 +79,6 @@ import java.util.concurrent.TimeUnit;
  */
 @Ignore
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {ShadowPublicClientApplicationConfiguration.class})
 @SuppressWarnings("unchecked")
 public class DeviceCodeFlowWithClaimsApiTest extends PublicClientApplicationAbstractTest {
 

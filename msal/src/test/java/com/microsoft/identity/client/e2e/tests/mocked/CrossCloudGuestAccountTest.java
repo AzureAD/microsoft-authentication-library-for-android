@@ -36,7 +36,6 @@ import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.MultiTenantAccount;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthorityForMockHttpResponse;
-import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
@@ -77,7 +76,6 @@ import static org.junit.Assert.fail;
 @Config(shadows = {
         ShadowAndroidSdkStorageEncryptionManager.class,
         ShadowAuthorityForMockHttpResponse.class,
-        ShadowPublicClientApplicationConfiguration.class,
         ShadowHttpClient.class,
 }, sdk = {Build.VERSION_CODES.N})
 public class CrossCloudGuestAccountTest extends AcquireTokenAbstractTest {
