@@ -1,7 +1,8 @@
 # File: azure-pipelines\pull-request-validation\pr-msalautomationapp.yml
 # Description: Assemble msalautomationapp to validate the project builds
-# Variable: 'ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME' was defined in the Variables tab
-# Variable: 'mvnAccessToken' was defined in the Variables tab
+# Feed authentication variables are set by this pipeline at runtime:
+# - ENV_VSTS_MVN_CRED_USERNAME = VSTS
+# - ENV_VSTS_MVN_CRED_ACCESSTOKEN = $(System.AccessToken)
 # https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate
 name: $(date:yyyyMMdd)$(rev:.r)
 trigger: none
