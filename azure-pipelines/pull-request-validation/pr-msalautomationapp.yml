@@ -11,8 +11,6 @@ variables:
   value: 1.17
 - name: BuildParameters.jdkArchitecture
   value: x64
-- name: BuildParameters.javaHomeSelection
-  value: JDKVersion
 
 resources:
   repositories:
