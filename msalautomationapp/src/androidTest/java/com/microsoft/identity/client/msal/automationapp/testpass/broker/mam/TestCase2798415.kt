@@ -34,6 +34,7 @@ import com.microsoft.identity.client.ui.automation.installer.LocalApkInstaller
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
 import com.microsoft.identity.client.ui.automation.logging.Logger
+import com.microsoft.identity.common.java.util.ThreadUtils
 import com.microsoft.identity.labapi.utilities.client.ILabAccount
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
@@ -80,6 +81,8 @@ class TestCase2798415 : AbstractMsalBrokerTest() {
         teams.addFirstAccount(username, password, teamsPromptHandlerParameters)
         // handle app protection policy in CP i.e. setup PIN when asked
         (companyPortal as IMdmAgent).handleAppProtectionPolicy()
+        ThreadUtils.sleepSafely(10000, "sleeping", "interrupted sleep")
+
         teams.forceStop() // Teams sometimes seems to like to pop up on screen randomly
 
         teams.signOutSharedDeviceMode()
