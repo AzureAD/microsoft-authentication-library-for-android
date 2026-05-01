@@ -9,6 +9,10 @@ Version 8.3.2
 - [PATCH] Update common @24.2.0
 - [PATCH] Update compileSdkVersion to 36 and buildToolsVersion to 36.0.0 (#2491)
 
+Version 8.3.1
+----------
+- [PATCH] Update common @24.1.1
+
 Version 8.3.0
 ----------
 - [PATCH] Update common @24.1.0
