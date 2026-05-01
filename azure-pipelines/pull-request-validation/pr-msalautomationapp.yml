@@ -52,7 +52,6 @@ stages:
         inputs:
           tasks: clean msalautomationapp:assembleLocal
           publishJUnitResults: false
-          testResultsFiles: '**/build/test-results/TEST-*.xml'
           jdkVersion: $(BuildParameters.jdkVersion)
           jdkArchitecture: $(BuildParameters.jdkArchitecture)
           sqGradlePluginVersion: 2.0.1
