@@ -45,6 +45,7 @@ import com.microsoft.identity.labapi.utilities.constants.UserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
@@ -55,6 +56,7 @@ import java.util.concurrent.TimeUnit;
 @LongUIAutomationTest
 public class TestCase833544 extends AbstractMsalBrokerTest {
 
+    @Ignore("Converted to manual test - ADO Test Case 3561310")
     @Test
     public void test_833544_NonJoined_FOCI_SSO() throws LabApiException {
         // Recent build of authenticator seems to produce a notification popup on device, this blocks some ui we rely on to validate account presence. Disabling notifications will work.
