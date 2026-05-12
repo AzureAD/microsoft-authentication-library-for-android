@@ -53,25 +53,20 @@ import org.junit.rules.TestRule
 @SupportedBrokers(brokers = [BrokerHost::class])
 class TestCase2579654 : AbstractMsalBrokerTest() {
 
-    private lateinit var mUsGovAccount: ILabAccount
+    private lateinit var mGuestAccount: ILabAccount
     private lateinit var mLabAccount2: ILabAccount
     private lateinit var mBrokerHostApp: BrokerHost
-
-    @get:Rule
-    val loadUsGovLabAccountUserRule: TestRule = LoadLabUserTestRule(UserType.USGOV)
-    @get:Rule
-    val loadAdditionalLabUserRule: TestRule = LoadLabUserTestRule(TempUserType.BASIC)
 
     @Test
     fun test_2579654_MWPJ_EntryMigrationPRTStillUsable() {
         // Register 2 accounts from different tenants
-        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mUsGovAccount.username, mUsGovAccount.password)
+        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mGuestAccount.username, mGuestAccount.password)
         mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mLabAccount.username, mLabAccount.password)
         val deviceRegistrationRecords = mBrokerHostApp.multipleWpjApiFragment.allRecords
         Assert.assertEquals(2, deviceRegistrationRecords.size)
 
         // Unregister the device from the legacy space
-        mBrokerHostApp.multipleWpjApiFragment.unregister(mUsGovAccount.username)
+        mBrokerHostApp.multipleWpjApiFragment.unregister(mGuestAccount.username)
 
         // Verify the device registration records via the MWPJ API after unregistering
         val deviceRegistrationRecordsAfterLeave = mBrokerHostApp.multipleWpjApiFragment.allRecords
@@ -125,8 +120,8 @@ class TestCase2579654 : AbstractMsalBrokerTest() {
 
     @Before
     fun before() {
-        mUsGovAccount = (loadUsGovLabAccountUserRule as LoadLabUserTestRule).labAccount
-        mLabAccount2 = (loadAdditionalLabUserRule as LoadLabUserTestRule).labAccount
+        mGuestAccount = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.GUEST)
+        mLabAccount2 = mLabClient.createTempAccount(TempUserType.BASIC)
         Assert.assertEquals(
                 "Lab accounts are not in the same tenant",
                 mLabAccount2.homeTenantId, mLabAccount.homeTenantId

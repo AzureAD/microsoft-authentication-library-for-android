@@ -39,14 +39,14 @@ import org.junit.Test
 @SupportedBrokers(brokers = [BrokerHost::class])
 @LocalBrokerHostDebugUiTest
 class TestCase2519809 : AbstractMsalBrokerTest() {
-    private lateinit var mUsGovAccount: ILabAccount
+    private lateinit var mGuestAccount: ILabAccount
     private lateinit var mBrokerHostApp: BrokerHost
 
     @Test
     fun test_2519809_MWPJ_Unregister() {
         // Register 2 accounts from different tenants
         mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mLabAccount.username, mLabAccount.password)
-        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mUsGovAccount.username, mUsGovAccount.password)
+        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mGuestAccount.username, mGuestAccount.password)
         val deviceRegistrationRecords = mBrokerHostApp.multipleWpjApiFragment.allRecords
         Assert.assertEquals(2, deviceRegistrationRecords.size)
 
@@ -66,7 +66,7 @@ class TestCase2519809 : AbstractMsalBrokerTest() {
 
     @Before
     fun before() {
-        mUsGovAccount = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.USGOV)
+        mGuestAccount = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.GUEST)
         mBrokerHostApp = broker as BrokerHost
         mBrokerHostApp.enableMultipleWpj()
     }

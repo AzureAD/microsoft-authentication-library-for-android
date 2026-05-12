@@ -41,18 +41,18 @@ import org.junit.Test
 @SupportedBrokers(brokers = [BrokerHost::class])
 @LocalBrokerHostDebugUiTest
 class TestCase2521946 : AbstractMsalBrokerTest() {
-    private lateinit var mUsGovAccount: ILabAccount
+    private lateinit var mGuestAccount: ILabAccount
     private lateinit var mBrokerHostApp: BrokerHost
 
     @Test
     fun test_2521946_MWPJ_RegistrationEntryMigrationSameUpn() {
         // Register 2 accounts from different tenants
-        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mUsGovAccount.username, mUsGovAccount.password)
+        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mGuestAccount.username, mGuestAccount.password)
         mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mLabAccount.username, mLabAccount.password)
         Assert.assertEquals(2, mBrokerHostApp.multipleWpjApiFragment.allRecords.size)
 
         // Unregister the device from the legacy space
-        mBrokerHostApp.multipleWpjApiFragment.unregister(mUsGovAccount.username)
+        mBrokerHostApp.multipleWpjApiFragment.unregister(mGuestAccount.username)
 
         // Verify that the device is still registered for the second account using the MWPJ API.
         val recordInExtendedSpace = mBrokerHostApp.multipleWpjApiFragment.getRecordByUpn(mLabAccount.username)
@@ -91,7 +91,7 @@ class TestCase2521946 : AbstractMsalBrokerTest() {
 
     @Before
     fun before() {
-        mUsGovAccount = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.USGOV)
+        mGuestAccount = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.GUEST)
         mBrokerHostApp = broker as BrokerHost
         mBrokerHostApp.enableMultipleWpj()
     }
