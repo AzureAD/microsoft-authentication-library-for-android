@@ -80,13 +80,9 @@ public class NativeAuthPublicClientApplicationConfiguration :
     @SerializedName(NativeAuthSerializedNames.DC)
     var dc: String? = null
 
-    /**
-     * An optional interceptor that is called before each native auth network request,
-     * allowing the application to inject custom HTTP header fields.
-     * Refer to [NativeAuthRequestInterceptor] for more details.
-     *
-     * Set programmatically; not serialized from JSON configuration.
-     */
+    
+    // An optional interceptor that is called before each native auth network request, allowing the application to inject custom HTTP header fields.
+    // Refer to [NativeAuthRequestInterceptor] for more details.
     @Transient
     var requestInterceptor: NativeAuthRequestInterceptor? = null
 
