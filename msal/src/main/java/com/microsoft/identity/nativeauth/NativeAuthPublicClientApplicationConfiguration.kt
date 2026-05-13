@@ -31,6 +31,7 @@ import com.microsoft.identity.common.java.authorities.CIAMAuthority
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.authorities.NativeAuthCIAMAuthority
 import com.microsoft.identity.common.java.nativeauth.providers.NativeAuthConstants
+import com.microsoft.identity.common.java.nativeauth.providers.NativeAuthRequestInterceptor
 import lombok.Getter
 import lombok.experimental.Accessors
 import java.io.Serializable
@@ -79,6 +80,16 @@ public class NativeAuthPublicClientApplicationConfiguration :
     @SerializedName(NativeAuthSerializedNames.DC)
     var dc: String? = null
 
+    /**
+     * An optional interceptor that is called before each native auth network request,
+     * allowing the application to inject custom HTTP header fields.
+     * Refer to [NativeAuthRequestInterceptor] for more details.
+     *
+     * Set programmatically; not serialized from JSON configuration.
+     */
+    @Transient
+    var requestInterceptor: NativeAuthRequestInterceptor? = null
+
     fun getChallengeTypes(): List<String>? {
         return challengeTypes
     }
@@ -112,6 +123,8 @@ public class NativeAuthPublicClientApplicationConfiguration :
         useMockAuthority = if (config.useMockAuthority == null) useMockAuthority else config.useMockAuthority
 
         dc = if (config.dc == null) dc else config.dc
+
+        requestInterceptor = config.requestInterceptor ?: requestInterceptor
     }
 
     /**
