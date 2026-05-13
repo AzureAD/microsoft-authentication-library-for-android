@@ -27,7 +27,7 @@ apply plugin: 'com.android.application'
 
 apply plugin: 'kotlin-android'
 
-def msalVersion = "5.10.0"
+def msalVersion = "8.3.2"
 
 if (project.hasProperty("distMsalVersion")) {
     msalVersion = distMsalVersion
