@@ -143,6 +143,7 @@ import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication;
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication;
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration;
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationParameters;
+import com.microsoft.identity.common.java.nativeauth.providers.NativeAuthRequestInterceptor;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -848,6 +849,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     null,
                     null,
                     null,
+                    null,
                     null
             );
         }  catch (MsalException e) {
@@ -896,6 +898,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         try {
             return createNativeAuthApplication(
                     Companion.initializeNativeAuthConfiguration(context, configFile),
+                    null,
                     null,
                     null,
                     null,
@@ -955,6 +958,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     authority,
                     redirectUri,
                     challengeTypes,
+                    null,
                     null
             );
         } catch (BaseException e) {
@@ -1006,7 +1010,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     parameters.getAuthorityUrl(),
                     parameters.getRedirectUri(),
                     parameters.getChallengeTypes(),
-                    parameters.getCapabilities()
+                    parameters.getCapabilities(),
+                    parameters.getRequestInterceptor()
             );
         } catch (BaseException e) {
             throw new MsalClientException(
@@ -1193,7 +1198,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                                                                  @Nullable final String authority,
                                                                                  @Nullable final String redirectUri,
                                                                                  @Nullable final List<String> challengeTypes,
-                                                                                 @Nullable final List<String> capabilities) throws BaseException {
+                                                                                 @Nullable final List<String> capabilities,
+                                                                                 @Nullable final NativeAuthRequestInterceptor requestInterceptor) throws BaseException {
         if (clientId != null) {
             config.setClientId(clientId);
         }
@@ -1216,6 +1222,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         if (capabilities != null) {
             config.setCapabilities(capabilities);
+        }
+
+        if (requestInterceptor != null) {
+            config.setRequestInterceptor(requestInterceptor);
         }
 
         // Check whether account mode is set to SINGLE

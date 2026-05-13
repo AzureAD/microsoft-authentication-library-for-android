@@ -1107,6 +1107,7 @@ public class CommandParametersAdapter {
                 .continuationToken(continuationToken)
                 .correlationId(correlationId)
                 .challengeChannel(challengeChannel)
+                .requestInterceptor(configuration.getRequestInterceptor())
                 .build();
     }
 
@@ -1154,6 +1155,7 @@ public class CommandParametersAdapter {
                 .continuationToken(continuationToken)
                 .code(code)
                 .correlationId(correlationId)
+                .requestInterceptor(configuration.getRequestInterceptor())
                 .build();
     }
 
