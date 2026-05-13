@@ -1,0 +1,56 @@
+# File: azure-pipelines\pull-request-validation\pr-msalautomationapp.yml
+# Description: Assemble msalautomationapp to validate the project builds
+# Feed authentication variables are set by this pipeline at runtime:
+# - ENV_VSTS_MVN_CRED_USERNAME = VSTS
+# - ENV_VSTS_MVN_CRED_ACCESSTOKEN = $(System.AccessToken)
+# https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate
+name: $(date:yyyyMMdd)$(rev:.r)
+trigger: none
+variables:
+- name: BuildParameters.jdkVersion
+  value: 1.17
+- name: BuildParameters.jdkArchitecture
+  value: x64
+
+resources:
+  repositories:
+  - repository: common
+    type: github
+    name: AzureAD/microsoft-authentication-library-common-for-android
+    ref: dev
+    endpoint: ANDROID_GITHUB
+
+pool:
+  vmImage: 'windows-2022'
+stages:
+  - stage: build
+    displayName: Build msalautomationapp
+    jobs:
+    - job: assemble
+      displayName: Assemble Local
+      cancelTimeoutInMinutes: 1
+      steps:
+      - checkout: self
+        clean: true
+        submodules: recursive
+        persistCredentials: True
+      - bash: |
+          echo "##vso[task.setvariable variable=ENV_VSTS_MVN_CRED_USERNAME]VSTS"
+          echo "##vso[task.setvariable variable=ENV_VSTS_MVN_CRED_ACCESSTOKEN]$(System.AccessToken)"
+        displayName: 'Set VSTS Fields in Environment'
+      - template: azure-pipelines/templates/steps/automation-cert.yml@common
+      - task: JavaToolInstaller@0
+        displayName: Use Java 17
+        inputs:
+          versionSpec: '17'
+          jdkArchitectureOption: x64
+          jdkSourceOption: PreInstalled
+      - task: Gradle@2
+        name: Gradle1
+        displayName: Assemble msalautomationapp Local
+        inputs:
+          tasks: clean msalautomationapp:assembleLocal
+          publishJUnitResults: false
+          jdkVersion: $(BuildParameters.jdkVersion)
+          jdkArchitecture: $(BuildParameters.jdkArchitecture)
+          sqGradlePluginVersion: 2.0.1
