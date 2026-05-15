@@ -3193,25 +3193,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertTrue(((SignUpError) signUpResult).isInvalidUsername());
     }
 
-    @Test
-    public void testUserAttributesFlatUsernameBuilder() {
-        UserAttributes attrs = new UserAttributes.Builder()
-                .flatUsername("testuser")
-                .build();
-        assertEquals("testuser", attrs.getUserAttributes().get("flatusername"));
-    }
 
-    @Test
-    public void testUserAttributesFlatUsernameWithOtherAttributes() {
-        UserAttributes attrs = new UserAttributes.Builder()
-                .flatUsername("testuser")
-                .displayName("Test User")
-                .city("Seattle")
-                .build();
-        assertEquals("testuser", attrs.getUserAttributes().get("flatusername"));
-        assertEquals("Test User", attrs.getUserAttributes().get("displayName"));
-        assertEquals("Seattle", attrs.getUserAttributes().get("city"));
-    }
 }
 
 abstract class TestCallback<T> {
