@@ -33,5 +33,42 @@
         <activity
             android:name="com.microsoft.identity.client.CurrentTaskBrowserTabActivity"
             android:exported="true" />
+
+        <!--
+            POC: BrokerReturnActivity catches a "return to app" intent fired by Authenticator
+            after a CA interrupt flow completes (device reg / MAM enroll / etc.). The activity
+            is a no-op that immediately finish()es, leaving the caller's existing back stack
+            (including the parked MSAL AuthorizationActivity) intact so the user lands exactly
+            where they were before the handoff.
+
+            Intent contract:
+              action: android.intent.action.VIEW
+              data:   msauth-return://<applicationId>/resume
+              flags:  FLAG_ACTIVITY_NEW_TASK
+              package set to the caller's package (setPackage), to prevent cross-app hijacking.
+        -->
+        <activity
+            android:name="com.microsoft.identity.client.BrokerReturnActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.NoDisplay">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <!--
+                    NOTE: android.intent.category.BROWSABLE is intentionally omitted.
+                    The msauth-return:// scheme is only ever fired by Authenticator
+                    via an explicit Intent (setPackage + FLAG_ACTIVITY_NEW_TASK), so
+                    browser-originated launches must not resolve to this activity.
+                    Caller identity is further verified at runtime against the
+                    Microsoft broker signing key in BrokerReturnActivity.onCreate.
+                -->
+                <data
+                    android:scheme="msauth-return"
+                    android:host="${applicationId}"
+                    android:path="/resume" />
+            </intent-filter>
+        </activity>
     </application>
 </manifest>
