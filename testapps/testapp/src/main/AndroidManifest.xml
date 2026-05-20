@@ -87,6 +87,15 @@
                     android:path="/1wIqXSqBj7w+h11ZifsnqwgyKrY="/>
             </intent-filter>
         </activity>
+
+        <!-- Receiver for testing silent auth from background context (Doze repro) -->
+        <receiver
+            android:name="com.microsoft.identity.client.testapp.SilentAuthReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.microsoft.identity.client.testapp.SILENT_AUTH" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
