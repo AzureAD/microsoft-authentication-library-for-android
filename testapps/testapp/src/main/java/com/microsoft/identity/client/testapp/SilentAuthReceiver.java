@@ -36,8 +36,9 @@ import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.common.java.util.StringUtil;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -65,7 +66,9 @@ public class SilentAuthReceiver extends BroadcastReceiver {
         Log.w(TAG, "=== SilentAuthReceiver triggered (PROCESS_STATE_RECEIVER) ===");
 
         final String scopes = intent.getStringExtra("scopes");
-        final String scopeString = (scopes != null) ? scopes : "https://graph.microsoft.com/.default";
+        final String scopeString = StringUtil.isNullOrEmpty(scopes) || StringUtil.isNullOrEmpty(scopes.trim())
+                ? "https://graph.microsoft.com/.default"
+                : scopes;
 
         Log.w(TAG, "Scopes: " + scopeString);
 
@@ -79,7 +82,7 @@ public class SilentAuthReceiver extends BroadcastReceiver {
                 configResourceId,
                 new PublicClientApplication.ApplicationCreatedListener() {
                     @Override
-                    public void onCreated(IPublicClientApplication application) {
+                    public void onCreated(final IPublicClientApplication application) {
                         // Force-disable powerOptCheck so the Broker attempts the real
                         // network call instead of proactively blocking with a Doze check.
                         // This matches production Authenticator behavior (which doesn't
@@ -95,7 +98,7 @@ public class SilentAuthReceiver extends BroadcastReceiver {
                     }
 
                     @Override
-                    public void onError(MsalException exception) {
+                    public void onError(final MsalException exception) {
                         Log.e(TAG, "Failed to create PCA: " + exception.getMessage(), exception);
                         pendingResult.finish();
                     }
@@ -127,7 +130,7 @@ public class SilentAuthReceiver extends BroadcastReceiver {
                     (IMultipleAccountPublicClientApplication) app;
             multiApp.getAccounts(new IPublicClientApplication.LoadAccountsCallback() {
                 @Override
-                public void onTaskCompleted(List<IAccount> result) {
+                public void onTaskCompleted(final List<IAccount> result) {
                     if (result == null || result.isEmpty()) {
                         Log.e(TAG, "No accounts found in multiple-account mode.");
                         pendingResult.finish();
@@ -138,7 +141,7 @@ public class SilentAuthReceiver extends BroadcastReceiver {
                 }
 
                 @Override
-                public void onError(MsalException exception) {
+                public void onError(final MsalException exception) {
                     Log.e(TAG, "Error loading accounts: " + exception.getMessage(), exception);
                     pendingResult.finish();
                 }
@@ -152,24 +155,24 @@ public class SilentAuthReceiver extends BroadcastReceiver {
             final String scopeString,
             final PendingResult pendingResult) {
 
-        Log.w(TAG, "Calling acquireTokenSilent for account: " + account.getUsername());
+        Log.i(TAG, "Calling acquireTokenSilent for account: " + account.getUsername());
         Log.w(TAG, "Authority: " + account.getAuthority());
 
         final AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(account)
                 .fromAuthority(account.getAuthority())
-                .withScopes(Arrays.asList(scopeString.toLowerCase().split(" ")))
+                .withScopes(parseScopes(scopeString))
                 .forceRefresh(true)  // Force network call to eSTS (no cache)
                 .withCallback(new AuthenticationCallback() {
                     @Override
-                    public void onSuccess(IAuthenticationResult authenticationResult) {
-                        Log.w(TAG, "=== SUCCESS === Token acquired silently!");
-                        Log.w(TAG, "Silent token acquisition completed successfully.");
+                    public void onSuccess(final IAuthenticationResult authenticationResult) {
+                        Log.i(TAG, "=== SUCCESS === Token acquired silently!");
+                        Log.i(TAG, "Silent token acquisition completed successfully.");
                         pendingResult.finish();
                     }
 
                     @Override
-                    public void onError(MsalException exception) {
+                    public void onError(final MsalException exception) {
                         Log.e(TAG, "=== FAILED === " + exception.getClass().getSimpleName());
                         Log.e(TAG, "Error code: " + exception.getErrorCode());
                         Log.e(TAG, "Message: " + exception.getMessage());
@@ -189,5 +192,18 @@ public class SilentAuthReceiver extends BroadcastReceiver {
                 .build();
 
         app.acquireTokenSilentAsync(parameters);
+    }
+
+    private List<String> parseScopes(final String scopeString) {
+        final String[] rawScopes = scopeString.trim().split("\\s+");
+        final List<String> parsedScopes = new ArrayList<>();
+
+        for (final String scope : rawScopes) {
+            if (!StringUtil.isNullOrEmpty(scope)) {
+                parsedScopes.add(scope);
+            }
+        }
+
+        return parsedScopes;
     }
 }
