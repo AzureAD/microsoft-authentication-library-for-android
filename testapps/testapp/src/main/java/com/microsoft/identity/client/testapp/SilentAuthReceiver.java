@@ -66,9 +66,10 @@ public class SilentAuthReceiver extends BroadcastReceiver {
         Log.w(TAG, "=== SilentAuthReceiver triggered (PROCESS_STATE_RECEIVER) ===");
 
         final String scopes = intent.getStringExtra("scopes");
-        final String scopeString = StringUtil.isNullOrEmpty(scopes) || StringUtil.isNullOrEmpty(scopes.trim())
+        final String trimmedScopes = scopes == null ? null : scopes.trim();
+        final String scopeString = StringUtil.isNullOrEmpty(trimmedScopes)
                 ? "https://graph.microsoft.com/.default"
-                : scopes;
+                : trimmedScopes;
 
         Log.w(TAG, "Scopes: " + scopeString);
 
@@ -156,7 +157,7 @@ public class SilentAuthReceiver extends BroadcastReceiver {
             final PendingResult pendingResult) {
 
         Log.i(TAG, "Calling acquireTokenSilent for account: " + account.getUsername());
-        Log.w(TAG, "Authority: " + account.getAuthority());
+        Log.i(TAG, "Authority: " + account.getAuthority());
 
         final AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(account)
@@ -195,7 +196,16 @@ public class SilentAuthReceiver extends BroadcastReceiver {
     }
 
     private List<String> parseScopes(final String scopeString) {
-        final String[] rawScopes = scopeString.trim().split("\\s+");
+        if (scopeString == null) {
+            return new ArrayList<>();
+        }
+
+        final String trimmedScopeString = scopeString.trim();
+        if (trimmedScopeString.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        final String[] rawScopes = trimmedScopeString.split("\\s+");
         final List<String> parsedScopes = new ArrayList<>();
 
         for (final String scope : rawScopes) {
