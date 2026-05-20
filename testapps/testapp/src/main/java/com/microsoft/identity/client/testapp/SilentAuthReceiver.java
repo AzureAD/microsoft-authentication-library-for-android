@@ -67,10 +67,9 @@ public class SilentAuthReceiver extends BroadcastReceiver {
         Log.w(TAG, "=== SilentAuthReceiver triggered (PROCESS_STATE_RECEIVER) ===");
 
         final String scopes = intent.getStringExtra("scopes");
-        final String trimmedScopes = scopes == null ? null : scopes.trim();
-        final String scopeString = StringUtil.isNullOrEmpty(trimmedScopes)
+        final String scopeString = (scopes == null || scopes.trim().isEmpty())
                 ? DEFAULT_SCOPE
-                : trimmedScopes;
+                : scopes.trim();
 
         Log.w(TAG, "Scopes: " + scopeString);
 
