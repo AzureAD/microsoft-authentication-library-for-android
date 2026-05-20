@@ -64,14 +64,14 @@ public class SilentAuthReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(final Context context, final Intent intent) {
-        Log.w(TAG, "=== SilentAuthReceiver triggered (PROCESS_STATE_RECEIVER) ===");
+        Log.i(TAG, "=== SilentAuthReceiver triggered (PROCESS_STATE_RECEIVER) ===");
 
         final String scopes = intent.getStringExtra("scopes");
         final String scopeString = (scopes == null || scopes.trim().isEmpty())
                 ? DEFAULT_SCOPE
                 : scopes.trim();
 
-        Log.w(TAG, "Scopes: " + scopeString);
+        Log.i(TAG, "Scopes: " + scopeString);
 
         // Use goAsync() to extend the receiver's lifecycle beyond the 10s limit
         final PendingResult pendingResult = goAsync();
@@ -90,10 +90,10 @@ public class SilentAuthReceiver extends BroadcastReceiver {
                         // have powerOptCheckEnabled set by OneAuth).
                         application.getConfiguration().setPowerOptCheckEnabled(false);
 
-                        Log.w(TAG, "PCA created, mode: " +
+                        Log.i(TAG, "PCA created, mode: " +
                                 (application instanceof ISingleAccountPublicClientApplication
                                         ? "SingleAccount" : "MultipleAccount"));
-                        Log.w(TAG, "powerOptCheckEnabled forced to: " +
+                        Log.i(TAG, "powerOptCheckEnabled forced to: " +
                                 application.getConfiguration().isPowerOptCheckForEnabled());
                         loadAccountsAndAcquire(application, scopeString, pendingResult);
                     }
@@ -137,7 +137,7 @@ public class SilentAuthReceiver extends BroadcastReceiver {
                         pendingResult.finish();
                         return;
                     }
-                    Log.w(TAG, "Found " + result.size() + " account(s). Using first.");
+                    Log.i(TAG, "Found " + result.size() + " account(s). Using first.");
                     doSilentAuth(app, result.get(0), scopeString, pendingResult);
                 }
 
