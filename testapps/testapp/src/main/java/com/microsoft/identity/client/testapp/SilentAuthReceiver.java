@@ -58,6 +58,7 @@ import java.util.List;
 public class SilentAuthReceiver extends BroadcastReceiver {
 
     private static final String TAG = "SilentAuthReceiver";
+    private static final String DEFAULT_SCOPE = "https://graph.microsoft.com/.default";
     public static final String ACTION_SILENT_AUTH =
             "com.microsoft.identity.client.testapp.SILENT_AUTH";
 
@@ -68,7 +69,7 @@ public class SilentAuthReceiver extends BroadcastReceiver {
         final String scopes = intent.getStringExtra("scopes");
         final String trimmedScopes = scopes == null ? null : scopes.trim();
         final String scopeString = StringUtil.isNullOrEmpty(trimmedScopes)
-                ? "https://graph.microsoft.com/.default"
+                ? DEFAULT_SCOPE
                 : trimmedScopes;
 
         Log.w(TAG, "Scopes: " + scopeString);
@@ -156,7 +157,7 @@ public class SilentAuthReceiver extends BroadcastReceiver {
             final String scopeString,
             final PendingResult pendingResult) {
 
-        Log.i(TAG, "Calling acquireTokenSilent for account: " + account.getUsername());
+        Log.i(TAG, "Calling acquireTokenSilent for selected account.");
         Log.i(TAG, "Authority: " + account.getAuthority());
 
         final AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
@@ -196,16 +197,10 @@ public class SilentAuthReceiver extends BroadcastReceiver {
     }
 
     private List<String> parseScopes(final String scopeString) {
-        if (scopeString == null) {
-            return new ArrayList<>();
-        }
-
-        final String trimmedScopeString = scopeString.trim();
-        if (trimmedScopeString.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        final String[] rawScopes = trimmedScopeString.split("\\s+");
+        final String normalizedScopeString = StringUtil.isNullOrEmpty(scopeString)
+                ? DEFAULT_SCOPE
+                : scopeString.trim();
+        final String[] rawScopes = normalizedScopeString.split("\\s+");
         final List<String> parsedScopes = new ArrayList<>();
 
         for (final String scope : rawScopes) {
