@@ -164,8 +164,7 @@ public class SilentAuthReceiver extends BroadcastReceiver {
                     @Override
                     public void onSuccess(IAuthenticationResult authenticationResult) {
                         Log.w(TAG, "=== SUCCESS === Token acquired silently!");
-                        Log.w(TAG, "Access token (first 20 chars): " +
-                                authenticationResult.getAccessToken().substring(0, 20) + "...");
+                        Log.w(TAG, "Silent token acquisition completed successfully.");
                         pendingResult.finish();
                     }
 
