@@ -143,7 +143,7 @@ import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication;
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication;
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration;
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationParameters;
-import com.microsoft.identity.common.java.nativeauth.providers.NativeAuthRequestInterceptor;
+import com.microsoft.identity.nativeauth.NativeAuthRequestInterceptor;
 
 import java.io.File;
 import java.util.ArrayList;

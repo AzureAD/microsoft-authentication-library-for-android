@@ -31,7 +31,6 @@ import com.microsoft.identity.common.java.authorities.CIAMAuthority
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.authorities.NativeAuthCIAMAuthority
 import com.microsoft.identity.common.java.nativeauth.providers.NativeAuthConstants
-import com.microsoft.identity.common.java.nativeauth.providers.NativeAuthRequestInterceptor
 import lombok.Getter
 import lombok.experimental.Accessors
 import java.io.Serializable

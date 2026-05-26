@@ -23,8 +23,6 @@
 
 package com.microsoft.identity.nativeauth
 
-import com.microsoft.identity.common.java.nativeauth.providers.NativeAuthRequestInterceptor
-
 public class NativeAuthPublicClientApplicationParameters (
     /**
      * The application client id. Cannot be null.
