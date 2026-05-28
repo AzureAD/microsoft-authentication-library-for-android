@@ -42,7 +42,7 @@ import org.junit.Test
  * (which sets custom headers via NativeAuthRequestInterceptor on the initiate call),
  * enters credentials from the lab vault, and attempts sign-in.
  */
-class NativeAuthSignInTest : AbstractCrossAppUiTest() {
+class NativeAuthSignInUIAutomationTest : AbstractCrossAppUiTest() {
 
     companion object {
         private const val NATIVE_AUTH_SAMPLE_PACKAGE = NativeAuthSampleApp.NATIVE_AUTH_SAMPLE_PACKAGE_NAME
