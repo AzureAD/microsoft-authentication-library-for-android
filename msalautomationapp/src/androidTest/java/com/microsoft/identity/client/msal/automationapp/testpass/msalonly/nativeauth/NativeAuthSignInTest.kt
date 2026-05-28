@@ -137,7 +137,7 @@ class NativeAuthSignInTest : AbstractCrossAppUiTest() {
 
         context.startActivity(intent)
 
-        mDevice.wait(Until.hasObject(By.pkg(NATIVE_AUTH_SAMPLE_PACKAGE).depth(0)), LAUNCH_TIMEOUT)
+        mDevice.wait(Until.hasObject(By.pkg(NATIVE_AUTH_SAMPLE_PACKAGE as String).depth(0)), LAUNCH_TIMEOUT)
     }
 
     private fun navigateToEmailPasswordTab() {
