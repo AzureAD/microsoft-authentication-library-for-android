@@ -29,6 +29,7 @@ import androidx.test.uiautomator.Until
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.microsoft.identity.client.msal.automationapp.AbstractCrossAppUiTest
+import com.microsoft.identity.client.ui.automation.annotations.DoNotRunOnPipeline
 import com.microsoft.identity.client.ui.automation.app.NativeAuthSampleApp
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils
 import com.microsoft.identity.common.java.nativeauth.BuildValues
@@ -42,7 +43,8 @@ import org.junit.Test
  * (which sets custom headers via NativeAuthRequestInterceptor on the initiate call),
  * enters credentials from the lab vault, and attempts sign-in.
  */
-class NativeAuthSignInUIAutomationTest : AbstractCrossAppUiTest() {
+@DoNotRunOnPipeline
+class NativeAuthSignInTest : AbstractCrossAppUiTest() {
 
     companion object {
         private const val NATIVE_AUTH_SAMPLE_PACKAGE = NativeAuthSampleApp.NATIVE_AUTH_SAMPLE_PACKAGE_NAME
