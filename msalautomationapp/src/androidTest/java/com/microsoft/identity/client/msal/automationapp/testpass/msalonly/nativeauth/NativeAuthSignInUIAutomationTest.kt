@@ -44,7 +44,7 @@ import org.junit.Test
  * enters credentials from the lab vault, and attempts sign-in.
  */
 @DoNotRunOnPipeline
-class NativeAuthSignInTest : AbstractCrossAppUiTest() {
+class NativeAuthSignInUIAutomationTest : AbstractCrossAppUiTest() {
 
     companion object {
         private const val NATIVE_AUTH_SAMPLE_PACKAGE = NativeAuthSampleApp.NATIVE_AUTH_SAMPLE_PACKAGE_NAME
