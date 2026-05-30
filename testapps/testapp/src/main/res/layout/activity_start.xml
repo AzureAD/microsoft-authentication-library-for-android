@@ -9,4 +9,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/launch_main_activity_button" />
+
+    <Button
+        android:id="@+id/btnAppLinkTest"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="App Link WebView Test" />
 </LinearLayout>

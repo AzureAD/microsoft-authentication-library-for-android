@@ -50,7 +50,7 @@ import java.util.Arrays;
 // [Joined][MSAL] Device Admin MDM: Broker Auth for MDM account + PKeyAuth flow
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833526
 @SupportedBrokers(brokers = BrokerCompanyPortal.class)
-@RetryOnFailure(retryCount = 2)
+//@RetryOnFailure(retryCount = 2)
 public class TestCase833526 extends AbstractMsalBrokerTest {
 
     @Test

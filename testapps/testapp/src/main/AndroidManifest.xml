@@ -72,6 +72,12 @@
         </activity>
 
         <activity
+            android:name="com.microsoft.identity.client.testapp.AppLinkTestActivity"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:taskAffinity=""
+            android:exported="false" />
+
+        <activity
             tools:replace="android:exported"
             android:name="com.microsoft.identity.client.BrowserTabActivity"
             android:launchMode="singleTask"

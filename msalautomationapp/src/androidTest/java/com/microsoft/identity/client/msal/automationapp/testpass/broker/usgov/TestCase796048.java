@@ -44,7 +44,7 @@ import org.junit.Test;
 
 // [USGOV][Broker][Non-Joined] Acquire Token with Resource with instance_aware = true
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/796048
-@RetryOnFailure(retryCount = 2)
+//@RetryOnFailure(retryCount = 2)
 public class TestCase796048 extends AbstractMsalBrokerTest {
 
     @Test

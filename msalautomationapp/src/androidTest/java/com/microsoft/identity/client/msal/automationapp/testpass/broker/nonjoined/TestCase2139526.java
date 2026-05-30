@@ -39,6 +39,8 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -48,6 +50,7 @@ import java.util.concurrent.TimeUnit;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2139526
 @RetryOnFailure
 @LongUIAutomationTest
+@Ignore("Ignore until we have a lab account with MAM_CA policy to test with")
 public class TestCase2139526 extends AbstractMsalBrokerTest {
 
     @Test

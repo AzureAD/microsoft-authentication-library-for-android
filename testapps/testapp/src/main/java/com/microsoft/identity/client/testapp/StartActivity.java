@@ -38,6 +38,7 @@ public class StartActivity extends AppCompatActivity {
 
     //private static final String TAG = StartActivity.class.getSimpleName();
     private Button mStartTaskButton;
+    private Button mAppLinkTestButton;
 
 
     @Override
@@ -69,6 +70,14 @@ public class StartActivity extends AppCompatActivity {
                 startMainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
                 startActivity(startMainIntent);
 
+            }
+        });
+
+        mAppLinkTestButton = findViewById(R.id.btnAppLinkTest);
+        mAppLinkTestButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(AppLinkTestActivity.Companion.createIntent(StartActivity.this, null));
             }
         });
 
