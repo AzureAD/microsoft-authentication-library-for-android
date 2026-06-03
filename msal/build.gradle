@@ -284,10 +284,9 @@ dependencies {
     testLocalImplementation project(':LabApiUtilities')
     testDistImplementation("com.microsoft.identity:testutils:0.0+") {
         exclude module: 'common'
+        exclude group: 'com.microsoft.identity', module: 'LabApiUtilities'
     }
-    testDistImplementation("com.microsoft.identity:lab-api-utilities:0.0+") {
-        exclude module: 'common'
-    }
+    testDistImplementation("com.microsoft.identity:lab-api-utilities:0.0+")
     testImplementation("org.mockito.kotlin:mockito-kotlin:$rootProject.ext.mockitoKotlinVersion") {
         exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib'
     }
