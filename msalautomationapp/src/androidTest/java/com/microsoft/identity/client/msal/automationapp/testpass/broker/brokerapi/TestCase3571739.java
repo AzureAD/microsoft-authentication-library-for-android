@@ -39,6 +39,7 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.Micr
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.common.java.commands.webapps.WebAppsGetTokenSubOperationResponse;
 import com.microsoft.identity.common.java.util.ObjectMapper;
+import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
@@ -211,11 +212,17 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
                 "GetAllSsoTokens result text view should be present",
                 allSsoTokensResultView.waitForExists(DIALOG_WAIT_TIMEOUT_MS)
         );
-        final String allSsoTokensResult;
-        try {
-            allSsoTokensResult = allSsoTokensResultView.getText();
-        } catch (final UiObjectNotFoundException e) {
-            throw new AssertionError("Could not read GetAllSsoTokens result text", e);
+        String allSsoTokensResult = "";
+        final long waitUntil = System.currentTimeMillis() + DIALOG_WAIT_TIMEOUT_MS;
+        while (allSsoTokensResult.isEmpty() && System.currentTimeMillis() < waitUntil) {
+            try {
+                allSsoTokensResult = allSsoTokensResultView.getText();
+            } catch (final UiObjectNotFoundException e) {
+                throw new AssertionError("Could not read GetAllSsoTokens result text", e);
+            }
+            if (allSsoTokensResult.isEmpty()) {
+                ThreadUtils.sleepSafely(250, "Waiting for GetAllSsoTokens result text", "Interrupted");
+            }
         }
 
         Assert.assertNotNull("GetAllSsoTokens result should not be null", allSsoTokensResult);
