@@ -33,7 +33,6 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
@@ -42,11 +41,8 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.labapi.utilities.client.ILabAccount;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
-import com.microsoft.identity.labapi.utilities.constants.UserRole;
-import com.microsoft.identity.labapi.utilities.exception.LabApiException;
-
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -55,7 +51,6 @@ import java.util.Arrays;
 // [Broker] Device registration via Settings page (with Authenticator as broker)
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/714567
 @SupportedBrokers(brokers = BrokerMicrosoftAuthenticator.class)
-@RetryOnFailure
 public class TestCase714567 extends AbstractMsalBrokerTest {
 
     @Test
@@ -148,10 +143,8 @@ public class TestCase714567 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .userRole(UserRole.CLOUD_DEVICE_ADMINISTRATOR)
-                .build();
+    public UserType getJsonUserType() {
+        return UserType.DEVICE_ADMIN;
     }
 
     @Override

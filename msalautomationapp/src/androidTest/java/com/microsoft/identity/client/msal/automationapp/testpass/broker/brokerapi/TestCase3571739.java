@@ -82,9 +82,8 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_3571739_webAppsOperations() throws Throwable {
-        final ILabAccount basicLabAccount = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.BASIC);
-        final String username = basicLabAccount.getUsername();
-        final String password = basicLabAccount.getPassword();
+        final String username = mLabAccount.getUsername();
+        final String password = mLabAccount.getPassword();
 
         final BrokerHost brokerHost = (BrokerHost) mBroker;
 
@@ -270,10 +269,8 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .build();
+    public UserType getJsonUserType() {
+        return UserType.BASIC;
     }
 
     @Override

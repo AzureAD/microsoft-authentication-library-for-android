@@ -38,7 +38,6 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -46,22 +45,18 @@ import com.microsoft.identity.client.ui.automation.logging.Logger;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.common.java.providers.oauth2.IDToken;
 import com.microsoft.identity.labapi.utilities.client.ILabAccount;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
-
 
 import org.junit.Assert;
 import org.junit.Test;
-
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 // [Joined][MSAL] In-line WPJ: Perform Device registration with deviceid claim
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561125
-@RetryOnFailure(retryCount = 2)
 public class TestCase1561125 extends AbstractMsalBrokerTest {
     final String TAG = TestCase1561125.class.getSimpleName();
     private IAccount mTempAccount = null;
@@ -192,10 +187,8 @@ public class TestCase1561125 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .build();
+    public UserType getJsonUserType() {
+        return UserType.BASIC;
     }
 
     @Override

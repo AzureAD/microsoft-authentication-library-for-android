@@ -24,6 +24,7 @@ package com.microsoft.identity.client.e2e.tests.network;
 
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.B2C_CUSTOM_DOMAIN_CONFIG_FILE_PATH;
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.B2C_GLOBAL_DOMAIN_CONFIG_FILE_PATH;
@@ -57,11 +58,8 @@ public abstract class AcquireTokenB2CTest extends AcquireTokenNetworkTest {
         }
 
         @Override
-        public LabUserQuery getLabUserQuery() {
-            final LabUserQuery query = new LabUserQuery();
-            query.userType = LabConstants.UserType.B2C;
-            query.b2cProvider = LabConstants.B2CProvider.LOCAL;
-            return query;
+        public UserType getUserType() {
+            return UserType.B2C;
         }
 
     }
@@ -74,13 +72,8 @@ public abstract class AcquireTokenB2CTest extends AcquireTokenNetworkTest {
         }
 
         @Override
-        public LabUserQuery getLabUserQuery() {
-            final LabUserQuery query = new LabUserQuery();
-            query.userType = LabConstants.UserType.B2C;
-            query.b2cProvider = LabConstants.B2CProvider.LOCAL;
-            return query;
+        public UserType getUserType() {
+            return UserType.B2C;
         }
-
     }
-
 }

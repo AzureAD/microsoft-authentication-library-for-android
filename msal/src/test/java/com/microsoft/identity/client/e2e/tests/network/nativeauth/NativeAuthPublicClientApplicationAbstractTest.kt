@@ -34,11 +34,12 @@ import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
 import com.microsoft.identity.common.java.nativeauth.BuildValues
 import com.microsoft.identity.internal.testutils.TestUtils
-import com.microsoft.identity.internal.testutils.labutils.LabConstants
-import com.microsoft.identity.internal.testutils.labutils.LabUserHelper
-import com.microsoft.identity.internal.testutils.labutils.LabUserQuery
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
+import com.microsoft.identity.labapi.utilities.BuildConfig
+import com.microsoft.identity.labapi.utilities.authentication.LabApiAuthenticationClient
+import com.microsoft.identity.labapi.utilities.client.LabClient
+import com.microsoft.identity.labapi.utilities.constants.UserType
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationParameters
 import kotlinx.coroutines.Dispatchers
@@ -67,6 +68,10 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         const val INVALID_EMAIL = "email"
         const val INVALID_PASSWORD = "password"
         const val INCORRECT_CODE = "00000000"
+
+        private val labApiAuthenticationClient: LabApiAuthenticationClient =
+            LabApiAuthenticationClient(BuildConfig.LAB_CLIENT_SECRET)
+        val labClient: LabClient = LabClient(labApiAuthenticationClient)
     }
 
     private lateinit var context: Context
@@ -95,11 +100,7 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
     }
 
     fun getSafePassword(): String {
-        val query = LabUserQuery()
-        query.federationProvider = LabConstants.FederationProvider.CIAM_CUD
-        query.signInAudience = LabConstants.SignInAudience.AZURE_AD_MY_ORG
-        val credential = LabUserHelper.getCredentials(query)
-        return credential.password
+        return labClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.CIAM).password
     }
 
     private fun getConfigsThroughBuildValue(): Map<String, NativeAuthTestConfig.Config>? {

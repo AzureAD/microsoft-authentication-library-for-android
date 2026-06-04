@@ -24,21 +24,14 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.dcf;
 
 import androidx.annotation.NonNull;
 
-import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadLoginComponentHandler;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -49,22 +42,19 @@ import java.util.Map;
 // Brokered Auth verify "Sign In from other device" option.
 abstract class AbstractSignInFromOtherDeviceTest extends AbstractMsalBrokerTest {
 
-    private AzureEnvironment mAzureEnvironment;
+    private UserType mUserType;
 
-    public AbstractSignInFromOtherDeviceTest(@NonNull AzureEnvironment environment) {
-        mAzureEnvironment = environment;
+    public AbstractSignInFromOtherDeviceTest(@NonNull UserType userType) {
+        mUserType = userType;
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .azureEnvironment(mAzureEnvironment)
-                .build();
+    public UserType getJsonUserType() {
+        return mUserType;
     }
 
-    public void setAzureEnvironment(@NonNull AzureEnvironment environment) {
-        mAzureEnvironment = environment;
+    public void setJsonUserType(@NonNull UserType userType) {
+        mUserType = userType;
     }
 
     @Override
@@ -100,7 +90,7 @@ abstract class AbstractSignInFromOtherDeviceTest extends AbstractMsalBrokerTest 
 
     @Override
     public int getConfigFileResourceId() {
-        if (mAzureEnvironment == AzureEnvironment.AZURE_US_GOVERNMENT) {
+        if (mUserType == UserType.USGOV) {
             return R.raw.msal_config_arlington;
         }
         return R.raw.msal_config_default;
