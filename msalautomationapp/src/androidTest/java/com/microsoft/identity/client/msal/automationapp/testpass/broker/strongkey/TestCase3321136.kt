@@ -30,15 +30,12 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler
-import com.microsoft.identity.labapi.utilities.client.LabQuery
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assume
@@ -47,7 +44,6 @@ import org.junit.Test
 //  [StrongKey] Upgrade from regular WPJ to StrongKey WPJ (via CA)
 // https://identitydivision.visualstudio.com/Engineering/_testPlans/define?planId=2007357&suiteId=3321136
 @SupportedBrokers(brokers = [BrokerMicrosoftAuthenticator::class])
-@RetryOnFailure
 class TestCase3321136 : AbstractMsalBrokerTest() {
     @Test
     fun test_3321136_UpgradeFromRegularWpjToStrongKeyWpj() {
@@ -56,17 +52,18 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
             BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("performNonSharedWpjWithHardwareKey:true")
         )
 
-        val basicUser = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.TOKEN_BINDING)
+        val username = mLabAccount.getUsername()
+        val password = mLabAccount.getPassword()
 
         (mBroker as BrokerMicrosoftAuthenticator).setShouldUseDeviceSettingsPage(false)
-        mBroker.performDeviceRegistration(basicUser.username, basicUser.password)
+        mBroker.performDeviceRegistration(username, password)
 
         val msalSdk = MsalSdk()
 
         //acquiring token
         val authTestParams: MsalAuthTestParams = MsalAuthTestParams.builder()
             .activity(mActivity)
-            .loginHint(basicUser.username)
+            .loginHint(username)
             .scopes(listOf(*mScopes))
             .promptParameter(Prompt.SELECT_ACCOUNT)
             .msalConfigResourceId(configFileResourceId)
@@ -78,7 +75,7 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
                     val promptHandlerParameters: PromptHandlerParameters =
                         PromptHandlerParameters.builder()
                             .prompt(PromptParameter.SELECT_ACCOUNT)
-                            .loginHint(basicUser.username)
+                            .loginHint(username)
                             .passwordPageExpected(false)
                             .sessionExpected(true)
                             .broker(mBroker)
@@ -86,17 +83,15 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
                             .build()
 
                     AadPromptHandler(promptHandlerParameters)
-                        .handlePrompt(basicUser.username, basicUser.password)
+                        .handlePrompt(username, password)
                 }
             }, TokenRequestTimeout.MEDIUM)
 
         authResult.assertSuccess()
     }
 
-    override fun getLabQuery(): LabQuery? {
-        return LabQuery.builder()
-            .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-            .build()
+    override fun getJsonUserType(): UserType? {
+        return UserType.TOKEN_BINDING
     }
 
     override fun getTempUserType(): TempUserType? {

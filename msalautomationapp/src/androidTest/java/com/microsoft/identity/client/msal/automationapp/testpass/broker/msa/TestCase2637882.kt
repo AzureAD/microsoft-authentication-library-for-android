@@ -28,7 +28,6 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters
@@ -41,7 +40,6 @@ import java.util.*
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2637882
 @SupportedBrokers(brokers = [BrokerHost::class])
 @LocalBrokerHostDebugUiTest
-@RetryOnFailure
 class TestCase2637882 : AbstractMsaBrokerTest() {
     @Test
     @Throws(Throwable::class)
