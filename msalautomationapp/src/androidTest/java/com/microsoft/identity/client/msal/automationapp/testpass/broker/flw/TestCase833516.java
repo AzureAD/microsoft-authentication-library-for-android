@@ -32,7 +32,6 @@ import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
@@ -40,11 +39,8 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerPara
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.labapi.utilities.client.ILabAccount;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
-import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
-import com.microsoft.identity.labapi.utilities.constants.UserRole;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.Assert;
@@ -55,7 +51,6 @@ import java.util.Arrays;
 // End My Shift - In Shared device mode, there can be only one sign-in account.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833516
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
-@RetryOnFailure(retryCount = 2)
 public class TestCase833516 extends AbstractMsalBrokerTest {
 
     @Test
@@ -84,11 +79,7 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
         Assert.assertTrue(mApplication.isSharedDevice());
 
         // query to load a user from a same tenant that was used for WPJ
-        final LabQuery query = LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .build();
-
-        final ILabAccount sameTenantUser = mLabClient.getLabAccount(query);
+        final ILabAccount sameTenantUser = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.BASIC);
         final String username2 = sameTenantUser.getUsername();
         final String password2 = sameTenantUser.getPassword();
 
@@ -123,12 +114,7 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
         // try sign in with a different account - it should fail
 
         // query to load another user from the same tenant
-        final LabQuery query2 = LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .protectionPolicy(ProtectionPolicy.MAM_CA)
-                .build();
-
-        final ILabAccount difTenantUser = mLabClient.getLabAccount(query2);
+        final ILabAccount difTenantUser = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.MAM_CA);
         final String difTenantUsername = difTenantUser.getUsername();
 
         final TokenRequestLatch latch2 = new TokenRequestLatch(1);
@@ -146,10 +132,8 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .userRole(UserRole.CLOUD_DEVICE_ADMINISTRATOR)
-                .build();
+    public UserType getJsonUserType() {
+        return UserType.DEVICE_ADMIN;
     }
 
     @Override

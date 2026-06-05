@@ -29,12 +29,9 @@ import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDe
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.common.java.dto.AccountRecord;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
-import org.junit.Before;
 import org.junit.Test;
 
 // Nested app auth with US Gov account
@@ -60,11 +57,8 @@ public class TestCase2703171 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
-                .build();
+    public UserType getJsonUserType() {
+        return UserType.USGOV;
     }
 
     @Override
