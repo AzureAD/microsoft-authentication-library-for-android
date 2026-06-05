@@ -39,6 +39,7 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.Micr
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.common.java.commands.webapps.WebAppsGetTokenSubOperationResponse;
 import com.microsoft.identity.common.java.util.ObjectMapper;
+import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
@@ -49,8 +50,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 // WebApps API Tests via BrokerHost Broker API tab
-// Tests GetToken (interactive and silent), GetCookies, and SignOut operations
-// of the WebApps APIs using the BrokerHost app's Broker API tab.
+// Tests GetToken (interactive and silent) and SignOut operations of the WebApps APIs using the BrokerHost app's Broker API tab.
+// GetAllSsoTokens is also tested here.
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3571739
 @SupportedBrokers(brokers = BrokerHost.class)
 @LocalBrokerHostDebugUiTest
@@ -68,14 +69,13 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
     private static final String CHECKBOX_IS_STS = BROKER_HOST_PKG + ":id/checkbox_is_sts";
     private static final String BUTTON_EXECUTE_GET_TOKEN = BROKER_HOST_PKG + ":id/button_execute_get_token";
     private static final String BUTTON_EXECUTE_SIGN_OUT = BROKER_HOST_PKG + ":id/button_execute_sign_out";
-    private static final String EDIT_TEXT_COOKIES_URL = BROKER_HOST_PKG + ":id/edit_text_webapps_cookie_url";
-    private static final String BUTTON_GET_COOKIES = BROKER_HOST_PKG + ":id/button_get_webapp_cookies";
+    private static final String BUTTON_GET_ALL_SSO_TOKENS = BROKER_HOST_PKG + ":id/button_get_sso_tokens";
+    private static final String TEXT_GET_ALL_SSO_TOKENS = BROKER_HOST_PKG + ":id/edit_sso_token";
     private static final String DIALOG_MESSAGE = "android:id/message";
     private static final String DIALOG_OK_BUTTON = "android:id/button1";
 
     // Constants
     private static final String LEMON_GLACIER = "https://lemon-glacier-0fa89f11e.1.azurestaticapps.net/";
-    private static final String MICROSOFT_ONLINE = "https://login.microsoftonline.com";
     private static final String SCOPE = "User.Read";
     private static final String ACCESS_TOKEN_DESCRIPTION = "access_token";
     private static final long DIALOG_WAIT_TIMEOUT_MS = 5000L;
@@ -197,22 +197,37 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
                 silentMsalJsResult.contains(ACCESS_TOKEN_DESCRIPTION)
         );
 
-        // -------- Step 3: GetCookies --------
+        // -------- Step 3: GetAllSsoTokens --------
         // Navigate to the Broker API tab
         brokerHost.brokerApiFragment.launch();
 
-        // Scroll down to make the cookies URL field and button visible
-        new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().resourceId(BUTTON_GET_COOKIES));
+        // Scroll down to make the GetAllSsoTokens button visible
+        new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().resourceId(BUTTON_GET_ALL_SSO_TOKENS));
+        UiAutomatorUtils.handleButtonClick(BUTTON_GET_ALL_SSO_TOKENS);
 
-        UiAutomatorUtils.handleInput(EDIT_TEXT_COOKIES_URL, MICROSOFT_ONLINE);
-        UiAutomatorUtils.handleButtonClick(BUTTON_GET_COOKIES);
+        // The result is shown in the textbox next to the button (not a dialog)
+        final UiObject allSsoTokensResultView = UiAutomatorUtils.obtainUiObjectWithResourceId(TEXT_GET_ALL_SSO_TOKENS);
+        Assert.assertTrue(
+                "GetAllSsoTokens result text view should be present",
+                allSsoTokensResultView.waitForExists(DIALOG_WAIT_TIMEOUT_MS)
+        );
+        String allSsoTokensResult = "";
+        final long waitUntil = System.currentTimeMillis() + DIALOG_WAIT_TIMEOUT_MS;
+        while (allSsoTokensResult.isEmpty() && System.currentTimeMillis() < waitUntil) {
+            try {
+                allSsoTokensResult = allSsoTokensResultView.getText();
+            } catch (final UiObjectNotFoundException e) {
+                throw new AssertionError("Could not read GetAllSsoTokens result text", e);
+            }
+            if (allSsoTokensResult.isEmpty()) {
+                ThreadUtils.sleepSafely(250, "Waiting for GetAllSsoTokens result text", "Interrupted");
+            }
+        }
 
-        final String cookiesResult = dismissDialogAndGetText();
-
-        Assert.assertNotNull("GetCookies result should not be null", cookiesResult);
+        Assert.assertNotNull("GetAllSsoTokens result should not be null", allSsoTokensResult);
         Assert.assertFalse(
-                "GetCookies result should not be empty",
-                cookiesResult.isEmpty()
+                "GetAllSsoTokens result should not be empty",
+                allSsoTokensResult.isEmpty()
         );
 
         // -------- Step 4: SignOut --------
