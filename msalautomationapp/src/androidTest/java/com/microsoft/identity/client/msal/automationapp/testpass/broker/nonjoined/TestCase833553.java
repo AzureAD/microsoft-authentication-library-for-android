@@ -44,14 +44,13 @@ import java.util.Arrays;
 
 // [MSAL] Broker Auth for Non-Joined Account (Federated User)
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833553
-@Ignore("Ignoring until On-Prem is setup")
 public class TestCase833553 extends AbstractMsalBrokerTest {
     @Test
     public void test_833553_NonJoined_Federated() throws Throwable {
         final String username = mLabAccount.getUsername();
 
         // load this other user
-        final ILabAccount userB = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.ONPREM);
+        final ILabAccount userB = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.ANDROID_FEDERATED2);
 
         final String usernameB = userB.getUsername();
         final String password = userB.getPassword();
@@ -136,7 +135,7 @@ public class TestCase833553 extends AbstractMsalBrokerTest {
 
     @Override
     public UserType getJsonUserType() {
-        return UserType.FEDERATED;
+        return UserType.ANDROID_FEDERATED;
     }
 
     @Override
