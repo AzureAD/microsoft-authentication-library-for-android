@@ -86,6 +86,8 @@ public class GuestAccountAcquireTokenNetworkTests extends AcquireTokenAbstractTe
 
         // just making sure that it is indeed guest tenant by comparing against home tenant
         Assert.assertNotSame(labGuest.getHomeTenantId(), labGuest.getGuestTenantId());
+        // create authority from guest tenant id and use to obtain a token interactively for guest tenant
+        performInteractiveAcquireTokenCall(labGuest.getUsername(), authorityPrefix + labGuest.getGuestTenantId());
         // create authority from guest tenant id and use to obtain a token silently for guest tenant
         performSilentAcquireTokenCall(getAccount(), authorityPrefix + labGuest.getGuestTenantId());
 
