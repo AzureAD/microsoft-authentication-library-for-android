@@ -37,7 +37,6 @@ import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
