@@ -80,6 +80,7 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
                             .sessionExpected(true)
                             .broker(mBroker)
                             .enrollPageExpected(true)
+                            .batteryOptimizationIgnoreSystemPromptExpected(true)
                             .build()
 
                     AadPromptHandler(promptHandlerParameters)
