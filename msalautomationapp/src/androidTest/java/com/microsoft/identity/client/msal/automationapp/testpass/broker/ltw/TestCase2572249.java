@@ -22,13 +22,15 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
+import androidx.annotation.NonNull;
+
 import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
-import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
+import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
@@ -38,31 +40,55 @@ import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
-// Authenticator has highest priority  - Case3 (Auth, LTW, CP)
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2584410
+import java.util.Arrays;
+import java.util.List;
+
+//  Updated LTW, Updated Auth app and uninstall LTW
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2572249
 @LTWTests
-@SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
-public class TestCase2584410 extends AbstractMsalBrokerTest {
-    private final UserType mUserType = UserType.BASIC;
+@SupportedBrokers(brokers = {BrokerLTW.class})
+@RunWith(Parameterized.class)
+public class TestCase2572249 extends AbstractMsalBrokerTest {
+
+    private final UserType mUserType;
+
+    public TestCase2572249(@NonNull UserType userType) {
+        mUserType = userType;
+    }
+
+    @Parameterized.Parameters(name = "{0}")
+    public static List<UserType> userType() {
+        return Arrays.asList(
+                UserType.MSA,
+                UserType.BASIC
+        );
+    }
 
     @Test
-    public void test_2584410_LTW_AuthenticatorHighestPriorityAuthLTWCP() throws Throwable {
+    public void test_2572249_LTW_SSOAfterLTWUninstallIfAuthenticatorPresent() throws Throwable {
+        if (BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("EnableBrokerDiscoveryV2Protocol:true")) {
+            // No longer applicable with V2 protocol.
+            return;
+        }
+
+
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
-        final BrokerLTW brokerLTW = new BrokerLTW();
-        brokerLTW.install();
+        // install updated auth app
+        final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator();
+        brokerMicrosoftAuthenticator.install();
 
-        final BrokerCompanyPortal brokerCompanyPortal = new BrokerCompanyPortal();
-        brokerCompanyPortal.install();
-
+        // acquire token interactively in MsalTestApp
         final MsalTestApp msalTestApp = new MsalTestApp();
         msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRunBasedOnUserType(mUserType);
 
-        final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
+        final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)
                 .loginHint(username)
                 .sessionExpected(false)
@@ -81,23 +107,28 @@ public class TestCase2584410 extends AbstractMsalBrokerTest {
                 .howWouldYouLikeToSignInExpected(false)
                 .build();
 
-        String token = msalTestApp.acquireToken(username, password, promptHandlerParameters, true);
-        Assert.assertNotNull(token);
+        String tokenMsal = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, true);
+        Assert.assertNotNull(tokenMsal);
 
-        msalTestApp.handleBackButton();
-        final String activeBroker = msalTestApp.getActiveBrokerPackageName();
+        // uninstall LTW
+        mBroker.uninstall();
 
-        // Check flight, if v2 is enabled, LTW should have the highest priority.
-        final String activeBrokerApp = BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("EnableBrokerDiscoveryV2Protocol:true") ?
-                BrokerLTW.BROKER_LTW_APP_PACKAGE_NAME :
-                BrokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME;
+        // install OneAuthTestApp
+        final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
+        oneAuthTestApp.install();
+        oneAuthTestApp.launch();
+        oneAuthTestApp.handleFirstRunBasedOnUserType(mUserType);
 
-        Assert.assertEquals("Active broker pkg name : " + activeBrokerApp, activeBroker);
+        // sign in to OneAuthTestApp
+        // should not prompt for password
+        oneAuthTestApp.handleUserNameInput(username);
+        oneAuthTestApp.handleSignInWithoutPrompt();
     }
+
 
     @Override
     public UserType getJsonUserType() {
-        return UserType.BASIC;
+        return mUserType;
     }
 
     @Override

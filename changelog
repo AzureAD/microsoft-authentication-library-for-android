@@ -2,6 +2,10 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+
+Version 8.3.3
+----------
+- [PATCH] Update common @24.3.0
 - [PATCH] Move Multiple Listening apps check to the authorization layer (#2494)
 - [MINOR] Provide public api to set custom headers for CIAM requests (#2511)
 

@@ -25,7 +25,6 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.mam
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.app.TeamsApp
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal
@@ -35,11 +34,9 @@ import com.microsoft.identity.client.ui.automation.installer.LocalApkInstaller
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
 import com.microsoft.identity.client.ui.automation.logging.Logger
+import com.microsoft.identity.common.java.util.ThreadUtils
 import com.microsoft.identity.labapi.utilities.client.ILabAccount
-import com.microsoft.identity.labapi.utilities.client.LabQuery
-import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
-import com.microsoft.identity.labapi.utilities.constants.UserRole
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import com.microsoft.identity.labapi.utilities.exception.LabApiException
 import org.junit.Test
@@ -47,15 +44,13 @@ import org.junit.Test
 // Shared device mode - TrueMAM: Sign In with Teams and then SignOut and Sign Back In 
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2798415
 @SupportedBrokers(brokers = [BrokerMicrosoftAuthenticator::class])
-@RetryOnFailure
 class TestCase2798415 : AbstractMsalBrokerTest() {
     private val TAG = TestCase2798415::class.java.simpleName
     @Test
     @Throws(MsalException::class, InterruptedException::class, LabApiException::class)
-    fun test_2506936_SDM_MAM_TeamsSignInThenOutThenInAgain() {
-        val adminUserLabQuery = getAdminAccountLabQuery()
+    fun test_2798415_SDM_MAM_TeamsSignInThenOutThenInAgain() {
 
-        val admin: ILabAccount = mLabClient.getLabAccount(adminUserLabQuery)
+        val admin: ILabAccount = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.DEVICE_ADMIN)
         Logger.i(TAG, "Performing Shared Device Registration.")
         mBroker.performSharedDeviceRegistration(admin.username, admin.password)
 
@@ -86,6 +81,8 @@ class TestCase2798415 : AbstractMsalBrokerTest() {
         teams.addFirstAccount(username, password, teamsPromptHandlerParameters)
         // handle app protection policy in CP i.e. setup PIN when asked
         (companyPortal as IMdmAgent).handleAppProtectionPolicy()
+        ThreadUtils.sleepSafely(10000, "sleeping", "interrupted sleep")
+
         teams.forceStop() // Teams sometimes seems to like to pop up on screen randomly
 
         teams.signOutSharedDeviceMode()
@@ -127,20 +124,11 @@ class TestCase2798415 : AbstractMsalBrokerTest() {
         return R.raw.msal_config_default
     }
 
-    override fun getLabQuery(): LabQuery {
-        return LabQuery.builder()
-            .userType(UserType.CLOUD)
-            .protectionPolicy(ProtectionPolicy.TRUE_MAM_CA)
-            .build()
+    override fun getJsonUserType(): UserType? {
+        return UserType.TRUE_MAM_CA
     }
 
     override fun getTempUserType(): TempUserType? {
         return null
-    }
-
-    fun getAdminAccountLabQuery() : LabQuery {
-        return LabQuery.builder()
-            .userRole(UserRole.CLOUD_DEVICE_ADMINISTRATOR)
-            .build()
     }
 }

@@ -28,7 +28,6 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters
@@ -36,7 +35,6 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler
 import com.microsoft.identity.client.ui.automation.utils.CommonUtils
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils
-import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assert
@@ -47,7 +45,6 @@ import java.util.Arrays
 // [Brokered] Sign up flow for MSA Accounts
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3007768
 @SupportedBrokers(brokers = [BrokerMicrosoftAuthenticator::class])
-@RetryOnFailure
 class TestCase3007768 : AbstractMsalBrokerTest(){
     @Test
     @Throws(Throwable::class)
@@ -122,10 +119,8 @@ class TestCase3007768 : AbstractMsalBrokerTest(){
         return R.raw.msal_config_msa_only
     }
 
-    override fun getLabQuery(): LabQuery {
-        return LabQuery.builder()
-            .userType(UserType.MSA)
-            .build()
+    override fun getJsonUserType(): UserType? {
+        return UserType.MSA
     }
 
     override fun getTempUserType(): TempUserType? {

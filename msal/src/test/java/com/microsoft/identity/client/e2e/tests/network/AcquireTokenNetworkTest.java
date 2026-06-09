@@ -31,8 +31,8 @@ import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.ErrorCodes;
 import com.microsoft.identity.internal.testutils.TestUtils;
-import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
-import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.client.ILabAccount;
+import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -62,8 +62,13 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
     @Before
     public void setup() {
         AcquireTokenTestHelper.setAccount(null);
-        final LabUserQuery query = getLabUserQuery();
-        mUsername = LabUserHelper.loadUserForTest(query);
+        try {
+            ILabAccount user = labClient.getAccountFromLabJsonStringInMobileBuildVault(getUserType());
+            mUsername = user.getUsername();
+        } catch (LabApiException e){
+            throw new AssertionError(e);
+        }
+
         super.setup();
     }
 

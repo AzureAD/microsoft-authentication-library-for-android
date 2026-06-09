@@ -24,7 +24,6 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.mam
 
 import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.app.TeamsApp
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal
@@ -32,8 +31,6 @@ import com.microsoft.identity.client.ui.automation.broker.IMdmAgent
 import com.microsoft.identity.client.ui.automation.installer.LocalApkInstaller
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
-import com.microsoft.identity.labapi.utilities.client.LabQuery
-import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Test
@@ -41,7 +38,6 @@ import org.junit.Test
 // TrueMAM: Sign In with Teams and then SignOut and Sign Back In
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2506936
 @SupportedBrokers(brokers = [BrokerCompanyPortal::class])
-@RetryOnFailure
 class TestCase2506936 : AbstractMsalBrokerTest(){
 
     @Test
@@ -111,11 +107,8 @@ class TestCase2506936 : AbstractMsalBrokerTest(){
         return R.raw.msal_config_default
     }
 
-    override fun getLabQuery(): LabQuery {
-        return LabQuery.builder()
-            .userType(UserType.CLOUD)
-            .protectionPolicy(ProtectionPolicy.TRUE_MAM_CA)
-            .build()
+    override fun getJsonUserType(): UserType? {
+        return UserType.TRUE_MAM_CA
     }
 
     override fun getTempUserType(): TempUserType? {

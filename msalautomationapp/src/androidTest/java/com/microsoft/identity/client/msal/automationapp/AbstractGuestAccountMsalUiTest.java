@@ -36,8 +36,8 @@ import com.microsoft.identity.common.java.net.HttpResponse;
 import com.microsoft.identity.common.java.net.UrlConnectionHttpClient;
 import com.microsoft.identity.labapi.utilities.BuildConfig;
 import com.microsoft.identity.labapi.utilities.authentication.LabApiAuthenticationClient;
+import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabClient;
-import com.microsoft.identity.labapi.utilities.client.LabGuestAccount;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
@@ -60,7 +60,7 @@ public abstract class AbstractGuestAccountMsalUiTest implements IMsalTest, ILabT
     public ActivityTestRule<MainActivity> mActivityRule = new ActivityTestRule(MainActivity.class);
     protected Activity mActivity;
     protected IBrowser mBrowser;
-    protected LabGuestAccount mGuestUser;
+    protected ILabAccount mGuestUser;
     protected LabClient mLabClient;
 
     @Before
@@ -73,7 +73,7 @@ public abstract class AbstractGuestAccountMsalUiTest implements IMsalTest, ILabT
         );
         mLabClient = new LabClient(authenticationClient);
 
-        mGuestUser = mLabClient.loadGuestAccountFromLab(getLabQuery());
+        mGuestUser = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(getJsonUserType());
     }
 
     @After
@@ -120,5 +120,9 @@ public abstract class AbstractGuestAccountMsalUiTest implements IMsalTest, ILabT
     @Override
     public int getConfigFileResourceId() {
         return R.raw.msal_config_default;
+    }
+
+    public int getMSIDLAB4ConfigFileResourceId() {
+        return R.raw.msal_config_msidlab4;
     }
 }
