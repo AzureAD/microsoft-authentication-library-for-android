@@ -73,7 +73,11 @@ ext {
     androidxAnnotationVersion = "1.4.0"
     spotBugsAnnotationVersion = "4.3.0"
     jcipAnnotationVersion = "1.0-1"
-    openTelemetryVersion = "1.18.0"
+    openTelemetryVersion = "1.62.0"
+    // Pinned to 1.18.0 because newer versions add a 'strictly' kotlin-stdlib 2.x
+    // constraint that conflicts with the project's Kotlin 1.8 compiler. Realign
+    // once the project upgrades Kotlin to 2.x.
+    openTelemetryExtensionKotlinVersion = "1.18.0"
     jetpackDataStoreVersion = "1.0.0"
     blockstoreVersion="16.2.0"
     lifecycleKtxVersion="2.5.1"
