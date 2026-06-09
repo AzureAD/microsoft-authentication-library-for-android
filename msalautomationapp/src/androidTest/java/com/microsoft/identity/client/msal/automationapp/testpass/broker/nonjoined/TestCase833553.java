@@ -37,12 +37,14 @@ import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
 
 // [MSAL] Broker Auth for Non-Joined Account (Federated User)
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833553
+@Ignore("Ignoring until On-Prem is setup")
 public class TestCase833553 extends AbstractMsalBrokerTest {
     @Test
     public void test_833553_NonJoined_Federated() throws Throwable {
