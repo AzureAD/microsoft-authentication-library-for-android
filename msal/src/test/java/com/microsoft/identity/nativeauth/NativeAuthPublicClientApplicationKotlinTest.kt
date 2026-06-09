@@ -3042,4 +3042,24 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         val submitChallengeResult = nextState4.submitChallenge(code)
         assertResult<SignInResult.Complete>(submitChallengeResult)
     }
+
+    @Test
+    fun testUserAttributesFlatUsernameBuilder() {
+        val attrs = UserAttributes.Builder()
+            .flatUsername("testuser")
+            .build()
+        assertEquals("testuser", attrs.userAttributes["flatusername"])
+    }
+
+    @Test
+    fun testUserAttributesFlatUsernameWithOtherAttributes() {
+        val attrs = UserAttributes.Builder()
+            .flatUsername("testuser")
+            .displayName("Test User")
+            .city("Seattle")
+            .build()
+        assertEquals("testuser", attrs.userAttributes["flatusername"])
+        assertEquals("Test User", attrs.userAttributes["displayName"])
+        assertEquals("Seattle", attrs.userAttributes["city"])
+    }
 }

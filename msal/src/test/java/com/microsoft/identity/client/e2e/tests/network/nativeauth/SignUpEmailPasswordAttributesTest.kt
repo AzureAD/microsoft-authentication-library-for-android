@@ -68,7 +68,7 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
         retryOperation {
             runBlocking {
                 val user = tempEmailApi.generateRandomEmailAddressLocally()
-                val attributes = UserAttributes.Builder().country("Ireland").city("Dublin").build()
+                val attributes = UserAttributes.Builder().country("Ireland").city("Dublin").flatUsername("flatusername").build()
 
                 val param = NativeAuthSignUpParameters(username = user)
                 param.password = getSafePassword().toCharArray()

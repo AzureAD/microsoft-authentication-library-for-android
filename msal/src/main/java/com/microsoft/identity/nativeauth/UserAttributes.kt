@@ -40,6 +40,7 @@ class UserAttributes(internal val userAttributes: Map<String, String>) {
             private const val STATE = "state"
             private const val STREET_ADDRESS = "streetAddress"
             private const val SURNAME = "surname"
+            private const val FLAT_USERNAME = "flatusername"
         }
 
         private val userAttributes = mutableMapOf<String, String>()
@@ -122,6 +123,15 @@ class UserAttributes(internal val userAttributes: Map<String, String>) {
          */
         fun surname(surname: String): Builder {
             userAttributes[SURNAME] = surname
+            return this
+        }
+
+        /**
+         * Sets the flat username for the user
+         * @param flatUsername: Flat username for the user
+         */
+        fun flatUsername(flatUsername: String): Builder {
+            userAttributes[FLAT_USERNAME] = flatUsername
             return this
         }
 
