@@ -26,14 +26,13 @@ import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.e2e.rules.NetworkTestsRuleChain;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
-import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.ErrorCodes;
 import com.microsoft.identity.internal.testutils.TestUtils;
-import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
-import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.client.ILabAccount;
+import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -52,7 +51,7 @@ import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.suc
 import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {ShadowAndroidSdkStorageEncryptionManager.class, ShadowAuthority.class, ShadowPublicClientApplicationConfiguration.class})
+@Config(shadows = {ShadowAndroidSdkStorageEncryptionManager.class, ShadowAuthority.class})
 public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest implements IAcquireTokenNetworkTest {
 
     protected String mUsername;
@@ -63,8 +62,13 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
     @Before
     public void setup() {
         AcquireTokenTestHelper.setAccount(null);
-        final LabUserQuery query = getLabUserQuery();
-        mUsername = LabUserHelper.loadUserForTest(query);
+        try {
+            ILabAccount user = labClient.getAccountFromLabJsonStringInMobileBuildVault(getUserType());
+            mUsername = user.getUsername();
+        } catch (LabApiException e){
+            throw new AssertionError(e);
+        }
+
         super.setup();
     }
 

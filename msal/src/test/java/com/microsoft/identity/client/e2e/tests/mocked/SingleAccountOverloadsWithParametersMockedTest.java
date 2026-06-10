@@ -16,7 +16,6 @@ import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthorityForMockHttpResponse;
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
-import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
@@ -55,7 +54,6 @@ import java.util.concurrent.CountDownLatch;
 @Config(shadows = {
         ShadowAndroidSdkStorageEncryptionManager.class,
         ShadowAuthorityForMockHttpResponse.class,
-        ShadowPublicClientApplicationConfiguration.class,
         ShadowHttpClient.class,
         ShadowOpenIdProviderConfigurationClient.class
 })

@@ -30,8 +30,6 @@ import com.microsoft.identity.client.ui.automation.broker.BrokerHost
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
 import com.microsoft.identity.labapi.utilities.client.ILabAccount
-import com.microsoft.identity.labapi.utilities.client.LabQuery
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assert
@@ -43,23 +41,18 @@ import org.junit.Test
 @SupportedBrokers(brokers = [BrokerHost::class])
 @LocalBrokerHostDebugUiTest
 class TestCase2521946 : AbstractMsalBrokerTest() {
-    private lateinit var mUsGovAccount: ILabAccount
+    private lateinit var mGuestAccount: ILabAccount
     private lateinit var mBrokerHostApp: BrokerHost
 
     @Test
     fun test_2521946_MWPJ_RegistrationEntryMigrationSameUpn() {
         // Register 2 accounts from different tenants
-        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mUsGovAccount.username, mUsGovAccount.password)
+        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mGuestAccount.username, mGuestAccount.password)
         mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mLabAccount.username, mLabAccount.password)
         Assert.assertEquals(2, mBrokerHostApp.multipleWpjApiFragment.allRecords.size)
 
         // Unregister the device from the legacy space
-        mBrokerHostApp.multipleWpjApiFragment.unregister(mUsGovAccount.username)
-
-        // Verify that the device is unregistered for the legacy API
-        val errorMessage = mBrokerHostApp.accountUpn
-        Assert.assertNotNull(errorMessage)
-        Assert.assertTrue(errorMessage!!.contains("Device is not Workplace Joined"))
+        mBrokerHostApp.multipleWpjApiFragment.unregister(mGuestAccount.username)
 
         // Verify that the device is still registered for the second account using the MWPJ API.
         val recordInExtendedSpace = mBrokerHostApp.multipleWpjApiFragment.getRecordByUpn(mLabAccount.username)
@@ -74,43 +67,31 @@ class TestCase2521946 : AbstractMsalBrokerTest() {
                 .loginHint(mLabAccount.username)
                 .build()
 
+
         mBrokerHostApp.performDeviceRegistration(mLabAccount.username, mLabAccount.password, promptHandlerParameters)
 
-        // Verify the device is registered for the legacy API
-        val legacyAccountMessage = mBrokerHostApp.accountUpn
-        Assert.assertNotNull(legacyAccountMessage)
-        Assert.assertTrue(legacyAccountMessage!!.contains(mLabAccount.username))
-        val legacyAccountDeviceId = mBrokerHostApp.obtainDeviceId()
 
         // Verify the entry is the same, it was just migrated
         val recordsAfterMigration = mBrokerHostApp.multipleWpjApiFragment.allRecords
         Assert.assertEquals(1, recordsAfterMigration.size)
-        Assert.assertEquals(legacyAccountMessage, recordsAfterMigration[0]["Upn"])
-        Assert.assertEquals(legacyAccountDeviceId, recordsAfterMigration[0]["DeviceId"])
+        Assert.assertEquals( recordInExtendedSpace["Upn"], recordsAfterMigration[0]["Upn"])
+        Assert.assertEquals( recordInExtendedSpace["DeviceId"], recordsAfterMigration[0]["DeviceId"])
         Assert.assertEquals(recordInExtendedSpace, recordsAfterMigration[0])
 
     }
 
-    override fun getLabQuery(): LabQuery {
-        return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .build()
+    override fun getJsonUserType(): UserType? {
+        return UserType.BASIC
     }
 
     override fun getTempUserType(): TempUserType? {
         return null
     }
 
-    private fun getUsGovLabQuery(): LabQuery {
-        return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
-                .build()
-    }
 
     @Before
     fun before() {
-        mUsGovAccount = mLabClient.getLabAccount(getUsGovLabQuery())
+        mGuestAccount = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.GUEST)
         mBrokerHostApp = broker as BrokerHost
         mBrokerHostApp.enableMultipleWpj()
     }

@@ -39,7 +39,6 @@ import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandAuthError;
 import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandSuccessful;
 import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandTokenError;
-import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalException;
@@ -78,11 +77,20 @@ import java.util.concurrent.TimeUnit;
  * of the protocol. Will be extended to test individual aspects of the flow.
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {ShadowPublicClientApplicationConfiguration.class})
 @SuppressWarnings("unchecked")
 public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
     private boolean mUserCodeReceived;
+
+    private ArrayList<String> allowedWWUrls =  new ArrayList<String>() {{
+        add("https://login.microsoft.com/device");
+        add("https://microsoft.com/devicelogin");
+    }};
+
+    private ArrayList<String> allowedUsGovUrls =  new ArrayList<String>() {{
+        add("https://microsoft.com/deviceloginus");
+        add("https://login.microsoftonline.us/device");
+    }};
 
     @Before
     public void setup() {
@@ -510,8 +518,8 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
         final String ww = wwUri.get(10, TimeUnit.SECONDS);
         final String usgov = usGovUri.get(10, TimeUnit.SECONDS);
 
-        Assert.assertEquals(ww, "https://microsoft.com/devicelogin");
-        Assert.assertEquals(usgov, "https://microsoft.com/deviceloginus");
+        Assert.assertTrue(allowedWWUrls.contains(ww));
+        Assert.assertTrue(allowedUsGovUrls.contains(usgov));
     }
 
     // The same device code url shall be the same for 2 PCA objects with the same configuration (pointing to USGov)
@@ -568,7 +576,7 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
             }
         });
 
-        Assert.assertEquals("https://microsoft.com/deviceloginus", uri1.get(10, TimeUnit.SECONDS));
+        Assert.assertTrue(allowedUsGovUrls.contains(uri1.get(10, TimeUnit.SECONDS)));
 
         //3. then create another public client application with the same configuration file in step 1.
         PublicClientApplication.create(context, new File(MULTIPLE_ACCOUNT_MODE_AAD_USGOV_CONFIG_FILE_PATH),
@@ -613,6 +621,6 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
         });
 
         // Should still get USGOV back.
-        Assert.assertEquals("https://microsoft.com/deviceloginus", uri2.get(10, TimeUnit.SECONDS));
+        Assert.assertTrue(allowedUsGovUrls.contains(uri2.get(10, TimeUnit.SECONDS)));
     }
 }

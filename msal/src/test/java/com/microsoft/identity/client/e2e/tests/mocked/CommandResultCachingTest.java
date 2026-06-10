@@ -34,7 +34,6 @@ import com.microsoft.identity.common.java.net.HttpResponse;
 import com.microsoft.identity.http.HttpRequestInterceptor;
 import com.microsoft.identity.http.HttpRequestMatcher;
 import com.microsoft.identity.shadow.ShadowHttpClient;
-import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
@@ -69,7 +68,6 @@ import androidx.annotation.Nullable;
         ShadowAndroidSdkStorageEncryptionManager.class,
         ShadowMockAuthority.class,
         ShadowHttpClient.class,
-        ShadowPublicClientApplicationConfiguration.class,
         ShadowOpenIdProviderConfigurationClient.class
 })
 public final class CommandResultCachingTest extends AcquireTokenAbstractTest {

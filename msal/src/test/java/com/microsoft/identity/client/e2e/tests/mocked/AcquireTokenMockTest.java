@@ -46,7 +46,6 @@ import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
-import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowStrategyResultServerError;
 import com.microsoft.identity.client.e2e.shadows.ShadowStrategyResultUnsuccessful;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
@@ -93,7 +92,6 @@ import java.util.UUID;
         ShadowAndroidSdkStorageEncryptionManager.class,
         ShadowMockAuthority.class,
         ShadowHttpClient.class,
-        ShadowPublicClientApplicationConfiguration.class,
         ShadowOpenIdProviderConfigurationClient.class
 })
 public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {

@@ -56,4 +56,31 @@ public class RequestOptions {
     public Constants.ConfigFile getConfigFile(){
         return mConfigFile;
     }
+
+    /**
+     * Creates a copy of the given RequestOptions with different scopes.
+     * Used by the concurrent acquire-token-silent stress scenario to avoid
+     * client-side command deduplication (CommandDispatcher collapses commands
+     * with identical parameters).
+     */
+    public static RequestOptions withDifferentScopes(RequestOptions source, String newScopes) {
+        return new RequestOptions(
+                source.mConfigFile,
+                source.mLoginHint,
+                source.mAccount,
+                source.mPrompt,
+                newScopes,
+                source.mExtraScope,
+                source.mExtraQueryParams,
+                source.mClaims,
+                source.mEnablePII,
+                source.mForceRefresh,
+                source.mAuthority,
+                source.mAuthScheme,
+                source.mPopHttpMethod,
+                source.mPopResourceUrl,
+                source.mPoPClientClaims,
+                source.mAllowSignInFromOtherDevice
+        );
+    }
 }

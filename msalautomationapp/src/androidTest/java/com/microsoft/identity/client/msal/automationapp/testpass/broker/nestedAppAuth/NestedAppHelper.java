@@ -75,7 +75,7 @@ public class NestedAppHelper {
 
     private static final String HUB_APP_CLIENT_ID_AAD = "1fec8e78-bce4-4aaf-ab1b-5451cc387264";
 
-    private static final String NESTED_APP_CLIENT_ID = "9668f2bd-6103-4292-9024-84fa2d1b6fb2";
+    private static final String NESTED_APP_CLIENT_ID = "700c5153-ef50-4176-8d7a-4131d649020e";
 
     private static final String NESTED_APP_US_GOV_CLIENT_ID = "cb7faed4-b8c0-49ee-b421-f5ed16894c83";
 

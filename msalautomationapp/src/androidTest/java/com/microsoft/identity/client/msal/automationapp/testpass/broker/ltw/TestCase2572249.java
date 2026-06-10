@@ -35,7 +35,6 @@ import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
@@ -64,7 +63,7 @@ public class TestCase2572249 extends AbstractMsalBrokerTest {
     public static List<UserType> userType() {
         return Arrays.asList(
                 UserType.MSA,
-                UserType.CLOUD
+                UserType.BASIC
         );
     }
 
@@ -128,10 +127,8 @@ public class TestCase2572249 extends AbstractMsalBrokerTest {
 
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .userType(mUserType)
-                .build();
+    public UserType getJsonUserType() {
+        return mUserType;
     }
 
     @Override

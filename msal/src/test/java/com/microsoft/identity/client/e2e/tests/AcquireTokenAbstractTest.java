@@ -28,6 +28,9 @@ import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.http.MockHttpClient;
 import com.microsoft.identity.internal.testutils.TestUtils;
+import com.microsoft.identity.labapi.utilities.BuildConfig;
+import com.microsoft.identity.labapi.utilities.authentication.LabApiAuthenticationClient;
+import com.microsoft.identity.labapi.utilities.client.LabClient;
 
 import org.junit.After;
 import org.junit.Before;
@@ -43,6 +46,9 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
 
     protected String[] mScopes;
     protected final MockHttpClient mockHttpClient = MockHttpClient.install();
+
+    private final LabApiAuthenticationClient labApiAuthenticationClient = new LabApiAuthenticationClient(BuildConfig.LAB_CLIENT_SECRET);
+    public final LabClient labClient = new LabClient(labApiAuthenticationClient);
 
     @Before
     public void setup() {

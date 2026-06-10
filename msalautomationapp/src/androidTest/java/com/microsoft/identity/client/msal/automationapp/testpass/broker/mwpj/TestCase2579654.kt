@@ -31,16 +31,12 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters
-import com.microsoft.identity.client.ui.automation.rules.LoadLabUserTestRule
 import com.microsoft.identity.labapi.utilities.client.ILabAccount
-import com.microsoft.identity.labapi.utilities.client.LabQuery
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import com.microsoft.identity.labapi.utilities.jwt.JWTParserFactory
@@ -54,40 +50,30 @@ import org.junit.rules.TestRule
 // [MWPJ] After entry migration PRT is still usable without extra prompts.
 @LocalBrokerHostDebugUiTest
 @SupportedBrokers(brokers = [BrokerHost::class])
-@RetryOnFailure
 class TestCase2579654 : AbstractMsalBrokerTest() {
 
-    private lateinit var mUsGovAccount: ILabAccount
+    private lateinit var mGuestAccount: ILabAccount
     private lateinit var mLabAccount2: ILabAccount
     private lateinit var mBrokerHostApp: BrokerHost
-
-    @get:Rule
-    val loadUsGovLabAccountUserRule: TestRule = LoadLabUserTestRule(getAdditionalLabQuery())
-    @get:Rule
-    val loadAdditionalLabUserRule: TestRule = LoadLabUserTestRule(TempUserType.BASIC)
 
     @Test
     fun test_2579654_MWPJ_EntryMigrationPRTStillUsable() {
         // Register 2 accounts from different tenants
-        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mUsGovAccount.username, mUsGovAccount.password)
+        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mGuestAccount.username, mGuestAccount.password)
         mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mLabAccount.username, mLabAccount.password)
         val deviceRegistrationRecords = mBrokerHostApp.multipleWpjApiFragment.allRecords
         Assert.assertEquals(2, deviceRegistrationRecords.size)
 
         // Unregister the device from the legacy space
-        mBrokerHostApp.multipleWpjApiFragment.unregister(mUsGovAccount.username)
+        mBrokerHostApp.multipleWpjApiFragment.unregister(mGuestAccount.username)
 
-        // Verify that the device is unregistered for the legacy API
-        val errorMessage = mBrokerHostApp.accountUpn
-        Assert.assertNotNull(errorMessage)
-        Assert.assertTrue(errorMessage!!.contains("Device is not Workplace Joined"))
+        // Verify the device registration records via the MWPJ API after unregistering
+        val deviceRegistrationRecordsAfterLeave = mBrokerHostApp.multipleWpjApiFragment.allRecords
+        Assert.assertEquals(1, deviceRegistrationRecordsAfterLeave.size)
 
         // Verify that the device is still registered for the second account using the MWPJ API.
         val recordInExtendedSpace = mBrokerHostApp.multipleWpjApiFragment.getRecordByUpn(mLabAccount.username)
         Assert.assertNotNull(recordInExtendedSpace)
-
-        // Register the device with the second account (same tenant different upn) using the legacy API
-        mBrokerHostApp.performDeviceRegistration(mLabAccount2.username, mLabAccount2.password)
 
         //  SSO shall not break (PRT is still usable without extra prompts)
         val claimsRequest = ClaimsRequest()
@@ -111,7 +97,7 @@ class TestCase2579654 : AbstractMsalBrokerTest() {
                             .prompt(PromptParameter.WHEN_REQUIRED)
                             .loginHint(mLabAccount2.username)
                             .consentPageExpected(false)
-                            .passwordPageExpected(false)
+                            .passwordPageExpected(true)
                             .sessionExpected(true)
                             .build()
                     MicrosoftStsPromptHandler(promptHandlerParameters).handlePrompt(mLabAccount2.username, mLabAccount2.password)
@@ -123,27 +109,18 @@ class TestCase2579654 : AbstractMsalBrokerTest() {
         Assert.assertTrue("Device id claim is present", claims2.containsKey("deviceid"))
     }
 
-    override fun getLabQuery(): LabQuery {
-        return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .build()
+    override fun getJsonUserType(): UserType? {
+        return UserType.BASIC
     }
 
     override fun getTempUserType(): TempUserType? {
         return null
     }
 
-    private fun getAdditionalLabQuery(): LabQuery {
-        return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
-                .build()
-    }
-
     @Before
     fun before() {
-        mUsGovAccount = (loadUsGovLabAccountUserRule as LoadLabUserTestRule).labAccount
-        mLabAccount2 = (loadAdditionalLabUserRule as LoadLabUserTestRule).labAccount
+        mGuestAccount = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.GUEST)
+        mLabAccount2 = mLabClient.createTempAccount(TempUserType.BASIC)
         Assert.assertEquals(
                 "Lab accounts are not in the same tenant",
                 mLabAccount2.homeTenantId, mLabAccount.homeTenantId

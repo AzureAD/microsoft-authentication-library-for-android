@@ -51,6 +51,7 @@
         <package android:name="com.msft.oneauth.testapp" />
         <package android:name="com.microsoft.identity.client.testapp" />
         <package android:name="com.msft.identity.client.sample.local" />
+        <package android:name="com.azuresamples.msalnativeauthandroidkotlinsampleapp" />
     </queries>
 
 </manifest>

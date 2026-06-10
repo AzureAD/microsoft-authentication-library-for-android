@@ -22,9 +22,9 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.mam
 
+import com.microsoft.identity.client.msal.automationapp.BuildConfig
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest
 import com.microsoft.identity.client.msal.automationapp.R
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.app.OutlookApp
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost
@@ -34,20 +34,22 @@ import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppProm
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils
 import com.microsoft.identity.common.java.util.ThreadUtils
-import com.microsoft.identity.labapi.utilities.client.LabQuery
-import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assert
+import org.junit.Assume
 import org.junit.Test
 
 // Using TrueMAM account will require a broker, and will require CP instead of Authenticator
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2516571
-@RetryOnFailure
 class TestCase2516571 : AbstractMsalUiTest(){
 
     @Test
     fun test_2516571_MAM_BrokerRequired() {
+        Assume.assumeFalse( "Only run this test if there are local flights",
+                BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.isEmpty()
+        );
+        
         // Fetch credentials
         val username: String = mLabAccount.username
         val password: String = mLabAccount.password
@@ -128,7 +130,7 @@ class TestCase2516571 : AbstractMsalUiTest(){
 
         val brokerHost = BrokerHost()
         brokerHost.install()
-        brokerHost.wpjLeave()
+        brokerHost.wpjLeave(username)
 
         // advance clock by more than an hour to expire AT in cache
         settingsScreen.forwardDeviceTimeForOneDay()
@@ -151,7 +153,7 @@ class TestCase2516571 : AbstractMsalUiTest(){
 
         // Not totally sure what prompts outlook to take the snackbar away, sometimes it still appears after re-authentication
         // We wait a bit and relaunch outlook twice, this seems improve the chance of the snackbar disappearing
-        ThreadUtils.sleepSafely(20000, "sleeping", "interrupted sleep")
+        ThreadUtils.sleepSafely(35000, "sleeping", "interrupted sleep")
         outlook.forceStop()
         outlook.launch()
         outlook.forceStop()
@@ -173,11 +175,8 @@ class TestCase2516571 : AbstractMsalUiTest(){
         return R.raw.msal_config_default
     }
 
-    override fun getLabQuery(): LabQuery {
-        return LabQuery.builder()
-            .userType(UserType.CLOUD)
-            .protectionPolicy(ProtectionPolicy.TRUE_MAM_CA)
-            .build()
+    override fun getJsonUserType(): UserType? {
+        return UserType.TRUE_MAM_CA
     }
 
     override fun getTempUserType(): TempUserType? {

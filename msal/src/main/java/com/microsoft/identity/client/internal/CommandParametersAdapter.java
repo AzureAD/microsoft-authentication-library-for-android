@@ -365,6 +365,7 @@ public class CommandParametersAdapter {
                 .username(username)
                 .password(password)
                 .challengeType(configuration.getChallengeTypes())
+                .requestInterceptor(configuration.getRequestInterceptor())
                 .capabilities(configuration.getCapabilities())
                 .userAttributes(userAttributes)
                 // Start of the flow, so there is no correlation ID to use from a previous API response.
@@ -407,6 +408,7 @@ public class CommandParametersAdapter {
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .authority(authority)
                 .challengeType(configuration.getChallengeTypes())
+                .requestInterceptor(configuration.getRequestInterceptor())
                 .continuationToken(continuationToken)
                 .code(code)
                 .correlationId(correlationId)
@@ -444,6 +446,7 @@ public class CommandParametersAdapter {
                 .sdkVersion(PublicClientApplication.getSdkVersion())
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .challengeType(configuration.getChallengeTypes())
+                .requestInterceptor(configuration.getRequestInterceptor())
                 .authority(authority)
                 .continuationToken(continuationToken)
                 .correlationId(correlationId)
@@ -483,6 +486,7 @@ public class CommandParametersAdapter {
                 .authority(authority)
                 .clientId(configuration.getClientId())
                 .challengeType(configuration.getChallengeTypes())
+                .requestInterceptor(configuration.getRequestInterceptor())
                 .continuationToken(continuationToken)
                 .userAttributes(userAttributes)
                 .correlationId(correlationId)
@@ -522,6 +526,7 @@ public class CommandParametersAdapter {
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .authority(authority)
                 .challengeType(configuration.getChallengeTypes())
+                .requestInterceptor(configuration.getRequestInterceptor())
                 .continuationToken(continuationToken)
                 .password(password)
                 .correlationId(correlationId)
@@ -573,6 +578,7 @@ public class CommandParametersAdapter {
                 .authenticationScheme(authenticationScheme)
                 .clientId(configuration.getClientId())
                 .challengeType(configuration.getChallengeTypes())
+                .requestInterceptor(configuration.getRequestInterceptor())
                 .capabilities(configuration.getCapabilities())
                 .claimsRequestJson(claimsRequestJson)
                 .scopes(scopes)
@@ -628,6 +634,7 @@ public class CommandParametersAdapter {
                 .continuationToken(continuationToken)
                 .username(username)
                 .challengeType(configuration.getChallengeTypes())
+                .requestInterceptor(configuration.getRequestInterceptor())
                 .authenticationScheme(authenticationScheme)
                 .claimsRequestJson(claimsRequestJson)
                 .scopes(scopes)
@@ -680,6 +687,7 @@ public class CommandParametersAdapter {
                 .continuationToken(continuationToken)
                 .authenticationScheme(authenticationScheme)
                 .challengeType(configuration.getChallengeTypes())
+                .requestInterceptor(configuration.getRequestInterceptor())
                 .isMFAGrantType(false)
                 .code(code)
                 .scopes(scopes)
@@ -721,8 +729,8 @@ public class CommandParametersAdapter {
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .authority(authority)
                 .challengeType(configuration.getChallengeTypes())
+                .requestInterceptor(configuration.getRequestInterceptor())
                 .continuationToken(continuationToken)
-                .challengeType(configuration.getChallengeTypes())
                 .correlationId(correlationId)
                 .build();
 
@@ -775,6 +783,7 @@ public class CommandParametersAdapter {
                         .password(password)
                         .scopes(scopes)
                         .challengeType(configuration.getChallengeTypes())
+                        .requestInterceptor(configuration.getRequestInterceptor())
                         .correlationId(correlationId)
                         .claimsRequestJson(claimsRequestJson)
                         .build();
@@ -826,6 +835,7 @@ public class CommandParametersAdapter {
                         .authenticationScheme(authenticationScheme)
                         .continuationToken(continuationToken)
                         .challengeType(configuration.getChallengeTypes())
+                        .requestInterceptor(configuration.getRequestInterceptor())
                         .authMethodId(authMethodId)
                         .correlationId(correlationId)
                         .build();
@@ -875,6 +885,7 @@ public class CommandParametersAdapter {
                         .challenge(challenge)
                         .scopes(scopes)
                         .challengeType(configuration.getChallengeTypes())
+                        .requestInterceptor(configuration.getRequestInterceptor())
                         .continuationToken(continuationToken)
                         .clientId(configuration.getClientId())
                         .correlationId(correlationId)
@@ -913,6 +924,7 @@ public class CommandParametersAdapter {
                         .authority(authority)
                         .username(username)
                         .challengeType(configuration.getChallengeTypes())
+                        .requestInterceptor(configuration.getRequestInterceptor())
                         .capabilities(configuration.getCapabilities())
                         .clientId(configuration.getClientId())
                         // Start of the flow, so there is no correlation ID to use from a previous API response.
@@ -957,6 +969,7 @@ public class CommandParametersAdapter {
                         .authority(authority)
                         .code(code)
                         .challengeType(configuration.getChallengeTypes())
+                        .requestInterceptor(configuration.getRequestInterceptor())
                         .continuationToken(continuationToken)
                         .clientId(configuration.getClientId())
                         .correlationId(correlationId)
@@ -996,6 +1009,7 @@ public class CommandParametersAdapter {
                         .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                         .authority(authority)
                         .challengeType(configuration.getChallengeTypes())
+                        .requestInterceptor(configuration.getRequestInterceptor())
                         .continuationToken(continuationToken)
                         .clientId(configuration.getClientId())
                         .correlationId(correlationId)
@@ -1037,6 +1051,7 @@ public class CommandParametersAdapter {
                         .authority(authority)
                         .continuationToken(continuationToken)
                         .challengeType(configuration.getChallengeTypes())
+                        .requestInterceptor(configuration.getRequestInterceptor())
                         .newPassword(password)
                         .clientId(configuration.getClientId())
                         .correlationId(correlationId)
@@ -1092,6 +1107,7 @@ public class CommandParametersAdapter {
                 .continuationToken(continuationToken)
                 .correlationId(correlationId)
                 .challengeChannel(challengeChannel)
+                .requestInterceptor(configuration.getRequestInterceptor())
                 .build();
     }
 
@@ -1139,6 +1155,7 @@ public class CommandParametersAdapter {
                 .continuationToken(continuationToken)
                 .code(code)
                 .correlationId(correlationId)
+                .requestInterceptor(configuration.getRequestInterceptor())
                 .build();
     }
 

@@ -74,6 +74,7 @@ public class TokenParametersAuthorityMyOrgTest {
                 {AzureCloudInstance.AzureChina, "https://login.partner.microsoftonline.cn/" + testTenant},
                 {AzureCloudInstance.AzureGermany, "https://login.microsoftonline.de/" + testTenant},
                 {AzureCloudInstance.AzureUsGov, "https://login.microsoftonline.us/" + testTenant},
+                {AzureCloudInstance.AzureFranceSov, "https://login.sovcloud-identity.fr/" + testTenant},
         });
     }
 

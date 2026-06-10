@@ -28,7 +28,6 @@ import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
@@ -37,10 +36,7 @@ import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthent
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.ILabAccount;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
-import com.microsoft.identity.labapi.utilities.constants.UserRole;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
@@ -75,8 +71,8 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
         brokerHost.install();
         brokerHost.launch();
 
-        // In brokerHost Multiple WPJ mode: perform a shared device registration with a cloud device admin account from the LAB API
-        brokerHost.multipleWpjApiFragment.performSharedDeviceRegistration(username1, password1);
+        // In Broker Host: perform a shared device registration with a cloud device admin account from the LAB API
+        brokerHost.performSharedDeviceRegistration(username1, password1);
 
         // Uninstall BrokerHost App
         brokerHost.uninstall();
@@ -102,11 +98,7 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
         Assert.assertTrue(mode.contains("Single Account - Shared device"));
 
         // performs AcquireToken with an account from the same tenant with the WPJed account.
-        final LabQuery query = LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .build();
-
-        final ILabAccount difAccount = mLabClient.getLabAccount(query);
+        final ILabAccount difAccount = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.BASIC);
         final String username2 = difAccount.getUsername();
         final String password2 = difAccount.getPassword();
 
@@ -148,11 +140,8 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .userRole(UserRole.CLOUD_DEVICE_ADMINISTRATOR)
-                .build();
+    public UserType getJsonUserType() {
+        return UserType.DEVICE_ADMIN;
     }
 
     @Override
