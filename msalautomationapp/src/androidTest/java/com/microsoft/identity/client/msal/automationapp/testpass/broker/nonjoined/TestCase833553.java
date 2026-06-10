@@ -51,7 +51,7 @@ public class TestCase833553 extends AbstractMsalBrokerTest {
         final String username = mLabAccount.getUsername();
 
         // load this other user
-        final ILabAccount userB = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.ONPREM);
+        final ILabAccount userB = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.ANDROID_FEDERATED2);
 
         final String usernameB = userB.getUsername();
         final String password = userB.getPassword();
@@ -136,7 +136,7 @@ public class TestCase833553 extends AbstractMsalBrokerTest {
 
     @Override
     public UserType getJsonUserType() {
-        return UserType.FEDERATED;
+        return UserType.ANDROID_FEDERATED;
     }
 
     @Override

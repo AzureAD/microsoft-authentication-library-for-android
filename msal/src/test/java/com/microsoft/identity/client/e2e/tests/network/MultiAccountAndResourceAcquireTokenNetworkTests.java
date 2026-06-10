@@ -31,6 +31,7 @@ import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -72,6 +73,7 @@ public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireToke
     }
 
     @Test // test that accounts belonging to multiple clouds can live together in the app
+    @Ignore("Ignoring this until cross cloud scenarios are addressed under new lab tenant")
     public void testAcquireTokenAndSilentWithMultipleCloudAccountsSuccess() {
 
         final UserType[] userTypes = new UserType[]{
