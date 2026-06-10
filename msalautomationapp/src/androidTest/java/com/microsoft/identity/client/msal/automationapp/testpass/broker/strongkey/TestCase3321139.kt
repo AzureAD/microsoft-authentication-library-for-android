@@ -71,6 +71,7 @@ class TestCase3321139 : AbstractMsalBrokerTest() {
                             .broker(mBroker)
                             .expectingLoginPageAccountPicker(false)
                             .enrollPageExpected(true)
+                            .batteryOptimizationIgnoreSystemPromptExpected(true)
                             .build()
 
                     AadPromptHandler(promptHandlerParameters)
