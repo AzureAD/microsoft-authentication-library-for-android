@@ -2,6 +2,10 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+
+Version 8.4.0-RC1
+----------
+- [PATCH] Update common @24.4.0-RC1
 - [MINOR] Provide public api to set custom headers for CIAM requests (#2511)
 
 Version 8.3.3
