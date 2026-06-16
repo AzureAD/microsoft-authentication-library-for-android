@@ -70,29 +70,190 @@
     </suppress>
 
     <!--
-        CVE-2024-35255 — com.microsoft.identity:common4j
+        CVE-2024-35255 — com.microsoft.identity:common4j / com.microsoft.identity:common
 
         FALSE POSITIVE. NVD matches `cpe:2.3:a:microsoft:authentication_library:*`
-        against any Microsoft-published artifact whose name contains
-        "authentication" / "auth" / "library", but the CVE is filed against the
-        Azure Identity SDK for .NET (Microsoft.Identity.Web / Azure.Identity).
-        common4j is a Kotlin/Java library for the Android Auth client SDKs and
-        shares no code with the .NET SDK described by the CVE.
+        (including the `java` ecosystem variant) against any Microsoft-published
+        artifact whose name contains "authentication" / "auth" / "library".
+        The CVE is filed against the Azure Identity SDK for server-side Java
+        (com.azure:azure-identity) and MSAL for .NET. Neither `common4j` nor the
+        Android `common` AAR share code or architecture with those server-side
+        libraries; they are mobile-only Android authentication helpers.
 
-        Scoped to the common4j artifact only — other com.microsoft.identity:*
-        artifacts (msal, common, broker4j, ...) still get scanned against this
-        CPE in case a real overlap ever shows up.
-
-        Added: 2026-06-15 by build-system maintainers.
+        Added: 2026-06-15 / updated 2026-06-16 by build-system maintainers.
     -->
     <suppress>
         <notes><![CDATA[
-            False positive: cpe:microsoft:authentication_library refers to the
-            Azure Identity SDK for .NET, not the Android Java/Kotlin common4j
-            library.
+            False positive: cpe:microsoft:authentication_library:java targets the
+            Azure Identity SDK for server-side Java, not the Android common4j library.
         ]]></notes>
         <packageUrl regex="true">^pkg:maven/com\.microsoft\.identity/common4j@.*$</packageUrl>
         <cpe>cpe:/a:microsoft:authentication_library</cpe>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+            False positive: cpe:microsoft:authentication_library:java targets the
+            Azure Identity SDK for server-side Java, not the Android common AAR.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/com\.microsoft\.identity/common@.*$</packageUrl>
+        <cpe>cpe:/a:microsoft:authentication_library</cpe>
+    </suppress>
+
+    <!--
+        CVE-2020-29582 — org.jetbrains.kotlin:kotlin-stdlib / kotlin-stdlib-jdk7 / kotlin-stdlib-jdk8
+
+        FALSE POSITIVE.  CVE-2020-29582 describes a vulnerability in JetBrains
+        Kotlin BEFORE version 1.4.21, where a vulnerable Java API was used for
+        temporary file/folder creation that could allow an attacker to read data
+        or list directories.  The stdlib artifacts in this project are version
+        1.9.21 (kotlin-stdlib) and 1.8.0 (kotlin-stdlib-jdk7/jdk8) — all of
+        which are far above the fixed threshold of 1.4.21.  OWASP Dependency-
+        Check matches these via the wildcard CPE
+        `cpe:2.3:a:jetbrains:kotlin:*:*:*:*:*:*:*:*` and does not evaluate the
+        "versionEndExcluding: 1.4.21" constraint before flagging.
+
+        Added: 2026-06-16 by build-system maintainers.
+    -->
+    <suppress>
+        <notes><![CDATA[
+            False positive: CVE-2020-29582 affects Kotlin < 1.4.21 only.
+            kotlin-stdlib 1.9.21 is not vulnerable.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin-stdlib@.*$</packageUrl>
+        <cve>CVE-2020-29582</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+            False positive: CVE-2020-29582 affects Kotlin < 1.4.21 only.
+            kotlin-stdlib-jdk7 1.8.0 is not vulnerable.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin-stdlib-jdk7@.*$</packageUrl>
+        <cve>CVE-2020-29582</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+            False positive: CVE-2020-29582 affects Kotlin < 1.4.21 only.
+            kotlin-stdlib-jdk8 1.8.0 is not vulnerable.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin-stdlib-jdk8@.*$</packageUrl>
+        <cve>CVE-2020-29582</cve>
+    </suppress>
+
+    <!--
+        CVE-2026-39883 / CVE-2026-39882 — io.opentelemetry:* (Go ecosystem mismatch)
+        CVE-2026-44967               — io.opentelemetry:* (C++ ecosystem mismatch)
+
+        FALSE POSITIVES.  All three CVEs target entirely different language
+        implementations of OpenTelemetry:
+
+          • CVE-2026-39883 and CVE-2026-39882 are filed against OpenTelemetry-Go
+            (CPE `cpe:2.3:a:opentelemetry:opentelemetry:*:*:*:*:*:go:*:*`).
+            They describe PATH-hijacking on BSD/Solaris and unbounded HTTP
+            response buffering in the Go OTLP exporters respectively.
+
+          • CVE-2026-44967 is filed against OpenTelemetry-cpp
+            (CPE `cpe:2.3:a:opentelemetry:opentelemetry:*:*:*:*:*:c%2B%2B:*:*`).
+            It describes unbounded HTTP response buffering in the C++ OTLP exporters.
+
+        The affected JARs (`opentelemetry-api`, `opentelemetry-context`,
+        `opentelemetry-extension-kotlin`) are JVM libraries from the Java
+        implementation of OpenTelemetry. They share neither code nor runtime
+        with the Go or C++ SDKs. OWASP DC matches the broad
+        `opentelemetry:opentelemetry` CPE prefix against all io.opentelemetry
+        Maven artifacts without checking the language-ecosystem qualifier.
+
+        Added: 2026-06-16 by build-system maintainers.
+    -->
+    <suppress>
+        <notes><![CDATA[
+            False positive: CVE-2026-39883/39882/44967 target OpenTelemetry-Go and
+            OpenTelemetry-cpp. All io.opentelemetry Java/Kotlin JARs are unaffected.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/io\.opentelemetry/opentelemetry-api@.*$</packageUrl>
+        <cpe>cpe:/a:opentelemetry:opentelemetry</cpe>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+            False positive: CVE-2026-39883/39882/44967 target OpenTelemetry-Go and
+            OpenTelemetry-cpp. All io.opentelemetry Java/Kotlin JARs are unaffected.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/io\.opentelemetry/opentelemetry-context@.*$</packageUrl>
+        <cpe>cpe:/a:opentelemetry:opentelemetry</cpe>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+            False positive: CVE-2026-39883/39882/44967 target OpenTelemetry-Go and
+            OpenTelemetry-cpp. All io.opentelemetry Java/Kotlin JARs are unaffected.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/io\.opentelemetry/opentelemetry-extension-kotlin@.*$</packageUrl>
+        <cpe>cpe:/a:opentelemetry:opentelemetry</cpe>
+    </suppress>
+
+    <!--
+        CVE-2021-22569 — com.google.protobuf:protobuf-javalite (shaded inside datastore-preferences-core)
+
+        FALSE POSITIVE.  CVE-2021-22569 was filed against `protobuf-java` and
+        `protobuf-kotlin` (the non-lite, full JVM editions of protobuf).  The
+        NVD vulnerable-software list does NOT include `protobuf-javalite`.
+        OWASP Dependency-Check matches the shaded `protobuf-javalite` artifact
+        inside `datastore-preferences-core-1.0.0.jar` via a broad CPE match,
+        but the lite edition's parsing code is separate from the path described
+        in the CVE advisory.
+
+        Added: 2026-06-16 by build-system maintainers.
+    -->
+    <suppress>
+        <notes><![CDATA[
+            False positive: CVE-2021-22569 NVD vulnerable-software list covers
+            protobuf-java and protobuf-kotlin but not protobuf-javalite.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/com\.google\.protobuf/protobuf-javalite@.*$</packageUrl>
+        <cve>CVE-2021-22569</cve>
+    </suppress>
+
+    <!--
+        CVE-2022-3171 / CVE-2024-7254 — com.google.protobuf:protobuf-javalite:3.10.0
+                                         (shaded inside datastore-preferences-core:1.0.0)
+
+        NOT EXPLOITABLE IN THIS CONTEXT.  Both CVEs describe Denial-of-Service
+        attacks that require an attacker to supply crafted protobuf binary data
+        to the parsing APIs:
+
+          • CVE-2022-3171: multiple repeated/unknown fields cause quadratic
+            memory usage when merging messages.
+          • CVE-2024-7254: deeply nested groups / SGROUP tags exhaust the
+            call stack.
+
+        `datastore-preferences-core` bundles protobuf-javalite exclusively to
+        serialise and deserialise Android app preferences to local device
+        storage. The data is always written by the same application process;
+        there is no code path where external, attacker-controlled protobuf
+        bytes are fed to this library.
+
+        The shaded dependency cannot be upgraded independently of the
+        `datastore-preferences-core` artifact version. Upgrading DataStore
+        to a version that ships with protobuf-javalite >= 3.25.5 is the
+        long-term remediation (tracked in PBI #3667951).
+
+        Added: 2026-06-16 by build-system maintainers.
+    -->
+    <suppress>
+        <notes><![CDATA[
+            Not exploitable: DataStore uses protobuf only for local app preferences;
+            no untrusted external protobuf data is ever parsed. CVE-2022-3171 requires
+            attacker-supplied binary input to the protobuf parser.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/com\.google\.protobuf/protobuf-javalite@.*$</packageUrl>
+        <cve>CVE-2022-3171</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+            Not exploitable: DataStore uses protobuf only for local app preferences;
+            no untrusted external protobuf data is ever parsed. CVE-2024-7254 requires
+            deeply nested groups in attacker-supplied protobuf input.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/com\.google\.protobuf/protobuf-javalite@.*$</packageUrl>
+        <cve>CVE-2024-7254</cve>
     </suppress>
 
 </suppressions>
