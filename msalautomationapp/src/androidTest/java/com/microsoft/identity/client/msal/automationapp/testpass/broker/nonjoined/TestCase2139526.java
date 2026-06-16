@@ -32,13 +32,13 @@ import com.microsoft.identity.client.msal.automationapp.testpass.broker.Abstract
 import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.LongUIAutomationTest;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
+
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -46,7 +46,6 @@ import java.util.concurrent.TimeUnit;
 
 // Acquire Token Silent After Policy Change Should Fail
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2139526
-@RetryOnFailure
 @LongUIAutomationTest
 public class TestCase2139526 extends AbstractMsalBrokerTest {
 
@@ -87,8 +86,8 @@ public class TestCase2139526 extends AbstractMsalBrokerTest {
 
         authResult.assertSuccess();
 
-        // Change the policy to MAM_CA
-        mLabClient.enablePolicy(username, ProtectionPolicy.MAM_CA);
+        // Change the policy to GLOBAL_MFA, any policy will work as long as it blocks silent request
+        mLabClient.enablePolicy(username, ProtectionPolicy.GLOBAL_MFA);
 
         // It takes some time for the policy change to reflect
         Thread.sleep(TimeUnit.MINUTES.toMillis(3));
@@ -115,7 +114,7 @@ public class TestCase2139526 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
+    public UserType getJsonUserType() {
         return null;
     }
 

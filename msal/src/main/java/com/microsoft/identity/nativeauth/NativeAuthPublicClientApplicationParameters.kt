@@ -23,7 +23,6 @@
 
 package com.microsoft.identity.nativeauth
 
-
 public class NativeAuthPublicClientApplicationParameters (
     /**
      * The application client id. Cannot be null.
@@ -48,4 +47,12 @@ public class NativeAuthPublicClientApplicationParameters (
      *  The redirect URI of the application. Required for using browser.
      */
     var redirectUri: String? = null
+
+    /**
+     * An optional interceptor for injecting custom HTTP headers into native auth requests.
+     * Only headers with names starting with "x-" are permitted (excluding reserved prefixes
+     * such as "x-ms-", "x-client-", "x-broker-", "x-app-").
+     * Refer to [NativeAuthRequestInterceptor] for more details.
+     */
+    var requestInterceptor: NativeAuthRequestInterceptor? = null
 }

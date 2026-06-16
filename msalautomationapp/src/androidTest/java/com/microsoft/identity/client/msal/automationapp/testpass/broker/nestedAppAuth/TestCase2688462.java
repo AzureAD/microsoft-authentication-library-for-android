@@ -27,14 +27,11 @@ import androidx.annotation.NonNull;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -46,7 +43,6 @@ import java.util.List;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2688462
 @SupportedBrokers(brokers = BrokerHost.class)
 @LocalBrokerHostDebugUiTest
-@RetryOnFailure
 @RunWith(Parameterized.class)
 public class TestCase2688462 extends AbstractMsalBrokerTest {
     private final UserType mUserType;
@@ -59,7 +55,7 @@ public class TestCase2688462 extends AbstractMsalBrokerTest {
     public static List<UserType> userType() {
         return Arrays.asList(
                 UserType.MSA,
-                UserType.CLOUD
+                UserType.BASIC
         );
     }
 
@@ -73,10 +69,8 @@ public class TestCase2688462 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .userType(mUserType)
-                .build();
+    public UserType getJsonUserType() {
+        return mUserType;
     }
 
     @Override

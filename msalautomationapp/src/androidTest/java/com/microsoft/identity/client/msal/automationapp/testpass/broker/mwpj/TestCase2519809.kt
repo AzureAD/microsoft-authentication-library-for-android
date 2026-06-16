@@ -28,8 +28,6 @@ import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDe
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost
 import com.microsoft.identity.labapi.utilities.client.ILabAccount
-import com.microsoft.identity.labapi.utilities.client.LabQuery
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assert
@@ -41,14 +39,14 @@ import org.junit.Test
 @SupportedBrokers(brokers = [BrokerHost::class])
 @LocalBrokerHostDebugUiTest
 class TestCase2519809 : AbstractMsalBrokerTest() {
-    private lateinit var mUsGovAccount: ILabAccount
+    private lateinit var mGuestAccount: ILabAccount
     private lateinit var mBrokerHostApp: BrokerHost
 
     @Test
     fun test_2519809_MWPJ_Unregister() {
         // Register 2 accounts from different tenants
         mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mLabAccount.username, mLabAccount.password)
-        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mUsGovAccount.username, mUsGovAccount.password)
+        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mGuestAccount.username, mGuestAccount.password)
         val deviceRegistrationRecords = mBrokerHostApp.multipleWpjApiFragment.allRecords
         Assert.assertEquals(2, deviceRegistrationRecords.size)
 
@@ -58,26 +56,17 @@ class TestCase2519809 : AbstractMsalBrokerTest() {
         Assert.assertEquals(0, mBrokerHostApp.multipleWpjApiFragment.allRecords.size)
     }
 
-    override fun getLabQuery(): LabQuery {
-        return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .build()
+    override fun getJsonUserType(): UserType? {
+        return UserType.BASIC
     }
 
     override fun getTempUserType(): TempUserType? {
         return null
     }
 
-    private fun getUsGovLabQuery(): LabQuery {
-        return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
-                .build()
-    }
-
     @Before
     fun before() {
-        mUsGovAccount = mLabClient.getLabAccount(getUsGovLabQuery())
+        mGuestAccount = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.GUEST)
         mBrokerHostApp = broker as BrokerHost
         mBrokerHostApp.enableMultipleWpj()
     }

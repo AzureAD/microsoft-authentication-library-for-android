@@ -3192,6 +3192,8 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertTrue(signUpResult instanceof SignUpError);
         assertTrue(((SignUpError) signUpResult).isInvalidUsername());
     }
+
+
 }
 
 abstract class TestCallback<T> {

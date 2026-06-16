@@ -30,11 +30,8 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator
-import com.microsoft.identity.labapi.utilities.client.LabQuery
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assume
@@ -42,7 +39,6 @@ import org.junit.Test
 
 // [StrongKey] WPJ should be registered with strongkey by default - non shared device.
 @SupportedBrokers(brokers = [BrokerMicrosoftAuthenticator::class])
-@RetryOnFailure
 class TestCase3522687 : AbstractMsalBrokerTest() {
 
     @Test
@@ -52,17 +48,18 @@ class TestCase3522687 : AbstractMsalBrokerTest() {
             BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("performNonSharedWpjWithHardwareKey:true")
         )
 
-        val basicUser = mLabClient.getAccountFromLabJsonStringInMobileBuildVault(UserType.TOKEN_BINDING)
+        val username = mLabAccount.getUsername()
+        val password = mLabAccount.getPassword()
 
         (mBroker as BrokerMicrosoftAuthenticator).setShouldUseDeviceSettingsPage(false)
-        mBroker.performDeviceRegistration(basicUser.username, basicUser.password)
+        mBroker.performDeviceRegistration(username, password)
 
         //acquiring token, no password prompt, no wpj upgrade prompt.
         val msalSdk = MsalSdk()
         val authTestParams: MsalAuthTestParams = MsalAuthTestParams.builder()
             .activity(mActivity)
-            .loginHint(basicUser.username)
-            .scopes(listOf(*mScopes))
+            .loginHint(username)
+            .resource("00000003-0000-0ff1-ce00-000000000000") // Office 365 SharePoint Online
             .promptParameter(Prompt.SELECT_ACCOUNT)
             .msalConfigResourceId(configFileResourceId)
             .build()
@@ -75,10 +72,8 @@ class TestCase3522687 : AbstractMsalBrokerTest() {
         authResult.assertSuccess()
     }
 
-    override fun getLabQuery(): LabQuery? {
-        return LabQuery.builder()
-            .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-            .build()
+    override fun getJsonUserType(): UserType? {
+        return UserType.TOKEN_BINDING
     }
 
     override fun getTempUserType(): TempUserType? {
@@ -86,7 +81,7 @@ class TestCase3522687 : AbstractMsalBrokerTest() {
     }
 
     override fun getScopes(): Array<String> {
-        return arrayOf("user.read")
+        return arrayOf()
     }
 
     override fun getAuthority(): String {

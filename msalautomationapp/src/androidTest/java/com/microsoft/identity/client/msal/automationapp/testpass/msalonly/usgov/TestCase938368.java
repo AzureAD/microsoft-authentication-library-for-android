@@ -31,7 +31,6 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
@@ -41,8 +40,6 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.Micr
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.common.java.util.ThreadUtils;
-import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
@@ -56,9 +53,7 @@ import java.util.concurrent.TimeUnit;
 // and federated account, and WW common authority
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938368
 // Adding a retry on failure, sometimes arlington login page fails to load
-@RetryOnFailure(retryCount = 2)
 @RunOnAPI29Minus("Speed Bump Page")
-@Ignore("Federated Account in LAB is not working at the moment")
 public class TestCase938368 extends AbstractMsalUiTest {
 
     @Test
@@ -110,11 +105,8 @@ public class TestCase938368 extends AbstractMsalUiTest {
     }
 
     @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
-                .userType(UserType.FEDERATED)
-                .build();
+    public UserType getJsonUserType() {
+        return UserType.FEDERATED;
     }
 
     @Override

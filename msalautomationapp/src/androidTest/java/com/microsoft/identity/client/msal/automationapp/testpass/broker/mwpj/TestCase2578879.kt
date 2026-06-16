@@ -31,14 +31,12 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters
 import com.microsoft.identity.labapi.utilities.client.ILabAccount
-import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import com.microsoft.identity.labapi.utilities.jwt.JWTParserFactory
@@ -50,7 +48,6 @@ import org.junit.Test
 // [MWPJ] An account with no PRT use no Joined flow even if the tenant is registered (Pkey AUth enable)
 @SupportedBrokers(brokers = [BrokerHost::class])
 @LocalBrokerHostDebugUiTest
-@RetryOnFailure
 class TestCase2578879 : AbstractMsalBrokerTest() {
 
     private lateinit var mLabAccount2: ILabAccount
@@ -154,10 +151,8 @@ class TestCase2578879 : AbstractMsalBrokerTest() {
         return R.raw.msal_config_pkey_auth_silent
     }
 
-    override fun getLabQuery(): LabQuery {
-        return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .build()
+    override fun getJsonUserType(): UserType? {
+        return UserType.BASIC
     }
 
     override fun getTempUserType(): TempUserType? {
