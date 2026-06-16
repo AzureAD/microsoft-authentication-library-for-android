@@ -4,15 +4,15 @@
 
     LOCATION RATIONALE
     ==================
-    This file lives inside the `msal` repository (at msal/config/owasp/) so
+    This file lives inside the `msal` repository (at config/owasp/) so
     that it travels with the codebase whether the build is driven from the
     standalone `msal` repo or from the `android-complete` multi-repo
     aggregator. Other static-analysis configs (checkstyle, credscan, spotbugs)
-    live in sibling folders under msal/config/ for the same reason.
+    live in sibling folders under config/ for the same reason.
 
     WIRING
     ======
-    Picked up automatically by `msal/msal/build.gradle`:
+    Picked up automatically by `msal/build.gradle`:
         def dependencyCheckSuppressionFile = file(
                 "${projectDir}/../config/owasp/dependency-check-suppressions.xml")
         if (dependencyCheckSuppressionFile.exists()) {
@@ -39,8 +39,8 @@
        valid today may start hiding real findings tomorrow. Plan to audit this
        file when the dependency-check plugin is upgraded.
 
-    4. REGENERATE FROM THE HTML REPORT WHEN POSSIBLE. Open the generated report
-       at msal/msal/build/reports/dependency-check/dependency-check-report.html,
+     4. REGENERATE FROM THE HTML REPORT WHEN POSSIBLE. Open the generated report
+         at msal/build/reports/dependency-check/dependency-check-report.html,
        click "suppress" on a finding, and paste the generated snippet here —
        that guarantees the SHA1/packageUrl values exactly match what the scan
        sees.

@@ -511,7 +511,6 @@ gradle.taskGraph.whenReady { graph ->
     if (!__nvdApiKey && graph.hasTask(project.tasks.named('dependencyCheckAnalyze').get())) {
         throw new GradleException(
                 "OWASP dependency-check requires an NVD API key.\n" +
-                "Provide via: -PnvdApiKey=<key>  |  gradle.properties: nvdApiKey=<key>  |  env NVD_API_KEY=<key>\n" +
-                "Key lives in the Android Auth team KeyVault; CI injects it from there.")
+                "Provide via: -PnvdApiKey=<key>  |  gradle.properties: nvdApiKey=<key>  |  env NVD_API_KEY=<key>")
     }
 }
