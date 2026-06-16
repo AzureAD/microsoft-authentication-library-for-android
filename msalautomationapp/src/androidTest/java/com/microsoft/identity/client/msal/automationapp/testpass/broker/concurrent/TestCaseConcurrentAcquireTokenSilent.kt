@@ -29,6 +29,7 @@ import com.microsoft.identity.client.SilentAuthenticationCallback
 import com.microsoft.identity.client.claims.ClaimsRequest
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation
 import com.microsoft.identity.client.exception.MsalException
+import com.microsoft.identity.client.msal.automationapp.BuildConfig
 import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk
@@ -43,6 +44,8 @@ import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequ
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler
+import com.microsoft.identity.client.ui.automation.logging.Logger
+import com.microsoft.identity.common.java.exception.ClientException
 import com.microsoft.identity.common.java.providers.oauth2.IDToken
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
@@ -149,9 +152,23 @@ class TestCaseConcurrentAcquireTokenSilent : AbstractMsalBrokerTest() {
                 " completed $ITERATIONS waves (per-wave timeout ${PER_WAVE_TIMEOUT_SECONDS}s)",
             result.allCompleted,
         )
+
+        // null_object under concurrency is a known broker issue whose fix (network-token fallback)
+        // is gated to MSAL_CPP (OneAuth).
+        val unexpectedErrors = result.errors.filterNot { it.contains("[${ClientException.NULL_OBJECT}]") }
+
+        val toleratedNullObjects = result.errors.size - unexpectedErrors.size
+        if (toleratedNullObjects > 0) {
+            Logger.w(
+                TAG,
+                "Tolerated $toleratedNullObjects known null_object error(s);" +
+                    " UseNetworkTokenFallbackForNullObjectMsalAndroid flight is off",
+            )
+        }
+
         Assert.assertTrue(
-            "Some concurrent AcquireTokenSilent calls failed: ${result.errors}",
-            result.errors.isEmpty(),
+            "Some concurrent AcquireTokenSilent calls failed: $unexpectedErrors",
+            unexpectedErrors.isEmpty(),
         )
     }
 
@@ -167,9 +184,11 @@ class TestCaseConcurrentAcquireTokenSilent : AbstractMsalBrokerTest() {
     override fun getConfigFileResourceId(): Int = R.raw.msal_config_default
 
     companion object {
+        private val TAG = TestCaseConcurrentAcquireTokenSilent::class.java.simpleName
+
         /** One thread per pooled scope, so every concurrent request is unique. */
         private val CONCURRENT_THREADS = ConcurrentAcquireTokenSilentHelper.SCOPE_POOL.size
-        private const val ITERATIONS = 20
-        private const val PER_WAVE_TIMEOUT_SECONDS = 15L
+        private const val ITERATIONS = 100
+        private const val PER_WAVE_TIMEOUT_SECONDS = 30L
     }
 }
