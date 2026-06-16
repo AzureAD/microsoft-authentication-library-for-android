@@ -170,6 +170,6 @@ class TestCaseConcurrentAcquireTokenSilent : AbstractMsalBrokerTest() {
         /** One thread per pooled scope, so every concurrent request is unique. */
         private val CONCURRENT_THREADS = ConcurrentAcquireTokenSilentHelper.SCOPE_POOL.size
         private const val ITERATIONS = 20
-        private const val PER_WAVE_TIMEOUT_SECONDS = 10L
+        private const val PER_WAVE_TIMEOUT_SECONDS = 15L
     }
 }

@@ -46,16 +46,21 @@ object ConcurrentAcquireTokenSilentHelper {
      * de-duplicated. All are silently satisfiable once the device is WPJ'd.
      */
     val SCOPE_POOL = arrayOf(
-        "user.read",
-        "user.readbasic.all",
-        "mail.read",
-        "calendars.read",
-        "contacts.read",
-        "files.read",
-        "people.read",
-        "notes.read",
-        "tasks.read",
-        "presence.read",
+        "User.Read",
+        "AccessReview.Read.All",
+        "PeopleSettings.Read.All",
+        "AdministrativeUnit.Read.All",
+        "UserAuthenticationMethod.Read",
+        "Sites.Search.All",
+        "User-Phone.ReadWrite.All",
+        "Organization.Read.All",
+        "AgentCollection.Read.All",
+        "Place.Read.All",
+        "Application.Read.All",
+        "Agreement.Read.All",
+        "TermStore.Read.All",
+        "User-Mail.ReadWrite.All",
+        "User-LifeCycleInfo.Read.All"
     )
 
     fun scopesForThread(threadIndex: Int): List<String> =
