@@ -124,19 +124,21 @@ class ConcurrentAcquireTokenExecutor(
          * (CommandDispatcher collapses commands with identical parameters).
          */
         private val SCOPE_POOL = listOf(
-            "user.read",
-            "user.readbasic.all",
-            "mail.read",
-            "calendars.read",
-            "contacts.read",
-            "files.read",
-            "files.read.all",
-            "people.read",
-            "notes.read",
-            "tasks.read",
-            "sites.read.all",
-            "directory.read.all",
-            "group.read.all"
+            "User.Read",
+            "AccessReview.Read.All",
+            "PeopleSettings.Read.All",
+            "AdministrativeUnit.Read.All",
+            "UserAuthenticationMethod.Read",
+            "Sites.Search.All",
+            "User-Phone.ReadWrite.All",
+            "Organization.Read.All",
+            "AgentCollection.Read.All",
+            "Place.Read.All",
+            "Application.Read.All",
+            "Agreement.Read.All",
+            "TermStore.Read.All",
+            "User-Mail.ReadWrite.All",
+            "User-LifeCycleInfo.Read.All"
         )
 
         /**

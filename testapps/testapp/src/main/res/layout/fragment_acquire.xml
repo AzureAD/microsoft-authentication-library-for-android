@@ -755,7 +755,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="7"
                 android:inputType="number"
-                android:text="13"
+                android:text="15"
                 android:textSize="12sp" />
         </LinearLayout>
 
