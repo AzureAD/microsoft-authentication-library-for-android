@@ -154,7 +154,7 @@ class TestCaseConcurrentAcquireTokenSilent : AbstractMsalBrokerTest() {
         )
 
         // null_object under concurrency is a known broker issue whose fix (network-token fallback)
-        // is gated to MSAL_CPP (OneAuth).
+        // is gated to MSAL_CPP (OneAuth). See BrokerFlight.USE_NETWORK_TOKEN_FALLBACK_FOR_NULL_OBJECT
         val unexpectedErrors = result.errors.filterNot { it.contains("[${ClientException.NULL_OBJECT}]") }
 
         val toleratedNullObjects = result.errors.size - unexpectedErrors.size
