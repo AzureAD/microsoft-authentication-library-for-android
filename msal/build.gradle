@@ -458,6 +458,7 @@ tasks.withType(GenerateMavenPom).all {
 // Resolution order (first wins): -PnvdApiKey  →  gradle.properties: nvdApiKey  →  env NVD_API_KEY
 // Missing key triggers fail-fast in the taskGraph hook below (avoids confusing
 // 429 / NoDataException cascade from inside the plugin).
+def dependencyCheckAutoUpdate = (project.findProperty("dependencyCheckAutoUpdate") ?: "false").toBoolean()
 def dependencyCheckFailOnCvss = (project.findProperty("dependencyCheckFailOnCvss") ?: "7.0").toFloat()
 def dependencyCheckFormats = (project.findProperty("dependencyCheckFormats")?.toString()?.split(",")*.trim()
         ?: ["HTML", "JSON"])
@@ -465,6 +466,7 @@ def dependencyCheckSuppressionFile = file("${projectDir}/../config/owasp/depende
 def __nvdApiKey = (project.findProperty("nvdApiKey") ?: System.getenv("NVD_API_KEY"))?.toString()?.trim()
 
 dependencyCheck {
+    autoUpdate = dependencyCheckAutoUpdate
     failBuildOnCVSS = dependencyCheckFailOnCvss
     formats = dependencyCheckFormats
     outputDirectory = layout.buildDirectory.dir("reports/dependency-check").get().asFile.absolutePath
