@@ -117,6 +117,9 @@ public class StartActivity extends AppCompatActivity {
 
         final Intent vidIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(vidUri));
         vidIntent.setPackage(AUTHENTICATOR_PACKAGE);
+        // Launch Authenticator into its own task so the VID flow is owned by Authenticator
+        // (and appears under Authenticator in Recents), not nested in the caller's task.
+        vidIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         vidIntent.putExtra(RETURN_PENDING_INTENT_EXTRA, returnPendingIntent);
         vidIntent.putExtra(REQUEST_STATE_EXTRA, requestState);
 
