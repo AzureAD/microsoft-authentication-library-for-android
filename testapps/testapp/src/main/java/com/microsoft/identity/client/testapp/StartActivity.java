@@ -22,22 +22,38 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.testapp;
 
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.microsoft.identity.common.internal.ui.ReturnToCallerActivity;
+
+import java.util.UUID;
+
 public class StartActivity extends AppCompatActivity {
 
     //private static final String TAG = StartActivity.class.getSimpleName();
+    private static final String TAG = "StartActivity";
+    private static final String AUTHENTICATOR_PACKAGE = "com.azure.authenticator";
+    private static final String RETURN_PENDING_INTENT_EXTRA = "return_pending_intent";
+    private static final String REQUEST_STATE_EXTRA = "request_state";
+
     private Button mStartTaskButton;
+    private Button mTriggerVidButton;
+    private EditText mVidUriEditText;
 
 
     @Override
@@ -54,6 +70,8 @@ public class StartActivity extends AppCompatActivity {
             return insets;
         });
         mStartTaskButton = findViewById(R.id.btnStartTask);
+        mTriggerVidButton = findViewById(R.id.btnTriggerVid);
+        mVidUriEditText = findViewById(R.id.etVidUri);
 
         mStartTaskButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -72,6 +90,57 @@ public class StartActivity extends AppCompatActivity {
             }
         });
 
+        mTriggerVidButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                triggerVid();
+            }
+        });
+
+    }
+
+    /**
+     * Shortcut that mimics an MSAL-consuming app starting the VID flow: it creates a one-time,
+     * immutable return PendingIntent (targeting our own {@link ReturnToCallerActivity}) and hands
+     * it to Authenticator alongside the openid-vc deep link. After VID completes, Authenticator
+     * invokes the PendingIntent to bring this app's task back to the foreground.
+     */
+    private void triggerVid() {
+        final String vidUri = mVidUriEditText.getText().toString().trim();
+        if (vidUri.isEmpty()) {
+            Toast.makeText(this, "Enter an openid-vc URI", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final String requestState = UUID.randomUUID().toString();
+        final PendingIntent returnPendingIntent = createReturnToCallerPendingIntent(requestState);
+
+        final Intent vidIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(vidUri));
+        vidIntent.setPackage(AUTHENTICATOR_PACKAGE);
+        vidIntent.putExtra(RETURN_PENDING_INTENT_EXTRA, returnPendingIntent);
+        vidIntent.putExtra(REQUEST_STATE_EXTRA, requestState);
+
+        try {
+            startActivity(vidIntent);
+            Log.i(TAG, "Launched VID flow with request_state=" + requestState);
+        } catch (final Exception e) {
+            Log.e(TAG, "Failed to launch Authenticator for VID", e);
+            Toast.makeText(this, "Authenticator not available: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private PendingIntent createReturnToCallerPendingIntent(final String requestState) {
+        final Intent returnIntent = new Intent(this, ReturnToCallerActivity.class);
+        returnIntent.setAction("com.microsoft.identity.RETURN_FROM_VID");
+        returnIntent.putExtra(REQUEST_STATE_EXTRA, requestState);
+        returnIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        returnIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+        return PendingIntent.getActivity(
+                this,
+                requestState.hashCode(),
+                returnIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 
     @Override

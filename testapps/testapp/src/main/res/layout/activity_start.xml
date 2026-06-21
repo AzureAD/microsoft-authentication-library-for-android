@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical" android:layout_width="match_parent"
+    android:padding="16dp"
     android:layout_height="match_parent">
 
     <Button
@@ -9,4 +10,32 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/launch_main_activity_button" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="#33000000" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="openid-vc deep link (paste a real VID request URI):" />
+
+    <EditText
+        android:id="@+id/etVidUri"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="openid-vc://"
+        android:text="openid-vc://"
+        android:inputType="textUri"
+        tools:ignore="Autofill" />
+
+    <Button
+        android:id="@+id/btnTriggerVid"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Trigger openid-vc (VID) with return PendingIntent" />
 </LinearLayout>
