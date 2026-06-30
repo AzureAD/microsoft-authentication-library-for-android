@@ -80,6 +80,11 @@ public class MainActivity extends AppCompatActivity
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
+    /** Single-use correlation id carried from {@link BrokerInstallResumeActivity} when resuming a
+     * request post-install. The full request parameters are read from the encrypted store keyed by
+     * this id — they are intentionally NOT passed as individual extras. */
+    public static final String EXTRA_RESUME_CORRELATION_ID = "resume_correlation_id";
+
     private String mStringResult;
     private IAuthenticationResult mAuthResult;
 
@@ -163,6 +168,36 @@ public class MainActivity extends AppCompatActivity
         if (!StringUtil.isNullOrEmpty(BuildConfig.otelAriaToken)) {
             initOpenTelemetry(getApplicationContext());
         }
+
+        maybeHandleBrokerInstallResume(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(final android.content.Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        maybeHandleBrokerInstallResume(intent);
+    }
+
+    /**
+     * POC: if launched from {@link BrokerInstallResumeActivity}, open the AcquireToken tab with the
+     * persisted request prefilled and armed to auto-fire — the interactive request resumes silently
+     * with no user tap, completing the original 1P sign-in in broker context.
+     */
+    private void maybeHandleBrokerInstallResume(final android.content.Intent intent) {
+        if (intent == null || intent.getStringExtra(EXTRA_RESUME_CORRELATION_ID) == null) {
+            return;
+        }
+        final DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
+        drawerLayout.closeDrawer(GravityCompat.START);
+
+        final AcquireTokenFragment fragment = new AcquireTokenFragment();
+        final Bundle args = new Bundle();
+        args.putString(AcquireTokenFragment.ARG_RESUME_CORRELATION_ID,
+                intent.getStringExtra(EXTRA_RESUME_CORRELATION_ID));
+        fragment.setArguments(args);
+        attachFragment(fragment);
+        showMessageWithToast("Resuming sign-in after broker install");
     }
 
     /**

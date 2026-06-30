@@ -53,6 +53,8 @@ import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.common.internal.providers.EncryptedBrokerInstallResumeStore;
+import com.microsoft.identity.common.java.providers.BrokerInstallResumeRequest;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
 import com.microsoft.identity.common.internal.activebrokerdiscovery.BrokerDiscoveryClientFactory;
@@ -78,6 +80,22 @@ import io.opentelemetry.context.Scope;
  */
 public class AcquireTokenFragment extends Fragment {
     public static final String NONE_NULL = "NONE (NULL)";
+
+    /**
+     * Single-use correlation id of a broker-install resume (POC). When present, the fragment reads
+     * the FULL persisted request from the encrypted store keyed by this id and resumes the original
+     * interactive request from that snapshot — it does NOT reconstruct the request from UI fields.
+     */
+    public static final String ARG_RESUME_CORRELATION_ID = "resume_correlation_id";
+
+    /** True until the pending broker-install resume has fired, so it triggers exactly once. */
+    private boolean mPendingResume;
+    /** Whether the single-use resume snapshot has already been consumed from the store. */
+    private boolean mResumeConsumed;
+    /** Request options rebuilt verbatim from the persisted resume snapshot (no UI involvement). */
+    private RequestOptions mResumeRequestOptions;
+    private INotifyOperationResultCallback<IAuthenticationResult> mAcquireTokenCallback;
+
     private EditText mAuthority;
     private EditText mLoginhint;
     private Spinner mPrompt;
@@ -285,7 +303,7 @@ public class AcquireTokenFragment extends Fragment {
             }
         });
 
-        final INotifyOperationResultCallback acquireTokenCallback = new INotifyOperationResultCallback<IAuthenticationResult>() {
+        mAcquireTokenCallback = new INotifyOperationResultCallback<IAuthenticationResult>() {
             @Override
             public void onSuccess(IAuthenticationResult result) {
                 mOnFragmentInteractionListener.onGetAuthResult(result);
@@ -302,7 +320,7 @@ public class AcquireTokenFragment extends Fragment {
             public void onClick(View v) {
                 final Span span = OTelUtility.createSpan("TestApp_AcquireToken");
                 try (Scope scope = SpanExtension.makeCurrentSpan(span)) {
-                    mMsalWrapper.acquireToken(getActivity(), getCurrentRequestOptions(), acquireTokenCallback);
+                    mMsalWrapper.acquireToken(getActivity(), getCurrentRequestOptions(), mAcquireTokenCallback);
                     span.setStatus(StatusCode.OK);
                 } catch (final Throwable throwable) {
                     span.recordException(throwable);
@@ -318,7 +336,7 @@ public class AcquireTokenFragment extends Fragment {
             public void onClick(View v) {
                 final Span span = OTelUtility.createSpan("TestApp_AcquireTokenSilent");
                 try (Scope scope = SpanExtension.makeCurrentSpan(span)) {
-                    mMsalWrapper.acquireTokenSilent(getCurrentRequestOptions(), acquireTokenCallback);
+                    mMsalWrapper.acquireTokenSilent(getCurrentRequestOptions(), mAcquireTokenCallback);
                     span.setStatus(StatusCode.OK);
                 } catch (final Throwable throwable) {
                     span.recordException(throwable);
@@ -332,21 +350,21 @@ public class AcquireTokenFragment extends Fragment {
         mAcquireTokenWithResource.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mMsalWrapper.acquireTokenWithResource(getActivity(), getCurrentRequestOptions(), acquireTokenCallback);
+                mMsalWrapper.acquireTokenWithResource(getActivity(), getCurrentRequestOptions(), mAcquireTokenCallback);
             }
         });
 
         mAcquireTokenSilentWithResource.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mMsalWrapper.acquireTokenSilentWithResource(getCurrentRequestOptions(), acquireTokenCallback);
+                mMsalWrapper.acquireTokenSilentWithResource(getCurrentRequestOptions(), mAcquireTokenCallback);
             }
         });
 
         mAcquireTokenWithDeviceCodeFlow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mMsalWrapper.acquireTokenWithDeviceCodeFlow(getCurrentRequestOptions(), acquireTokenCallback);
+                mMsalWrapper.acquireTokenWithDeviceCodeFlow(getCurrentRequestOptions(), mAcquireTokenCallback);
             }
         });
 
@@ -355,7 +373,7 @@ public class AcquireTokenFragment extends Fragment {
                     mMsalWrapper.acquireTokenWithQR(
                         getActivity(),
                         getCurrentRequestOptions(),
-                        acquireTokenCallback
+                        mAcquireTokenCallback
                 ));
 
         final Activity activity = this.getActivity();
@@ -457,6 +475,88 @@ public class AcquireTokenFragment extends Fragment {
         return view;
     }
 
+    /**
+     * POC: when this fragment is created from a broker-install resume deep link, the single-use
+     * correlation id is consumed exactly once and the FULL original request is read from the
+     * encrypted store, rebuilt into a {@link RequestOptions} verbatim, and auto-fired once the
+     * {@link MsalWrapper} finishes loading — matching production controller-level resume rather than
+     * reconstructing the request from UI fields. Returns the resume options, or null when there is
+     * nothing to resume (no id, or already consumed/expired).
+     */
+    private RequestOptions resolveResumeRequestOptions() {
+        if (mResumeRequestOptions != null) {
+            return mResumeRequestOptions;
+        }
+        if (mResumeConsumed) {
+            return null;
+        }
+        final Bundle args = getArguments();
+        final String correlationId = args == null ? null : args.getString(ARG_RESUME_CORRELATION_ID);
+        if (correlationId == null) {
+            return null;
+        }
+        // Single-use: consume exactly once, even if expired/missing, to avoid resume loops.
+        mResumeConsumed = true;
+        final BrokerInstallResumeRequest request = EncryptedBrokerInstallResumeStore
+                .create(getContext())
+                .consume(correlationId, System.currentTimeMillis());
+        if (request == null) {
+            showMessage("Broker-install resume window expired");
+            return null;
+        }
+        mResumeRequestOptions = buildResumeRequestOptions(request);
+        mPendingResume = true;
+        return mResumeRequestOptions;
+    }
+
+    /**
+     * Rebuilds a {@link RequestOptions} verbatim from the persisted {@link BrokerInstallResumeRequest}
+     * snapshot — every interactive parameter (authority, scopes, extra scopes, loginHint, claims,
+     * prompt, extra query params) comes from the snapshot, NOT from UI fields. The originating
+     * PublicClientApplication is identified by its config; for this WebView-only feature that is the
+     * WebView config (analogous to production reusing the original PCA).
+     */
+    private RequestOptions buildResumeRequestOptions(final BrokerInstallResumeRequest request) {
+        return new RequestOptions(
+                Constants.ConfigFile.WEBVIEW,
+                request.getLoginHint() == null ? "" : request.getLoginHint(),
+                null,
+                toPrompt(request.getPrompt()),
+                joinSpace(request.getScopes()),
+                joinSpace(request.getExtraScopesToConsent()),
+                request.getExtraQueryParameters() == null ? "" : request.getExtraQueryParameters(),
+                request.getClaims() == null ? "" : request.getClaims(),
+                false,
+                false,
+                request.getAuthority() == null ? "" : request.getAuthority(),
+                Constants.AuthScheme.BEARER,
+                null,
+                "",
+                "",
+                false
+        );
+    }
+
+    private static String joinSpace(final java.util.List<String> values) {
+        return values == null ? "" : android.text.TextUtils.join(" ", values);
+    }
+
+    private static Prompt toPrompt(final String raw) {
+        if (raw == null) {
+            return Prompt.WHEN_REQUIRED;
+        }
+        switch (raw.toLowerCase(java.util.Locale.ROOT)) {
+            case "login":
+                return Prompt.LOGIN;
+            case "consent":
+                return Prompt.CONSENT;
+            case "select_account":
+                return Prompt.SELECT_ACCOUNT;
+            default:
+                return Prompt.WHEN_REQUIRED;
+        }
+    }
+
     private void setActiveBrokerTextFromCache() {
         final BrokerData activeBroker = mCache.getCachedActiveBroker();
         mCachedActiveBrokerName.setText(activeBroker == null ? "none" : activeBroker.getPackageName());
@@ -506,7 +606,9 @@ public class AcquireTokenFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        loadMsalApplicationFromRequestParameters(getCurrentRequestOptions());
+        final RequestOptions resumeOptions = resolveResumeRequestOptions();
+        loadMsalApplicationFromRequestParameters(
+                resumeOptions != null ? resumeOptions : getCurrentRequestOptions());
         setActiveBrokerTextFromCache();
     }
 
@@ -673,6 +775,11 @@ public class AcquireTokenFragment extends Fragment {
                     public void onSuccess(MsalWrapper result) {
                         mMsalWrapper = result;
                         loadAccounts();
+                        if (mPendingResume) {
+                            mPendingResume = false;
+                            showMessage("Auto-resuming sign-in after broker install");
+                            mMsalWrapper.acquireToken(getActivity(), mResumeRequestOptions, mAcquireTokenCallback);
+                        }
                     }
 
                     @Override
