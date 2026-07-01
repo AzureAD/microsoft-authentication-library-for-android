@@ -27,6 +27,7 @@ import android.util.Log;
 
 import com.microsoft.identity.client.ILoggerCallback;
 import com.microsoft.identity.client.Logger;
+import com.microsoft.identity.common.internal.broker.BrokerData;
 import com.microsoft.identity.common.internal.telemetry.Telemetry;
 import com.microsoft.identity.common.internal.telemetry.observers.ITelemetryAggregatedObserver;
 import com.microsoft.identity.common.internal.telemetry.observers.ITelemetryDefaultObserver;
@@ -48,6 +49,11 @@ public class MsalSampleApp extends Application {
     public void onCreate() {
         super.onCreate();
         mLogs = new StringBuilder();
+
+        // TEST-ONLY: trust debug brokers so the SDK includes the debug broker host
+        // (com.microsoft.identity.testuserapp) as a discovery candidate, allowing the
+        // resumed request to route through BrokerMsalController for broker-context sign-in.
+        BrokerData.setShouldTrustDebugBrokers(true);
 
         // Logging can be turned on four different levels: error, warning, info, and verbose. By default the sdk is turning on
         // verbose level logging. Any apps can use Logger.getInstance().setLogLevel(Loglevel) to enable different level of logging.

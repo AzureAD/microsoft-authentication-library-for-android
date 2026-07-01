@@ -50,6 +50,8 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
+import com.microsoft.identity.common.internal.providers.EncryptedBrokerInstallResumeStore;
+import com.microsoft.identity.common.java.providers.BrokerInstallResumeRequest;
 import com.microsoft.identity.common.java.util.StringUtil;
 
 import java.io.UnsupportedEncodingException;
@@ -169,7 +171,43 @@ public class MainActivity extends AppCompatActivity
             initOpenTelemetry(getApplicationContext());
         }
 
+        maybeSeedBrokerInstallResume(getIntent());
         maybeHandleBrokerInstallResume(getIntent());
+    }
+
+    /**
+     * POC DEBUG-ONLY: seeds a fake {@link BrokerInstallResumeRequest} into the encrypted store so the
+     * broker-install resume flow can be exercised end-to-end without a live Conditional-Access block.
+     * Launch with: {@code -e seed_resume_cid <cid> [-e seed_scope "User.Read"]
+     * [-e seed_authority <url>] [-e seed_login_hint <upn>]}. Remove before production.
+     */
+    private void maybeSeedBrokerInstallResume(final android.content.Intent intent) {
+        final String cid = intent == null ? null : intent.getStringExtra("seed_resume_cid");
+        if (cid == null) {
+            return;
+        }
+        final String authority = intent.getStringExtra("seed_authority");
+        final String scope = intent.getStringExtra("seed_scope");
+        final String loginHint = intent.getStringExtra("seed_login_hint");
+        final java.util.List<String> scopes = StringUtil.isNullOrEmpty(scope)
+                ? new java.util.ArrayList<String>()
+                : new java.util.ArrayList<>(java.util.Arrays.asList(scope.trim().split("\\s+")));
+        final BrokerInstallResumeRequest request = new BrokerInstallResumeRequest(
+                cid,
+                authority != null ? authority : "https://login.microsoftonline.com/common",
+                "c6bb302a-1e38-408e-9754-87c18fe81c80",
+                "msauth://com.msft.identity.client.sample.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D",
+                scopes,
+                new java.util.ArrayList<String>(),
+                loginHint,
+                null,
+                null,
+                null,
+                System.currentTimeMillis(),
+                BrokerInstallResumeRequest.DEFAULT_TTL_MS);
+        EncryptedBrokerInstallResumeStore.create(getApplicationContext()).save(request);
+        android.util.Log.i("MainActivitySeed", "Seeded broker-install resume request for cid=" + cid);
+        showMessageWithToast("Seeded broker-install resume request: " + cid);
     }
 
     @Override

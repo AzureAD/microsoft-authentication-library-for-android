@@ -500,6 +500,12 @@ public class AcquireTokenFragment extends Fragment {
         final BrokerInstallResumeRequest request = EncryptedBrokerInstallResumeStore
                 .create(getContext())
                 .consume(correlationId, System.currentTimeMillis());
+        android.util.Log.i("ResumePOC", "consume(" + correlationId + ") -> "
+                + (request == null
+                        ? "NULL (expired / absent / already-consumed)"
+                        : "FOUND authority=" + request.getAuthority()
+                                + " scopes=" + request.getScopes()
+                                + " loginHint=" + request.getLoginHint()));
         if (request == null) {
             showMessage("Broker-install resume window expired");
             return null;
@@ -777,6 +783,7 @@ public class AcquireTokenFragment extends Fragment {
                         loadAccounts();
                         if (mPendingResume) {
                             mPendingResume = false;
+                            android.util.Log.i("ResumePOC", "AUTO-FIRING interactive acquireToken from persisted resume snapshot (broker webview config)");
                             showMessage("Auto-resuming sign-in after broker install");
                             mMsalWrapper.acquireToken(getActivity(), mResumeRequestOptions, mAcquireTokenCallback);
                         }

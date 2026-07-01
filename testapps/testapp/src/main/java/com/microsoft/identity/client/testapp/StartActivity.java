@@ -44,6 +44,17 @@ public class StartActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
+
+        // POC DEBUG-ONLY: allow seeding a broker-install resume request via the exported launcher,
+        // forwarding the seed extras to MainActivity (which is not exported). Remove before production.
+        if (getIntent() != null && getIntent().getStringExtra("seed_resume_cid") != null) {
+            final Intent seed = new Intent(getApplicationContext(), MainActivity.class);
+            seed.putExtras(getIntent());
+            seed.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+            startActivity(seed);
+            finish();
+            return;
+        }
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (view, insets) -> {
             int topInset = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
             int bottomInset = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
