@@ -50,6 +50,7 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
+import com.microsoft.identity.common.internal.providers.BrokerInstallResumeActivity;
 import com.microsoft.identity.common.internal.providers.EncryptedBrokerInstallResumeStore;
 import com.microsoft.identity.common.java.providers.BrokerInstallResumeRequest;
 import com.microsoft.identity.common.java.util.StringUtil;
@@ -85,7 +86,12 @@ public class MainActivity extends AppCompatActivity
     /** Single-use correlation id carried from {@link BrokerInstallResumeActivity} when resuming a
      * request post-install. The full request parameters are read from the encrypted store keyed by
      * this id — they are intentionally NOT passed as individual extras. */
-    public static final String EXTRA_RESUME_CORRELATION_ID = "resume_correlation_id";
+    /** Single-use correlation id carried from the common-provided
+     * {@link BrokerInstallResumeActivity} (via the launcher) when resuming a request post-install.
+     * The full request parameters are read from the encrypted store keyed by this id — they are
+     * intentionally NOT passed as individual extras. */
+    public static final String EXTRA_RESUME_CORRELATION_ID =
+            BrokerInstallResumeActivity.EXTRA_RESUME_CORRELATION_ID;
 
     private String mStringResult;
     private IAuthenticationResult mAuthResult;

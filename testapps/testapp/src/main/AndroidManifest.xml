@@ -88,21 +88,9 @@
             </intent-filter>
         </activity>
 
-        <!-- Broker-install resume (POC): receives the deep link from the broker after install and
-             silently resumes the persisted request. -->
-        <activity
-            android:name="com.microsoft.identity.client.testapp.BrokerInstallResumeActivity"
-            android:exported="true"
-            android:noHistory="true">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="msauth"
-                    android:host="${applicationId}"
-                    android:pathPrefix="/resume"/>
-            </intent-filter>
-        </activity>
+        <!-- Broker-install resume deep-link receiver is now provided by common
+             (BrokerInstallResumeActivity) and auto-merges here via ${applicationId};
+             the test app declares nothing of its own. -->
     </application>
 
 </manifest>

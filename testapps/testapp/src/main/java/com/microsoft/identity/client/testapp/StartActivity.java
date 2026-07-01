@@ -34,6 +34,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.microsoft.identity.common.internal.providers.BrokerInstallResumeActivity;
+
 public class StartActivity extends AppCompatActivity {
 
     //private static final String TAG = StartActivity.class.getSimpleName();
@@ -44,6 +46,19 @@ public class StartActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
+
+        // Broker-install resume: the common-provided BrokerInstallResumeActivity forwards the
+        // single-use correlation id to this launcher (MainActivity is not exported). Relay it to
+        // MainActivity, which performs the consumer-side resume (load store + adapt + re-call).
+        if (getIntent() != null
+                && getIntent().getStringExtra(BrokerInstallResumeActivity.EXTRA_RESUME_CORRELATION_ID) != null) {
+            final Intent resume = new Intent(getApplicationContext(), MainActivity.class);
+            resume.putExtras(getIntent());
+            resume.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(resume);
+            finish();
+            return;
+        }
 
         // POC DEBUG-ONLY: allow seeding a broker-install resume request via the exported launcher,
         // forwarding the seed extras to MainActivity (which is not exported). Remove before production.
