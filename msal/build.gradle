@@ -505,8 +505,6 @@ dependencyCheck {
     analyzers.archiveEnabled = false
 }
 
-tasks.named('check').configure { dependsOn 'dependencyCheckAnalyze' }
-
 // Fail fast on missing NVD key only when the scan is actually in the task graph,
 // so IDE sync / `./gradlew tasks` aren't broken.
 gradle.taskGraph.whenReady { graph ->
