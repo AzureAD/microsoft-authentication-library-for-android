@@ -70,6 +70,17 @@ public class StartActivity extends AppCompatActivity {
             finish();
             return;
         }
+
+        // [POC] Phase-1: allow triggering a REAL interactive request (Outlook config) via the
+        // exported launcher, forwarding the login-hint/scope extras to MainActivity (not exported).
+        if (getIntent() != null && getIntent().getStringExtra("start_interactive_login_hint") != null) {
+            final Intent start = new Intent(getApplicationContext(), MainActivity.class);
+            start.putExtras(getIntent());
+            start.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+            startActivity(start);
+            finish();
+            return;
+        }
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (view, insets) -> {
             int topInset = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
             int bottomInset = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;

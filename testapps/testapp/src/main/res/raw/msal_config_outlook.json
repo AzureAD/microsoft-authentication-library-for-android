@@ -1,0 +1,13 @@
+{
+  "client_id" : "27922004-5251-4030-b22d-91ecd9a37ea4",
+  "authorization_user_agent" : "WEBVIEW",
+  "redirect_uri" : "msauth://com.microsoft.office.outlook.dev/jE6Au8Nvh42nAczUv%2BJW%2FQ1MTCg%3D",
+  "authorities" : [
+    {
+      "type": "AAD",
+      "audience": {
+        "type": "AzureADMultipleOrgs"
+      }
+    }
+  ]
+}

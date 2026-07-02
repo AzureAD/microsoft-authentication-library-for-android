@@ -31,6 +31,15 @@ import com.microsoft.identity.common.internal.broker.BrokerData;
 import com.microsoft.identity.common.internal.telemetry.Telemetry;
 import com.microsoft.identity.common.internal.telemetry.observers.ITelemetryAggregatedObserver;
 import com.microsoft.identity.common.internal.telemetry.observers.ITelemetryDefaultObserver;
+import com.microsoft.identity.common.java.flighting.CommonFlight;
+import com.microsoft.identity.common.java.flighting.CommonFlightsManager;
+import com.microsoft.identity.common.java.flighting.IFlightConfig;
+import com.microsoft.identity.common.java.flighting.IFlightsManager;
+import com.microsoft.identity.common.java.flighting.IFlightsProvider;
+
+import org.json.JSONObject;
+
+import androidx.annotation.NonNull;
 
 import java.util.Iterator;
 import java.util.List;
@@ -54,6 +63,18 @@ public class MsalSampleApp extends Application {
         // (com.microsoft.identity.testuserapp) as a discovery candidate, allowing the
         // resumed request to route through BrokerMsalController for broker-context sign-in.
         BrokerData.setShouldTrustDebugBrokers(true);
+
+        // [POC] broker-install resume: enable the ENABLE_BROKER_INSTALL_RESUME common flight so
+        // the real producer path (AzureActiveDirectoryWebViewClient.processInstallRequest) persists
+        // the in-flight interactive request when eSTS signals a broker install. All other flights
+        // keep their default values.
+        CommonFlightsManager.INSTANCE.initializeCommonFlightsManager(new PocResumeFlightsManager());
+
+        // [POC TEST-ONLY] Allow requests built with the 1P Outlook client_id + redirect to route
+        // through the broker even though this test app's package doesn't own that redirect. Mirrors
+        // the broker-side -PbypassRedirectUriCheck. NEVER ship this enabled.
+        com.microsoft.identity.client.PublicClientApplicationConfiguration
+                .setBypassBrokerRedirectUriCheckForPoc(true);
 
         // Logging can be turned on four different levels: error, warning, info, and verbose. By default the sdk is turning on
         // verbose level logging. Any apps can use Logger.getInstance().setLogLevel(Loglevel) to enable different level of logging.
@@ -108,5 +129,76 @@ public class MsalSampleApp extends Application {
     void clearLogs() {
         mLogs = new StringBuilder();
         mLogSize = 0;
+    }
+
+    /**
+     * [POC] Flights manager that force-enables {@link CommonFlight#ENABLE_BROKER_INSTALL_RESUME}
+     * and returns default values for every other flight.
+     */
+    private static final class PocResumeFlightsManager implements IFlightsManager {
+        private final IFlightsProvider mProvider = new PocResumeFlightsProvider();
+
+        @NonNull
+        @Override
+        public IFlightsProvider getFlightsProvider(long waitForConfigsWithTimeoutInMs) {
+            return mProvider;
+        }
+
+        @NonNull
+        @Override
+        public IFlightsProvider getFlightsProvider() {
+            return mProvider;
+        }
+
+        @NonNull
+        @Override
+        public IFlightsProvider getFlightsProviderForTenant(@NonNull String tenantId, long waitForConfigsWithTimeoutInMs) {
+            return mProvider;
+        }
+
+        @NonNull
+        @Override
+        public IFlightsProvider getFlightsProviderForTenant(@NonNull String tenantId) {
+            return mProvider;
+        }
+    }
+
+    private static final class PocResumeFlightsProvider implements IFlightsProvider {
+        private boolean isResumeFlight(@NonNull final IFlightConfig flightConfig) {
+            return CommonFlight.ENABLE_BROKER_INSTALL_RESUME.getKey().equals(flightConfig.getKey());
+        }
+
+        @Override
+        public boolean isFlightEnabled(@NonNull final IFlightConfig flightConfig) {
+            return getBooleanValue(flightConfig);
+        }
+
+        @Override
+        public boolean getBooleanValue(@NonNull final IFlightConfig flightConfig) {
+            if (isResumeFlight(flightConfig)) {
+                return true;
+            }
+            return (Boolean) flightConfig.getDefaultValue();
+        }
+
+        @Override
+        public int getIntValue(@NonNull final IFlightConfig flightConfig) {
+            return (Integer) flightConfig.getDefaultValue();
+        }
+
+        @Override
+        public double getDoubleValue(@NonNull final IFlightConfig flightConfig) {
+            return (Double) flightConfig.getDefaultValue();
+        }
+
+        @Override
+        public String getStringValue(@NonNull final IFlightConfig flightConfig) {
+            return (String) flightConfig.getDefaultValue();
+        }
+
+        @Override
+        public JSONObject getJsonValue(@NonNull final IFlightConfig flightConfig) {
+            return (JSONObject) flightConfig.getDefaultValue();
+        }
     }
 }

@@ -93,6 +93,12 @@ public class MainActivity extends AppCompatActivity
     public static final String EXTRA_RESUME_CORRELATION_ID =
             BrokerInstallResumeActivity.EXTRA_RESUME_CORRELATION_ID;
 
+    /** [POC] Phase-1 launcher extra: open the AcquireToken tab and auto-fire a REAL interactive
+     * request (Outlook config) with this login hint pre-filled — the request eSTS is expected to
+     * block with a device-registration CA. Optional companion extra {@code start_interactive_scope}. */
+    public static final String EXTRA_START_INTERACTIVE_LOGIN_HINT = "start_interactive_login_hint";
+    public static final String EXTRA_START_INTERACTIVE_SCOPE = "start_interactive_scope";
+
     private String mStringResult;
     private IAuthenticationResult mAuthResult;
 
@@ -178,6 +184,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         maybeSeedBrokerInstallResume(getIntent());
+        maybeStartFreshInteractive(getIntent());
         maybeHandleBrokerInstallResume(getIntent());
     }
 
@@ -220,7 +227,32 @@ public class MainActivity extends AppCompatActivity
     protected void onNewIntent(final android.content.Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
+        maybeStartFreshInteractive(intent);
         maybeHandleBrokerInstallResume(intent);
+    }
+
+    /**
+     * [POC] Phase-1: when launched with {@link #EXTRA_START_INTERACTIVE_LOGIN_HINT}, open the
+     * AcquireToken tab armed to auto-fire a REAL interactive request against the Outlook 1P config
+     * with the login hint pre-filled. This is the request eSTS is expected to block with a
+     * device-registration CA, causing common's producer path to persist a resume snapshot.
+     */
+    private void maybeStartFreshInteractive(final android.content.Intent intent) {
+        if (intent == null || intent.getStringExtra(EXTRA_START_INTERACTIVE_LOGIN_HINT) == null) {
+            return;
+        }
+        final DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
+        drawerLayout.closeDrawer(GravityCompat.START);
+
+        final AcquireTokenFragment fragment = new AcquireTokenFragment();
+        final Bundle args = new Bundle();
+        args.putString(AcquireTokenFragment.ARG_START_INTERACTIVE_LOGIN_HINT,
+                intent.getStringExtra(EXTRA_START_INTERACTIVE_LOGIN_HINT));
+        args.putString(AcquireTokenFragment.ARG_START_INTERACTIVE_SCOPE,
+                intent.getStringExtra(EXTRA_START_INTERACTIVE_SCOPE));
+        fragment.setArguments(args);
+        attachFragment(fragment);
+        showMessageWithToast("Starting Phase-1 interactive sign-in (expecting broker-install block)");
     }
 
     /**
@@ -235,6 +267,12 @@ public class MainActivity extends AppCompatActivity
         final DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
         drawerLayout.closeDrawer(GravityCompat.START);
 
+        // [POC] Invalidate the stale active-broker discovery cache. During Phase-1 no broker was
+        // installed, so MSAL cached "no active broker". Now that the Company Portal stand-in
+        // (brokerHost) is installed, clear that cache so the resumed request re-discovers the broker
+        // and the retried token request runs in BROKER context instead of MSAL's local webview.
+        invalidateBrokerDiscoveryCache();
+
         final AcquireTokenFragment fragment = new AcquireTokenFragment();
         final Bundle args = new Bundle();
         args.putString(AcquireTokenFragment.ARG_RESUME_CORRELATION_ID,
@@ -242,6 +280,24 @@ public class MainActivity extends AppCompatActivity
         fragment.setArguments(args);
         attachFragment(fragment);
         showMessageWithToast("Resuming sign-in after broker install");
+    }
+
+    /**
+     * [POC] Clears the client-side active-broker cache so a newly-installed broker is re-discovered.
+     * Mirrors plan item "Invalidate broker discovery cache" on the resume path.
+     */
+    private void invalidateBrokerDiscoveryCache() {
+        try {
+            final com.microsoft.identity.common.java.interfaces.IPlatformComponents components =
+                    com.microsoft.identity.common.components.AndroidPlatformComponentsFactory
+                            .createFromContext(getApplicationContext());
+            com.microsoft.identity.common.internal.cache.ClientActiveBrokerCache
+                    .getClientSdkCache(components.getStorageSupplier())
+                    .clearCachedActiveBroker();
+            android.util.Log.i("ResumePOC", "Invalidated client active-broker discovery cache before resume");
+        } catch (final Exception e) {
+            android.util.Log.w("ResumePOC", "Failed to invalidate broker discovery cache: " + e.getMessage());
+        }
     }
 
     /**

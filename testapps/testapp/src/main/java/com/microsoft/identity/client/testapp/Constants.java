@@ -58,7 +58,11 @@ public class Constants {
         WEBVIEW_PPE_MSA,
         ONEBOX,
 
-        WEBVIEW_MSA_PASSKEY_REG
+        WEBVIEW_MSA_PASSKEY_REG,
+
+        // [POC] broker-install resume: Outlook 1P AAD config (pre-consented client_id) used
+        // to drive a real interactive request that eSTS can block with a device-registration CA.
+        OUTLOOK
     }
 
     public static int getResourceIdFromConfigFile(ConfigFile configFile) {
@@ -68,6 +72,9 @@ public class Constants {
 
             case WEBVIEW:
                 return R.raw.msal_config_webview;
+
+            case OUTLOOK:
+                return R.raw.msal_config_outlook;
 
             case WEBVIEW_MSA:
                 return R.raw.msal_config_webview_msa;

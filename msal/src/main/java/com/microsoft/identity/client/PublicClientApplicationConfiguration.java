@@ -137,6 +137,22 @@ public class PublicClientApplicationConfiguration {
     @SerializedName(USE_BROKER)
     private Boolean mUseBroker;
 
+    /**
+     * [POC TEST-ONLY] When true, {@link #checkIntentFilterAddedToAppManifestForBrokerFlow()} skips
+     * the client-side broker redirect-uri check, so a request built with a 1P (e.g. Outlook)
+     * client_id + redirect can still route through the broker from a test app whose package does not
+     * own that redirect. Mirrors the broker-side {@code -PbypassRedirectUriCheck}. NEVER ship enabled.
+     */
+    private static boolean sBypassBrokerRedirectUriCheckForPoc = false;
+
+    /**
+     * [POC TEST-ONLY] Enables/disables the client-side broker redirect-uri bypass. See
+     * {@link #sBypassBrokerRedirectUriCheckForPoc}.
+     */
+    public static void setBypassBrokerRedirectUriCheckForPoc(final boolean bypass) {
+        sBypassBrokerRedirectUriCheckForPoc = bypass;
+    }
+
     @SerializedName(ENVIRONMENT)
     private Environment mEnvironment;
 
@@ -640,6 +656,14 @@ public class PublicClientApplicationConfiguration {
         final String methodTag = TAG + ":checkIntentFilterAddedToAppManifestForBrokerFlow";
 
         if (!mUseBroker) {
+            return;
+        }
+
+        // [POC TEST-ONLY] Keep broker enabled even though the (1P Outlook) redirect uri does not
+        // belong to this test app's package. Skips both the mUseBroker downgrade below and the
+        // signature verification. Mirrors the broker-side -PbypassRedirectUriCheck. NEVER ship.
+        if (sBypassBrokerRedirectUriCheckForPoc) {
+            Logger.warn(methodTag, "[POC TEST-ONLY] Bypassing client-side broker redirect-uri check; broker stays enabled.");
             return;
         }
 

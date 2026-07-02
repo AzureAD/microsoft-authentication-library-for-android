@@ -88,12 +88,33 @@ public class AcquireTokenFragment extends Fragment {
      */
     public static final String ARG_RESUME_CORRELATION_ID = "resume_correlation_id";
 
+    /**
+     * [POC] Phase-1 trigger: when present, the fragment auto-fires a REAL interactive acquireToken
+     * against the Outlook 1P config with this login hint pre-filled. This is the request eSTS is
+     * expected to block with a device-registration CA, causing the producer path to persist a
+     * resume snapshot. Distinct from {@link #ARG_RESUME_CORRELATION_ID} (the Phase-2 resume).
+     */
+    public static final String ARG_START_INTERACTIVE_LOGIN_HINT = "start_interactive_login_hint";
+    /** [POC] Optional scope override for the Phase-1 real interactive request. */
+    public static final String ARG_START_INTERACTIVE_SCOPE = "start_interactive_scope";
+
     /** True until the pending broker-install resume has fired, so it triggers exactly once. */
     private boolean mPendingResume;
     /** Whether the single-use resume snapshot has already been consumed from the store. */
     private boolean mResumeConsumed;
     /** Request options rebuilt verbatim from the persisted resume snapshot (no UI involvement). */
     private RequestOptions mResumeRequestOptions;
+    /** [POC] True until the Phase-1 real interactive request has auto-fired, so it fires once. */
+    private boolean mPendingFreshInteractive;
+    /** [POC] Whether the Phase-1 fresh-interactive trigger has already been consumed. */
+    private boolean mFreshInteractiveConsumed;
+    /** [POC] Options for the Phase-1 real interactive request (Outlook config + pre-filled UPN). */
+    private RequestOptions mFreshInteractiveOptions;
+    /**
+     * True while an auto-fired broker-install resume acquireToken is in flight, so the terminal
+     * result callback can emit the POC return-leg marker exactly for the resumed request.
+     */
+    private boolean mResumeInFlight;
     private INotifyOperationResultCallback<IAuthenticationResult> mAcquireTokenCallback;
 
     private EditText mAuthority;
@@ -306,6 +327,13 @@ public class AcquireTokenFragment extends Fragment {
         mAcquireTokenCallback = new INotifyOperationResultCallback<IAuthenticationResult>() {
             @Override
             public void onSuccess(IAuthenticationResult result) {
+                if (mResumeInFlight) {
+                    mResumeInFlight = false;
+                    // [POC-D8 TEST-ONLY] Return-leg marker: the token acquired from the resumed
+                    // broker-install request was delivered back to the 1P app. No token/PII logged.
+                    android.util.Log.i("ResumePOC", "RESUME-AUTHRESULT-DELIVERED tokenReceived="
+                            + (result != null && result.getAccessToken() != null));
+                }
                 mOnFragmentInteractionListener.onGetAuthResult(result);
             }
 
@@ -519,16 +547,17 @@ public class AcquireTokenFragment extends Fragment {
      * Rebuilds a {@link RequestOptions} verbatim from the persisted {@link BrokerInstallResumeRequest}
      * snapshot — every interactive parameter (authority, scopes, extra scopes, loginHint, claims,
      * prompt, extra query params) comes from the snapshot, NOT from UI fields. The originating
-     * PublicClientApplication is identified by its config; for this WebView-only feature that is the
-     * WebView config (analogous to production reusing the original PCA).
+     * PublicClientApplication is identified by its config; for this POC that is the Outlook 1P
+     * config (pre-consented client_id) so the resumed request reuses the same client the Phase-1
+     * interactive request was blocked on (analogous to production reusing the original PCA).
      */
     private RequestOptions buildResumeRequestOptions(final BrokerInstallResumeRequest request) {
         return new RequestOptions(
-                Constants.ConfigFile.WEBVIEW,
+                Constants.ConfigFile.OUTLOOK,
                 request.getLoginHint() == null ? "" : request.getLoginHint(),
                 null,
                 toPrompt(request.getPrompt()),
-                joinSpace(request.getScopes()),
+                joinSpace(stripReservedScopes(request.getScopes())),
                 joinSpace(request.getExtraScopesToConsent()),
                 request.getExtraQueryParameters() == null ? "" : request.getExtraQueryParameters(),
                 request.getClaims() == null ? "" : request.getClaims(),
@@ -545,6 +574,36 @@ public class AcquireTokenFragment extends Fragment {
 
     private static String joinSpace(final java.util.List<String> values) {
         return values == null ? "" : android.text.TextUtils.join(" ", values);
+    }
+
+    /**
+     * [POC-D8 TEST-ONLY] Strip the reserved OIDC scopes (openid, offline_access, profile) from a
+     * replayed scope list. MSAL always sends these three on the wire and, per
+     * {@link com.microsoft.identity.client.TokenParameters}, they must NOT be supplied as developer
+     * scopes. The producer persisted MSAL's fully-merged scope list (which includes them), so the
+     * resumed request would otherwise appear to "decline" them for an Outlook resource-.default
+     * access token (eSTS does not echo reserved scopes inside a resource-specific AT) and surface a
+     * {@link com.microsoft.identity.client.exception.MsalDeclinedScopeException}. Removing them here
+     * yields a clean success without changing what the broker actually receives.
+     */
+    private static java.util.List<String> stripReservedScopes(final java.util.List<String> scopes) {
+        if (scopes == null) {
+            return null;
+        }
+        final java.util.List<String> filtered = new java.util.ArrayList<>();
+        for (final String scope : scopes) {
+            if (scope == null) {
+                continue;
+            }
+            final String normalized = scope.trim().toLowerCase(java.util.Locale.ROOT);
+            if ("openid".equals(normalized)
+                    || "offline_access".equals(normalized)
+                    || "profile".equals(normalized)) {
+                continue;
+            }
+            filtered.add(scope);
+        }
+        return filtered;
     }
 
     private static Prompt toPrompt(final String raw) {
@@ -612,10 +671,55 @@ public class AcquireTokenFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        final RequestOptions resumeOptions = resolveResumeRequestOptions();
+        final RequestOptions freshOptions = resolveFreshInteractiveRequestOptions();
+        final RequestOptions resumeOptions = freshOptions != null ? freshOptions : resolveResumeRequestOptions();
         loadMsalApplicationFromRequestParameters(
                 resumeOptions != null ? resumeOptions : getCurrentRequestOptions());
         setActiveBrokerTextFromCache();
+    }
+
+    /**
+     * [POC] Phase-1: when launched with {@link #ARG_START_INTERACTIVE_LOGIN_HINT}, builds a REAL
+     * interactive request against the Outlook 1P config with the login hint pre-filled and marks it
+     * to auto-fire once the {@link MsalWrapper} loads. This is the request eSTS is expected to block
+     * with a device-registration CA. Returns the options, or null when there is nothing to start.
+     */
+    private RequestOptions resolveFreshInteractiveRequestOptions() {
+        if (mFreshInteractiveOptions != null) {
+            return mFreshInteractiveOptions;
+        }
+        if (mFreshInteractiveConsumed) {
+            return null;
+        }
+        final Bundle args = getArguments();
+        final String loginHint = args == null ? null : args.getString(ARG_START_INTERACTIVE_LOGIN_HINT);
+        if (loginHint == null) {
+            return null;
+        }
+        mFreshInteractiveConsumed = true;
+        final String scope = args.getString(ARG_START_INTERACTIVE_SCOPE);
+        android.util.Log.i("ResumePOC", "PHASE-1 real interactive request loginHint=" + loginHint
+                + " scope=" + scope + " (Outlook config)");
+        mFreshInteractiveOptions = new RequestOptions(
+                Constants.ConfigFile.OUTLOOK,
+                loginHint,
+                null,
+                Prompt.SELECT_ACCOUNT,
+                scope == null || scope.isEmpty() ? "https://outlook.office365.com/.default" : scope,
+                "",
+                "",
+                "",
+                true,
+                false,
+                "",
+                Constants.AuthScheme.BEARER,
+                null,
+                "",
+                "",
+                false
+        );
+        mPendingFreshInteractive = true;
+        return mFreshInteractiveOptions;
     }
 
     private void loadAccounts() {
@@ -781,8 +885,14 @@ public class AcquireTokenFragment extends Fragment {
                     public void onSuccess(MsalWrapper result) {
                         mMsalWrapper = result;
                         loadAccounts();
-                        if (mPendingResume) {
+                        if (mPendingFreshInteractive) {
+                            mPendingFreshInteractive = false;
+                            android.util.Log.i("ResumePOC", "AUTO-FIRING Phase-1 real interactive acquireToken (Outlook config) — expected to be blocked by device-registration CA");
+                            showMessage("Starting sign-in (expecting broker-install block)");
+                            mMsalWrapper.acquireToken(getActivity(), mFreshInteractiveOptions, mAcquireTokenCallback);
+                        } else if (mPendingResume) {
                             mPendingResume = false;
+                            mResumeInFlight = true;
                             android.util.Log.i("ResumePOC", "AUTO-FIRING interactive acquireToken from persisted resume snapshot (broker webview config)");
                             showMessage("Auto-resuming sign-in after broker install");
                             mMsalWrapper.acquireToken(getActivity(), mResumeRequestOptions, mAcquireTokenCallback);
