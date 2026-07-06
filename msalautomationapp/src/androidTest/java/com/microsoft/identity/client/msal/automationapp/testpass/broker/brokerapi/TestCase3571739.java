@@ -48,6 +48,9 @@ import org.junit.Test;
 
 // WebApps API Tests via BrokerHost Broker API tab
 // Tests GetToken (interactive and silent) and SignOut operations of the WebApps APIs using the BrokerHost app's Broker API tab.
+// The silent MSAL JS GetToken step (Step 2b) specifically covers the lookup-mode scenario: a silent
+// request that supplies only the homeAccountId (no login hint) must be served from the PRT-backed
+// broker account store without falling back to an interactive account picker.
 // GetAllSsoTokens is also tested here.
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3571739
 @SupportedBrokers(brokers = BrokerHost.class)
@@ -173,12 +176,18 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
         // Set sender origin for MSAL JS
         UiAutomatorUtils.handleInput(INPUT_SENDER_ORIGIN, LEMON_GLACIER);
 
-        // Fill the WebApps GetToken form for silent MSAL JS auth
+        // Fill the WebApps GetToken form for silent MSAL JS auth.
+        // This exercises the lookup-mode scenario: an MSAL JS silent request is a lookup-mode
+        // request that is never persisted to the per-clientId MSAL token cache, and the real
+        // MSAL JS client supplies only the homeAccountId (no login hint). The broker must resolve
+        // the account against the PRT/broker-account store keyed by the homeAccountId; otherwise
+        // the silent request would fail with UiRequired and fall back to interactive unnecessarily.
+        // Note the login hint is intentionally left blank to reproduce that scenario.
         setCheckbox(CHECKBOX_CAN_SHOW_UI, false);
         setCheckbox(CHECKBOX_IS_STS, false);
         UiAutomatorUtils.handleInput(INPUT_HOME_ACCOUNT_ID, homeAccountId);
         UiAutomatorUtils.handleInput(INPUT_PROMPT, "");
-        UiAutomatorUtils.handleInput(INPUT_LOGIN_HINT, username);
+        UiAutomatorUtils.handleInput(INPUT_LOGIN_HINT, "");
 
         // Scroll down to make the execute button visible
         new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().resourceId(BUTTON_EXECUTE_GET_TOKEN));
@@ -189,6 +198,8 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
         final String silentMsalJsResult = dismissDialogAndGetText();
 
         Assert.assertNotNull("Silent MSAL JS GetToken result should not be null", silentMsalJsResult);
+        // The silent lookup-mode request must succeed with an access token and must NOT fall back
+        // to an interactive account picker, since a valid PRT-backed account already exists.
         Assert.assertTrue(
                 "Silent MSAL JS GetToken result should contain access_token",
                 silentMsalJsResult.contains(ACCESS_TOKEN_DESCRIPTION)
