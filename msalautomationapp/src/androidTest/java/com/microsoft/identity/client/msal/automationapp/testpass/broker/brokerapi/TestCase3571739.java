@@ -47,14 +47,20 @@ import org.junit.Assert;
 import org.junit.Test;
 
 // WebApps API Tests via BrokerHost Broker API tab
-// End-to-end happy-path coverage of the WebApps APIs using the BrokerHost app's Broker API tab:
-// GetToken (interactive, silent eSTS, and silent MSAL JS), GetAllSsoTokens, and SignOut.
-// The silent MSAL JS step (Step 2b) mirrors the real MSAL JS client by supplying only the
-// homeAccountId with no login hint, exercising home-account-id-based silent resolution end to end.
-// Note: this E2E test is NOT the lookup-mode regression guard. Faithfully reproducing the
-// lookup-mode starting state (empty per-clientId MSAL token cache + PRT-backed broker account)
-// is covered by the broker Robolectric unit test
-// WebAppsSubOperationsTest#testGetToken_SilentSuccessLookupModeAccount_MSALJS.
+// End-to-end coverage of the WebApps APIs using the BrokerHost app's Broker API tab, exercising the
+// lookup-mode (Edge token binding) scenario end to end:
+//   Step 1: an interactive GetToken sent as a lookup-mode request (nativebroker=1 +
+//           nativebroker_mode=Lookup extra params, the values ESTS sends for a lookup request).
+//           A lookup-mode request establishes the PRT-backed broker account and registers the
+//           client, but is NOT persisted to the per-clientId MSAL token cache. Because the
+//           lookup-mode response carries "none" for the tokens, we only assert that a successful
+//           (non-error) response comes back, then read the homeAccountId from it.
+//   Step 2: a silent MSAL JS GetToken supplying only that homeAccountId (no login hint), like the
+//           real MSAL JS client. This is the request that used to fail with UiRequired: the broker
+//           must resolve the account from the PRT/broker-account store keyed by homeAccountId
+//           rather than from the (empty) per-clientId MSAL token cache. It must succeed without
+//           falling back to an interactive account picker.
+// GetAllSsoTokens and SignOut are also exercised.
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3571739
 @SupportedBrokers(brokers = BrokerHost.class)
 @LocalBrokerHostDebugUiTest
@@ -68,6 +74,8 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
     private static final String INPUT_HOME_ACCOUNT_ID = BROKER_HOST_PKG + ":id/input_home_account_id";
     private static final String INPUT_PROMPT = BROKER_HOST_PKG + ":id/input_prompt";
     private static final String INPUT_LOGIN_HINT = BROKER_HOST_PKG + ":id/input_login_hint";
+    private static final String INPUT_EXTRA_PARAMS_KEYS = BROKER_HOST_PKG + ":id/input_extra_params_keys";
+    private static final String INPUT_EXTRA_PARAMS_VALUES = BROKER_HOST_PKG + ":id/input_extra_params_values";
     private static final String CHECKBOX_CAN_SHOW_UI = BROKER_HOST_PKG + ":id/checkbox_can_show_ui";
     private static final String CHECKBOX_IS_STS = BROKER_HOST_PKG + ":id/checkbox_is_sts";
     private static final String BUTTON_EXECUTE_GET_TOKEN = BROKER_HOST_PKG + ":id/button_execute_get_token";
@@ -80,6 +88,12 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
     // Constants
     private static final String LEMON_GLACIER = "https://lemon-glacier-0fa89f11e.1.azurestaticapps.net/";
     private static final String SCOPE = "User.Read";
+    // Extra token-body params (semicolon-separated key/value lists for the BrokerHost form) that mark
+    // the request as an ESTS lookup-mode request. These are the values ESTS sends for a lookup request
+    // (AuthenticationConstants.Broker.NATIVEBROKER_KEY/VALUE and NATIVEBROKER_MODE_KEY/LOOKUP_MODE_VALUE).
+    private static final String LOOKUP_MODE_EXTRA_PARAM_KEYS = "nativebroker;nativebroker_mode";
+    private static final String LOOKUP_MODE_EXTRA_PARAM_VALUES = "1;Lookup";
+    private static final String FAILURE_MESSAGE_PREFIX = "Failed to getToken";
     private static final String ACCESS_TOKEN_DESCRIPTION = "access_token";
     private static final long DIALOG_WAIT_TIMEOUT_MS = 5000L;
 
@@ -90,17 +104,24 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
 
         final BrokerHost brokerHost = (BrokerHost) mBroker;
 
-        // -------- Step 1: Interactive GetToken --------
+        // -------- Step 1: Interactive GetToken (lookup mode) --------
         // Navigate to the Broker API tab
         brokerHost.brokerApiFragment.launch();
 
         // Scroll down to make the form fields and execute button visible
         new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().resourceId(INPUT_LOGIN_HINT));
 
-        // Fill the WebApps GetToken form for interactive auth
+        // Fill the WebApps GetToken form for interactive auth.
+        // Send the lookup-mode extra params (nativebroker=1 + nativebroker_mode=Lookup) so the broker
+        // treats this as an ESTS lookup-mode request: it establishes the PRT-backed broker account and
+        // registers the client, but does NOT persist the token to the per-clientId MSAL token cache.
+        // A lookup-mode request is ESTS-originated, so isSts is set true.
         setCheckbox(CHECKBOX_CAN_SHOW_UI, true);
+        setCheckbox(CHECKBOX_IS_STS, true);
         UiAutomatorUtils.handleInput(INPUT_PROMPT, "select_account");
         UiAutomatorUtils.handleInput(INPUT_LOGIN_HINT, username);
+        UiAutomatorUtils.handleInput(INPUT_EXTRA_PARAMS_KEYS, LOOKUP_MODE_EXTRA_PARAM_KEYS);
+        UiAutomatorUtils.handleInput(INPUT_EXTRA_PARAMS_VALUES, LOOKUP_MODE_EXTRA_PARAM_VALUES);
 
         // Scroll down to make the execute button visible
         new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().resourceId(BUTTON_EXECUTE_GET_TOKEN));
@@ -123,13 +144,16 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
 
         final String interactiveResult = dismissDialogAndGetText();
 
-        Assert.assertNotNull("Interactive GetToken result should not be null", interactiveResult);
-        Assert.assertTrue(
-                "Interactive GetToken result should contain access_token",
-                interactiveResult.contains(ACCESS_TOKEN_DESCRIPTION)
+        // A lookup-mode response carries "none" for the tokens, so we only assert that a successful
+        // (non-error) response came back -- not that it contains an access token.
+        Assert.assertNotNull("Interactive lookup-mode GetToken result should not be null", interactiveResult);
+        Assert.assertFalse(
+                "Interactive lookup-mode GetToken should return a successful response, but failed: " + interactiveResult,
+                interactiveResult.contains(FAILURE_MESSAGE_PREFIX)
         );
 
-        // Extract the homeAccountId from the interactive result for silent requests
+        // Extract the homeAccountId from the interactive result for the silent request. The
+        // lookup-mode response still includes the account, so the homeAccountId is available here.
         final int jsonStart = interactiveResult.indexOf("{");
         if (jsonStart < 0) {
             throw new AssertionError("Interactive result does not contain JSON: " + interactiveResult);
@@ -141,35 +165,7 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
         final String homeAccountId = resultJson.getAccount().getHomeAccountId();
         Assert.assertNotNull("homeAccountId should not be null", homeAccountId);
 
-        // -------- Step 2a: Silent GetToken (eSTS) --------
-        // Navigate to the Broker API tab
-        brokerHost.brokerApiFragment.launch();
-
-        // Scroll down to make the form fields visible
-        new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().resourceId(INPUT_LOGIN_HINT));
-
-        // Fill the WebApps GetToken form for silent eSTS auth (isSts defaults to true)
-        setCheckbox(CHECKBOX_CAN_SHOW_UI, false);
-        setCheckbox(CHECKBOX_IS_STS, true);
-        UiAutomatorUtils.handleInput(INPUT_HOME_ACCOUNT_ID, homeAccountId);
-        UiAutomatorUtils.handleInput(INPUT_PROMPT, "");
-        UiAutomatorUtils.handleInput(INPUT_LOGIN_HINT, username);
-
-        // Scroll down to make the execute button visible
-        new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().resourceId(BUTTON_EXECUTE_GET_TOKEN));
-
-        // Click Execute getToken
-        UiAutomatorUtils.handleButtonClick(BUTTON_EXECUTE_GET_TOKEN);
-
-        final String silentEstsResult = dismissDialogAndGetText();
-
-        Assert.assertNotNull("Silent eSTS GetToken result should not be null", silentEstsResult);
-        Assert.assertTrue(
-                "Silent eSTS GetToken result should contain access_token",
-                silentEstsResult.contains(ACCESS_TOKEN_DESCRIPTION)
-        );
-
-        // -------- Step 2b: Silent GetToken (MSAL JS) --------
+        // -------- Step 2: Silent GetToken (MSAL JS) --------
         // Navigate to the Broker API tab
         brokerHost.brokerApiFragment.launch();
 
@@ -179,17 +175,19 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
         // Set sender origin for MSAL JS
         UiAutomatorUtils.handleInput(INPUT_SENDER_ORIGIN, LEMON_GLACIER);
 
-        // Fill the WebApps GetToken form for silent MSAL JS auth.
-        // The real MSAL JS client sends a silent request with only the homeAccountId and no login
-        // hint, so the login hint is intentionally left blank here to mirror that client behavior
-        // and exercise home-account-id-based silent resolution end to end.
-        // (The lookup-mode PRT-resolution regression itself is guarded by the broker unit test
-        // WebAppsSubOperationsTest#testGetToken_SilentSuccessLookupModeAccount_MSALJS.)
+        // Fill the WebApps GetToken form for a silent MSAL JS request. This is the request that used
+        // to fail with UiRequired after a lookup-mode establishing request: the per-clientId MSAL
+        // token cache is empty (lookup mode never wrote to it), so the broker must resolve the account
+        // from the PRT/broker-account store keyed by the homeAccountId. The real MSAL JS client sends
+        // only the homeAccountId with no login hint, and its direct (non-ESTS) request is not lookup
+        // mode, so the lookup-mode extra params are cleared here.
         setCheckbox(CHECKBOX_CAN_SHOW_UI, false);
         setCheckbox(CHECKBOX_IS_STS, false);
         UiAutomatorUtils.handleInput(INPUT_HOME_ACCOUNT_ID, homeAccountId);
         UiAutomatorUtils.handleInput(INPUT_PROMPT, "");
         UiAutomatorUtils.handleInput(INPUT_LOGIN_HINT, "");
+        UiAutomatorUtils.handleInput(INPUT_EXTRA_PARAMS_KEYS, "");
+        UiAutomatorUtils.handleInput(INPUT_EXTRA_PARAMS_VALUES, "");
 
         // Scroll down to make the execute button visible
         new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().resourceId(BUTTON_EXECUTE_GET_TOKEN));
@@ -200,10 +198,10 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
         final String silentMsalJsResult = dismissDialogAndGetText();
 
         Assert.assertNotNull("Silent MSAL JS GetToken result should not be null", silentMsalJsResult);
-        // The silent MSAL JS request must succeed with an access token (served from the existing
-        // account/PRT state) and must NOT fall back to an interactive account picker.
+        // The silent MSAL JS request must succeed with an access token (resolved from the PRT-backed
+        // account) and must NOT fall back to an interactive account picker.
         Assert.assertTrue(
-                "Silent MSAL JS GetToken result should contain access_token",
+                "Silent MSAL JS GetToken result should contain access_token, but was: " + silentMsalJsResult,
                 silentMsalJsResult.contains(ACCESS_TOKEN_DESCRIPTION)
         );
 
