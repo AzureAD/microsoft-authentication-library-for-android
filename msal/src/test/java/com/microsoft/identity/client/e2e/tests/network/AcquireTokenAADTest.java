@@ -75,7 +75,7 @@ public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
         }
     }
 
-    @Ignore
+    @Ignore("China accounts are decommissioned")
     public static class AzureChinaCloudUser extends AcquireTokenAADTest {
         @Override
         public String getConfigFilePath() {
