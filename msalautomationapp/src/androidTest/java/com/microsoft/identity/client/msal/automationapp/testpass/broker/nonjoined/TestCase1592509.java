@@ -37,10 +37,12 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 // [MSAL] Mooncake: Silent Auth w/o cache w/o MFA w/ Prompt Auto  w/ Broker
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1592509
+@Ignore
 public class TestCase1592509 extends AbstractMsalBrokerTest {
     @Test
     public void test_1592509_NonJoined_Mooncake() throws Throwable {

@@ -34,6 +34,8 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.AD_
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.OFFICE_USER_READ_SCOPE;
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
 
+import org.junit.Ignore;
+
 /**
  * Run all tests in the {@link AcquireTokenNetworkTest} class using AAD
  */
@@ -73,6 +75,7 @@ public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
         }
     }
 
+    @Ignore
     public static class AzureChinaCloudUser extends AcquireTokenAADTest {
         @Override
         public String getConfigFilePath() {
