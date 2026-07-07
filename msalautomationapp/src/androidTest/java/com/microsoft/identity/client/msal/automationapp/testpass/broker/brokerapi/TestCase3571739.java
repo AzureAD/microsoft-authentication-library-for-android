@@ -47,11 +47,14 @@ import org.junit.Assert;
 import org.junit.Test;
 
 // WebApps API Tests via BrokerHost Broker API tab
-// Tests GetToken (interactive and silent) and SignOut operations of the WebApps APIs using the BrokerHost app's Broker API tab.
-// The silent MSAL JS GetToken step (Step 2b) specifically covers the lookup-mode scenario: a silent
-// request that supplies only the homeAccountId (no login hint) must be served from the PRT-backed
-// broker account store without falling back to an interactive account picker.
-// GetAllSsoTokens is also tested here.
+// End-to-end happy-path coverage of the WebApps APIs using the BrokerHost app's Broker API tab:
+// GetToken (interactive, silent eSTS, and silent MSAL JS), GetAllSsoTokens, and SignOut.
+// The silent MSAL JS step (Step 2b) mirrors the real MSAL JS client by supplying only the
+// homeAccountId with no login hint, exercising home-account-id-based silent resolution end to end.
+// Note: this E2E test is NOT the lookup-mode regression guard. Faithfully reproducing the
+// lookup-mode starting state (empty per-clientId MSAL token cache + PRT-backed broker account)
+// is covered by the broker Robolectric unit test
+// WebAppsSubOperationsTest#testGetToken_SilentSuccessLookupModeAccount_MSALJS.
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3571739
 @SupportedBrokers(brokers = BrokerHost.class)
 @LocalBrokerHostDebugUiTest
@@ -177,12 +180,11 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
         UiAutomatorUtils.handleInput(INPUT_SENDER_ORIGIN, LEMON_GLACIER);
 
         // Fill the WebApps GetToken form for silent MSAL JS auth.
-        // This exercises the lookup-mode scenario: an MSAL JS silent request is a lookup-mode
-        // request that is never persisted to the per-clientId MSAL token cache, and the real
-        // MSAL JS client supplies only the homeAccountId (no login hint). The broker must resolve
-        // the account against the PRT/broker-account store keyed by the homeAccountId; otherwise
-        // the silent request would fail with UiRequired and fall back to interactive unnecessarily.
-        // Note the login hint is intentionally left blank to reproduce that scenario.
+        // The real MSAL JS client sends a silent request with only the homeAccountId and no login
+        // hint, so the login hint is intentionally left blank here to mirror that client behavior
+        // and exercise home-account-id-based silent resolution end to end.
+        // (The lookup-mode PRT-resolution regression itself is guarded by the broker unit test
+        // WebAppsSubOperationsTest#testGetToken_SilentSuccessLookupModeAccount_MSALJS.)
         setCheckbox(CHECKBOX_CAN_SHOW_UI, false);
         setCheckbox(CHECKBOX_IS_STS, false);
         UiAutomatorUtils.handleInput(INPUT_HOME_ACCOUNT_ID, homeAccountId);
@@ -198,8 +200,8 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
         final String silentMsalJsResult = dismissDialogAndGetText();
 
         Assert.assertNotNull("Silent MSAL JS GetToken result should not be null", silentMsalJsResult);
-        // The silent lookup-mode request must succeed with an access token and must NOT fall back
-        // to an interactive account picker, since a valid PRT-backed account already exists.
+        // The silent MSAL JS request must succeed with an access token (served from the existing
+        // account/PRT state) and must NOT fall back to an interactive account picker.
         Assert.assertTrue(
                 "Silent MSAL JS GetToken result should contain access_token",
                 silentMsalJsResult.contains(ACCESS_TOKEN_DESCRIPTION)
