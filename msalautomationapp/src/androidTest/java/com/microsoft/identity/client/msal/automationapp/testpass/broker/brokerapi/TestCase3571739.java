@@ -162,6 +162,10 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
                 interactiveResult.substring(jsonStart),
                 WebAppsGetTokenSubOperationResponse.class
         );
+        Assert.assertNotNull(
+                "Interactive lookup-mode response did not contain an account object: " + interactiveResult,
+                resultJson.getAccount()
+        );
         final String homeAccountId = resultJson.getAccount().getHomeAccountId();
         Assert.assertNotNull("homeAccountId should not be null", homeAccountId);
 
