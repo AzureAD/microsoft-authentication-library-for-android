@@ -59,7 +59,7 @@ class TestCase3522687 : AbstractMsalBrokerTest() {
         val authTestParams: MsalAuthTestParams = MsalAuthTestParams.builder()
             .activity(mActivity)
             .loginHint(username)
-            .scopes(listOf(*mScopes))
+            .resource("00000003-0000-0ff1-ce00-000000000000") // Office 365 SharePoint Online
             .promptParameter(Prompt.SELECT_ACCOUNT)
             .msalConfigResourceId(configFileResourceId)
             .build()
@@ -81,7 +81,7 @@ class TestCase3522687 : AbstractMsalBrokerTest() {
     }
 
     override fun getScopes(): Array<String> {
-        return arrayOf("user.read")
+        return arrayOf()
     }
 
     override fun getAuthority(): String {
