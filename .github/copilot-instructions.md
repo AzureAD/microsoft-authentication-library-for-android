@@ -483,6 +483,8 @@ Flag:
 - Intent handling that trusts extras/redirects without validation (where applicable).
 - `PendingIntent` usage without appropriate mutability flags.
 
+Do NOT flag (see §7.17 rule 1): intentionally-permissive components in test apps (`testapps/`) or sample apps (`examples/`, `snippets/`) — exported receivers, public/hard-coded intent actions, debuggable/cleartext test config. These are by-design; keep applying the rules above to the shipped library. (Exception: a test app leaking a real secret is still a genuine finding.)
+
 --------------------------------------------------------------------------------
 
 ### 7.3 Concurrency & Thread Safety
@@ -589,6 +591,8 @@ Recommendations:
 Anti-patterns:
 - Flaky timing-based tests.
 - Tests asserting only log strings (unless log semantics are contractual).
+
+Do NOT flag (see §7.17 rule 3): a missing unit test whose sole purpose is to cover instrumentation — attaching span attributes/values, the bare `recordException(...)` attachment call, or populating an instrumentation field. These attachment paths are low-risk (whether telemetry fires on the correct error path / with the correct status remains test-worthy).
 
 --------------------------------------------------------------------------------
 
@@ -737,6 +741,26 @@ Never invent new setup steps, resource names, or config keys that are not valida
 
 --------------------------------------------------------------------------------
 
+### 7.17 Recurring False-Positive Patterns — Do NOT Flag These
+
+These rules are calibrated from the team's Copilot Code Review Effectiveness analysis: each pattern below is a comment category that engineers explicitly dismissed as *Confirmed Not Helpful* (wrong, irrelevant, or by-design). Treat them as strong suppression rules — default to staying silent. When you are tempted to post a comment matching one of these shapes, re-verify against the rule first; if the premise still holds, stay silent (a rule may carve a narrow, clearly-labeled exception). A missed nit costs the team far less than a confirmed false positive.
+
+**Cross-cutting — don't reason from names.** A recurring root cause below is inferring behavior, type relationships, or a field's meaning/source from an *identifier name* (a class, field, attribute, or flag) instead of from the actual code. Treat names as hints, not evidence: verify the inheritance chain, population logic, or data source in the diff before raising a concern that depends on it.
+
+1. **Test-app / sample context — don't apply production security severity to intentionally-permissive test apps.**
+   Code under `testapps/` (e.g. `testapps/testapp/`) and the sample apps in `examples/`/`snippets/` are deliberately permissive test harnesses, not shipped SDK surface. Do **not** raise `Severity: High` (or block) on an exported component, a public/hard-coded intent action, an implicit `PendingIntent`, a debuggable flag, or a cleartext-traffic allowance when it lives in one of these test/sample targets — these are intentional and were dismissed as by-design (real example the team dismissed, PR #2516: an exported receiver in `testapps/testapp/.../AndroidManifest.xml`, triggerable via a public `...SILENT_AUTH` action, flagged `Severity: High` — engineer: "this is fine. this is a test app. intentional."). This narrows §7.2.3 and the severity legend in §7.A.2. Boundary: still flag exported-component / intent-safety issues in the **shipped library** (`msal/`, `common/`), and still flag a test app that leaks a **real** secret (a checked-in production token/credential is a genuine finding regardless of target).
+
+2. **Exception-handler inheritance — verify the type hierarchy before flagging a "missing" catch.**
+   Before suggesting an added `catch` block, or claiming a thrown type is not handled/retried, confirm the inheritance chain of the type that is already caught (don't assume coverage from the class name). A `catch` (or `instanceof` check) on a supertype already covers every subtype — e.g. in this stack `MsalUiRequiredException`, `MsalServiceException`, and `MsalClientException` all extend `MsalException`, so a handler keyed on `MsalException` already applies to all of them (and note these three are *siblings* — catching `MsalServiceException` does **not** cover `MsalUiRequiredException`, so verify the actual chain rather than guessing from the names). Verify the hierarchy against the current code before commenting.
+
+3. **Telemetry / instrumentation attachment paths — do not demand unit tests for them.**
+   Don't request a unit test whose sole purpose is to cover instrumentation — setting span attributes, attaching values, the bare act of recording an exception on a span (the `recordException(...)` attachment call itself), or populating an instrumentation field. These attachment paths are low-risk; this narrows §7.7 only, so keep asking for tests around branching logic, config parsing/validation, interactive-vs-silent and account-mode decision logic, error/retry/fallback, concurrency, and public API behavior. Boundary: *whether* telemetry fires on the correct error path / with the correct status is correctness logic and remains test-worthy — only the bare attachment call is exempt. (MSAL generally defers telemetry semantics to Common; see §7.6.)
+
+4. **Cross-PR / cross-repo scope creep — flag genuine dependencies, not unrelated changes.**
+   Don't pad a review with changes that belong in a *different, unrelated* PR or repo and aren't needed for this change to be correct (e.g. "while you're here, also update the companion ADAL feed to consume the new upstream"). That said, if the change genuinely **requires or breaks** something in another repo — a Common contract this MSAL change depends on (an `AttributeName`/`SpanName`, a result/IPC schema, an authority-validation invariant; recall from §7.1.1 that Common owns the command pipeline / protocol / cache / IPC / telemetry classification) — it is correct and valuable to surface it; that's exactly the kind of thing authors miss. When you do, frame it as a clearly-labeled, non-blocking follow-up/dependency note ("Follow-up (separate PR): …") rather than a required change to the current diff. The test is necessity, not location: raise cross-repo work the change actually depends on or invalidates; skip tangential "while you're here" suggestions.
+
+--------------------------------------------------------------------------------
+
 ### 7.A Appendix A: Comment Quality Guidelines (MSAL)
 
 #### 7.A.1 Comment Quality Checklist (apply before posting)
@@ -749,7 +773,7 @@ For each review comment, ensure:
 #### 7.A.2 Code Review Guidelines – Severity Legend (Optional but Recommended)
 Use severity prefixes to help maintainers triage.
 
-- **Severity: High –** Exploitable vulnerability, token/PII exposure, authn/authz bypass, unsafe intent/exported component, redirect URI validation weakening, silent→interactive regression, double-callback causing repeated UI, or a public API break likely to impact many customers.
+- **Severity: High –** Exploitable vulnerability, token/PII exposure, authn/authz bypass, unsafe intent/exported component, redirect URI validation weakening, silent→interactive regression, double-callback causing repeated UI, or a public API break likely to impact many customers. (Carve-out: intentionally-permissive components in test/sample apps under `testapps/`, `examples/`, or `snippets/` are **not** High — see §7.17 rule 1.)
 - **Severity: Medium –** Logic flaw causing incorrect results/state, loss of actionable errors (support burden), threading regression (main-thread work/ANR risk), missing tests for major branch, config parsing changes without validation coverage, behavior drift in samples/snippets.
 - **Low priority:** Immutability, minor docs/style, small clarity improvements, micro-optimizations in non-hot paths.
 
@@ -834,6 +858,7 @@ Always cite specific code and give a minimal, actionable fix; use an assumption 
 - Don’t request additional docs when existing docs are already accurate and the change is trivial.
 - Don’t suggest converting `var`→`val` when reassignment is intentional (builders/accumulators).
 - Don’t nitpick formatting handled by Spotless/ktlint.
+- See §7.17 for the calibrated suppression rules (test-app security context, exception-handler inheritance, telemetry-attachment test demands, cross-PR/cross-repo scope creep).
 
 ---
 
