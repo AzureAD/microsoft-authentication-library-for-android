@@ -304,6 +304,16 @@ dependencies {
     // Set this dependency to use JUnit 4 rules
     androidTestImplementation "androidx.test:rules:$rootProject.rulesVersion"
     androidTestImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
+    // testutils is pulled in solely for FlakyTestRetryRule + @RetryFlakyTest (retrying flaky
+    // instrumented tests; the org.gradle.test-retry plugin only covers JVM/Robolectric unit tests).
+    // transitive = false keeps only the rule's classes and avoids dragging testutils' whole
+    // transitive graph onto the androidTest classpath.
+    androidTestLocalImplementation(project(':testutils')) {
+        transitive = false
+    }
+    androidTestDistImplementation("com.microsoft.identity:testutils:0.0+") {
+        transitive = false
+    }
     // 'local' flavor dependencies
     localApi(project(":common")) {
         transitive = true

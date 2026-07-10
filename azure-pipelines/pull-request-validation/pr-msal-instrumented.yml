@@ -1,0 +1,129 @@
+# File: azure-pipelines\pull-request-validation\pr-msal-instrumented.yml
+# Description: PR validation that runs MSAL instrumented (androidTest) tests on an Android emulator.
+#              Mirrors the unit-test PR validation (pr-msal.yml) but executes
+#              msal:connectedLocalDebugAndroidTest. Modeled on
+#              AuthClientAndroidPipelines/templates/runTests/run-instrumented-tests.yml.
+# Wire this pipeline up as a Build Validation branch policy (PR trigger) in ADO.
+name: $(date:yyyyMMdd)$(rev:.r)
+trigger: none
+
+variables:
+# https://developer.android.com/studio/releases/platforms
+- name: android.system.image
+  value: system-images;android-33;google_apis;x86_64
+- name: Codeql.Enabled
+  value: false
+- group: AndroidAuthClientAutomationSecrets
+- group: MSIDLABVARS
+
+resources:
+  repositories:
+  - repository: common
+    type: github
+    name: AzureAD/microsoft-authentication-library-common-for-android
+    ref: dev
+    endpoint: ANDROID_GITHUB
+  - repository: msal-dev
+    type: github
+    name: AzureAD/microsoft-authentication-library-for-android
+    ref: dev
+    endpoint: ANDROID_GITHUB
+
+# Instrumented tests require a Linux agent with KVM/nested virtualization for the emulator.
+pool:
+  name: MSSecurity-1ES-Build-Agents-Pool
+  image: MSSecurity-1ES-Ubuntu-2204
+  os: linux
+
+stages:
+  - stage: instrumented_tests
+    displayName: Instrumented Tests
+    jobs:
+    - job: run_instrumented_tests
+      displayName: Run msal instrumented tests (LocalDebug)
+      timeoutInMinutes: 120
+      steps:
+      - checkout: self
+        clean: true
+        submodules: recursive
+        persistCredentials: True
+      - bash: |
+          echo "##vso[task.setvariable variable=ENV_VSTS_MVN_CRED_USERNAME]VSTS"
+          echo "##vso[task.setvariable variable=ENV_VSTS_MVN_CRED_ACCESSTOKEN]$(System.AccessToken)"
+        displayName: 'Set VSTS Fields in Environment'
+      - template: azure-pipelines/templates/steps/automation-cert.yml@common
+      - script: echo "##vso[build.addbuildtag]AndroidSystemImage=$(android.system.image)"
+        displayName: Tag build with system image
+      - script: |
+          #!/usr/bin/env bash
+          set -e
+          echo "Starting android emulator"
+          echo "See https://learn.microsoft.com/en-us/azure/devops/pipelines/ecosystems/android?view=azure-devops#test-on-the-android-emulator"
+
+          # Need to install missing packages onto linux agent
+          sudo apt update && sudo apt install -y android-sdk android-tools-adb
+
+          cd $ANDROID_HOME
+          sudo wget -q https://dl.google.com/android/repository/commandlinetools-linux-6609375_latest.zip
+          sudo unzip -q commandlinetools-linux-6609375_latest.zip -d cmdline-tools
+
+          # Install AVD system image
+          echo "Install AVD system image"
+          yes | sudo $ANDROID_HOME/cmdline-tools/tools/bin/sdkmanager --install "$ANDROID_SYSTEM_IMAGE"
+
+          # Create emulator
+          echo "Create emulator"
+          echo "no" | sudo $ANDROID_HOME/cmdline-tools/tools/bin/avdmanager create avd -n android_emulator -k "$ANDROID_SYSTEM_IMAGE" --force
+
+          # Confirm KVM availability
+          sudo apt-get install -y cpu-checker
+          sudo /usr/sbin/kvm-ok
+
+          echo "Starting emulator"
+          sudo nohup $ANDROID_HOME/emulator/emulator -avd android_emulator -no-window -no-audio -wipe-data -no-snapshot -no-boot-anim > /dev/null 2>&1 &
+
+          echo "Wait for device to finish booting"
+          sudo $ANDROID_HOME/platform-tools/adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed | tr -d '\r') ]]; do sleep 1; done; input keyevent 82'
+          sudo $ANDROID_HOME/platform-tools/adb devices
+          echo "Emulator started"
+        displayName: 'Start Android emulator'
+      - script: |
+          #!/usr/bin/env bash
+          echo "Push certificate to emulator"
+          adb push 'LabAuth.pfx' '/data/local/tmp/LabAuth.pfx'
+        displayName: 'Push certificate to emulator'
+      - bash: |
+          mkdir -p $(Build.ArtifactStagingDirectory)/msal_logs
+          $ANDROID_HOME/platform-tools/adb logcat -c
+          $ANDROID_HOME/platform-tools/adb logcat -v threadtime > $(Build.ArtifactStagingDirectory)/msal_logs/logcat_logs.txt &
+          echo $! > logcat.pid
+          echo "Logcat started with PID: $(cat logcat.pid)"
+        displayName: 'Start logcat collection'
+      - task: Gradle@3
+        displayName: Run msal instrumented tests
+        inputs:
+          gradleWrapperFile: 'gradlew'
+          javaHomeOption: 'JDKVersion'
+          jdkVersionOption: '1.17'
+          options: -Psugar=true -PlabSecret=/data/local/tmp/LabAuth.pfx
+          tasks: 'msal:connectedLocalDebugAndroidTest'
+          publishJUnitResults: true
+          testResultsFiles: '**/TEST-*.xml'
+          testRunTitle: 'msal_InstrumentedTests'
+      - bash: |
+          echo "Stopping logcat (PID: $(cat logcat.pid))"
+          kill -9 $(cat logcat.pid) || true
+        displayName: 'Stop logcat collection'
+        condition: always()
+      - task: PublishPipelineArtifact@1
+        displayName: 'Publish logcat logs'
+        condition: succeededOrFailed()
+        inputs:
+          targetPath: '$(Build.ArtifactStagingDirectory)/msal_logs'
+          artifactName: msal_logs
+      - task: PublishPipelineArtifact@1
+        displayName: 'Publish instrumented test HTML report'
+        condition: succeededOrFailed()
+        inputs:
+          targetPath: '$(Build.SourcesDirectory)/msal/build/reports/androidTests/connected/debug/flavors/local/'
+          artifactName: InstrumentedTestReport-msal
