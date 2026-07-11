@@ -11,7 +11,7 @@ variables:
 - name: androidApiLevel
   value: 33
 - name: androidTag
-  value: google_apis
+  value: default
 - name: Codeql.Enabled
   value: false
 - group: AndroidAuthClientAutomationSecrets
