@@ -91,9 +91,9 @@ stages:
           echo "Waiting for device to connect"
           "$ADB" wait-for-device
 
-          echo "Waiting for boot to complete (timeout ~8 min)"
+          echo "Waiting for boot to complete (timeout ~15 min)"
           booted=0
-          for i in $(seq 1 96); do
+          for i in $(seq 1 180); do
             if [[ "$("$ADB" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" == "1" ]]; then
               booted=1; break
             fi
