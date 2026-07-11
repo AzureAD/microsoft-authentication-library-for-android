@@ -1,16 +1,17 @@
 # File: azure-pipelines\pull-request-validation\pr-msal-instrumented.yml
 # Description: PR validation that runs MSAL instrumented (androidTest) tests on an Android emulator.
-#              Mirrors the unit-test PR validation (pr-msal.yml) but executes
-#              msal:connectedLocalDebugAndroidTest. Modeled on
-#              AuthClientAndroidPipelines/templates/runTests/run-instrumented-tests.yml.
+#              Executes msal:connectedLocalDebugAndroidTest on a macOS agent (the emulator needs a
+#              hypervisor; Microsoft-hosted Linux agents have no /dev/kvm and hang at boot).
 # Wire this pipeline up as a Build Validation branch policy (PR trigger) in ADO.
 name: $(date:yyyyMMdd)$(rev:.r)
 trigger: none
 
 variables:
 # https://developer.android.com/studio/releases/platforms
-- name: android.system.image
-  value: system-images;android-33;google_apis;x86_64
+- name: androidApiLevel
+  value: 33
+- name: androidTag
+  value: google_apis
 - name: Codeql.Enabled
   value: false
 - group: AndroidAuthClientAutomationSecrets
@@ -18,22 +19,18 @@ variables:
 
 resources:
   repositories:
-  - repository: common
-    type: github
-    name: AzureAD/microsoft-authentication-library-common-for-android
-    ref: dev
-    endpoint: ANDROID_GITHUB
   - repository: msal-dev
     type: github
     name: AzureAD/microsoft-authentication-library-for-android
     ref: dev
     endpoint: ANDROID_GITHUB
 
-# Instrumented tests require a Linux agent with KVM/nested virtualization for the emulator.
+# Instrumented tests need an agent that can hardware-accelerate the Android emulator. Microsoft-hosted
+# Linux agents (ubuntu-latest) do NOT expose /dev/kvm, so an x86_64 emulator hangs at boot. macOS
+# hosted agents provide Hypervisor.framework, so the emulator boots reliably. Apple-Silicon macOS
+# agents require an arm64-v8a system image (selected dynamically in the emulator step below).
 pool:
-  name: MSSecurity-1ES-Build-Agents-Pool
-  image: MSSecurity-1ES-Ubuntu-2204
-  os: linux
+  vmImage: macOS-latest
 
 stages:
   - stage: instrumented_tests
@@ -51,46 +48,70 @@ stages:
           echo "##vso[task.setvariable variable=ENV_VSTS_MVN_CRED_USERNAME]VSTS"
           echo "##vso[task.setvariable variable=ENV_VSTS_MVN_CRED_ACCESSTOKEN]$(System.AccessToken)"
         displayName: 'Set VSTS Fields in Environment'
-      - template: azure-pipelines/templates/steps/automation-cert.yml@common
-      - script: echo "##vso[build.addbuildtag]AndroidSystemImage=$(android.system.image)"
-        displayName: Tag build with system image
-      - script: |
-          #!/usr/bin/env bash
+      # The repo's automation-cert.yml installs the pfx into a Windows cert store via
+      # Import-PfxCertificate (Windows-only). Instrumented tests run on macOS and only need the
+      # pfx file on disk to adb-push it, so we download the secret and write the file directly.
+      - task: AzureKeyVault@2
+        displayName: 'Azure Key Vault: download LabAuth cert'
+        inputs:
+          azureSubscription: 'AuthSdkResourceManager'
+          KeyVaultName: 'msidlabs'
+          SecretsFilter: 'LabAuth'
+      - bash: |
           set -e
-          echo "Starting android emulator"
-          echo "See https://learn.microsoft.com/en-us/azure/devops/pipelines/ecosystems/android?view=azure-devops#test-on-the-android-emulator"
+          # openssl decodes base64 portably (macOS `base64` uses -D, GNU uses -d/--decode).
+          printf '%s' "$LAB_AUTH_B64" | openssl base64 -A -d > "$(Build.SourcesDirectory)/LabAuth.pfx"
+          ls -l "$(Build.SourcesDirectory)/LabAuth.pfx"
+        displayName: 'Write LabAuth cert to workspace'
+        env:
+          LAB_AUTH_B64: $(LabAuth)
+      - bash: |
+          set -e
+          ANDROID_HOME="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          AVDMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager"
+          ADB="$ANDROID_HOME/platform-tools/adb"
 
-          # Need to install missing packages onto linux agent
-          sudo apt update && sudo apt install -y android-sdk android-tools-adb
+          # Match the system-image ABI to the agent architecture (Apple Silicon vs Intel).
+          if [[ "$(uname -m)" == "arm64" ]]; then ABI="arm64-v8a"; else ABI="x86_64"; fi
+          SYSTEM_IMAGE="system-images;android-$(androidApiLevel);$(androidTag);$ABI"
+          echo "##vso[build.addbuildtag]AndroidSystemImage=$SYSTEM_IMAGE"
+          echo "Using system image: $SYSTEM_IMAGE (arch $(uname -m))"
 
-          cd $ANDROID_HOME
-          sudo wget -q https://dl.google.com/android/repository/commandlinetools-linux-6609375_latest.zip
-          sudo unzip -q commandlinetools-linux-6609375_latest.zip -d cmdline-tools
-
-          # Install AVD system image
-          echo "Install AVD system image"
-          yes | sudo $ANDROID_HOME/cmdline-tools/tools/bin/sdkmanager --install "$ANDROID_SYSTEM_IMAGE"
-
-          # Create emulator
-          echo "Create emulator"
-          echo "no" | sudo $ANDROID_HOME/cmdline-tools/tools/bin/avdmanager create avd -n android_emulator -k "$ANDROID_SYSTEM_IMAGE" --force
-
-          # Confirm KVM availability
-          sudo apt-get install -y cpu-checker
-          sudo /usr/sbin/kvm-ok
+          yes | "$SDKMANAGER" --licenses >/dev/null 2>&1 || true
+          "$SDKMANAGER" --install "$SYSTEM_IMAGE" "platform-tools" "emulator" >/dev/null
+          echo "no" | "$AVDMANAGER" create avd -n android_emulator -k "$SYSTEM_IMAGE" --force
 
           echo "Starting emulator"
-          sudo nohup $ANDROID_HOME/emulator/emulator -avd android_emulator -no-window -no-audio -wipe-data -no-snapshot -no-boot-anim > /dev/null 2>&1 &
+          nohup "$ANDROID_HOME/emulator/emulator" -avd android_emulator \
+            -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect \
+            -camera-back none -camera-front none -netdelay none -netspeed full -no-metrics \
+            > "$(Build.ArtifactStagingDirectory)/emulator.log" 2>&1 &
 
-          echo "Wait for device to finish booting"
-          sudo $ANDROID_HOME/platform-tools/adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed | tr -d '\r') ]]; do sleep 1; done; input keyevent 82'
-          sudo $ANDROID_HOME/platform-tools/adb devices
-          echo "Emulator started"
+          echo "Waiting for device to connect"
+          "$ADB" wait-for-device
+
+          echo "Waiting for boot to complete (timeout ~8 min)"
+          booted=0
+          for i in $(seq 1 96); do
+            if [[ "$("$ADB" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" == "1" ]]; then
+              booted=1; break
+            fi
+            sleep 5
+          done
+          if [[ "$booted" != "1" ]]; then
+            echo "##[error]Emulator failed to boot within timeout."
+            echo "----- emulator.log (tail) -----"; tail -n 120 "$(Build.ArtifactStagingDirectory)/emulator.log" || true
+            echo "----- logcat (tail) -----"; "$ADB" logcat -d 2>/dev/null | tail -n 120 || true
+            exit 1
+          fi
+          "$ADB" shell input keyevent 82 || true
+          "$ADB" devices
+          echo "Emulator ready"
         displayName: 'Start Android emulator'
-      - script: |
-          #!/usr/bin/env bash
+      - bash: |
           echo "Push certificate to emulator"
-          adb push 'LabAuth.pfx' '/data/local/tmp/LabAuth.pfx'
+          "$ANDROID_HOME/platform-tools/adb" push 'LabAuth.pfx' '/data/local/tmp/LabAuth.pfx'
         displayName: 'Push certificate to emulator'
       - bash: |
           mkdir -p $(Build.ArtifactStagingDirectory)/msal_logs
