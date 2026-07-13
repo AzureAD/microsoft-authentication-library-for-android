@@ -80,32 +80,78 @@ stages:
 
           yes | "$SDKMANAGER" --licenses >/dev/null 2>&1 || true
           "$SDKMANAGER" --install "$SYSTEM_IMAGE" "platform-tools" "emulator" >/dev/null
-          echo "no" | "$AVDMANAGER" create avd -n android_emulator -k "$SYSTEM_IMAGE" --force
 
-          echo "Starting emulator"
-          nohup "$ANDROID_HOME/emulator/emulator" -avd android_emulator \
-            -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect \
-            -camera-back none -camera-front none -netdelay none -netspeed full -no-metrics \
-            > "$(Build.ArtifactStagingDirectory)/emulator.log" 2>&1 &
+          # boot_emulator: (re)create the AVD, cold-boot it, and wait until it is FULLY ready.
+          # Returns non-zero if the emulator never reaches a usable state, so the caller can retry.
+          boot_emulator() {
+            echo "no" | "$AVDMANAGER" create avd -n android_emulator -k "$SYSTEM_IMAGE" --force
 
-          echo "Waiting for device to connect"
-          "$ADB" wait-for-device
+            echo "Starting emulator"
+            # Headroom flags (-memory/-cores/-partition-size) stop cold boot and APK installs from
+            # wedging; -accel on fails fast if HW acceleration is missing instead of hanging;
+            # -no-snapshot-load/-save force a clean, deterministic cold boot every run.
+            nohup "$ANDROID_HOME/emulator/emulator" -avd android_emulator \
+              -no-window -no-audio -no-boot-anim -no-snapshot-load -no-snapshot-save \
+              -gpu swiftshader_indirect -accel on -memory 3072 -cores 2 -partition-size 4096 \
+              -camera-back none -camera-front none -netdelay none -netspeed full -no-metrics \
+              > "$(Build.ArtifactStagingDirectory)/emulator.log" 2>&1 &
 
-          echo "Waiting for boot to complete (timeout ~15 min)"
-          booted=0
-          for i in $(seq 1 180); do
-            if [[ "$("$ADB" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" == "1" ]]; then
-              booted=1; break
+            echo "Waiting for device to connect"
+            "$ADB" wait-for-device
+
+            echo "Waiting for sys.boot_completed (timeout ~15 min)"
+            booted=0
+            for i in $(seq 1 180); do
+              if [[ "$("$ADB" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" == "1" ]]; then
+                booted=1; break
+              fi
+              sleep 5
+            done
+            if [[ "$booted" != "1" ]]; then
+              echo "##[warning]sys.boot_completed did not flip within timeout."
+              return 1
             fi
+
+            # sys.boot_completed fires before the system has settled. Wait for the boot animation
+            # to stop and PackageManager to answer before declaring the device usable.
+            echo "Waiting for boot animation to stop and PackageManager to come up"
+            for i in $(seq 1 60); do
+              anim="$("$ADB" shell getprop init.svc.bootanim 2>/dev/null | tr -d '\r')"
+              if [[ "$anim" == "stopped" ]] && "$ADB" shell pm path android >/dev/null 2>&1; then
+                return 0
+              fi
+              sleep 5
+            done
+            echo "##[warning]System did not fully settle within timeout."
+            return 1
+          }
+
+          # Cold boots occasionally wedge; give it two attempts before failing the job.
+          booted_ok=0
+          for attempt in 1 2; do
+            echo "===== Emulator boot attempt $attempt ====="
+            if boot_emulator; then booted_ok=1; break; fi
+            echo "Boot attempt $attempt failed; tearing down and retrying."
+            "$ADB" emu kill >/dev/null 2>&1 || true
+            "$ADB" kill-server >/dev/null 2>&1 || true
             sleep 5
+            "$ADB" start-server >/dev/null 2>&1 || true
           done
-          if [[ "$booted" != "1" ]]; then
-            echo "##[error]Emulator failed to boot within timeout."
+          if [[ "$booted_ok" != "1" ]]; then
+            echo "##[error]Emulator failed to boot after 2 attempts."
             echo "----- emulator.log (tail) -----"; tail -n 120 "$(Build.ArtifactStagingDirectory)/emulator.log" || true
             echo "----- logcat (tail) -----"; "$ADB" logcat -d 2>/dev/null | tail -n 120 || true
             exit 1
           fi
+
+          # Stabilize the UI for tests: kill animations, dismiss the keyguard, and keep the screen
+          # awake so nothing races against lock/sleep during the run.
+          "$ADB" shell settings put global window_animation_scale 0 || true
+          "$ADB" shell settings put global transition_animation_scale 0 || true
+          "$ADB" shell settings put global animator_duration_scale 0 || true
+          "$ADB" shell wm dismiss-keyguard || true
           "$ADB" shell input keyevent 82 || true
+          "$ADB" shell svc power stayon true || true
           "$ADB" devices
           echo "Emulator ready"
         displayName: 'Start Android emulator'
