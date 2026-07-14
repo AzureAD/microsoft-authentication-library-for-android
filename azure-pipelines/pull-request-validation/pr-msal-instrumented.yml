@@ -113,16 +113,22 @@ stages:
             fi
 
             # sys.boot_completed fires before the system has settled. Wait for the boot animation
-            # to stop and PackageManager to answer before declaring the device usable.
-            echo "Waiting for boot animation to stop and PackageManager to come up"
+            # to stop, PackageManager to answer, AND user 0's credential-encrypted (CE) storage to
+            # become available. CE storage backs SharedPreferences; running before user unlock throws
+            # "SharedPreferences in credential encrypted storage are not available until after user
+            # is unlocked". No lock is set on the AVD, so the user auto-unlocks shortly after boot.
+            echo "Waiting for boot animation to stop, PackageManager, and user unlock (CE storage)"
             for i in $(seq 1 60); do
               anim="$("$ADB" shell getprop init.svc.bootanim 2>/dev/null | tr -d '\r')"
-              if [[ "$anim" == "stopped" ]] && "$ADB" shell pm path android >/dev/null 2>&1; then
+              ce="$("$ADB" shell getprop sys.user.0.ce_available 2>/dev/null | tr -d '\r')"
+              if [[ "$anim" == "stopped" && "$ce" == "true" ]] && "$ADB" shell pm path android >/dev/null 2>&1; then
                 return 0
               fi
+              # Nudge the user out of the locked (direct-boot) state in case it is waiting on the keyguard.
+              "$ADB" shell wm dismiss-keyguard >/dev/null 2>&1 || true
               sleep 5
             done
-            echo "##[warning]System did not fully settle within timeout."
+            echo "##[warning]System did not fully settle (boot anim / PackageManager / CE storage) within timeout."
             return 1
           }
 
