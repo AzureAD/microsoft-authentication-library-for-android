@@ -1,0 +1,51 @@
+# File: azure-pipelines/pull-request-validation/pr-msal-instrumented.yml
+# Description: PR validation that runs MSAL instrumented (androidTest) tests on the 1ES Ubuntu build
+#              agents (which expose KVM, so the x86_64 emulator hardware-accelerates and boots
+#              reliably; the old Microsoft-hosted macOS pipeline was flaky). This is a thin
+#              1ES-Unofficial wrapper that reuses the shared run-instrumented-tests.yml template from
+#              the AuthClientAndroidPipelines repo. gitProject: self checks out the PR commit, so this
+#              works as a Build Validation branch policy on the msal repo.
+name: $(date:yyyyMMdd)$(rev:.r)
+
+# PR validation is driven by a Build Validation branch policy in ADO, not by YAML triggers.
+pr: none
+trigger: none
+
+resources:
+  repositories:
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+  - repository: AuthClientAndroidPipelines
+    type: git
+    name: Engineering/AuthClientAndroidPipelines
+    ref: refs/heads/main
+
+variables:
+  - group: AndroidAuthClientAutomationSecrets
+
+extends:
+  template: v1/1ES.Unofficial.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    pool:
+      name: MSSecurity-1ES-Build-Agents-Pool
+      image: MSSecurity-1ES-Ubuntu-2204
+      os: linux
+    sdl:
+      # Anti-malware is injected by default and is only supported on Windows agents.
+      enableAllTools: false
+      sourceAnalysisPool:
+        name: MSSecurity-1ES-Build-Agents-Pool
+        image: MSSecurity-1ES-Windows-2022
+        os: windows
+    stages:
+    - stage: instrumented_tests
+      displayName: MSAL Instrumented Tests
+      dependsOn: []
+      jobs:
+      - template: templates/runTests/run-instrumented-tests.yml@AuthClientAndroidPipelines
+        parameters:
+          gitProject: self
+          projectName: msal
+          gradleOptions: -Psugar=true -PlabSecret=/data/local/tmp/LabAuth.pfx
