@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    OWASP Dependency-Check suppression file for the `msal` Android library.
+
+    LOCATION RATIONALE
+    ==================
+    This file lives inside the `msal` repository (at config/owasp/) so
+    that it travels with the codebase whether the build is driven from the
+    standalone `msal` repo or from the `android-complete` multi-repo
+    aggregator. Other static-analysis configs (checkstyle, credscan, spotbugs)
+    live in sibling folders under config/ for the same reason.
+
+    WIRING
+    ======
+    Picked up automatically by `msal/build.gradle`:
+        def dependencyCheckSuppressionFile = file(
+                "${projectDir}/../config/owasp/dependency-check-suppressions.xml")
+        if (dependencyCheckSuppressionFile.exists()) {
+            suppressionFile = dependencyCheckSuppressionFile.absolutePath
+        }
+    The path is resolved relative to the module's own `projectDir` (not
+    `project.rootDir`) so it works identically in both build contexts.
+
+    GUIDELINES
+    ==========
+    1. PREFER NARROW SUPPRESSIONS. Always scope a rule to BOTH the matched
+       artifact (via <packageUrl regex=...>) AND the false-positive CPE (via
+       <cpe>...</cpe>). Suppressing by <cve> alone hides the finding for every
+       dependency in the scan and is almost always wrong.
+
+    2. ONLY SUPPRESS FALSE POSITIVES. If a CVE genuinely applies to a shipping
+       dependency, fix the dependency (bump, replace, or remove). Do NOT use
+       this file to silence real risk. Each <suppress> MUST include a <notes>
+       block explaining (a) why it is a false positive, (b) the date it was
+       added, and (c) who added it. Reviewers will reject rules without this
+       rationale.
+
+    3. RE-EVALUATE PERIODICALLY. CPE assignments on NVD change. A rule that is
+       valid today may start hiding real findings tomorrow. Plan to audit this
+       file when the dependency-check plugin is upgraded.
+
+     4. REGENERATE FROM THE HTML REPORT WHEN POSSIBLE. Open the generated report
+         at msal/build/reports/dependency-check/dependency-check-report.html,
+       click "suppress" on a finding, and paste the generated snippet here —
+       that guarantees the SHA1/packageUrl values exactly match what the scan
+       sees.
+-->
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+
+    <!--
+        CVE-2008-7298 — androidx.browser:browser
+
+        FALSE POSITIVE. NVD matches `cpe:2.3:a:android:android_browser:*` against
+        any artifact whose name starts with `android-browser`, but `androidx.browser`
+        (the Custom Tabs / browser-helper library, Maven groupId androidx.browser)
+        is an entirely different product from the long-retired pre-4.0 Android
+        stock browser the CVE describes. The CVE itself describes an HTML escaping
+        bug in the system browser of Android <= 1.5 (2008), which has no code path
+        in the Jetpack androidx.browser library.
+
+        Added: 2026-06-15 by build-system maintainers.
+    -->
+    <suppress>
+        <notes><![CDATA[
+            False positive: cpe:android:android_browser is the legacy Android stock
+            browser, not the Jetpack androidx.browser Custom Tabs library.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/androidx\.browser/browser@.*$</packageUrl>
+        <cpe>cpe:/a:android:android_browser</cpe>
+    </suppress>
+
+    <!--
+        CVE-2024-35255 — com.microsoft.identity:common4j / com.microsoft.identity:common
+
+        FALSE POSITIVE. NVD matches `cpe:2.3:a:microsoft:authentication_library:*`
+        (including the `java` ecosystem variant) against any Microsoft-published
+        artifact whose name contains "authentication" / "auth" / "library".
+        The CVE is filed against the Azure Identity SDK for server-side Java
+        (com.azure:azure-identity) and MSAL for .NET. Neither `common4j` nor the
+        Android `common` AAR share code or architecture with those server-side
+        libraries; they are mobile-only Android authentication helpers.
+
+        Added: 2026-06-15 / updated 2026-06-16 by build-system maintainers.
+    -->
+    <suppress>
+        <notes><![CDATA[
+            False positive: cpe:microsoft:authentication_library:java targets the
+            Azure Identity SDK for server-side Java, not the Android common4j library.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/com\.microsoft\.identity/common4j@.*$</packageUrl>
+        <cpe>cpe:/a:microsoft:authentication_library</cpe>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+            False positive: cpe:microsoft:authentication_library:java targets the
+            Azure Identity SDK for server-side Java, not the Android common AAR.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/com\.microsoft\.identity/common@.*$</packageUrl>
+        <cpe>cpe:/a:microsoft:authentication_library</cpe>
+    </suppress>
+
+    <!--
+        CVE-2020-29582 — org.jetbrains.kotlin:kotlin-stdlib / kotlin-stdlib-jdk7 / kotlin-stdlib-jdk8
+
+        FALSE POSITIVE.  CVE-2020-29582 describes a vulnerability in JetBrains
+        Kotlin BEFORE version 1.4.21, where a vulnerable Java API was used for
+        temporary file/folder creation that could allow an attacker to read data
+        or list directories.  The stdlib artifacts in this project are version
+        1.9.21 (kotlin-stdlib) and 1.8.0 (kotlin-stdlib-jdk7/jdk8) — all of
+        which are far above the fixed threshold of 1.4.21.  OWASP Dependency-
+        Check matches these via the wildcard CPE
+        `cpe:2.3:a:jetbrains:kotlin:*:*:*:*:*:*:*:*` and does not evaluate the
+        "versionEndExcluding: 1.4.21" constraint before flagging.
+
+        Added: 2026-06-16 by build-system maintainers.
+    -->
+    <suppress>
+        <notes><![CDATA[
+            False positive: CVE-2020-29582 affects Kotlin < 1.4.21 only.
+            kotlin-stdlib 1.9.21 is not vulnerable.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin-stdlib@.*$</packageUrl>
+        <cve>CVE-2020-29582</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+            False positive: CVE-2020-29582 affects Kotlin < 1.4.21 only.
+            kotlin-stdlib-jdk7 1.8.0 is not vulnerable.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin-stdlib-jdk7@.*$</packageUrl>
+        <cve>CVE-2020-29582</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+            False positive: CVE-2020-29582 affects Kotlin < 1.4.21 only.
+            kotlin-stdlib-jdk8 1.8.0 is not vulnerable.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin-stdlib-jdk8@.*$</packageUrl>
+        <cve>CVE-2020-29582</cve>
+    </suppress>
+
+    <!--
+        CVE-2026-39883 / CVE-2026-39882 — io.opentelemetry:* (Go ecosystem mismatch)
+        CVE-2026-44967               — io.opentelemetry:* (C++ ecosystem mismatch)
+
+        FALSE POSITIVES.  All three CVEs target entirely different language
+        implementations of OpenTelemetry:
+
+          • CVE-2026-39883 and CVE-2026-39882 are filed against OpenTelemetry-Go
+            (CPE `cpe:2.3:a:opentelemetry:opentelemetry:*:*:*:*:*:go:*:*`).
+            They describe PATH-hijacking on BSD/Solaris and unbounded HTTP
+            response buffering in the Go OTLP exporters respectively.
+
+          • CVE-2026-44967 is filed against OpenTelemetry-cpp
+            (CPE `cpe:2.3:a:opentelemetry:opentelemetry:*:*:*:*:*:c%2B%2B:*:*`).
+            It describes unbounded HTTP response buffering in the C++ OTLP exporters.
+
+        The affected JARs (`opentelemetry-api`, `opentelemetry-context`,
+        `opentelemetry-extension-kotlin`) are JVM libraries from the Java
+        implementation of OpenTelemetry. They share neither code nor runtime
+        with the Go or C++ SDKs. OWASP DC matches the broad
+        `opentelemetry:opentelemetry` CPE prefix against all io.opentelemetry
+        Maven artifacts without checking the language-ecosystem qualifier.
+
+        Added: 2026-06-16 by build-system maintainers.
+    -->
+    <suppress>
+        <notes><![CDATA[
+            False positive: CVE-2026-39883/39882/44967 target OpenTelemetry-Go and
+            OpenTelemetry-cpp. All io.opentelemetry Java/Kotlin JARs are unaffected.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/io\.opentelemetry/opentelemetry-api@.*$</packageUrl>
+        <cpe>cpe:/a:opentelemetry:opentelemetry</cpe>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+            False positive: CVE-2026-39883/39882/44967 target OpenTelemetry-Go and
+            OpenTelemetry-cpp. All io.opentelemetry Java/Kotlin JARs are unaffected.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/io\.opentelemetry/opentelemetry-context@.*$</packageUrl>
+        <cpe>cpe:/a:opentelemetry:opentelemetry</cpe>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+            False positive: CVE-2026-39883/39882/44967 target OpenTelemetry-Go and
+            OpenTelemetry-cpp. All io.opentelemetry Java/Kotlin JARs are unaffected.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/io\.opentelemetry/opentelemetry-extension-kotlin@.*$</packageUrl>
+        <cpe>cpe:/a:opentelemetry:opentelemetry</cpe>
+    </suppress>
+
+    <!--
+        CVE-2021-22569 — com.google.protobuf:protobuf-javalite (shaded inside datastore-preferences-core)
+
+        FALSE POSITIVE.  CVE-2021-22569 was filed against `protobuf-java` and
+        `protobuf-kotlin` (the non-lite, full JVM editions of protobuf).  The
+        NVD vulnerable-software list does NOT include `protobuf-javalite`.
+        OWASP Dependency-Check matches the shaded `protobuf-javalite` artifact
+        inside `datastore-preferences-core-1.0.0.jar` via a broad CPE match,
+        but the lite edition's parsing code is separate from the path described
+        in the CVE advisory.
+
+        Added: 2026-06-16 by build-system maintainers.
+    -->
+    <suppress>
+        <notes><![CDATA[
+            False positive: CVE-2021-22569 NVD vulnerable-software list covers
+            protobuf-java and protobuf-kotlin but not protobuf-javalite.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/com\.google\.protobuf/protobuf-javalite@.*$</packageUrl>
+        <cve>CVE-2021-22569</cve>
+    </suppress>
+
+    <!--
+        CVE-2022-3171 / CVE-2024-7254 — com.google.protobuf:protobuf-javalite:3.10.0
+                                         (shaded inside datastore-preferences-core:1.0.0)
+
+        NOT EXPLOITABLE IN THIS CONTEXT.  Both CVEs describe Denial-of-Service
+        attacks that require an attacker to supply crafted protobuf binary data
+        to the parsing APIs:
+
+          • CVE-2022-3171: multiple repeated/unknown fields cause quadratic
+            memory usage when merging messages.
+          • CVE-2024-7254: deeply nested groups / SGROUP tags exhaust the
+            call stack.
+
+        `datastore-preferences-core` bundles protobuf-javalite exclusively to
+        serialise and deserialise Android app preferences to local device
+        storage. The data is always written by the same application process;
+        there is no code path where external, attacker-controlled protobuf
+        bytes are fed to this library.
+
+        The shaded dependency cannot be upgraded independently of the
+        `datastore-preferences-core` artifact version. Upgrading DataStore
+        to a version that ships with protobuf-javalite >= 3.25.5 is the
+        long-term remediation (tracked in PBI #3667951).
+
+        Added: 2026-06-16 by build-system maintainers.
+    -->
+    <suppress>
+        <notes><![CDATA[
+            Not exploitable: DataStore uses protobuf only for local app preferences;
+            no untrusted external protobuf data is ever parsed. CVE-2022-3171 requires
+            attacker-supplied binary input to the protobuf parser.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/com\.google\.protobuf/protobuf-javalite@.*$</packageUrl>
+        <cve>CVE-2022-3171</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+            Not exploitable: DataStore uses protobuf only for local app preferences;
+            no untrusted external protobuf data is ever parsed. CVE-2024-7254 requires
+            deeply nested groups in attacker-supplied protobuf input.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/com\.google\.protobuf/protobuf-javalite@.*$</packageUrl>
+        <cve>CVE-2024-7254</cve>
+    </suppress>
+
+</suppressions>
