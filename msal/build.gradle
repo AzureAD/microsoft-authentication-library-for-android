@@ -1,10 +1,11 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
-    id 'com.microsoft.identity.buildsystem' version '0.2.5'
+    id 'com.microsoft.identity.buildsystem' version '0.2.6'
     id 'com.android.library'
     id 'pmd'
     id 'checkstyle'
     id 'maven-publish'
-    id 'kotlin-android'
     id 'jacoco'
 
     // Test retries
@@ -14,6 +15,14 @@ plugins {
 apply from: 'versioning/version_tasks.gradle'
 
 group = 'com.microsoft.identity.client'
+
+// Built-in Kotlin (AGP 9): replaces the android { kotlinOptions { } } block that the
+// removed 'kotlin-android' plugin previously provided.
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_1_8
+    }
+}
 
 buildSystem {
     desugar = false
@@ -106,16 +115,12 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode getAppVersionCode()
         versionName getAppVersionName()
-        project.archivesBaseName = "msal"
+        project.base.archivesName = "msal"
         project.version = android.defaultConfig.versionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures {
         buildConfig = true
-    }
-
-    kotlinOptions {
-        jvmTarget = "1.8"
     }
 
     buildTypes {
@@ -183,7 +188,7 @@ android {
 
     libraryVariants.all { variant ->
         variant.outputs.all {
-            def fileName = "${archivesBaseName}-${version}.aar"
+            def fileName = "${project.base.archivesName.get()}-${version}.aar"
             outputFileName = fileName
         }
     }
@@ -365,10 +370,10 @@ afterEvaluate {
     // to include the version number.
     tasks.named("assembleDistRelease").configure {
         if (project.findProperty("renameOutput")?.toString()?.toBoolean() == true) {
-            def buildFile = file("$buildDir/outputs/aar/${archivesBaseName}-dist-release.aar")
+            def buildFile = file("$buildDir/outputs/aar/${project.base.archivesName.get()}-dist-release.aar")
             println "Build file $buildFile"
             doLast {
-                def renamedFile = file("$buildDir/outputs/aar/${archivesBaseName}-${version}.aar")
+                def renamedFile = file("$buildDir/outputs/aar/${project.base.archivesName.get()}-${version}.aar")
                 println "Renaming build file $buildFile to '$renamedFile'"
                 if (!buildFile.renameTo(renamedFile)) {
                     println "Rename failed!"

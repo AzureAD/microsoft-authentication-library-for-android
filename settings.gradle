@@ -28,6 +28,9 @@ project(':common4j').projectDir = new File('common/common4j')
 project(':LabApiUtilities').projectDir = new File('common/LabApiUtilities')
 
 // test apps
-include ':testapps:sample'
+// Gradle 9 rejects includes whose projectDir does not exist (Gradle 8 tolerated it).
+// 'sample' and 'automationapp' have no directory under testapps/ (only 'testapp' exists),
+// so these dead includes are commented out to allow settings to configure.
+// include ':testapps:sample'
 include ':testapps:testapp'
-include ':testapps:automationapp'
+// include ':testapps:automationapp'

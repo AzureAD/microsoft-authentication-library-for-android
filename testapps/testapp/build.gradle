@@ -23,9 +23,9 @@
  * // THE SOFTWARE.
  */
 
-apply plugin: 'com.android.application'
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-apply plugin: 'kotlin-android'
+apply plugin: 'com.android.application'
 
 def msalVersion = "8.3.2"
 
@@ -37,6 +37,14 @@ def otelAriaToken = ""
 
 if(project.hasProperty('otelAriaToken')) {
     otelAriaToken = project.otelAriaToken;
+}
+
+// Built-in Kotlin (AGP 9): replaces the android { kotlinOptions { } } block that the
+// removed 'kotlin-android' plugin previously provided.
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_1_8
+    }
 }
 
 android {
@@ -78,15 +86,14 @@ android {
         release {
             signingConfig signingConfigs.release
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
-    }
-    kotlinOptions {
-        jvmTarget = "1.8"
     }
     buildFeatures {
         viewBinding true
         buildConfig true
+        // AGP 9 defaults resValues to off; the local/dist flavors define resValue(...) so opt in.
+        resValues true
     }
     lintOptions {
         abortOnError false
@@ -115,6 +122,9 @@ dependencies {
     implementation "androidx.constraintlayout:constraintlayout:$rootProject.ext.constraintLayoutVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.ext.kotlinXCoroutinesVersion"
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
+    // Edge-to-edge inset handling in StartActivity uses WindowInsetsCompat.Type (androidx.core >= 1.5.0);
+    // appcompat 1.1.0 only pulls core 1.1.0 transitively, so pin core explicitly.
+    implementation "androidx.core:core:$rootProject.ext.androidxCoreVersion"
     implementation "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"
     implementation "com.google.android.material:material:$rootProject.ext.materialVersion"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"

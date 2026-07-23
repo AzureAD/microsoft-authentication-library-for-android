@@ -114,8 +114,8 @@ class EmailAttributeSignUpFragment : Fragment() {
                 var password: CharArray? = null
                 if (binding.passwordText.length() > 0) {
                     password = CharArray(binding.passwordText.length())
+                    (binding.passwordText.text as? android.text.GetChars)?.getChars(0, binding.passwordText.length(), password, 0)
                 }
-                binding.passwordText.text?.getChars(0, binding.passwordText.length(), password, 0)
 
                 val attributes = UserAttributes.Builder()
 
