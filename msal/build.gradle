@@ -94,6 +94,17 @@ def registerJacocoXmlReport = { String taskName, String variant ->
                         "outputs/unit_test_code_coverage/${variant}UnitTest/test${variantCap}UnitTest.exec".toString()
                 ]
         ))
+
+        // Fail fast if no execution data is present (e.g. tests weren't run, or the
+        // build was invoked without -PcodeCoverageEnabled=true). Without this guard
+        // JacocoReport still emits a valid XML reporting 0% coverage, which would be
+        // silently published as a wrong weekly coverage number instead of failing loudly.
+        doFirst {
+            assert executionData.files.any { it.exists() } :
+                    "No JaCoCo .exec execution data found for ${variant}; " +
+                    "the '${taskName}' report would be a misleading 0%. Ensure the " +
+                    "test${variantCap}UnitTest task ran with coverage enabled."
+        }
     }
 }
 
