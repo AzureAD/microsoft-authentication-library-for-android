@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    id 'com.microsoft.identity.buildsystem' version '0.2.6'
+    id 'com.microsoft.identity.buildsystem' version '0.3.0'
     id 'com.android.library'
     id 'pmd'
     id 'checkstyle'
