@@ -1,10 +1,13 @@
 pluginManagement {
-     // Note: Since our plugin references the android plugin we need to include google() here.
      repositories {
-         // If you don't have access to the package feed uncomment these repositories
+         // Keep ONLY the ADO feed here. Declaring the public repos (gradlePluginPortal/google/
+         // mavenCentral) breaks buildsystem plugin resolution in the 1ES pipelines: they can't
+         // reach the public repos, and the NewAndroid feed proxies google()/gradlePluginPortal()
+         // as upstreams anyway, so AGP still resolves. For a purely local build without feed
+         // access, temporarily uncomment the lines below.
          //  mavenCentral()
-         google()
-         gradlePluginPortal()
+         //  google()
+         //  gradlePluginPortal()
          maven {
              name "vsts-maven-new-android"
              url "https://identitydivision.pkgs.visualstudio.com/_packaging/NewAndroid/maven/v1"
