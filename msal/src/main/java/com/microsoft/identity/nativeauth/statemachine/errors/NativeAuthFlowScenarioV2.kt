@@ -24,7 +24,7 @@
 package com.microsoft.identity.nativeauth.statemachine.errors
 
 /**
- * Native Auth V2 exposes a single unified result.
+ * Native Auth V2 flow scenario identifier (sign-in, sign-up, reset password).
  */
 enum class NativeAuthFlowScenarioV2 {
     SIGN_IN,
