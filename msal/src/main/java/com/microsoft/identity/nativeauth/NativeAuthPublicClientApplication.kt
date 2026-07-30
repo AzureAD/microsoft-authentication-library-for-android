@@ -66,12 +66,16 @@ import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccountError
+import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
+import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthFlowScenarioV2
+import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthV2ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
+import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
@@ -91,6 +95,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.UUID
 
 /**
  * NativeAuthPublicClientApplication provides implementation for the top level interface
@@ -566,6 +571,92 @@ class NativeAuthPublicClientApplication(
             methodName = "${TAG}.resetPassword(parameters: NativeAuthResetPasswordParameters)"
         )
         return internalResetPassword(parameters.username)
+    }
+
+    interface NativeAuthV2Callback : Callback<NativeAuthResultV2>
+
+    private fun notImplementedV2(scenario: NativeAuthFlowScenarioV2): NativeAuthResultV2 {
+        return NativeAuthErrorV2(
+            errorType = NativeAuthV2ErrorTypes.NOT_IMPLEMENTED,
+            errorMessage = "This is not implemented yet",
+            correlationId = UUID.randomUUID().toString(),
+            scenario = scenario
+        )
+    }
+
+    override suspend fun signInV2(parameters: NativeAuthSignInParameters): NativeAuthResultV2 {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.signInV2(parameters: NativeAuthSignInParameters)"
+        )
+        return notImplementedV2(NativeAuthFlowScenarioV2.SIGN_IN)
+    }
+
+    override fun signInV2(parameters: NativeAuthSignInParameters, callback: NativeAuthV2Callback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.signInV2(parameters: NativeAuthSignInParameters, callback: NativeAuthV2Callback)"
+        )
+        pcaScope.launch {
+            try {
+                callback.onResult(signInV2(parameters))
+            } catch (e: MsalException) {
+                Logger.error(TAG, "Exception thrown in signInV2", e)
+                callback.onError(e)
+            }
+        }
+    }
+
+    override suspend fun signUpV2(parameters: NativeAuthSignUpParameters): NativeAuthResultV2 {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.signUpV2(parameters: NativeAuthSignUpParameters)"
+        )
+        return notImplementedV2(NativeAuthFlowScenarioV2.SIGN_UP)
+    }
+
+    override fun signUpV2(parameters: NativeAuthSignUpParameters, callback: NativeAuthV2Callback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.signUpV2(parameters: NativeAuthSignUpParameters, callback: NativeAuthV2Callback)"
+        )
+        pcaScope.launch {
+            try {
+                callback.onResult(signUpV2(parameters))
+            } catch (e: MsalException) {
+                Logger.error(TAG, "Exception thrown in signUpV2", e)
+                callback.onError(e)
+            }
+        }
+    }
+
+    override suspend fun resetPasswordV2(parameters: NativeAuthResetPasswordParameters): NativeAuthResultV2 {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.resetPasswordV2(parameters: NativeAuthResetPasswordParameters)"
+        )
+        return notImplementedV2(NativeAuthFlowScenarioV2.RESET_PASSWORD)
+    }
+
+    override fun resetPasswordV2(parameters: NativeAuthResetPasswordParameters, callback: NativeAuthV2Callback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.resetPasswordV2(parameters: NativeAuthResetPasswordParameters, callback: NativeAuthV2Callback)"
+        )
+        pcaScope.launch {
+            try {
+                callback.onResult(resetPasswordV2(parameters))
+            } catch (e: MsalException) {
+                Logger.error(TAG, "Exception thrown in resetPasswordV2", e)
+                callback.onError(e)
+            }
+        }
     }
 
     private fun verifyNoUserIsSignedIn() {
