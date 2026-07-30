@@ -1,0 +1,11 @@
+{
+  "servers": {
+    "ado-identitydivision": {
+      "type": "http",
+      "url": "https://mcp.dev.azure.com/identitydivision",
+      "headers": {
+        "X-MCP-Toolsets": "repos,wit,pipelines,wiki,work"
+      }
+    }
+  }
+}
