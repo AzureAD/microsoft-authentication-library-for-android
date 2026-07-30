@@ -1,0 +1,15 @@
+{
+  "$schema": ".forge/forge.schema.json",
+  "forgeVersion": 2,
+  "repo": "AzureAD/microsoft-authentication-library-for-android",
+  "host": "github",
+  "baseBranch": "dev",
+  "team": "MSAL Android + DevEx CIAM",
+  "mcps": {
+    "source-code": "github-mcp-server",
+    "work-items": "ado-identitydivision"
+  },
+  "context": {
+    "repoContext": ".github/copilot-instructions.md"
+  }
+}
