@@ -107,7 +107,8 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         assertNotImplemented(state.submitNewPassword("password".toCharArray()))
         assertNotImplemented(state.resendCode())
         assertNotImplemented(state.submitChallenge("challenge"))
-    }
+        assertNotImplemented(state.submitAttributes(com.microsoft.identity.nativeauth.UserAttributes.Builder().city("city").build()))
+        assertNotImplemented(state.selectAuthMethod(com.microsoft.identity.nativeauth.AuthMethod("id", "oob", null, "email")))
 
     @Test
     fun errorIsResultAndNotBrowserRequired() {
