@@ -575,8 +575,9 @@ class NativeAuthPublicClientApplication(
 
     interface NativeAuthV2Callback : Callback<NativeAuthResultV2>
 
-    private fun notImplementedV2(scenario: NativeAuthFlowScenarioV2): NativeAuthResultV2 {
-        return NativeAuthErrorV2(
+    private suspend fun notImplementedV2(scenario: NativeAuthFlowScenarioV2): NativeAuthResultV2 = withContext(Dispatchers.IO) {
+        verifyNoUserIsSignedIn()
+        NativeAuthErrorV2(
             errorType = NativeAuthV2ErrorTypes.NOT_IMPLEMENTED,
             errorMessage = "This is not implemented yet",
             correlationId = UUID.randomUUID().toString(),
