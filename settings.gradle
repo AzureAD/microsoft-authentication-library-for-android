@@ -18,17 +18,42 @@ pluginManagement {
          }
      }
  }
-include ':msal', ':common', ':keyvault', ':labapi', ':testutils', ':pop-benchmarker',
-        ':package-inspector', ':msalautomationapp', ':uiautomationutilities', ':common4j',
-        ':LabApiUtilities'
+// msal's own projects that do NOT consume the common submodule source — always included
+// (their directories live in this repo, and :msal only references common in its `local` flavor,
+// which is guarded in msal/build.gradle).
+include ':msal', ':package-inspector'
 
-project(':common').projectDir = new File('common/common')
-project(':keyvault').projectDir = new File('common/keyvault')
-project(':labapi').projectDir = new File('common/labapi')
-project(':testutils').projectDir = new File('common/testutils')
-project(':uiautomationutilities').projectDir = new File('common/uiautomationutilities')
-project(':common4j').projectDir = new File('common/common4j')
-project(':LabApiUtilities').projectDir = new File('common/LabApiUtilities')
+// The projects below live in the `common` git submodule (checked out at msal/common).
+// They are only needed when building common FROM SOURCE (the `local` product flavor, plus
+// the automation/benchmark apps). The `dist`/`snapshot` flavors — including the 1ES weekly
+// DIST publish — instead consume the PUBLISHED com.microsoft.identity:common / :common4j
+// artifacts (via -PdistCommonVersion), and those pipelines often run WITHOUT the submodule
+// checked out.
+//
+// Gradle 8 silently tolerated `include`-ing a project whose directory didn't exist; Gradle 9
+// fails hard ("Configuring project ':X' without an existing directory is not allowed"). So we
+// only include the common-source projects when the submodule is actually present on disk.
+if (new File(settingsDir, 'common/common').exists()) {
+    include ':common', ':keyvault', ':labapi', ':testutils',
+            ':uiautomationutilities', ':common4j', ':LabApiUtilities'
+    // These apps consume common modules FROM SOURCE (project(':common'), project(':LabApiUtilities'),
+    // project(':uiautomationutilities'), project(':common4j')) unconditionally, so they can only
+    // configure when the submodule is present. DIST/publish builds don't build these apps.
+    include ':pop-benchmarker', ':msalautomationapp'
+
+    project(':common').projectDir = new File('common/common')
+    project(':keyvault').projectDir = new File('common/keyvault')
+    project(':labapi').projectDir = new File('common/labapi')
+    project(':testutils').projectDir = new File('common/testutils')
+    project(':uiautomationutilities').projectDir = new File('common/uiautomationutilities')
+    project(':common4j').projectDir = new File('common/common4j')
+    project(':LabApiUtilities').projectDir = new File('common/LabApiUtilities')
+} else {
+    logger.lifecycle("[settings.gradle] 'common' submodule not checked out — skipping " +
+            "common-source project includes. DIST/SNAPSHOT builds use the published " +
+            "com.microsoft.identity:common artifacts; for a source (local-flavor) build run: " +
+            "git submodule update --init --recursive")
+}
 
 // test apps
 // Gradle 9 rejects includes whose projectDir does not exist (Gradle 8 tolerated it).

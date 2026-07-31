@@ -286,8 +286,13 @@ dependencies {
     testImplementation "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
     testImplementation ("org.robolectric:robolectric:$rootProject.ext.robolectricVersion")
     testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
-    testLocalImplementation project(':testutils')
-    testLocalImplementation project(':LabApiUtilities')
+    // The common-source projects are only on the build when the `common` submodule is checked out
+    // (see settings.gradle). Guard these `local`-flavor project deps so :msal still configures for
+    // DIST/publish builds that consume the PUBLISHED common artifacts instead.
+    if (findProject(':testutils') != null) {
+        testLocalImplementation project(':testutils')
+        testLocalImplementation project(':LabApiUtilities')
+    }
     testDistImplementation("com.microsoft.identity:testutils:0.0+") {
         exclude module: 'common'
         exclude group: 'com.microsoft.identity', module: 'LabApiUtilities'
@@ -313,15 +318,19 @@ dependencies {
     // instrumented tests; the org.gradle.test-retry plugin only covers JVM/Robolectric unit tests).
     // transitive = false keeps only the rule's classes and avoids dragging testutils' whole
     // transitive graph onto the androidTest classpath.
-    androidTestLocalImplementation(project(':testutils')) {
-        transitive = false
+    if (findProject(':testutils') != null) {
+        androidTestLocalImplementation(project(':testutils')) {
+            transitive = false
+        }
     }
     androidTestDistImplementation("com.microsoft.identity:testutils:0.0+") {
         transitive = false
     }
     // 'local' flavor dependencies
-    localApi(project(":common")) {
-        transitive = true
+    if (findProject(':common') != null) {
+        localApi(project(":common")) {
+            transitive = true
+        }
     }
 
     snapshotApi(group: 'com.microsoft.identity', name: 'common', version: commonVersion, changing: true)
@@ -330,7 +339,9 @@ dependencies {
         transitive = true
     }
 
-    testLocalImplementation(testFixtures(project(":common4j")))
+    if (findProject(':common4j') != null) {
+        testLocalImplementation(testFixtures(project(":common4j")))
+    }
     testDistImplementation(testFixtures("com.microsoft.identity:common4j:${common4jVersion}"))
 
     implementation "io.opentelemetry:opentelemetry-api:$rootProject.ext.openTelemetryVersion"
