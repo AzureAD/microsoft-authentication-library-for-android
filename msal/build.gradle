@@ -50,43 +50,66 @@ tasks.withType(Test) {
     }
 }
 
-tasks.register("jacocoTestReport", JacocoReport) {
-    dependsOn "testLocalDebugUnitTest" // Run Robolectric tests first
+// Registers a JaCoCo XML+HTML coverage report task for a given build variant's unit tests.
+// PR validation builds the 'local' flavor, so the PR checks invoke jacocoTestReport
+// (localDebug) and its behaviour is unchanged. The weekly release pipeline builds the
+// 'dist' flavor and invokes jacocoDistTestReport (distDebug), which reuses the .exec
+// produced by distDebug<Module>UnitTestCoverageReport rather than re-running tests on a
+// variant the weekly infrastructure doesn't build.
+def registerJacocoXmlReport = { String taskName, String variant ->
+    def variantCap = variant.capitalize()
+    tasks.register(taskName, JacocoReport) {
+        dependsOn "test${variantCap}UnitTest" // Run Robolectric tests first
 
-    reports {
-        xml.required = true
-        html.required = true
+        reports {
+            xml.required = true
+            html.required = true
+        }
+
+        def fileFilter = [
+                '**/R.class', '**/R$*.class', '**/BuildConfig.*',
+                '**/Manifest*.*', '**/*Test*.*',
+                'android/**/*.*'
+        ]
+
+        def kotlinClasses = fileTree(
+                dir: "$buildDir/tmp/kotlin-classes/${variant}",
+                excludes: fileFilter
+        )
+
+        def javaClasses = fileTree(
+                dir: "$buildDir/intermediates/javac/${variant}/compile${variantCap}JavaWithJavac/classes",
+                excludes: fileFilter
+        )
+
+        sourceDirectories.setFrom(files([
+                "$projectDir/src/main/java",
+                "$projectDir/src/main/kotlin"
+        ]))
+        classDirectories.setFrom(files([kotlinClasses, javaClasses]))
+        executionData.setFrom(fileTree(
+                dir: buildDir,
+                includes: [
+                        "jacoco/test${variantCap}UnitTest.exec".toString(),
+                        "outputs/unit_test_code_coverage/${variant}UnitTest/test${variantCap}UnitTest.exec".toString()
+                ]
+        ))
+
+        // Fail fast if no execution data is present (e.g. tests weren't run, or the
+        // build was invoked without -PcodeCoverageEnabled=true). Without this guard
+        // JacocoReport still emits a valid XML reporting 0% coverage, which would be
+        // silently published as a wrong weekly coverage number instead of failing loudly.
+        doFirst {
+            assert executionData.files.any { it.exists() } :
+                    "No JaCoCo .exec execution data found for ${variant}; " +
+                    "the '${taskName}' report would be a misleading 0%. Ensure the " +
+                    "test${variantCap}UnitTest task ran with coverage enabled."
+        }
     }
-
-    def fileFilter = [
-            '**/R.class', '**/R$*.class', '**/BuildConfig.*',
-            '**/Manifest*.*', '**/*Test*.*',
-            'android/**/*.*'
-    ]
-
-    def kotlinClasses = fileTree(
-            dir: "$buildDir/tmp/kotlin-classes/localDebug",
-            excludes: fileFilter
-    )
-
-    def javaClasses = fileTree(
-            dir: "$buildDir/intermediates/javac/localDebug/compileLocalDebugJavaWithJavac/classes",
-            excludes: fileFilter
-    )
-
-    sourceDirectories.setFrom(files([
-            "$projectDir/src/main/java",
-            "$projectDir/src/main/kotlin"
-    ]))
-    classDirectories.setFrom(files([kotlinClasses, javaClasses]))
-    executionData.setFrom(fileTree(
-            dir: buildDir,
-            includes: [
-                    "jacoco/testLocalDebugUnitTest.exec",
-                    "outputs/unit_test_code_coverage/localDebugUnitTest/testLocalDebugUnitTest.exec"
-            ]
-    ))
 }
+
+registerJacocoXmlReport("jacocoTestReport", "localDebug")     // PR validation (local flavor)
+registerJacocoXmlReport("jacocoDistTestReport", "distDebug")  // weekly release (dist flavor)
 
 def robolectricRepoUsername = System.getenv("ENV_VSTS_MVN_CRED_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_CRED_USERNAME") : project.findProperty("vstsUsername")
 def robolectricRepoPassword = System.getenv("ENV_VSTS_MVN_CRED_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_CRED_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
