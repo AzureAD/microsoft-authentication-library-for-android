@@ -111,6 +111,24 @@ def registerJacocoXmlReport = { String taskName, String variant ->
 registerJacocoXmlReport("jacocoTestReport", "localDebug")     // PR validation (local flavor)
 registerJacocoXmlReport("jacocoDistTestReport", "distDebug")  // weekly release (dist flavor)
 
+// The 'dist' flavor test config resolves the latest published testutils/lab-api-utilities
+// (0.0+) and dist common artifacts. Newer published versions can carry a 'strictly'
+// kotlin-stdlib 2.x constraint (same hazard guarded at gradle/versions.gradle for
+// openTelemetryExtensionKotlinVersion), which drags kotlin-stdlib 2.x onto the
+// compileDistDebugUnitTestKotlin classpath and breaks it against the project's Kotlin 1.8
+// compiler ("metadata is 2.2.0, expected version is 1.8.0"). The 'local' flavor is immune
+// because it uses the testutils/LabApiUtilities source projects. Pin kotlin-stdlib to the
+// project's Kotlin version on the dist test configs so the compiler and stdlib metadata
+// stay aligned. Remove once the project upgrades Kotlin to 2.x.
+configurations.matching { it.name.startsWith('testDist') }.configureEach {
+    resolutionStrategy {
+        force "org.jetbrains.kotlin:kotlin-stdlib:$rootProject.ext.kotlinVersion"
+        force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$rootProject.ext.kotlinVersion"
+        force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$rootProject.ext.kotlinVersion"
+        force "org.jetbrains.kotlin:kotlin-stdlib-common:$rootProject.ext.kotlinVersion"
+    }
+}
+
 def robolectricRepoUsername = System.getenv("ENV_VSTS_MVN_CRED_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_CRED_USERNAME") : project.findProperty("vstsUsername")
 def robolectricRepoPassword = System.getenv("ENV_VSTS_MVN_CRED_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_CRED_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
 
