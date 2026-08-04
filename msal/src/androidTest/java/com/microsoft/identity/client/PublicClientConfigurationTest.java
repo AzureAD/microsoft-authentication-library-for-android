@@ -66,7 +66,10 @@ public class PublicClientConfigurationTest {
     @Before
     public void setUp() {
         mContext = InstrumentationRegistry.getContext().getApplicationContext();
-        mDefaultConfig = loadConfig(R.raw.msal_default_config);
+        // msal_default_config is a MAIN source-set resource, so it lives in the module R
+        // (com.microsoft.identity.msal.R), not the androidTest R (…msal.test.R) imported above.
+        // Under AGP's non-transitive R classes the test R only exposes androidTest resources.
+        mDefaultConfig = loadConfig(com.microsoft.identity.msal.R.raw.msal_default_config);
     }
 
     @After
