@@ -32,7 +32,6 @@ import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
-import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.launch
 
 /**
@@ -50,7 +49,9 @@ class PasswordRequiredStateV2 internal constructor(
         continuationToken = parcel.readString() ?: "",
         correlationId = parcel.readString() ?: "UNSET",
         scenario = NativeAuthFlowScenarioV2.valueOf(parcel.readString() ?: NativeAuthFlowScenarioV2.UNKNOWN.name),
-        config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
+        // Also drains the continuationState field written by the base class, so the read order
+        // stays symmetric with NativeAuthBaseStateV2.writeToParcel even though this state has none.
+        config = parcel.readConfigAndSkipContinuationState()
     )
 
     interface SubmitPasswordCallback : Callback<NativeAuthResultV2>

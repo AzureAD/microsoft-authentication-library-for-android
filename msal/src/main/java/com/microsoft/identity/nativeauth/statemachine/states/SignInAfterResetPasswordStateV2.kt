@@ -167,11 +167,6 @@ class SignInAfterResetPasswordStateV2 internal constructor(
         }
     }
 
-    override fun writeToParcel(parcel: Parcel, flags: Int) {
-        super.writeToParcel(parcel, flags)
-        parcel.writeSerializable(continuationState)
-    }
-
     companion object CREATOR : Parcelable.Creator<SignInAfterResetPasswordStateV2> {
         override fun createFromParcel(parcel: Parcel): SignInAfterResetPasswordStateV2 = SignInAfterResetPasswordStateV2(parcel)
 

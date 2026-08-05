@@ -196,11 +196,6 @@ class NewPasswordRequiredStateV2 internal constructor(
         }
     }
 
-    override fun writeToParcel(parcel: Parcel, flags: Int) {
-        super.writeToParcel(parcel, flags)
-        parcel.writeSerializable(continuationState)
-    }
-
     companion object CREATOR : Parcelable.Creator<NewPasswordRequiredStateV2> {
         override fun createFromParcel(parcel: Parcel): NewPasswordRequiredStateV2 = NewPasswordRequiredStateV2(parcel)
 

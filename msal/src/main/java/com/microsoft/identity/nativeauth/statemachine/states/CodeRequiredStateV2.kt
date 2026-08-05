@@ -288,11 +288,6 @@ class CodeRequiredStateV2 internal constructor(
         }
     }
 
-    override fun writeToParcel(parcel: Parcel, flags: Int) {
-        super.writeToParcel(parcel, flags)
-        parcel.writeSerializable(continuationState)
-    }
-
     companion object CREATOR : Parcelable.Creator<CodeRequiredStateV2> {
         override fun createFromParcel(parcel: Parcel): CodeRequiredStateV2 = CodeRequiredStateV2(parcel)
 

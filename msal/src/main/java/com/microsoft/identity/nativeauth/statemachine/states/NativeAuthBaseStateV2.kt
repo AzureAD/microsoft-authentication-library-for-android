@@ -34,6 +34,7 @@ import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthV2ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
+import com.microsoft.identity.nativeauth.utils.serializable
 
 /**
  * Base class for the Native Auth V2 states. Each concrete state exposes only the methods that are
@@ -87,12 +88,31 @@ abstract class NativeAuthBaseStateV2 internal constructor(
         }
     }
 
+    /**
+     * Writes every field of this base class, including [continuationState]. Subclasses must not
+     * override this method to append base fields; each subclass's `Parcel` constructor is required
+     * to read the fields in exactly this order - continuationToken, correlationId, scenario, config,
+     * continuationState - otherwise the reads desynchronise from the writes. Subclasses that never
+     * carry a continuation state should read config via [readConfigAndSkipContinuationState].
+     */
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(continuationToken)
         parcel.writeString(correlationId)
         parcel.writeString(scenario.name)
         parcel.writeSerializable(config)
+        parcel.writeSerializable(continuationState)
     }
 
     override fun describeContents(): Int = 0
+}
+
+/**
+ * Reads the config field and then drains the trailing continuationState field written by
+ * [NativeAuthBaseStateV2.writeToParcel]. Used by states that never carry a continuation state, so
+ * that the parcel read order stays symmetric with the write order.
+ */
+internal fun Parcel.readConfigAndSkipContinuationState(): NativeAuthPublicClientApplicationConfiguration {
+    val config = serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
+    serializable<NativeAuthV2ContinuationState>()
+    return config
 }
