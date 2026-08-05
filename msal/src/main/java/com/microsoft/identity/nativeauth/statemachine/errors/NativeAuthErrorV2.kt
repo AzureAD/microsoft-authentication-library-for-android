@@ -48,7 +48,7 @@ open class NativeAuthErrorV2(
     override val error: String? = null,
     override val errorMessage: String?,
     override val correlationId: String,
-    val scenario: NativeAuthFlowScenarioV2 = NativeAuthFlowScenarioV2.UNKNOWN,
+    override val scenario: NativeAuthFlowScenarioV2 = NativeAuthFlowScenarioV2.UNKNOWN,
     override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null
 ) : NativeAuthResultV2,

@@ -27,8 +27,17 @@ package com.microsoft.identity.nativeauth.statemachine.results
 
 import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.RequiredUserAttribute
+import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
-import com.microsoft.identity.nativeauth.statemachine.states.NativeAuthFlowStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.AttributesInvalidStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthRegistrationRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthVerificationRequiredStateV2
 
 /**
  * NativeAuthResultV2 is the single unified result for the Native Auth V2 surface.
@@ -36,12 +45,20 @@ import com.microsoft.identity.nativeauth.statemachine.states.NativeAuthFlowState
 interface NativeAuthResultV2 : Result {
 
     /**
+     * Identifies which part of the Native Auth V2 surface produced this result.
+     */
+    val scenario: NativeAuthFlowScenarioV2
+
+    /**
      * Complete Result, which indicates tokens have been acquired.
      *
      * @param resultValue an [AccountState] object containing account information and related methods.
+     * @param scenario identifies which part of the Native Auth V2 surface produced this result.
      */
-    class Complete(override val resultValue: AccountState) :
-        Result.CompleteResult(resultValue = resultValue),
+    class Complete(
+        override val resultValue: AccountState,
+        override val scenario: NativeAuthFlowScenarioV2
+    ) : Result.CompleteResult(resultValue = resultValue),
         NativeAuthResultV2
 
     /**
@@ -53,7 +70,8 @@ interface NativeAuthResultV2 : Result {
      * @param channel the channel (email/phone) the code was sent through.
      */
     class CodeRequired(
-        override val nextState: NativeAuthFlowStateV2,
+        override val nextState: CodeRequiredStateV2,
+        override val scenario: NativeAuthFlowScenarioV2,
         val codeLength: Int,
         val sentTo: String,
         val channel: String
@@ -65,7 +83,8 @@ interface NativeAuthResultV2 : Result {
      * @param nextState the current state with follow-on methods.
      */
     class PasswordRequired(
-        override val nextState: NativeAuthFlowStateV2
+        override val nextState: PasswordRequiredStateV2,
+        override val scenario: NativeAuthFlowScenarioV2
     ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2
 
     /**
@@ -74,7 +93,8 @@ interface NativeAuthResultV2 : Result {
      * @param nextState the current state with follow-on methods.
      */
     class NewPasswordRequired(
-        override val nextState: NativeAuthFlowStateV2
+        override val nextState: NewPasswordRequiredStateV2,
+        override val scenario: NativeAuthFlowScenarioV2
     ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2
 
     /**
@@ -84,7 +104,8 @@ interface NativeAuthResultV2 : Result {
      * @param requiredAttributes the attributes required by the server.
      */
     class AttributesRequired(
-        override val nextState: NativeAuthFlowStateV2,
+        override val nextState: AttributesRequiredStateV2,
+        override val scenario: NativeAuthFlowScenarioV2,
         val requiredAttributes: List<RequiredUserAttribute>
     ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2
 
@@ -95,7 +116,8 @@ interface NativeAuthResultV2 : Result {
      * @param invalidAttributes the names of the attributes that were rejected by the server.
      */
     class AttributesInvalid(
-        override val nextState: NativeAuthFlowStateV2,
+        override val nextState: AttributesInvalidStateV2,
+        override val scenario: NativeAuthFlowScenarioV2,
         val invalidAttributes: List<String>
     ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2
 
@@ -107,7 +129,8 @@ interface NativeAuthResultV2 : Result {
      * @param authMethods the authentication methods available to the user.
      */
     class MFARequired(
-        override val nextState: NativeAuthFlowStateV2,
+        override val nextState: MFARequiredStateV2,
+        override val scenario: NativeAuthFlowScenarioV2,
         val authMethods: List<AuthMethod>
     ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2
 
@@ -121,7 +144,8 @@ interface NativeAuthResultV2 : Result {
      * @param channel the channel (email/phone) the code was sent through.
      */
     class MFAVerificationRequired(
-        override val nextState: NativeAuthFlowStateV2,
+        override val nextState: MFAVerificationRequiredStateV2,
+        override val scenario: NativeAuthFlowScenarioV2,
         val codeLength: Int,
         val sentTo: String,
         val channel: String
@@ -135,7 +159,8 @@ interface NativeAuthResultV2 : Result {
      * @param authMethods the authentication methods available for registration.
      */
     class StrongAuthRegistrationRequired(
-        override val nextState: NativeAuthFlowStateV2,
+        override val nextState: StrongAuthRegistrationRequiredStateV2,
+        override val scenario: NativeAuthFlowScenarioV2,
         val authMethods: List<AuthMethod>
     ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2
 
@@ -149,7 +174,8 @@ interface NativeAuthResultV2 : Result {
      * @param channel the channel (email/phone) the code was sent through.
      */
     class StrongAuthVerificationRequired(
-        override val nextState: NativeAuthFlowStateV2,
+        override val nextState: StrongAuthVerificationRequiredStateV2,
+        override val scenario: NativeAuthFlowScenarioV2,
         val codeLength: Int,
         val sentTo: String,
         val channel: String
