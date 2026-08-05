@@ -56,9 +56,15 @@ if (new File(settingsDir, 'common/common').exists()) {
 }
 
 // test apps
-// Gradle 9 rejects includes whose projectDir does not exist (Gradle 8 tolerated it).
-// 'sample' and 'automationapp' have no directory under testapps/ (only 'testapp' exists),
-// so these dead includes are commented out to allow settings to configure.
-// include ':testapps:sample'
+// Gradle 9 rejects `include` of a project whose directory doesn't exist (Gradle 8 tolerated it).
+// Rather than dropping these includes, guard each one so it configures only when its directory is
+// present on disk. This keeps ':testapps:automationapp' / ':testapps:sample' in the build for any
+// context that provides those project directories, while a plain checkout (which only has
+// 'testapp') still configures under Gradle 9 instead of failing hard.
 include ':testapps:testapp'
-// include ':testapps:automationapp'
+if (new File(settingsDir, 'testapps/automationapp').exists()) {
+    include ':testapps:automationapp'
+}
+if (new File(settingsDir, 'testapps/sample').exists()) {
+    include ':testapps:sample'
+}
