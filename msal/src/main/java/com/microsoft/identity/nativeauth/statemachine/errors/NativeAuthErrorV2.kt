@@ -24,12 +24,11 @@
 package com.microsoft.identity.nativeauth.statemachine.errors
 
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
-import com.microsoft.identity.nativeauth.statemachine.states.NativeAuthFlowStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.NativeAuthBaseStateV2
 
 internal class NativeAuthV2ErrorTypes {
     companion object {
         const val NOT_IMPLEMENTED = "not_implemented"
-        const val INVALID_ATTRIBUTES = "invalid_attributes"
     }
 }
 
@@ -43,20 +42,17 @@ internal class NativeAuthV2ErrorTypes {
  * @param scenario identifies which part of the Native Auth V2 surface produced this error.
  * @param errorCodes a list of specific error codes returned by the authentication server.
  * @param exception an internal unexpected exception that happened.
+ * @param nextState populated for recoverable errors (e.g. invalid code, password policy violation) so the caller can retry the same step without restarting the flow; null for terminal errors.
  */
 open class NativeAuthErrorV2(
     override val errorType: String? = null,
     override val error: String? = null,
     override val errorMessage: String?,
     override val correlationId: String,
-    val scenario: NativeAuthFlowScenarioV2 = NativeAuthFlowScenarioV2.UNKNOWN,
+    override val scenario: NativeAuthFlowScenarioV2 = NativeAuthFlowScenarioV2.UNKNOWN,
     override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null,
-    /**
-     * Populated for recoverable errors (e.g. invalid code, password policy violation) so the
-     * caller can retry the same step without restarting the flow. Null for terminal errors.
-     */
-    val nextState: NativeAuthFlowStateV2? = null
+    val nextState: NativeAuthBaseStateV2? = null
 ) : NativeAuthResultV2,
     BrowserRequiredError,
     Error(
@@ -70,11 +66,33 @@ open class NativeAuthErrorV2(
 
     fun isNotImplemented(): Boolean = this.errorType == NativeAuthV2ErrorTypes.NOT_IMPLEMENTED
 
-    fun isInvalidCode(): Boolean = this.errorType == ErrorTypes.INVALID_CODE
+    fun isUserNotFound(): Boolean = this.errorType == ErrorTypes.USER_NOT_FOUND
+
+    fun isUserAlreadyExists(): Boolean = this.errorType == SignUpErrorTypes.USER_ALREADY_EXISTS
+
+    fun isInvalidUsername(): Boolean = this.errorType == ErrorTypes.INVALID_USERNAME
+
+    fun isInvalidCredentials(): Boolean = this.errorType == SignInErrorTypes.INVALID_CREDENTIALS
 
     fun isInvalidPassword(): Boolean = this.errorType == ErrorTypes.INVALID_PASSWORD
 
-    fun isUserNotFound(): Boolean = this.errorType == ErrorTypes.USER_NOT_FOUND
+    fun isInvalidCode(): Boolean = this.errorType == ErrorTypes.INVALID_CODE
 
-    fun isInvalidAttributes(): Boolean = this.errorType == NativeAuthV2ErrorTypes.INVALID_ATTRIBUTES
+    fun isInvalidChallenge(): Boolean = this.errorType == ErrorTypes.INVALID_CHALLENGE
+
+    fun isInvalidInput(): Boolean = this.errorType == ErrorTypes.INVALID_INPUT
+
+    fun isInvalidAttributes(): Boolean = this.errorType == SignUpErrorTypes.INVALID_ATTRIBUTES
+
+    fun isInvalidScopes(): Boolean = this.errorType == GetAccessTokenErrorTypes.INVALID_SCOPES
+
+    fun isNoAccountFound(): Boolean = this.errorType == GetAccessTokenErrorTypes.NO_ACCOUNT_FOUND
+
+    fun isPasswordResetFailed(): Boolean = this.errorType == ResetPasswordErrorTypes.PASSWORD_RESET_FAILED
+
+    fun isAuthMethodBlocked(): Boolean = this.errorType == ErrorTypes.AUTH_METHOD_BLOCKED
+
+    fun isAuthNotSupported(): Boolean = this.errorType == SignUpErrorTypes.AUTH_NOT_SUPPORTED
+
+    fun isVerificationContactBlocked(): Boolean = this.errorType == ErrorTypes.VERIFICATION_CONTACT_BLOCKED
 }

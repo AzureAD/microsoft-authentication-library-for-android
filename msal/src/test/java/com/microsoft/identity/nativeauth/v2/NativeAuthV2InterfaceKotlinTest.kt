@@ -36,7 +36,16 @@ import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
-import com.microsoft.identity.nativeauth.statemachine.states.NativeAuthFlowStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.AttributesInvalidStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterResetPasswordStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthRegistrationRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthVerificationRequiredStateV2
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -82,46 +91,45 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     @Test
     fun signUpV2ReturnsNotImplemented() = runTest {
         val result = application.signUpV2(NativeAuthSignUpParameters(username = username))
-        val error = assertNotImplemented(result)
+        val error = assertNotImplemented(result, NativeAuthFlowScenarioV2.SIGN_UP)
         assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, error.scenario)
     }
 
     @Test
-    fun resetPasswordV2ReturnsNotImplemented() = runTest {
-        val result = application.resetPasswordV2(NativeAuthResetPasswordParameters(username = username))
-        val error = assertNotImplemented(result)
-        assertEquals(NativeAuthFlowScenarioV2.RESET_PASSWORD, error.scenario)
-    }
-
-    @Test
     fun flowStateStepsReturnNotImplemented() = runTest {
-        val state = NativeAuthFlowStateV2(
-            continuationToken = "continuation-token",
-            correlationId = "correlation-id",
-            scenario = NativeAuthFlowScenarioV2.SIGN_IN,
-            config = NativeAuthPublicClientApplicationConfiguration()
-        )
+        val config = NativeAuthPublicClientApplicationConfiguration()
+        val scenario = NativeAuthFlowScenarioV2.SIGN_IN
+        val attributes = com.microsoft.identity.nativeauth.UserAttributes.Builder().city("city").build()
+        val authMethod = com.microsoft.identity.nativeauth.AuthMethod("id", "oob", null, "email")
 
-        assertNotImplemented(state.submitCode("1234"))
-        assertNotImplemented(state.submitPassword("password".toCharArray()))
-        assertNotImplemented(state.submitNewPassword("password".toCharArray()))
-        assertNotImplemented(state.resendCode())
-        assertNotImplemented(state.signIn())
-        assertNotImplemented(state.submitChallenge("challenge"))
-        assertNotImplemented(state.submitAttributes(com.microsoft.identity.nativeauth.UserAttributes.Builder().city("city").build()))
-        assertNotImplemented(state.selectAuthMethod(com.microsoft.identity.nativeauth.AuthMethod("id", "oob", null, "email")))
+        val codeRequired = CodeRequiredStateV2("continuation-token", "correlation-id", scenario, config)
+        assertNotImplemented(codeRequired.submitCode("1234"))
+        assertNotImplemented(codeRequired.resendCode())
+
+        assertNotImplemented(PasswordRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitPassword("password".toCharArray()))
+        assertNotImplemented(NewPasswordRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitNewPassword("password".toCharArray()))
+        assertNotImplemented(SignInAfterResetPasswordStateV2("continuation-token", "correlation-id", scenario, config).signIn())
+        assertNotImplemented(AttributesRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitAttributes(attributes))
+        assertNotImplemented(AttributesInvalidStateV2("continuation-token", "correlation-id", scenario, config).submitAttributes(attributes))
+        assertNotImplemented(MFARequiredStateV2("continuation-token", "correlation-id", scenario, config).selectAuthMethod(authMethod))
+        assertNotImplemented(MFAVerificationRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitChallenge("challenge"))
+        assertNotImplemented(StrongAuthRegistrationRequiredStateV2("continuation-token", "correlation-id", scenario, config).selectAuthMethod(authMethod))
+        assertNotImplemented(StrongAuthVerificationRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitChallenge("challenge"))
     }
 
     @Test
     fun signInAfterResetPasswordRequiredIsResult() {
-        val state = NativeAuthFlowStateV2(
+        val state = SignInAfterResetPasswordStateV2(
             continuationToken = "continuation-token",
             correlationId = "correlation-id",
             scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
             config = NativeAuthPublicClientApplicationConfiguration()
         )
 
-        val result = NativeAuthResultV2.SignInAfterResetPasswordRequired(nextState = state)
+        val result = NativeAuthResultV2.SignInAfterResetPasswordRequired(
+            nextState = state,
+            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD
+        )
 
         assertTrue(result is NativeAuthResultV2)
         assertEquals("signInAfterResetPassword", exhaustiveWhen(result))
@@ -140,7 +148,11 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         assertFalse(error.isBrowserRequired())
     }
 
-    private fun assertNotImplemented(result: NativeAuthResultV2): NativeAuthErrorV2 {
+    private fun assertNotImplemented(
+        result: NativeAuthResultV2,
+        expectedScenario: NativeAuthFlowScenarioV2 = NativeAuthFlowScenarioV2.SIGN_IN
+    ): NativeAuthErrorV2 {
+        assertEquals(expectedScenario, result.scenario)
         assertTrue(result is NativeAuthErrorV2)
         val error = result as NativeAuthErrorV2
         assertTrue(error.isNotImplemented())

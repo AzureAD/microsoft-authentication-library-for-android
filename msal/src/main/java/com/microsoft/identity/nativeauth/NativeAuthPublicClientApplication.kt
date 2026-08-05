@@ -94,7 +94,8 @@ import com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequi
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpPasswordRequiredState
-import com.microsoft.identity.nativeauth.statemachine.states.NativeAuthFlowStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterResetPasswordStateV2
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -677,10 +678,12 @@ class NativeAuthPublicClientApplication(
                 when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2ResetPasswordStartCommandResult>()) {
                     is NativeAuthV2CommandResult.CodeRequired -> {
                         NativeAuthResultV2.CodeRequired(
-                            nextState = NativeAuthFlowStateV2(
+                            nextState = CodeRequiredStateV2(
                                 continuationState = result.continuationState,
+                                scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
                                 config = nativeAuthConfig
                             ),
+                            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
                             codeLength = result.codeLength,
                             sentTo = result.challengeTargetLabel,
                             channel = result.challengeChannel
@@ -688,10 +691,12 @@ class NativeAuthPublicClientApplication(
                     }
                     is NativeAuthV2CommandResult.SignInAfterResetPasswordRequired -> {
                         NativeAuthResultV2.SignInAfterResetPasswordRequired(
-                            nextState = NativeAuthFlowStateV2(
+                            nextState = SignInAfterResetPasswordStateV2(
                                 continuationState = result.continuationState,
+                                scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
                                 config = nativeAuthConfig
-                            )
+                            ),
+                            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD
                         )
                     }
                     is NativeAuthV2CommandResult.Complete -> {
@@ -703,7 +708,8 @@ class NativeAuthPublicClientApplication(
                                     authenticationResult = authenticationResult,
                                     correlationId = result.correlationId,
                                     config = nativeAuthConfig
-                                )
+                                ),
+                                scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD
                             )
                         } else {
                             Logger.warn(TAG, result.correlationId, "V2 resetPassword start Complete with no inline sign-in result.")

@@ -1078,7 +1078,7 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String username,
-            final List<String> scopes) {
+            final List<String> scopes) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
@@ -1126,7 +1126,7 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String code,
-            @NonNull final NativeAuthV2ContinuationState continuationState) {
+            @NonNull final NativeAuthV2ContinuationState continuationState) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
@@ -1171,7 +1171,7 @@ public class CommandParametersAdapter {
     public static NativeAuthV2ResendCodeCommandParameters createNativeAuthV2ResendCodeCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull final NativeAuthV2ContinuationState continuationState) {
+            @NonNull final NativeAuthV2ContinuationState continuationState) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
@@ -1217,7 +1217,7 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final char[] password,
-            @NonNull final NativeAuthV2ContinuationState continuationState) {
+            @NonNull final NativeAuthV2ContinuationState continuationState) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
@@ -1262,7 +1262,7 @@ public class CommandParametersAdapter {
     public static NativeAuthV2SignInAfterResetPasswordCommandParameters createNativeAuthV2SignInAfterResetPasswordCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull final NativeAuthV2ContinuationState continuationState) {
+            @NonNull final NativeAuthV2ContinuationState continuationState) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 

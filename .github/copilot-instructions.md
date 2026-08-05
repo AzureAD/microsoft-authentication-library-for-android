@@ -35,6 +35,7 @@
 ## 1. Critical Rules (Read First)
 
 **NEVER:**
+- Commit and push code automatically — only run `git commit`/`git push` when the user explicitly asks
 - Use deprecated APIs: `acquireToken(Activity, String[], AuthenticationCallback)` or similar non-parameters-based methods
 - Mix single/multiple account APIs in the same app
 - Enable Device Code Flow (security risk - only for rare scenarios)

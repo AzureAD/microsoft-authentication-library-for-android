@@ -42,7 +42,7 @@ import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters;
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2;
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthFlowScenarioV2;
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2;
-import com.microsoft.identity.nativeauth.statemachine.states.NativeAuthFlowStateV2;
+import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterResetPasswordStateV2;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -102,15 +102,8 @@ public class NativeAuthV2InterfaceJavaTest extends PublicClientApplicationAbstra
     }
 
     @Test
-    public void resetPasswordV2ReturnsNotImplemented() throws ExecutionException, InterruptedException, TimeoutException {
-        final ResultFuture<NativeAuthResultV2> future = new ResultFuture<>();
-        application.resetPasswordV2(new NativeAuthResetPasswordParameters(username), newCallback(future));
-        assertNotImplemented(future.get(30, TimeUnit.SECONDS), NativeAuthFlowScenarioV2.RESET_PASSWORD);
-    }
-
-    @Test
-    public void flowStateSignInReturnsNotImplemented() throws ExecutionException, InterruptedException, TimeoutException {
-        final NativeAuthFlowStateV2 state = new NativeAuthFlowStateV2(
+    public void signInAfterResetPasswordReturnsNotImplemented() throws ExecutionException, InterruptedException, TimeoutException {
+        final SignInAfterResetPasswordStateV2 state = new SignInAfterResetPasswordStateV2(
                 "continuation-token",
                 "correlation-id",
                 NativeAuthFlowScenarioV2.RESET_PASSWORD,
@@ -118,7 +111,7 @@ public class NativeAuthV2InterfaceJavaTest extends PublicClientApplicationAbstra
                 null
         );
         final ResultFuture<NativeAuthResultV2> future = new ResultFuture<>();
-        state.signIn(new NativeAuthFlowStateV2.SignInCallback() {
+        state.signIn(new SignInAfterResetPasswordStateV2.SignInCallback() {
             @Override
             public void onResult(NativeAuthResultV2 result) {
                 future.setResult(result);
