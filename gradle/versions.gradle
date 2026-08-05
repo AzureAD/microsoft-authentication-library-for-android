@@ -3,13 +3,17 @@
 ext {
     // SDK
     minSdkVersion = 24
-    targetSdkVersion = 35
-    compileSdkVersion = 36
-    buildToolsVersion = "36.0.0"
+    targetSdkVersion = 36
+    compileSdkVersion = 37
+    buildToolsVersion = "37.0.0"
 
     // Plugins
-    gradleVersion = '8.10.0'
-    kotlinVersion = '1.8.0'
+    // NOTE: 'gradleVersion' is the AGP (Android Gradle Plugin) version, NOT the Gradle
+    // wrapper version (that lives in gradle/wrapper/gradle-wrapper.properties = 9.3.1).
+    gradleVersion = '9.1.1'
+    // Kotlin 1.8.x has no Gradle 9 support (removed SelfResolvingDependency); AGP 9
+    // built-in Kotlin also needs KGP >= 2.2.10. Matches the upgraded common submodule.
+    kotlinVersion = '2.2.21'
     spotBugsGradlePluginVersion = '4.7.1'
     jupiterApiVersion = '5.6.0'
     
@@ -42,7 +46,7 @@ ext {
     powerMockVersion = "2.0.9"
     runnerVersion = "1.2.0"
     rulesVersion = "1.2.0"
-    robolectricVersion = "4.14"
+    robolectricVersion = "4.16.1"
     uiAutomatorVersion = "2.2.0"
     daggerVersion = "2.31.2"
     daggerCompilerVersion = "2.31.2"
@@ -67,7 +71,7 @@ ext {
     yubikitAndroidVersion = "2.5.0"
     yubikitPivVersion = "2.5.0"
     powerliftAndroidVersion="1.0.3"
-    kotlinXCoroutinesVersion = "1.6.4"
+    kotlinXCoroutinesVersion = "1.9.0"
     mockkVersion = "1.11.0"
     mockitoKotlinVersion = "4.1.0"
     androidxAnnotationVersion = "1.4.0"
