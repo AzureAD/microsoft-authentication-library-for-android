@@ -24,6 +24,7 @@
 package com.microsoft.identity.nativeauth.statemachine.errors
 
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
+import com.microsoft.identity.nativeauth.statemachine.states.NativeAuthFlowStateV2
 
 internal class NativeAuthV2ErrorTypes {
     companion object {
