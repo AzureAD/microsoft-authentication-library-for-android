@@ -1154,7 +1154,7 @@ public class CommandParametersAdapter {
                         .code(code)
                         .scopes(continuationState.scopesForTokenRequest())
                         .clientId(configuration.getClientId())
-                        .correlationId(continuationState.correlationId)
+                        .correlationId(continuationState.getCorrelationId())
                         .build();
 
         return commandParameters;
@@ -1198,7 +1198,7 @@ public class CommandParametersAdapter {
                         .requestInterceptor(configuration.getRequestInterceptor())
                         .scopes(continuationState.scopesForTokenRequest())
                         .clientId(configuration.getClientId())
-                        .correlationId(continuationState.correlationId)
+                        .correlationId(continuationState.getCorrelationId())
                         .build();
 
         return commandParameters;
@@ -1245,7 +1245,7 @@ public class CommandParametersAdapter {
                         .newPassword(password)
                         .scopes(continuationState.scopesForTokenRequest())
                         .clientId(configuration.getClientId())
-                        .correlationId(continuationState.correlationId)
+                        .correlationId(continuationState.getCorrelationId())
                         .build();
 
         return commandParameters;
