@@ -184,6 +184,7 @@ class NewPasswordRequiredStateV2 internal constructor(
                     }
                 }
             } catch (e: Exception) {
+                Logger.error(TAG, correlationId, "Exception thrown in submitNewPassword", e)
                 SubmitNewPasswordErrorV2(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in submitNewPassword.",

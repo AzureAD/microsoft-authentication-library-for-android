@@ -768,6 +768,7 @@ class NativeAuthPublicClientApplication(
                     }
                 }
             } catch (e: Exception) {
+                Logger.error(TAG, "Exception thrown in resetPasswordV2", e)
                 ResetPasswordErrorV2(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in resetPasswordV2.",

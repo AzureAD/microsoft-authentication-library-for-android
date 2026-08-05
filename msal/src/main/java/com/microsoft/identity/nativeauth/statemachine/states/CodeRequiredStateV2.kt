@@ -182,6 +182,7 @@ class CodeRequiredStateV2 internal constructor(
                     }
                 }
             } catch (e: Exception) {
+                Logger.error(TAG, correlationId, "Exception thrown in submitCode", e)
                 SubmitCodeErrorV2(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in submitCode.",
@@ -275,6 +276,7 @@ class CodeRequiredStateV2 internal constructor(
                     }
                 }
             } catch (e: Exception) {
+                Logger.error(TAG, correlationId, "Exception thrown in resendCode", e)
                 NativeAuthErrorV2(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in resendCode.",

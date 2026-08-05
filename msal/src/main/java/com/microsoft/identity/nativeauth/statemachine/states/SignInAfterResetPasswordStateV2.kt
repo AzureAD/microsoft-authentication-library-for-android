@@ -155,6 +155,7 @@ class SignInAfterResetPasswordStateV2 internal constructor(
                     }
                 }
             } catch (e: Exception) {
+                Logger.error(TAG, correlationId, "Exception thrown in signIn", e)
                 NativeAuthErrorV2(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in signIn.",
