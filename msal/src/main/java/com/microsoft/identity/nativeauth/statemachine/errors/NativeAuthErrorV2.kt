@@ -33,7 +33,14 @@ internal class NativeAuthV2ErrorTypes {
 }
 
 /**
- * NativeAuthErrorV2 is the single unified error type for the Native Auth V2 surface.
+ * NativeAuthErrorV2 is the base error type for the Native Auth V2 surface. All V2 errors are a
+ * [NativeAuthResultV2], so any V2 state method or entry point that returns a result can also
+ * return an error.
+ *
+ * This base type is returned directly for flow-level errors that are not specific to a single
+ * operation (for example [isNotImplemented]). Operation-specific errors are represented by the
+ * dedicated subclasses (e.g. [SignInErrorV2], [SubmitCodeErrorV2]), each exposing only the
+ * utility methods relevant to that operation, mirroring the Native Auth V1 error surface.
  *
  * @param errorType the error type value of the error that occurred.
  * @param error the error returned by the authentication server.
@@ -64,35 +71,8 @@ open class NativeAuthErrorV2(
         exception = exception
     ) {
 
+    /**
+     * Returns true if the requested Native Auth V2 flow or step is not implemented yet.
+     */
     fun isNotImplemented(): Boolean = this.errorType == NativeAuthV2ErrorTypes.NOT_IMPLEMENTED
-
-    fun isUserNotFound(): Boolean = this.errorType == ErrorTypes.USER_NOT_FOUND
-
-    fun isUserAlreadyExists(): Boolean = this.errorType == SignUpErrorTypes.USER_ALREADY_EXISTS
-
-    fun isInvalidUsername(): Boolean = this.errorType == ErrorTypes.INVALID_USERNAME
-
-    fun isInvalidCredentials(): Boolean = this.errorType == SignInErrorTypes.INVALID_CREDENTIALS
-
-    fun isInvalidPassword(): Boolean = this.errorType == ErrorTypes.INVALID_PASSWORD
-
-    fun isInvalidCode(): Boolean = this.errorType == ErrorTypes.INVALID_CODE
-
-    fun isInvalidChallenge(): Boolean = this.errorType == ErrorTypes.INVALID_CHALLENGE
-
-    fun isInvalidInput(): Boolean = this.errorType == ErrorTypes.INVALID_INPUT
-
-    fun isInvalidAttributes(): Boolean = this.errorType == SignUpErrorTypes.INVALID_ATTRIBUTES
-
-    fun isInvalidScopes(): Boolean = this.errorType == GetAccessTokenErrorTypes.INVALID_SCOPES
-
-    fun isNoAccountFound(): Boolean = this.errorType == GetAccessTokenErrorTypes.NO_ACCOUNT_FOUND
-
-    fun isPasswordResetFailed(): Boolean = this.errorType == ResetPasswordErrorTypes.PASSWORD_RESET_FAILED
-
-    fun isAuthMethodBlocked(): Boolean = this.errorType == ErrorTypes.AUTH_METHOD_BLOCKED
-
-    fun isAuthNotSupported(): Boolean = this.errorType == SignUpErrorTypes.AUTH_NOT_SUPPORTED
-
-    fun isVerificationContactBlocked(): Boolean = this.errorType == ErrorTypes.VERIFICATION_CONTACT_BLOCKED
 }
