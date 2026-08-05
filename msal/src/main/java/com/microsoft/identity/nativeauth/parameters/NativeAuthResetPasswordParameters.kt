@@ -24,11 +24,13 @@
 package com.microsoft.identity.nativeauth.parameters
 
 /**
- * Encapsulates the parameters passed to the resetPassword methods of NativeAuthPublicClientApplication
+ * Encapsulates the parameters passed to the resetPassword methods of NativeAuthPublicClientApplication.
+ *
+ * @param username username of the account whose password will be reset.
+ * @param scopes optional list of OAuth 2.0 scopes to request during the flow; merged with the
+ *   default OIDC scopes by the SDK. Ignored when null or empty.
  */
-class NativeAuthResetPasswordParameters(
-    /**
-     * username of the account to reset password.
-     */
-    val username: String
+class NativeAuthResetPasswordParameters @JvmOverloads constructor(
+    val username: String,
+    val scopes: List<String>? = null
 )

@@ -50,7 +50,12 @@ open class NativeAuthErrorV2(
     override val correlationId: String,
     val scenario: NativeAuthFlowScenarioV2 = NativeAuthFlowScenarioV2.UNKNOWN,
     override val errorCodes: List<Int>? = null,
-    override var exception: Exception? = null
+    override var exception: Exception? = null,
+    /**
+     * Populated for recoverable errors (e.g. invalid code, password policy violation) so the
+     * caller can retry the same step without restarting the flow. Null for terminal errors.
+     */
+    val nextState: NativeAuthFlowStateV2? = null
 ) : NativeAuthResultV2,
     BrowserRequiredError,
     Error(

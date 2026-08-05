@@ -25,41 +25,78 @@ package com.microsoft.identity.nativeauth.statemachine.states
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.microsoft.identity.client.AuthenticationResultAdapter
 import com.microsoft.identity.client.exception.MsalException
+import com.microsoft.identity.client.internal.CommandParametersAdapter
+import com.microsoft.identity.common.java.controllers.CommandDispatcher
+import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
+import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2ResendCodeCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SubmitCodeCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SubmitNewPasswordCommandResult
+import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
+import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResendCodeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitCodeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitNewPasswordCommand
+import com.microsoft.identity.common.nativeauth.internal.controllers.v2.NativeAuthV2FlowController
 import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.UserAttributes
+import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthV2ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.utils.serializable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * NativeAuthFlowStateV2 is the single unified state for the Native Auth V2 surface.
  *
- * @property continuationToken Continuation token passed in the next request.
- * @property correlationId Correlation ID taken from the previous API response and passed to the next request.
+ * When created from a command result the opaque [continuationState] DTO is the single source of
+ * truth for the continuation token, correlation ID, scopes, and scenario; those fields are
+ * derived from it and are not stored redundantly. When no DTO is present (legacy/test
+ * construction) the fields are stored directly and [continuationState] is null.
+ *
+ * @property continuationToken Continuation token (derived from [continuationState] when present).
+ * @property correlationId Correlation ID (derived from [continuationState] when present).
  * @property scenario Identifies which part of the Native Auth V2 surface this state belongs to.
  * @property config Configuration used by Native Auth.
+ * @property continuationState Opaque DTO carrying mid-flow state; null only in legacy/test paths.
  */
 class NativeAuthFlowStateV2 internal constructor(
     override val continuationToken: String,
     override val correlationId: String,
     internal val scenario: NativeAuthFlowScenarioV2,
-    private val config: NativeAuthPublicClientApplicationConfiguration
+    private val config: NativeAuthPublicClientApplicationConfiguration,
+    internal val continuationState: NativeAuthV2ContinuationState? = null
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     private val TAG: String = NativeAuthFlowStateV2::class.java.simpleName
 
-    constructor(parcel: Parcel) : this(
-        continuationToken = parcel.readString() ?: "",
-        correlationId = parcel.readString() ?: "UNSET",
-        scenario = NativeAuthFlowScenarioV2.valueOf(parcel.readString() ?: NativeAuthFlowScenarioV2.UNKNOWN.name),
-        config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
+    /**
+     * Constructs a V2 flow state from the opaque continuation DTO returned by a command result.
+     * The base fields are derived from [continuationState.correlationId]; the raw continuation
+     * token stays inside the opaque DTO and is never exposed to MSAL-layer code.
+     */
+    internal constructor(
+        continuationState: NativeAuthV2ContinuationState,
+        config: NativeAuthPublicClientApplicationConfiguration
+    ) : this(
+        // continuationState.continuationToken is internal to common4j; use correlationId as the
+        // BaseState placeholder. V2 commands receive the full opaque DTO, never this field.
+        continuationToken = continuationState.correlationId,
+        correlationId = continuationState.correlationId,
+        scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
+        config = config,
+        continuationState = continuationState
     )
 
     private fun notImplemented(): NativeAuthResultV2 = NativeAuthErrorV2(
@@ -68,6 +105,9 @@ class NativeAuthFlowStateV2 internal constructor(
         correlationId = correlationId,
         scenario = scenario
     )
+
+    private fun NativeAuthV2ContinuationState.toFlowState(): NativeAuthFlowStateV2 =
+        NativeAuthFlowStateV2(continuationState = this, config = config)
 
     interface SubmitCodeCallback : Callback<NativeAuthResultV2>
 
@@ -93,7 +133,80 @@ class NativeAuthFlowStateV2 internal constructor(
             correlationId = correlationId,
             methodName = "${TAG}.submitCode(code: String)"
         )
-        return notImplemented()
+        val state = continuationState ?: return notImplemented()
+        return withContext(Dispatchers.IO) {
+            try {
+                val parameters = CommandParametersAdapter.createNativeAuthV2SubmitCodeCommandParameters(
+                    config,
+                    config.oAuth2TokenCache,
+                    code,
+                    state
+                )
+                val command = NativeAuthV2SubmitCodeCommand(
+                    parameters,
+                    NativeAuthV2FlowController(),
+                    PublicApiId.NATIVE_AUTH_V2_RESET_PASSWORD_SUBMIT_CODE
+                )
+                ensureActive()
+                val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
+                ensureActive()
+                when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitCodeCommandResult>()) {
+                    is NativeAuthV2CommandResult.NewPasswordRequired -> {
+                        NativeAuthResultV2.NewPasswordRequired(
+                            nextState = result.continuationState.toFlowState()
+                        )
+                    }
+                    is NativeAuthV2CommandResult.Complete -> {
+                        mapCompleteResult(result)
+                    }
+                    is NativeAuthV2CommandResult.IncorrectCode -> {
+                        NativeAuthErrorV2(
+                            errorType = ErrorTypes.INVALID_CODE,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario,
+                            nextState = result.retryState.toFlowState()
+                        )
+                    }
+                    is NativeAuthV2CommandResult.NotImplemented -> {
+                        NativeAuthErrorV2(
+                            errorType = NativeAuthV2ErrorTypes.NOT_IMPLEMENTED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario
+                        )
+                    }
+                    is INativeAuthCommandResult.Redirect -> {
+                        NativeAuthErrorV2(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario
+                        )
+                    }
+                    is INativeAuthCommandResult.APIError -> {
+                        NativeAuthErrorV2(
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario,
+                            exception = result.exception
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                NativeAuthErrorV2(
+                    errorType = ErrorTypes.CLIENT_EXCEPTION,
+                    errorMessage = "MSAL client exception occurred in submitCode.",
+                    correlationId = correlationId,
+                    scenario = scenario,
+                    exception = e
+                )
+            }
+        }
     }
 
     interface SubmitPasswordCallback : Callback<NativeAuthResultV2>
@@ -147,7 +260,83 @@ class NativeAuthFlowStateV2 internal constructor(
             correlationId = correlationId,
             methodName = "${TAG}.submitNewPassword(password: CharArray)"
         )
-        return notImplemented()
+        val state = continuationState ?: return notImplemented()
+        return withContext(Dispatchers.IO) {
+            try {
+                val parameters = CommandParametersAdapter.createNativeAuthV2SubmitNewPasswordCommandParameters(
+                    config,
+                    config.oAuth2TokenCache,
+                    password,
+                    state
+                )
+                val command = NativeAuthV2SubmitNewPasswordCommand(
+                    parameters,
+                    NativeAuthV2FlowController(),
+                    PublicApiId.NATIVE_AUTH_V2_RESET_PASSWORD_SUBMIT_NEW_PASSWORD
+                )
+                ensureActive()
+                val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
+                ensureActive()
+                when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitNewPasswordCommandResult>()) {
+                    is NativeAuthV2CommandResult.Complete -> {
+                        mapCompleteResult(result)
+                    }
+                    is NativeAuthV2CommandResult.PasswordNotAccepted -> {
+                        NativeAuthErrorV2(
+                            errorType = ErrorTypes.INVALID_PASSWORD,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario,
+                            nextState = result.retryState.toFlowState()
+                        )
+                    }
+                    is NativeAuthV2CommandResult.PasswordResetFailed -> {
+                        NativeAuthErrorV2(
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario
+                        )
+                    }
+                    is NativeAuthV2CommandResult.NotImplemented -> {
+                        NativeAuthErrorV2(
+                            errorType = NativeAuthV2ErrorTypes.NOT_IMPLEMENTED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario
+                        )
+                    }
+                    is INativeAuthCommandResult.Redirect -> {
+                        NativeAuthErrorV2(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario
+                        )
+                    }
+                    is INativeAuthCommandResult.APIError -> {
+                        NativeAuthErrorV2(
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario,
+                            exception = result.exception
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                NativeAuthErrorV2(
+                    errorType = ErrorTypes.CLIENT_EXCEPTION,
+                    errorMessage = "MSAL client exception occurred in submitNewPassword.",
+                    correlationId = correlationId,
+                    scenario = scenario,
+                    exception = e
+                )
+            }
+        }
     }
 
     interface SubmitAttributesCallback : Callback<NativeAuthResultV2>
@@ -255,27 +444,129 @@ class NativeAuthFlowStateV2 internal constructor(
             correlationId = correlationId,
             methodName = "${TAG}.resendCode()"
         )
-        return notImplemented()
+        val state = continuationState ?: return notImplemented()
+        return withContext(Dispatchers.IO) {
+            try {
+                val parameters = CommandParametersAdapter.createNativeAuthV2ResendCodeCommandParameters(
+                    config,
+                    config.oAuth2TokenCache,
+                    state
+                )
+                val command = NativeAuthV2ResendCodeCommand(
+                    parameters,
+                    NativeAuthV2FlowController(),
+                    PublicApiId.NATIVE_AUTH_V2_RESET_PASSWORD_RESEND_CODE
+                )
+                ensureActive()
+                val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
+                ensureActive()
+                when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2ResendCodeCommandResult>()) {
+                    is NativeAuthV2CommandResult.CodeRequired -> {
+                        NativeAuthResultV2.CodeRequired(
+                            nextState = result.continuationState.toFlowState(),
+                            codeLength = result.codeLength,
+                            sentTo = result.challengeTargetLabel,
+                            channel = result.challengeChannel
+                        )
+                    }
+                    is NativeAuthV2CommandResult.Complete -> {
+                        mapCompleteResult(result)
+                    }
+                    is NativeAuthV2CommandResult.NotImplemented -> {
+                        NativeAuthErrorV2(
+                            errorType = NativeAuthV2ErrorTypes.NOT_IMPLEMENTED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario
+                        )
+                    }
+                    is INativeAuthCommandResult.Redirect -> {
+                        NativeAuthErrorV2(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario
+                        )
+                    }
+                    is INativeAuthCommandResult.APIError -> {
+                        NativeAuthErrorV2(
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario,
+                            exception = result.exception
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                NativeAuthErrorV2(
+                    errorType = ErrorTypes.CLIENT_EXCEPTION,
+                    errorMessage = "MSAL client exception occurred in resendCode.",
+                    correlationId = correlationId,
+                    scenario = scenario,
+                    exception = e
+                )
+            }
+        }
+    }
+
+    private fun mapCompleteResult(result: NativeAuthV2CommandResult.Complete): NativeAuthResultV2 {
+        val localAuthResult = result.authenticationResult
+        return if (localAuthResult != null) {
+            val authenticationResult = AuthenticationResultAdapter.adapt(localAuthResult)
+            NativeAuthResultV2.Complete(
+                resultValue = AccountState.createFromAuthenticationResult(
+                    authenticationResult = authenticationResult,
+                    correlationId = result.correlationId,
+                    config = config
+                )
+            )
+        } else {
+            Logger.warn(TAG, result.correlationId, "V2 Complete result has no inline sign-in token; returning API error.")
+            NativeAuthErrorV2(
+                errorMessage = "Password reset completed but no sign-in result was returned.",
+                correlationId = result.correlationId,
+                scenario = scenario
+            )
+        }
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeString(continuationToken)
-        parcel.writeString(correlationId)
-        parcel.writeString(scenario.name)
-        parcel.writeSerializable(config)
+        if (continuationState != null) {
+            parcel.writeByte(1)
+            parcel.writeSerializable(continuationState)
+            parcel.writeSerializable(config)
+        } else {
+            parcel.writeByte(0)
+            parcel.writeString(continuationToken)
+            parcel.writeString(correlationId)
+            parcel.writeString(scenario.name)
+            parcel.writeSerializable(config)
+        }
     }
 
-    override fun describeContents(): Int {
-        return 0
-    }
+    override fun describeContents(): Int = 0
 
     companion object CREATOR : Parcelable.Creator<NativeAuthFlowStateV2> {
         override fun createFromParcel(parcel: Parcel): NativeAuthFlowStateV2 {
-            return NativeAuthFlowStateV2(parcel)
+            return if (parcel.readByte().toInt() == 1) {
+                val continuationState = parcel.serializable<NativeAuthV2ContinuationState>()!!
+                val config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>()!!
+                NativeAuthFlowStateV2(continuationState = continuationState, config = config)
+            } else {
+                NativeAuthFlowStateV2(
+                    continuationToken = parcel.readString() ?: "",
+                    correlationId = parcel.readString() ?: "UNSET",
+                    scenario = NativeAuthFlowScenarioV2.valueOf(
+                        parcel.readString() ?: NativeAuthFlowScenarioV2.UNKNOWN.name
+                    ),
+                    config = parcel.serializable()!!
+                )
+            }
         }
 
-        override fun newArray(size: Int): Array<NativeAuthFlowStateV2?> {
-            return arrayOfNulls(size)
-        }
+        override fun newArray(size: Int): Array<NativeAuthFlowStateV2?> = arrayOfNulls(size)
     }
 }
