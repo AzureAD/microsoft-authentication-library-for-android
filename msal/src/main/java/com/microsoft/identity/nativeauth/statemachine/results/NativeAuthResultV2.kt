@@ -78,6 +78,17 @@ interface NativeAuthResultV2 : Result {
     ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2
 
     /**
+     * SignInAfterResetPasswordRequired Result, which indicates the password reset flow has
+     * completed server-side. Token exchange and cache persistence are deferred until the app
+     * explicitly invokes [NativeAuthFlowStateV2.signIn] on [nextState].
+     *
+     * @param nextState the current state with follow-on methods, including signIn().
+     */
+    class SignInAfterResetPasswordRequired(
+        override val nextState: NativeAuthFlowStateV2
+    ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2
+
+    /**
      * AttributesRequired Result, which indicates user attributes are required to continue.
      *
      * @param nextState the current state with follow-on methods.

@@ -686,6 +686,14 @@ class NativeAuthPublicClientApplication(
                             channel = result.challengeChannel
                         )
                     }
+                    is NativeAuthV2CommandResult.SignInAfterResetPasswordRequired -> {
+                        NativeAuthResultV2.SignInAfterResetPasswordRequired(
+                            nextState = NativeAuthFlowStateV2(
+                                continuationState = result.continuationState,
+                                config = nativeAuthConfig
+                            )
+                        )
+                    }
                     is NativeAuthV2CommandResult.Complete -> {
                         val localAuthResult = result.authenticationResult
                         if (localAuthResult != null) {

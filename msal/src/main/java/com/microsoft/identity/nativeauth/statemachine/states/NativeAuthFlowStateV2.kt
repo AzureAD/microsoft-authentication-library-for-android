@@ -35,11 +35,13 @@ import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2ResendCodeCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SignInAfterResetPasswordCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SubmitCodeCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SubmitNewPasswordCommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResendCodeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInAfterResetPasswordCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitNewPasswordCommand
 import com.microsoft.identity.common.nativeauth.internal.controllers.v2.NativeAuthV2FlowController
@@ -153,6 +155,11 @@ class NativeAuthFlowStateV2 internal constructor(
                 when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitCodeCommandResult>()) {
                     is NativeAuthV2CommandResult.NewPasswordRequired -> {
                         NativeAuthResultV2.NewPasswordRequired(
+                            nextState = result.continuationState.toFlowState()
+                        )
+                    }
+                    is NativeAuthV2CommandResult.SignInAfterResetPasswordRequired -> {
+                        NativeAuthResultV2.SignInAfterResetPasswordRequired(
                             nextState = result.continuationState.toFlowState()
                         )
                     }
@@ -280,6 +287,11 @@ class NativeAuthFlowStateV2 internal constructor(
                 when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitNewPasswordCommandResult>()) {
                     is NativeAuthV2CommandResult.Complete -> {
                         mapCompleteResult(result)
+                    }
+                    is NativeAuthV2CommandResult.SignInAfterResetPasswordRequired -> {
+                        NativeAuthResultV2.SignInAfterResetPasswordRequired(
+                            nextState = result.continuationState.toFlowState()
+                        )
                     }
                     is NativeAuthV2CommandResult.PasswordNotAccepted -> {
                         NativeAuthErrorV2(
@@ -504,6 +516,91 @@ class NativeAuthFlowStateV2 internal constructor(
                 NativeAuthErrorV2(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in resendCode.",
+                    correlationId = correlationId,
+                    scenario = scenario,
+                    exception = e
+                )
+            }
+        }
+    }
+
+    interface SignInCallback : Callback<NativeAuthResultV2>
+
+    /**
+     * Explicit app-invoked sign-in step following a completed password reset flow. This is the
+     * only method that triggers the token exchange and cache persistence for the reset flow; the
+     * reset-password steps above never invoke it automatically.
+     */
+    fun signIn(callback: SignInCallback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.signIn(callback: SignInCallback)"
+        )
+        NativeAuthPublicClientApplication.pcaScope.launch {
+            try {
+                callback.onResult(signIn())
+            } catch (e: MsalException) {
+                Logger.error(TAG, "Exception thrown in signIn", e)
+                callback.onError(e)
+            }
+        }
+    }
+
+    /**
+     * Explicit app-invoked sign-in step following a completed password reset flow. This is the
+     * only method that triggers the token exchange and cache persistence for the reset flow; the
+     * reset-password steps above never invoke it automatically.
+     */
+    suspend fun signIn(): NativeAuthResultV2 {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.signIn()"
+        )
+        val state = continuationState ?: return notImplemented()
+        return withContext(Dispatchers.IO) {
+            try {
+                val parameters = CommandParametersAdapter.createNativeAuthV2SignInAfterResetPasswordCommandParameters(
+                    config,
+                    config.oAuth2TokenCache,
+                    state
+                )
+                val command = NativeAuthV2SignInAfterResetPasswordCommand(
+                    parameters,
+                    NativeAuthV2FlowController(),
+                    PublicApiId.NATIVE_AUTH_V2_SIGN_IN_AFTER_RESET_PASSWORD
+                )
+                ensureActive()
+                val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
+                ensureActive()
+                when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SignInAfterResetPasswordCommandResult>()) {
+                    is NativeAuthV2CommandResult.Complete -> {
+                        mapCompleteResult(result)
+                    }
+                    is INativeAuthCommandResult.Redirect -> {
+                        NativeAuthErrorV2(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario
+                        )
+                    }
+                    is INativeAuthCommandResult.APIError -> {
+                        NativeAuthErrorV2(
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario,
+                            exception = result.exception
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                NativeAuthErrorV2(
+                    errorType = ErrorTypes.CLIENT_EXCEPTION,
+                    errorMessage = "MSAL client exception occurred in signIn.",
                     correlationId = correlationId,
                     scenario = scenario,
                     exception = e

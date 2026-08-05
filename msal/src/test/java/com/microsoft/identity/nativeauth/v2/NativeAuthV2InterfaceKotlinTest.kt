@@ -106,9 +106,25 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         assertNotImplemented(state.submitPassword("password".toCharArray()))
         assertNotImplemented(state.submitNewPassword("password".toCharArray()))
         assertNotImplemented(state.resendCode())
+        assertNotImplemented(state.signIn())
         assertNotImplemented(state.submitChallenge("challenge"))
         assertNotImplemented(state.submitAttributes(com.microsoft.identity.nativeauth.UserAttributes.Builder().city("city").build()))
         assertNotImplemented(state.selectAuthMethod(com.microsoft.identity.nativeauth.AuthMethod("id", "oob", null, "email")))
+    }
+
+    @Test
+    fun signInAfterResetPasswordRequiredIsResult() {
+        val state = NativeAuthFlowStateV2(
+            continuationToken = "continuation-token",
+            correlationId = "correlation-id",
+            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
+            config = NativeAuthPublicClientApplicationConfiguration()
+        )
+
+        val result = NativeAuthResultV2.SignInAfterResetPasswordRequired(nextState = state)
+
+        assertTrue(result is NativeAuthResultV2)
+        assertEquals("signInAfterResetPassword", exhaustiveWhen(result))
     }
 
     @Test
@@ -137,6 +153,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         is NativeAuthResultV2.CodeRequired -> "code"
         is NativeAuthResultV2.PasswordRequired -> "password"
         is NativeAuthResultV2.NewPasswordRequired -> "newPassword"
+        is NativeAuthResultV2.SignInAfterResetPasswordRequired -> "signInAfterResetPassword"
         is NativeAuthResultV2.AttributesRequired -> "attributes"
         is NativeAuthResultV2.AttributesInvalid -> "attributesInvalid"
         is NativeAuthResultV2.MFARequired -> "mfa"

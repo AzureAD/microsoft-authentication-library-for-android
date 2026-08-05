@@ -66,6 +66,7 @@ import com.microsoft.identity.common.java.nativeauth.authorities.NativeAuthCIAMA
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFAChallengeAuthMethodCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFASubmitChallengeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2ResendCodeCommandParameters;
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SignInAfterResetPasswordCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitCodeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitNewPasswordCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.ResetPasswordV2StartCommandParameters;
@@ -1243,6 +1244,51 @@ public class CommandParametersAdapter {
                         .challengeType(configuration.getChallengeTypes())
                         .requestInterceptor(configuration.getRequestInterceptor())
                         .newPassword(password)
+                        .scopes(continuationState.scopesForTokenRequest())
+                        .clientId(configuration.getClientId())
+                        .correlationId(continuationState.getCorrelationId())
+                        .build();
+
+        return commandParameters;
+    }
+
+    /**
+     * Creates command parameter for [NativeAuthV2SignInAfterResetPasswordCommand] of Native Auth.
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param continuationState opaque continuation state produced once the SSPR flow reaches server-side completion
+     * @return Command parameter object
+     */
+    public static NativeAuthV2SignInAfterResetPasswordCommandParameters createNativeAuthV2SignInAfterResetPasswordCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final NativeAuthV2ContinuationState continuationState) {
+
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
+                AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
+                null
+        );
+
+        final NativeAuthV2SignInAfterResetPasswordCommandParameters commandParameters =
+                NativeAuthV2SignInAfterResetPasswordCommandParameters.builder()
+                        .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                        .applicationName(configuration.getAppContext().getPackageName())
+                        .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                        .clientId(configuration.getClientId())
+                        .isSharedDevice(configuration.getIsSharedDevice())
+                        .redirectUri(configuration.getRedirectUri())
+                        .oAuth2TokenCache(tokenCache)
+                        .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                        .sdkType(SdkType.MSAL)
+                        .sdkVersion(PublicClientApplication.getSdkVersion())
+                        .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                        .authority(authority)
+                        .authenticationScheme(authenticationScheme)
+                        .challengeType(configuration.getChallengeTypes())
+                        .requestInterceptor(configuration.getRequestInterceptor())
+                        .continuationState(continuationState)
                         .scopes(continuationState.scopesForTokenRequest())
                         .clientId(configuration.getClientId())
                         .correlationId(continuationState.getCorrelationId())
