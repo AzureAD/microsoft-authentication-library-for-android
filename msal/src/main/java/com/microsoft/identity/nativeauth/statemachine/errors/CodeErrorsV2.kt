@@ -23,23 +23,11 @@
 
 package com.microsoft.identity.nativeauth.statemachine.errors
 
-import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
-
-internal class NativeAuthV2ErrorTypes {
-    companion object {
-        const val NOT_IMPLEMENTED = "not_implemented"
-    }
-}
-
 /**
- * NativeAuthErrorV2 is the base error type for the Native Auth V2 surface. All V2 errors are a
- * [NativeAuthResultV2], so any V2 state method or entry point that returns a result can also
- * return an error.
- *
- * This base type is returned directly for flow-level errors that are not specific to a single
- * operation (for example [isNotImplemented]). Operation-specific errors are represented by the
- * dedicated subclasses (e.g. [SignInErrorV2], [SubmitCodeErrorV2]), each exposing only the
- * utility methods relevant to that operation, mirroring the Native Auth V1 error surface.
+ * Submit code error for the Native Auth V2 surface. Use the utility methods of this class to
+ * identify and handle the error. This error is produced by
+ * [com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2.submitCode] across the
+ * sign in, sign up and reset password scenarios; use [scenario] to determine which flow it belongs to.
  *
  * @param errorType the error type value of the error that occurred.
  * @param error the error returned by the authentication server.
@@ -47,29 +35,19 @@ internal class NativeAuthV2ErrorTypes {
  * @param correlationId a unique identifier for the request that can help in diagnostics.
  * @param scenario identifies which part of the Native Auth V2 surface produced this error.
  * @param errorCodes a list of specific error codes returned by the authentication server.
+ * @param subError the sub error returned by the authentication server.
  * @param exception an internal unexpected exception that happened.
  */
-open class NativeAuthErrorV2(
-    override val errorType: String? = null,
-    override val error: String? = null,
-    override val errorMessage: String?,
-    override val correlationId: String,
-    override val scenario: NativeAuthFlowScenarioV2 = NativeAuthFlowScenarioV2.UNKNOWN,
-    override val errorCodes: List<Int>? = null,
-    override var exception: Exception? = null
-) : NativeAuthResultV2,
-    BrowserRequiredError,
-    Error(
-        errorType = errorType,
-        error = error,
-        errorMessage = errorMessage,
-        correlationId = correlationId,
-        errorCodes = errorCodes,
-        exception = exception
-    ) {
+class SubmitCodeErrorV2(
+    errorType: String? = null,
+    error: String? = null,
+    errorMessage: String?,
+    correlationId: String,
+    scenario: NativeAuthFlowScenarioV2 = NativeAuthFlowScenarioV2.UNKNOWN,
+    errorCodes: List<Int>? = null,
+    val subError: String? = null,
+    exception: Exception? = null
+) : NativeAuthErrorV2(errorType, error, errorMessage, correlationId, scenario, errorCodes, exception) {
 
-    /**
-     * Returns true if the requested Native Auth V2 flow or step is not implemented yet.
-     */
-    fun isNotImplemented(): Boolean = this.errorType == NativeAuthV2ErrorTypes.NOT_IMPLEMENTED
+    fun isInvalidCode(): Boolean = this.errorType == ErrorTypes.INVALID_CODE
 }
