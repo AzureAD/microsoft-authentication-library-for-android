@@ -23,6 +23,8 @@
 
 package com.microsoft.identity.nativeauth.statemachine.errors
 
+import com.microsoft.identity.nativeauth.statemachine.states.NativeAuthBaseStateV2
+
 /**
  * Reset password error for the Native Auth V2 surface. Use the utility methods of this class to
  * identify and handle the error. This error is produced by
@@ -64,6 +66,7 @@ class ResetPasswordErrorV2(
  * @param errorCodes a list of specific error codes returned by the authentication server.
  * @param subError the sub error returned by the authentication server.
  * @param exception an internal unexpected exception that happened.
+ * @param nextState populated for recoverable errors (e.g. password policy violation) so the caller can retry the same step without restarting the flow; null for terminal errors.
  */
 class SubmitNewPasswordErrorV2(
     errorType: String? = null,
@@ -73,8 +76,9 @@ class SubmitNewPasswordErrorV2(
     scenario: NativeAuthFlowScenarioV2 = NativeAuthFlowScenarioV2.RESET_PASSWORD,
     errorCodes: List<Int>? = null,
     val subError: String? = null,
-    exception: Exception? = null
-) : NativeAuthErrorV2(errorType, error, errorMessage, correlationId, scenario, errorCodes, exception) {
+    exception: Exception? = null,
+    nextState: NativeAuthBaseStateV2? = null
+) : NativeAuthErrorV2(errorType, error, errorMessage, correlationId, scenario, errorCodes, exception, nextState) {
 
     fun isInvalidPassword(): Boolean = this.errorType == ErrorTypes.INVALID_PASSWORD
 

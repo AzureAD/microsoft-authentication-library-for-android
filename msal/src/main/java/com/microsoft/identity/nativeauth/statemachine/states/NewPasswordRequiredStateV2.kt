@@ -44,6 +44,8 @@ import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthV2ErrorTypes
+import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorTypes
+import com.microsoft.identity.nativeauth.statemachine.errors.SubmitNewPasswordErrorV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
@@ -135,7 +137,7 @@ class NewPasswordRequiredStateV2 internal constructor(
                         )
                     }
                     is NativeAuthV2CommandResult.PasswordNotAccepted -> {
-                        NativeAuthErrorV2(
+                        SubmitNewPasswordErrorV2(
                             errorType = ErrorTypes.INVALID_PASSWORD,
                             error = result.error,
                             errorMessage = result.errorDescription,
@@ -145,7 +147,8 @@ class NewPasswordRequiredStateV2 internal constructor(
                         )
                     }
                     is NativeAuthV2CommandResult.PasswordResetFailed -> {
-                        NativeAuthErrorV2(
+                        SubmitNewPasswordErrorV2(
+                            errorType = ResetPasswordErrorTypes.PASSWORD_RESET_FAILED,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
@@ -162,7 +165,7 @@ class NewPasswordRequiredStateV2 internal constructor(
                         )
                     }
                     is INativeAuthCommandResult.Redirect -> {
-                        NativeAuthErrorV2(
+                        SubmitNewPasswordErrorV2(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
                             error = result.error,
                             errorMessage = result.errorDescription,
@@ -171,7 +174,7 @@ class NewPasswordRequiredStateV2 internal constructor(
                         )
                     }
                     is INativeAuthCommandResult.APIError -> {
-                        NativeAuthErrorV2(
+                        SubmitNewPasswordErrorV2(
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
@@ -181,7 +184,7 @@ class NewPasswordRequiredStateV2 internal constructor(
                     }
                 }
             } catch (e: Exception) {
-                NativeAuthErrorV2(
+                SubmitNewPasswordErrorV2(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in submitNewPassword.",
                     correlationId = correlationId,

@@ -46,6 +46,7 @@ import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthV2ErrorTypes
+import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeErrorV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
@@ -143,7 +144,7 @@ class CodeRequiredStateV2 internal constructor(
                         mapCompleteResult(result)
                     }
                     is NativeAuthV2CommandResult.IncorrectCode -> {
-                        NativeAuthErrorV2(
+                        SubmitCodeErrorV2(
                             errorType = ErrorTypes.INVALID_CODE,
                             error = result.error,
                             errorMessage = result.errorDescription,
@@ -162,7 +163,7 @@ class CodeRequiredStateV2 internal constructor(
                         )
                     }
                     is INativeAuthCommandResult.Redirect -> {
-                        NativeAuthErrorV2(
+                        SubmitCodeErrorV2(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
                             error = result.error,
                             errorMessage = result.errorDescription,
@@ -171,7 +172,7 @@ class CodeRequiredStateV2 internal constructor(
                         )
                     }
                     is INativeAuthCommandResult.APIError -> {
-                        NativeAuthErrorV2(
+                        SubmitCodeErrorV2(
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
@@ -181,7 +182,7 @@ class CodeRequiredStateV2 internal constructor(
                     }
                 }
             } catch (e: Exception) {
-                NativeAuthErrorV2(
+                SubmitCodeErrorV2(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in submitCode.",
                     correlationId = correlationId,

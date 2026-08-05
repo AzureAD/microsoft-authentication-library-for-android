@@ -74,6 +74,7 @@ import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthV2ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
+import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
@@ -652,7 +653,7 @@ class NativeAuthPublicClientApplication(
                 verifyNoUserIsSignedIn()
 
                 if (parameters.username.isBlank()) {
-                    return@withContext NativeAuthErrorV2(
+                    return@withContext ResetPasswordErrorV2(
                         errorType = ErrorTypes.INVALID_USERNAME,
                         errorMessage = "Empty or blank username",
                         correlationId = "UNSET",
@@ -713,7 +714,7 @@ class NativeAuthPublicClientApplication(
                             )
                         } else {
                             Logger.warn(TAG, result.correlationId, "V2 resetPassword start Complete with no inline sign-in result.")
-                            NativeAuthErrorV2(
+                            ResetPasswordErrorV2(
                                 errorMessage = "Password reset completed but no sign-in result was returned.",
                                 correlationId = result.correlationId,
                                 scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD
@@ -721,7 +722,7 @@ class NativeAuthPublicClientApplication(
                         }
                     }
                     is NativeAuthV2CommandResult.UserNotFound -> {
-                        NativeAuthErrorV2(
+                        ResetPasswordErrorV2(
                             errorType = ErrorTypes.USER_NOT_FOUND,
                             error = result.error,
                             errorMessage = result.errorDescription,
@@ -730,7 +731,7 @@ class NativeAuthPublicClientApplication(
                         )
                     }
                     is INativeAuthCommandResult.InvalidUsername -> {
-                        NativeAuthErrorV2(
+                        ResetPasswordErrorV2(
                             errorType = ErrorTypes.INVALID_USERNAME,
                             error = result.error,
                             errorMessage = result.errorDescription,
@@ -748,7 +749,7 @@ class NativeAuthPublicClientApplication(
                         )
                     }
                     is INativeAuthCommandResult.Redirect -> {
-                        NativeAuthErrorV2(
+                        ResetPasswordErrorV2(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
                             error = result.error,
                             errorMessage = result.errorDescription,
@@ -757,7 +758,7 @@ class NativeAuthPublicClientApplication(
                         )
                     }
                     is INativeAuthCommandResult.APIError -> {
-                        NativeAuthErrorV2(
+                        ResetPasswordErrorV2(
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
@@ -767,7 +768,7 @@ class NativeAuthPublicClientApplication(
                     }
                 }
             } catch (e: Exception) {
-                NativeAuthErrorV2(
+                ResetPasswordErrorV2(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in resetPasswordV2.",
                     correlationId = "UNSET",
