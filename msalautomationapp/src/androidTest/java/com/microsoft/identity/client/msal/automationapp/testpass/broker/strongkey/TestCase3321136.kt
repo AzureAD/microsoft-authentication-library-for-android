@@ -31,7 +31,8 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator
+import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal
+import com.microsoft.identity.client.ui.automation.broker.IMdmAgent
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
@@ -43,7 +44,7 @@ import org.junit.Test
 
 //  [StrongKey] Upgrade from regular WPJ to StrongKey WPJ (via CA)
 // https://identitydivision.visualstudio.com/Engineering/_testPlans/define?planId=2007357&suiteId=3321136
-@SupportedBrokers(brokers = [BrokerMicrosoftAuthenticator::class])
+@SupportedBrokers(brokers = [BrokerCompanyPortal::class])
 class TestCase3321136 : AbstractMsalBrokerTest() {
     @Test
     fun test_3321136_UpgradeFromRegularWpjToStrongKeyWpj() {
@@ -55,12 +56,14 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
         val username = mLabAccount.getUsername()
         val password = mLabAccount.getPassword()
 
-        (mBroker as BrokerMicrosoftAuthenticator).setShouldUseDeviceSettingsPage(false)
-        mBroker.performDeviceRegistration(username, password)
+        // Enrol the device in Intune through Company Portal. Enrolment workplace-joins the device
+        // with a regular (non-StrongKey) registration, which is the state this test upgrades from.
+        (mBroker as IMdmAgent).enrollDevice(username, password)
 
         val msalSdk = MsalSdk()
 
-        //acquiring token
+        // Acquiring a token for a resource under the token-binding CA policy is what forces the
+        // registration to be upgraded to StrongKey.
         val authTestParams: MsalAuthTestParams = MsalAuthTestParams.builder()
             .activity(mActivity)
             .loginHint(username)
@@ -92,7 +95,7 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
     }
 
     override fun getJsonUserType(): UserType? {
-        return UserType.TOKEN_BINDING
+        return UserType.MDM_AND_TOKEN_BINDING
     }
 
     override fun getTempUserType(): TempUserType? {
