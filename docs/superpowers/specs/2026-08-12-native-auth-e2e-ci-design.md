@@ -10,14 +10,14 @@ Keep the existing `msal:jacocoTestReport` step unchanged. Add a separate Gradle 
 
 The new step will:
 
-- run `msal:cleanTestLocalDebugUnitTest` followed by `msal:testLocalDebugUnitTest`;
+- run `msal:testLocalDebugUnitTest` in a separate Gradle invocation;
 - pass `-Plabtest` so Gradle does not exclude network E2E tests;
 - filter execution to `com.microsoft.identity.client.e2e.tests.network.nativeauth.*`;
 - pass `-PnativeAuthConfigString=$(NATIVE_AUTH_CONFIG_STRING)`;
 - pass `-PemailProviderPassword=$(EMAIL_PROVIDER_PASSWORD)`; and
 - use the `LabAuth` certificate already installed by `automation-cert.yml`.
 
-The filter prevents other network E2E packages from running. Cleaning the test task output ensures the filtered invocation executes even though the existing coverage step previously ran the same underlying unit-test task with different inputs.
+The filter prevents other network E2E packages from running. The `labtest` property and test include pattern change the Gradle test task inputs from the preceding coverage invocation, causing the filtered invocation to execute separately.
 
 ## Secret Configuration
 
