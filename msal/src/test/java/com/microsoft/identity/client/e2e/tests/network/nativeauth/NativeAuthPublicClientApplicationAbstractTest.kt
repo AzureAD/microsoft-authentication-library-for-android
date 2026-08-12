@@ -35,6 +35,7 @@ import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelpe
 import com.microsoft.identity.common.java.nativeauth.BuildValues
 import com.microsoft.identity.internal.testutils.TestUtils
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
+import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.labapi.utilities.BuildConfig
 import com.microsoft.identity.labapi.utilities.authentication.LabApiAuthenticationClient
@@ -76,6 +77,7 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
 
     private lateinit var context: Context
     private lateinit var activity: Activity
+    protected val tempEmailApi = TemporaryEmailService(BuildValues.getEmailProviderPassword())
 
     // Remove default Coroutine test timeout of 10 seconds.
     private val testDispatcher = StandardTestDispatcher()
@@ -161,8 +163,7 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
                 authFlow()
                 shouldRetry = false // authFlow() has succeeded, so we don't need to retry.
             } catch (e: Exception) {
-                //1secmail occasionally has a delay for emails to arrive / return from the API, or throws an internal server error, which causes tests to fail
-                //In this case, retry the test
+                // Retry transient end-to-end flow failures.
                 if (retryCount >= maxRetries) {
                     Assert.fail(e.message)
                     shouldRetry = false

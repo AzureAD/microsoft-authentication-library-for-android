@@ -25,7 +25,6 @@ package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
 import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
-import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters
@@ -42,8 +41,6 @@ import org.junit.Test
 
 class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
 
-    private val tempEmailApi = TemporaryEmailService()
-
     lateinit var application: INativeAuthPublicClientApplication
     lateinit var config: NativeAuthTestConfig.Config
 
@@ -55,7 +52,6 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Verify email with email OTP first and then reset password.
      * (hero scenario 8 & 17, use case 3.1.1)
      */
-    @Ignore("Retrieving OTP code failure")
     @Test
     fun testSSPRSuccess() {
         config = getConfig(defaultConfigType)
@@ -63,21 +59,20 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         var result: ResetPasswordStartResult
 
-        retryOperation {
-            runBlocking {
-                val user = config.email
-                val param = NativeAuthResetPasswordParameters(username = user)
-                result = application.resetPassword(param)
-                assertResult<ResetPasswordStartResult.CodeRequired>(result)
+        runBlocking {
+            val user = config.email
+            val param = NativeAuthResetPasswordParameters(username = user)
+            tempEmailApi.markCheckpoint(user)
+            result = application.resetPassword(param)
+            assertResult<ResetPasswordStartResult.CodeRequired>(result)
 
-                val otp = tempEmailApi.retrieveCodeFromInbox(user)
-                val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp)
-                assertResult<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
+            val otp = tempEmailApi.retrieveCodeFromInbox(user)
+            val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp)
+            assertResult<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
 
-                val password = getSafePassword()
-                val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword(password.toCharArray())
-                Assert.assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
-            }
+            val password = getSafePassword()
+            val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword(password.toCharArray())
+            Assert.assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
         }
     }
 
@@ -85,7 +80,6 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
      * New password being set doesn’t meet password complexity requirements set on portal
      * (use case 3.1.3)
      */
-    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testErrorInvalidPasswordFormat() {
         config = getConfig(defaultConfigType)
@@ -93,22 +87,21 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         var result: ResetPasswordStartResult
 
-        retryOperation {
-            runBlocking {
-                val user = config.email
-                val param = NativeAuthResetPasswordParameters(username = user)
-                result = application.resetPassword(param)
-                assertResult<ResetPasswordStartResult.CodeRequired>(result)
+        runBlocking {
+            val user = config.email
+            val param = NativeAuthResetPasswordParameters(username = user)
+            tempEmailApi.markCheckpoint(user)
+            result = application.resetPassword(param)
+            assertResult<ResetPasswordStartResult.CodeRequired>(result)
 
-                val otp = tempEmailApi.retrieveCodeFromInbox(user)
-                val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp)
-                assertResult<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
+            val otp = tempEmailApi.retrieveCodeFromInbox(user)
+            val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp)
+            assertResult<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
 
-                val password = INVALID_PASSWORD
-                val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword(password.toCharArray())
-                Assert.assertTrue(submitPasswordResult is ResetPasswordSubmitPasswordError)
-                Assert.assertTrue((submitPasswordResult as ResetPasswordSubmitPasswordError).isInvalidPassword())
-            }
+            val password = INVALID_PASSWORD
+            val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword(password.toCharArray())
+            Assert.assertTrue(submitPasswordResult is ResetPasswordSubmitPasswordError)
+            Assert.assertTrue((submitPasswordResult as ResetPasswordSubmitPasswordError).isInvalidPassword())
         }
     }
 
@@ -116,7 +109,6 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Resend Code.
      * (use case 3.1.4)
      */
-    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testResendCode() {
         config = getConfig(defaultConfigType)
@@ -124,28 +116,28 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         var result: ResetPasswordStartResult
 
-        retryOperation {
-            runBlocking {
-                val user = config.email
-                val param = NativeAuthResetPasswordParameters(username = user)
-                result = application.resetPassword(param)
-                assertResult<ResetPasswordStartResult.CodeRequired>(result)
+        runBlocking {
+            val user = config.email
+            val param = NativeAuthResetPasswordParameters(username = user)
+            tempEmailApi.markCheckpoint(user)
+            result = application.resetPassword(param)
+            assertResult<ResetPasswordStartResult.CodeRequired>(result)
 
-                val otp1 = tempEmailApi.retrieveCodeFromInbox(user)
-                val codeRequiredState = (result as ResetPasswordStartResult.CodeRequired).nextState
-                val resendCodeResult = codeRequiredState.resendCode()
-                assertResult<ResetPasswordResendCodeResult.Success>(resendCodeResult)
+            val otp1 = tempEmailApi.retrieveCodeFromInbox(user)
+            val codeRequiredState = (result as ResetPasswordStartResult.CodeRequired).nextState
+            tempEmailApi.markCheckpoint(user)
+            val resendCodeResult = codeRequiredState.resendCode()
+            assertResult<ResetPasswordResendCodeResult.Success>(resendCodeResult)
 
-                val otp2 = tempEmailApi.retrieveCodeFromInbox(user)
-                Assert.assertNotEquals(otp1, otp2)
+            val otp2 = tempEmailApi.retrieveCodeFromInbox(user)
+            Assert.assertNotEquals(otp1, otp2)
 
-                val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp2)
-                assertResult<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
+            val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp2)
+            assertResult<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
 
-                val password = getSafePassword()
-                val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword(password.toCharArray())
-                Assert.assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
-            }
+            val password = getSafePassword()
+            val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword(password.toCharArray())
+            Assert.assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
         }
     }
 
@@ -159,7 +151,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
         application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         runBlocking {
-            val username = tempEmailApi.generateRandomEmailAddressLocally()
+            val username = tempEmailApi.generateRandomUnregisteredEmailAddress()
             val param = NativeAuthResetPasswordParameters(username = username)
             val result = application.resetPassword(param)
             Assert.assertTrue(result is ResetPasswordError)
