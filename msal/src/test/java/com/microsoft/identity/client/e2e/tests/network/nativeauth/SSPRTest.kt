@@ -47,6 +47,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
     private val defaultConfigType = ConfigType.SSPR
     private val defaultChallengeTypes = listOf("password", "oob")
     private val defaultCapabilities = listOf("mfa_required", "registration_required")
+    private val invalidPasswordTooShort = "a"
 
     /**
      * Verify email with email OTP first and then reset password.
@@ -98,10 +99,14 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
             val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp)
             assertResult<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
 
-            val password = INVALID_PASSWORD
+            val password = invalidPasswordTooShort
             val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword(password.toCharArray())
             Assert.assertTrue(submitPasswordResult is ResetPasswordSubmitPasswordError)
-            Assert.assertTrue((submitPasswordResult as ResetPasswordSubmitPasswordError).isInvalidPassword())
+            val error = submitPasswordResult as ResetPasswordSubmitPasswordError
+            Assert.assertTrue(
+                "Expected invalid password error, but received errorType=${error.errorType}, error=${error.error}, subError=${error.subError}",
+                error.isInvalidPassword()
+            )
         }
     }
 
