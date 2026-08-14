@@ -76,14 +76,14 @@ stages:
           javaHomeSelection: $(BuildParameters.javaHomeSelection)
           jdkVersion: 1.17
       - task: Gradle@2
-        displayName: Run Native Auth SSPR E2E Tests
+        displayName: Run Native Auth E2E Tests
         inputs:
-          tasks: msal:testLocalDebugUnitTest -Plabtest -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PnativeAuthConfigString=$(NATIVE_AUTH_CONFIG_STRING) -PemailProviderPassword=$(EMAIL_PROVIDER_PASSWORD) --tests "com.microsoft.identity.client.e2e.tests.network.nativeauth.SSPRTest"
+          tasks: msal:testLocalDebugUnitTest -Plabtest -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PnativeAuthConfigString=$(NATIVE_AUTH_CONFIG_STRING) -PemailProviderPassword=$(EMAIL_PROVIDER_PASSWORD) --tests "com.microsoft.identity.client.e2e.tests.network.nativeauth.*"
           javaHomeSelection: $(BuildParameters.javaHomeSelection)
           jdkVersion: 1.17
           publishJUnitResults: true
           testResultsFiles: '**/build/test-results/testLocalDebugUnitTest/TEST-*.xml'
-          testRunTitle: Native Auth SSPR E2E Tests (PR Branch)
+          testRunTitle: Native Auth E2E Tests (PR Branch)
       - publish: $(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
         artifact: jacocoReport
         displayName: 'Publish JaCoCo Report Artifact (PR Branch)'
