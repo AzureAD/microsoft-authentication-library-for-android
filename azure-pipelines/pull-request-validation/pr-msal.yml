@@ -78,7 +78,7 @@ stages:
       - task: Gradle@2
         displayName: Run Native Auth E2E Tests
         inputs:
-          tasks: msal:testLocalDebugUnitTest -Plabtest -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PnativeAuthConfigString=$(NATIVE_AUTH_CONFIG_STRING) -PemailProviderPassword=$(EMAIL_PROVIDER_PASSWORD) --tests "com.microsoft.identity.client.e2e.tests.network.nativeauth.*"
+          tasks: msal:testLocalDebugUnitTest -Plabtest -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PnativeAuthConfigString=$(NATIVE_AUTH_CONFIG_STRING) -PemailProviderPassword=$(EMAIL_PROVIDER_PASSWORD) --tests com.microsoft.identity.client.e2e.tests.network.nativeauth.*
           javaHomeSelection: $(BuildParameters.javaHomeSelection)
           jdkVersion: 1.17
           publishJUnitResults: true
