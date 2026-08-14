@@ -83,7 +83,8 @@ class TestCase3321136 : AbstractMsalBrokerTest() {
                             .sessionExpected(true)
                             .broker(mBroker)
                             .enrollPageExpected(true)
-                            .batteryOptimizationIgnoreSystemPromptExpected(true)
+                            // In MDM (non-WP) CP scenario, CP is already opted out by default on pixel.
+//                            .batteryOptimizationIgnoreSystemPromptExpected(true)
                             .build()
 
                     AadPromptHandler(promptHandlerParameters)
