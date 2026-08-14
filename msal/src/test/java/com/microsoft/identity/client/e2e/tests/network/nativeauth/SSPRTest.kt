@@ -60,20 +60,22 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         var result: ResetPasswordStartResult
 
-        runBlocking {
-            val user = config.email
-            val param = NativeAuthResetPasswordParameters(username = user)
-            tempEmailApi.markCheckpoint(user)
-            result = application.resetPassword(param)
-            assertResult<ResetPasswordStartResult.CodeRequired>(result)
+        retryOperation {
+            runBlocking {
+                val user = config.email
+                val param = NativeAuthResetPasswordParameters(username = user)
+                tempEmailApi.markCheckpoint(user)
+                result = application.resetPassword(param)
+                assertResult<ResetPasswordStartResult.CodeRequired>(result)
 
-            val otp = tempEmailApi.retrieveCodeFromInbox(user)
-            val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp)
-            assertResult<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp)
+                assertResult<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
 
-            val password = getSafePassword()
-            val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword(password.toCharArray())
-            Assert.assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
+                val password = getSafePassword()
+                val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword(password.toCharArray())
+                Assert.assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
+            }
         }
     }
 
@@ -88,25 +90,27 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         var result: ResetPasswordStartResult
 
-        runBlocking {
-            val user = config.email
-            val param = NativeAuthResetPasswordParameters(username = user)
-            tempEmailApi.markCheckpoint(user)
-            result = application.resetPassword(param)
-            assertResult<ResetPasswordStartResult.CodeRequired>(result)
+        retryOperation {
+            runBlocking {
+                val user = config.email
+                val param = NativeAuthResetPasswordParameters(username = user)
+                tempEmailApi.markCheckpoint(user)
+                result = application.resetPassword(param)
+                assertResult<ResetPasswordStartResult.CodeRequired>(result)
 
-            val otp = tempEmailApi.retrieveCodeFromInbox(user)
-            val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp)
-            assertResult<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp)
+                assertResult<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
 
-            val password = invalidPasswordTooShort
-            val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword(password.toCharArray())
-            Assert.assertTrue(submitPasswordResult is ResetPasswordSubmitPasswordError)
-            val error = submitPasswordResult as ResetPasswordSubmitPasswordError
-            Assert.assertTrue(
-                "Expected invalid password error, but received errorType=${error.errorType}, error=${error.error}, subError=${error.subError}",
-                error.isInvalidPassword()
-            )
+                val password = invalidPasswordTooShort
+                val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword(password.toCharArray())
+                Assert.assertTrue(submitPasswordResult is ResetPasswordSubmitPasswordError)
+                val error = submitPasswordResult as ResetPasswordSubmitPasswordError
+                Assert.assertTrue(
+                    "Expected invalid password error, but received errorType=${error.errorType}, error=${error.error}, subError=${error.subError}",
+                    error.isInvalidPassword()
+                )
+            }
         }
     }
 
@@ -121,28 +125,30 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         var result: ResetPasswordStartResult
 
-        runBlocking {
-            val user = config.email
-            val param = NativeAuthResetPasswordParameters(username = user)
-            tempEmailApi.markCheckpoint(user)
-            result = application.resetPassword(param)
-            assertResult<ResetPasswordStartResult.CodeRequired>(result)
+        retryOperation {
+            runBlocking {
+                val user = config.email
+                val param = NativeAuthResetPasswordParameters(username = user)
+                tempEmailApi.markCheckpoint(user)
+                result = application.resetPassword(param)
+                assertResult<ResetPasswordStartResult.CodeRequired>(result)
 
-            val otp1 = tempEmailApi.retrieveCodeFromInbox(user)
-            val codeRequiredState = (result as ResetPasswordStartResult.CodeRequired).nextState
-            tempEmailApi.markCheckpoint(user)
-            val resendCodeResult = codeRequiredState.resendCode()
-            assertResult<ResetPasswordResendCodeResult.Success>(resendCodeResult)
+                val otp1 = tempEmailApi.retrieveCodeFromInbox(user)
+                val codeRequiredState = (result as ResetPasswordStartResult.CodeRequired).nextState
+                tempEmailApi.markCheckpoint(user)
+                val resendCodeResult = codeRequiredState.resendCode()
+                assertResult<ResetPasswordResendCodeResult.Success>(resendCodeResult)
 
-            val otp2 = tempEmailApi.retrieveCodeFromInbox(user)
-            Assert.assertNotEquals(otp1, otp2)
+                val otp2 = tempEmailApi.retrieveCodeFromInbox(user)
+                Assert.assertNotEquals(otp1, otp2)
 
-            val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp2)
-            assertResult<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
+                val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp2)
+                assertResult<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
 
-            val password = getSafePassword()
-            val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword(password.toCharArray())
-            Assert.assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
+                val password = getSafePassword()
+                val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword(password.toCharArray())
+                Assert.assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
+            }
         }
     }
 
