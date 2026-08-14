@@ -174,7 +174,7 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
 
     private fun retryOrFail(error: Throwable, retryCount: Int, maxRetries: Int) {
         if (retryCount >= maxRetries) {
-            Assert.fail(error.message)
+            throw AssertionError(error.message).apply { initCause(error) }
         }
 
         // Avoid repeatedly requesting OTPs while the Native Auth test tenant is throttling them.
