@@ -36,7 +36,7 @@ jobs:
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: |
-          result=$(echo "$PR_BODY" | grep -oP '(?<=#)\d+')
+          result=$(echo "$PR_BODY" | grep -oiP 'AB#\K\d+' | head -n 1)
           echo "id=${result}" >> "$GITHUB_OUTPUT"
 
   # Get Pull request ID
