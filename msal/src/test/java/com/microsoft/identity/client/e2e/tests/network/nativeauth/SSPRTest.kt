@@ -53,7 +53,6 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Verify email with email OTP first and then reset password.
      * (hero scenario 8 & 17, use case 3.1.1)
      */
-    @Ignore("OTP generation is rate limited in the test tenant.")
     @Test
     fun testSSPRSuccess() {
         config = getConfig(defaultConfigType)
@@ -84,7 +83,6 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
      * New password being set doesn’t meet password complexity requirements set on portal
      * (use case 3.1.3)
      */
-    @Ignore("OTP generation is rate limited in the test tenant.")
     @Test
     fun testErrorInvalidPasswordFormat() {
         config = getConfig(defaultConfigType)
@@ -120,7 +118,6 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Resend Code.
      * (use case 3.1.4)
      */
-    @Ignore("OTP generation is rate limited in the test tenant.")
     @Test
     fun testResendCode() {
         config = getConfig(defaultConfigType)

@@ -156,22 +156,29 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         authFlow: () -> T
     ) {
         var retryCount = 0
-        var shouldRetry = true
 
-        while (shouldRetry) {
+        while (true) {
             try {
                 authFlow()
-                shouldRetry = false // authFlow() has succeeded, so we don't need to retry.
-            } catch (e: Exception) {
-                // Retry transient end-to-end flow failures.
-                if (retryCount >= maxRetries) {
-                    Assert.fail(e.message)
-                    shouldRetry = false
-                } else {
-                    retryCount++
+                return
+            } catch (e: AssertionError) {
+                if (!e.message.orEmpty().contains("AADSTS701014")) {
+                    throw e
                 }
+                retryOrFail(e, retryCount++, maxRetries)
+            } catch (e: Exception) {
+                retryOrFail(e, retryCount++, maxRetries)
             }
         }
+    }
+
+    private fun retryOrFail(error: Throwable, retryCount: Int, maxRetries: Int) {
+        if (retryCount >= maxRetries) {
+            Assert.fail(error.message)
+        }
+
+        // Avoid repeatedly requesting OTPs while the Native Auth test tenant is throttling them.
+        Thread.sleep(5_000L * (1L shl retryCount))
     }
 
     private fun readConfigFile(filePath: String): String {
