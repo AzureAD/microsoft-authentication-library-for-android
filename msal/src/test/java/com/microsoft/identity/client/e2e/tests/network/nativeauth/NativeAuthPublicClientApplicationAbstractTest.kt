@@ -77,7 +77,7 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
 
     private lateinit var context: Context
     private lateinit var activity: Activity
-    protected val tempEmailApi = TemporaryEmailService(BuildValues.getEmailProviderPassword())
+    protected val tempEmailApi = TemporaryEmailService()
 
     // Remove default Coroutine test timeout of 10 seconds.
     private val testDispatcher = StandardTestDispatcher()
