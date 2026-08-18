@@ -37,8 +37,6 @@ import static org.junit.Assert.assertTrue;
 
 public class CommandParametersAdapterTest {
 
-    private static final String CLIENT_CAPABILITIES_CLAIM = "xms_cc";
-
     @Test
     public void testAddClientCapabilitiesWithNullRequestAndNullCapabilitiesReturnsEmptyRequest() {
         final ClaimsRequest result =
@@ -58,7 +56,7 @@ public class CommandParametersAdapterTest {
         assertEquals(1, claims.size());
 
         final RequestedClaim capabilitiesClaim = claims.get(0);
-        assertEquals(CLIENT_CAPABILITIES_CLAIM, capabilitiesClaim.getName());
+        assertEquals(CommandParametersAdapter.CLIENT_CAPABILITIES_CLAIM, capabilitiesClaim.getName());
         assertNotNull(capabilitiesClaim.getAdditionalInformation());
 
         final List<Object> values = capabilitiesClaim.getAdditionalInformation().getValues();
@@ -85,7 +83,7 @@ public class CommandParametersAdapterTest {
 
         final List<RequestedClaim> claims = result.getAccessTokenClaimsRequested();
         assertEquals(1, claims.size());
-        assertEquals(CLIENT_CAPABILITIES_CLAIM, claims.get(0).getName());
+        assertEquals(CommandParametersAdapter.CLIENT_CAPABILITIES_CLAIM, claims.get(0).getName());
 
         final List<Object> values = claims.get(0).getAdditionalInformation().getValues();
         assertEquals(1, values.size());
