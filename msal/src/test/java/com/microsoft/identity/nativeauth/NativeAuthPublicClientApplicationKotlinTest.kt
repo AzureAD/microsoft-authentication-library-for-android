@@ -73,6 +73,8 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.parameters.NativeAuthChallengeAuthMethodParameters
 import com.microsoft.identity.nativeauth.statemachine.errors.RegisterStrongAuthSubmitChallengeError
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInSubmitPasswordError
+import com.microsoft.identity.nativeauth.statemachine.results.SignInResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.RegisterStrongAuthChallengeResult
 import com.microsoft.identity.nativeauth.utils.LoggerCheckHelper
 import com.microsoft.identity.nativeauth.utils.mockCorrelationId
@@ -3250,5 +3252,104 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         // Blank challenge is rejected locally, no JITContinue mock configured.
         val submitChallengeResult = challengeResult.result.getNextState().submitChallenge("")
         assertTrue(submitChallengeResult is RegisterStrongAuthSubmitChallengeError)
+    }
+
+    /**
+     * Sign in with username only; server requires a password. Submit the correct password and
+     * assert the flow completes. Covers SignInPasswordRequiredState.submitPassword happy path.
+     */
+    @Test
+    fun testSignInPasswordRequiredSubmitPasswordComplete() = runTest {
+        val correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            MockApiEndpoint.SignInInitiate,
+            correlationId,
+            MockApiResponseType.INITIATE_SUCCESS
+        )
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        )
+
+        val result = application.signIn(username)
+        assertResult<SignInResult.PasswordRequired>(result)
+
+        configureMockApi(
+            MockApiEndpoint.SignInToken,
+            correlationId,
+            MockApiResponseType.TOKEN_SUCCESS
+        )
+        val passwordRequiredState = spy((result as SignInResult.PasswordRequired).nextState)
+        passwordRequiredState.mockCorrelationId(correlationId)
+        val submitResult = passwordRequiredState.submitPassword(password)
+        assertResult<SignInResult.Complete>(submitResult)
+    }
+
+    /**
+     * Sign in with username only; server requires a password. Submit an invalid password and
+     * assert a [SignInSubmitPasswordError] is returned. Covers the negative branch of
+     * SignInPasswordRequiredState.submitPassword.
+     */
+    @Test
+    fun testSignInPasswordRequiredSubmitInvalidPassword() = runTest {
+        val correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            MockApiEndpoint.SignInInitiate,
+            correlationId,
+            MockApiResponseType.INITIATE_SUCCESS
+        )
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        )
+
+        val result = application.signIn(username)
+        assertResult<SignInResult.PasswordRequired>(result)
+
+        configureMockApi(
+            MockApiEndpoint.SignInToken,
+            correlationId,
+            MockApiResponseType.SIGNIN_INVALID_PASSWORD
+        )
+        val passwordRequiredState = spy((result as SignInResult.PasswordRequired).nextState)
+        passwordRequiredState.mockCorrelationId(correlationId)
+        val submitResult = passwordRequiredState.submitPassword(password)
+        assertTrue(submitResult is SignInSubmitPasswordError)
+        assertTrue((submitResult as SignInSubmitPasswordError).isInvalidCredentials())
+    }
+
+    /**
+     * Sign in with username only; server requires an out-of-band code. Request the code to be
+     * resent and assert a new code-required state is returned. Covers
+     * SignInCodeRequiredState.resendCode.
+     */
+    @Test
+    fun testSignInCodeRequiredResendCode() = runTest {
+        val correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            MockApiEndpoint.SignInInitiate,
+            correlationId,
+            MockApiResponseType.INITIATE_SUCCESS
+        )
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_OOB
+        )
+
+        val result = application.signIn(username)
+        assertResult<SignInResult.CodeRequired>(result)
+
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_OOB
+        )
+        val codeRequiredState = spy((result as SignInResult.CodeRequired).nextState)
+        codeRequiredState.mockCorrelationId(correlationId)
+        val resendResult = codeRequiredState.resendCode()
+        assertResult<SignInResendCodeResult.Success>(resendResult)
     }
 }
