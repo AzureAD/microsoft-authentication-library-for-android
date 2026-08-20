@@ -24,7 +24,7 @@ package com.microsoft.identity.nativeauth.v2
 
 import com.microsoft.identity.nativeauth.statemachine.errors.MFARequestChallengeErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.MFASubmitChallengeErrorV2
-import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthFlowScenarioV2
+import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.errors.RegisterStrongAuthChallengeErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.RegisterStrongAuthSubmitChallengeErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorV2
@@ -53,15 +53,15 @@ class NativeAuthV2ErrorsTest {
     @Test
     fun testSignInErrorV2UtilityMethods() {
         assertTrue(
-            SignInErrorV2(errorType = "user_not_found", errorMessage = errorMessage, correlationId = correlationId).isUserNotFound()
+            SignInErrorV2(errorType = "user_not_found", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isUserNotFound()
         )
         assertTrue(
-            SignInErrorV2(errorType = "invalid_credentials", errorMessage = errorMessage, correlationId = correlationId).isInvalidCredentials()
+            SignInErrorV2(errorType = "invalid_credentials", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isInvalidCredentials()
         )
         assertTrue(
-            SignInErrorV2(errorType = "invalid_username", errorMessage = errorMessage, correlationId = correlationId).isInvalidUsername()
+            SignInErrorV2(errorType = "invalid_username", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isInvalidUsername()
         )
-        val error = SignInErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId)
+        val error = SignInErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN)
         assertFalse(error.isUserNotFound())
         assertFalse(error.isInvalidCredentials())
         assertFalse(error.isInvalidUsername())
@@ -71,31 +71,31 @@ class NativeAuthV2ErrorsTest {
     @Test
     fun testSubmitPasswordErrorV2UtilityMethods() {
         assertTrue(
-            SubmitPasswordErrorV2(errorType = "invalid_credentials", errorMessage = errorMessage, correlationId = correlationId).isInvalidCredentials()
+            SubmitPasswordErrorV2(errorType = "invalid_credentials", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isInvalidCredentials()
         )
         assertFalse(
-            SubmitPasswordErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId).isInvalidCredentials()
+            SubmitPasswordErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isInvalidCredentials()
         )
     }
 
     @Test
     fun testSignUpErrorV2UtilityMethods() {
         assertTrue(
-            SignUpErrorV2(errorType = "user_already_exists", errorMessage = errorMessage, correlationId = correlationId).isUserAlreadyExists()
+            SignUpErrorV2(errorType = "user_already_exists", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isUserAlreadyExists()
         )
         assertTrue(
-            SignUpErrorV2(errorType = "invalid_username", errorMessage = errorMessage, correlationId = correlationId).isInvalidUsername()
+            SignUpErrorV2(errorType = "invalid_username", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isInvalidUsername()
         )
         assertTrue(
-            SignUpErrorV2(errorType = "invalid_attributes", errorMessage = errorMessage, correlationId = correlationId).isInvalidAttributes()
+            SignUpErrorV2(errorType = "invalid_attributes", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isInvalidAttributes()
         )
         assertTrue(
-            SignUpErrorV2(errorType = "invalid_password", errorMessage = errorMessage, correlationId = correlationId).isInvalidPassword()
+            SignUpErrorV2(errorType = "invalid_password", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isInvalidPassword()
         )
         assertTrue(
-            SignUpErrorV2(errorType = "auth_not_supported", errorMessage = errorMessage, correlationId = correlationId).isAuthNotSupported()
+            SignUpErrorV2(errorType = "auth_not_supported", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isAuthNotSupported()
         )
-        val error = SignUpErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId)
+        val error = SignUpErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN)
         assertFalse(error.isUserAlreadyExists())
         assertFalse(error.isInvalidUsername())
         assertFalse(error.isInvalidAttributes())
@@ -107,22 +107,22 @@ class NativeAuthV2ErrorsTest {
     @Test
     fun testSubmitAttributesErrorV2UtilityMethods() {
         assertTrue(
-            SubmitAttributesErrorV2(errorType = "invalid_attributes", errorMessage = errorMessage, correlationId = correlationId).isInvalidAttributes()
+            SubmitAttributesErrorV2(errorType = "invalid_attributes", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isInvalidAttributes()
         )
         assertFalse(
-            SubmitAttributesErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId).isInvalidAttributes()
+            SubmitAttributesErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isInvalidAttributes()
         )
     }
 
     @Test
     fun testResetPasswordErrorV2UtilityMethods() {
         assertTrue(
-            ResetPasswordErrorV2(errorType = "user_not_found", errorMessage = errorMessage, correlationId = correlationId).isUserNotFound()
+            ResetPasswordErrorV2(errorType = "user_not_found", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isUserNotFound()
         )
         assertTrue(
-            ResetPasswordErrorV2(errorType = "invalid_username", errorMessage = errorMessage, correlationId = correlationId).isInvalidUsername()
+            ResetPasswordErrorV2(errorType = "invalid_username", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isInvalidUsername()
         )
-        val error = ResetPasswordErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId)
+        val error = ResetPasswordErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN)
         assertFalse(error.isUserNotFound())
         assertFalse(error.isInvalidUsername())
         assertEquals(NativeAuthFlowScenarioV2.RESET_PASSWORD, error.scenario)
@@ -131,12 +131,12 @@ class NativeAuthV2ErrorsTest {
     @Test
     fun testSubmitNewPasswordErrorV2UtilityMethods() {
         assertTrue(
-            SubmitNewPasswordErrorV2(errorType = "invalid_password", errorMessage = errorMessage, correlationId = correlationId).isInvalidPassword()
+            SubmitNewPasswordErrorV2(errorType = "invalid_password", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isInvalidPassword()
         )
         assertTrue(
-            SubmitNewPasswordErrorV2(errorType = "password_reset_failed", errorMessage = errorMessage, correlationId = correlationId).isPasswordResetFailed()
+            SubmitNewPasswordErrorV2(errorType = "password_reset_failed", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isPasswordResetFailed()
         )
-        val error = SubmitNewPasswordErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId, subError = "sub")
+        val error = SubmitNewPasswordErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN, subError = "sub")
         assertFalse(error.isInvalidPassword())
         assertFalse(error.isPasswordResetFailed())
         assertEquals("sub", error.subError)
@@ -145,9 +145,9 @@ class NativeAuthV2ErrorsTest {
     @Test
     fun testSubmitCodeErrorV2UtilityMethods() {
         assertTrue(
-            SubmitCodeErrorV2(errorType = "invalid_code", errorMessage = errorMessage, correlationId = correlationId).isInvalidCode()
+            SubmitCodeErrorV2(errorType = "invalid_code", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isInvalidCode()
         )
-        val error = SubmitCodeErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId, subError = "sub")
+        val error = SubmitCodeErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN, subError = "sub")
         assertFalse(error.isInvalidCode())
         assertEquals("sub", error.subError)
     }
@@ -155,9 +155,9 @@ class NativeAuthV2ErrorsTest {
     @Test
     fun testMFARequestChallengeErrorV2UtilityMethods() {
         assertTrue(
-            MFARequestChallengeErrorV2(errorType = "auth_method_blocked", errorMessage = errorMessage, correlationId = correlationId).isAuthMethodBlocked()
+            MFARequestChallengeErrorV2(errorType = "auth_method_blocked", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isAuthMethodBlocked()
         )
-        val error = MFARequestChallengeErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId, subError = "sub")
+        val error = MFARequestChallengeErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN, subError = "sub")
         assertFalse(error.isAuthMethodBlocked())
         assertEquals("sub", error.subError)
     }
@@ -165,9 +165,9 @@ class NativeAuthV2ErrorsTest {
     @Test
     fun testMFASubmitChallengeErrorV2UtilityMethods() {
         assertTrue(
-            MFASubmitChallengeErrorV2(errorType = "invalid_challenge", errorMessage = errorMessage, correlationId = correlationId).isInvalidChallenge()
+            MFASubmitChallengeErrorV2(errorType = "invalid_challenge", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isInvalidChallenge()
         )
-        val error = MFASubmitChallengeErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId, subError = "sub")
+        val error = MFASubmitChallengeErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN, subError = "sub")
         assertFalse(error.isInvalidChallenge())
         assertEquals("sub", error.subError)
     }
@@ -175,12 +175,12 @@ class NativeAuthV2ErrorsTest {
     @Test
     fun testRegisterStrongAuthChallengeErrorV2UtilityMethods() {
         assertTrue(
-            RegisterStrongAuthChallengeErrorV2(errorType = "invalid_input", errorMessage = errorMessage, correlationId = correlationId).isInvalidInput()
+            RegisterStrongAuthChallengeErrorV2(errorType = "invalid_input", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isInvalidInput()
         )
         assertTrue(
-            RegisterStrongAuthChallengeErrorV2(errorType = "verification_contact_blocked", errorMessage = errorMessage, correlationId = correlationId).isVerificationContactBlocked()
+            RegisterStrongAuthChallengeErrorV2(errorType = "verification_contact_blocked", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isVerificationContactBlocked()
         )
-        val error = RegisterStrongAuthChallengeErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId)
+        val error = RegisterStrongAuthChallengeErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN)
         assertFalse(error.isInvalidInput())
         assertFalse(error.isVerificationContactBlocked())
     }
@@ -188,10 +188,10 @@ class NativeAuthV2ErrorsTest {
     @Test
     fun testRegisterStrongAuthSubmitChallengeErrorV2UtilityMethods() {
         assertTrue(
-            RegisterStrongAuthSubmitChallengeErrorV2(errorType = "invalid_challenge", errorMessage = errorMessage, correlationId = correlationId).isInvalidChallenge()
+            RegisterStrongAuthSubmitChallengeErrorV2(errorType = "invalid_challenge", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isInvalidChallenge()
         )
         assertFalse(
-            RegisterStrongAuthSubmitChallengeErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId).isInvalidChallenge()
+            RegisterStrongAuthSubmitChallengeErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isInvalidChallenge()
         )
     }
 }

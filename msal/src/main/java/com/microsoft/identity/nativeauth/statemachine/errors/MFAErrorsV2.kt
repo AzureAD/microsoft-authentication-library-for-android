@@ -23,6 +23,8 @@
 
 package com.microsoft.identity.nativeauth.statemachine.errors
 
+import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
+
 /**
  * MFA request challenge error for the Native Auth V2 surface. Use the utility methods of this class
  * to identify and handle the error. This error is produced by
@@ -42,7 +44,7 @@ class MFARequestChallengeErrorV2(
     error: String? = null,
     errorMessage: String?,
     correlationId: String,
-    scenario: NativeAuthFlowScenarioV2 = NativeAuthFlowScenarioV2.SIGN_IN,
+    scenario: NativeAuthFlowScenarioV2,
     errorCodes: List<Int>? = null,
     val subError: String? = null,
     exception: Exception? = null
@@ -70,7 +72,7 @@ class MFASubmitChallengeErrorV2(
     error: String? = null,
     errorMessage: String?,
     correlationId: String,
-    scenario: NativeAuthFlowScenarioV2 = NativeAuthFlowScenarioV2.SIGN_IN,
+    scenario: NativeAuthFlowScenarioV2,
     errorCodes: List<Int>? = null,
     val subError: String? = null,
     exception: Exception? = null

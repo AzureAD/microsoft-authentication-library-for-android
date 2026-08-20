@@ -21,7 +21,7 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 
-package com.microsoft.identity.nativeauth.statemachine.errors
+package com.microsoft.identity.nativeauth.statemachine
 
 /**
  * Native Auth V2 flow scenario identifier (sign-in, sign-up, reset password).

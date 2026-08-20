@@ -23,6 +23,8 @@
 
 package com.microsoft.identity.nativeauth.statemachine.errors
 
+import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
+
 /**
  * Sign in error for the Native Auth V2 surface. Use the utility methods of this class to identify
  * and handle the error. This error is produced by
@@ -41,7 +43,7 @@ class SignInErrorV2(
     error: String? = null,
     errorMessage: String?,
     correlationId: String,
-    scenario: NativeAuthFlowScenarioV2 = NativeAuthFlowScenarioV2.SIGN_IN,
+    scenario: NativeAuthFlowScenarioV2,
     errorCodes: List<Int>? = null,
     exception: Exception? = null
 ) : NativeAuthErrorV2(errorType, error, errorMessage, correlationId, scenario, errorCodes, exception) {
@@ -71,7 +73,7 @@ class SubmitPasswordErrorV2(
     error: String? = null,
     errorMessage: String?,
     correlationId: String,
-    scenario: NativeAuthFlowScenarioV2 = NativeAuthFlowScenarioV2.SIGN_IN,
+    scenario: NativeAuthFlowScenarioV2,
     errorCodes: List<Int>? = null,
     exception: Exception? = null
 ) : NativeAuthErrorV2(errorType, error, errorMessage, correlationId, scenario, errorCodes, exception) {

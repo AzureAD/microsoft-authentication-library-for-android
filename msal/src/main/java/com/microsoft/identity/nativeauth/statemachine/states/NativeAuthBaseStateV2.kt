@@ -27,8 +27,8 @@ import android.os.Parcel
 import android.os.Parcelable
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
-import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthFlowScenarioV2
-import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthV2ErrorTypes
+import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
+import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 
 /**
@@ -48,7 +48,7 @@ abstract class NativeAuthBaseStateV2 internal constructor(
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
 
     protected fun notImplemented(): NativeAuthResultV2 = NativeAuthErrorV2(
-        errorType = NativeAuthV2ErrorTypes.NOT_IMPLEMENTED,
+        errorType = ErrorTypes.NOT_IMPLEMENTED,
         errorMessage = "This is not implemented yet",
         correlationId = correlationId,
         scenario = scenario

@@ -39,7 +39,7 @@ import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParam
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters;
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters;
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2;
-import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthFlowScenarioV2;
+import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2;
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2;
 
 import org.junit.Before;

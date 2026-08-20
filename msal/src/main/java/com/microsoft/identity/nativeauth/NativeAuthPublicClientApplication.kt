@@ -67,8 +67,7 @@ import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccountError
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
-import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthFlowScenarioV2
-import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthV2ErrorTypes
+import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorTypes
@@ -578,7 +577,7 @@ class NativeAuthPublicClientApplication(
     private suspend fun notImplementedV2(scenario: NativeAuthFlowScenarioV2): NativeAuthResultV2 = withContext(Dispatchers.IO) {
         verifyNoUserIsSignedIn()
         NativeAuthErrorV2(
-            errorType = NativeAuthV2ErrorTypes.NOT_IMPLEMENTED,
+            errorType = ErrorTypes.NOT_IMPLEMENTED,
             errorMessage = "This is not implemented yet",
             correlationId = UUID.randomUUID().toString(),
             scenario = scenario

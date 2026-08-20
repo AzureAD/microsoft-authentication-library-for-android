@@ -30,7 +30,7 @@ import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.UserAttributes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
-import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthFlowScenarioV2
+import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesInvalidStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2

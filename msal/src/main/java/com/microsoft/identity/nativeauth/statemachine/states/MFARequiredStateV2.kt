@@ -31,7 +31,7 @@ import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.AuthMethod
-import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthFlowScenarioV2
+import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.launch

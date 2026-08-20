@@ -23,6 +23,8 @@
 
 package com.microsoft.identity.nativeauth.statemachine.errors
 
+import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
+
 /**
  * Submit code error for the Native Auth V2 surface. Use the utility methods of this class to
  * identify and handle the error. This error is produced by
@@ -43,7 +45,7 @@ class SubmitCodeErrorV2(
     error: String? = null,
     errorMessage: String?,
     correlationId: String,
-    scenario: NativeAuthFlowScenarioV2 = NativeAuthFlowScenarioV2.UNKNOWN,
+    scenario: NativeAuthFlowScenarioV2,
     errorCodes: List<Int>? = null,
     val subError: String? = null,
     exception: Exception? = null

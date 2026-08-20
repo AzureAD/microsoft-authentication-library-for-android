@@ -23,13 +23,8 @@
 
 package com.microsoft.identity.nativeauth.statemachine.errors
 
+import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
-
-internal class NativeAuthV2ErrorTypes {
-    companion object {
-        const val NOT_IMPLEMENTED = "not_implemented"
-    }
-}
 
 /**
  * NativeAuthErrorV2 is the base error type for the Native Auth V2 surface. All V2 errors are a
@@ -54,7 +49,7 @@ open class NativeAuthErrorV2(
     override val error: String? = null,
     override val errorMessage: String?,
     override val correlationId: String,
-    override val scenario: NativeAuthFlowScenarioV2 = NativeAuthFlowScenarioV2.UNKNOWN,
+    override val scenario: NativeAuthFlowScenarioV2,
     override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null
 ) : NativeAuthResultV2,
@@ -71,5 +66,5 @@ open class NativeAuthErrorV2(
     /**
      * Returns true if the requested Native Auth V2 flow or step is not implemented yet.
      */
-    fun isNotImplemented(): Boolean = this.errorType == NativeAuthV2ErrorTypes.NOT_IMPLEMENTED
+    fun isNotImplemented(): Boolean = this.errorType == ErrorTypes.NOT_IMPLEMENTED
 }

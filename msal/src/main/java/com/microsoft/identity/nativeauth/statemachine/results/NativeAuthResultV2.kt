@@ -27,7 +27,7 @@ package com.microsoft.identity.nativeauth.statemachine.results
 
 import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.RequiredUserAttribute
-import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthFlowScenarioV2
+import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesInvalidStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2

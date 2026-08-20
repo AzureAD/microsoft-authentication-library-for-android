@@ -98,6 +98,11 @@ internal class ErrorTypes {
          */
         const val INVALID_STATE = "invalid_state"
 
+        /*
+         * The const val NOT_IMPLEMENTED = "not_implemented" value indicates a non implemented functionality
+         */
+        const val NOT_IMPLEMENTED = "not_implemented"
+
         const val CLIENT_EXCEPTION = "client_exception"
     }
 }
