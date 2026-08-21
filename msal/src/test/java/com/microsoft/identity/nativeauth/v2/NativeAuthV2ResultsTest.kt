@@ -49,7 +49,7 @@ class NativeAuthV2ResultsTest {
 
     private val continuationToken = "continuation-token"
     private val correlationId = "correlation-id"
-    private val scenario = NativeAuthFlowScenarioV2.UNKNOWN
+    private val scenario = NativeAuthFlowScenarioV2.SIGN_IN
     private val config = NativeAuthPublicClientApplicationConfiguration()
 
     @Test

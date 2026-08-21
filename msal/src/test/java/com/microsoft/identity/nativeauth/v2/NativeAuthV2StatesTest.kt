@@ -58,7 +58,7 @@ class NativeAuthV2StatesTest {
 
     private val continuationToken = "continuation-token"
     private val correlationId = "correlation-id"
-    private val scenario = NativeAuthFlowScenarioV2.UNKNOWN
+    private val scenario = NativeAuthFlowScenarioV2.SIGN_IN
     private val config = NativeAuthPublicClientApplicationConfiguration()
 
     private fun <T : NativeAuthBaseStateV2> assertParcelRoundTrip(
@@ -73,6 +73,7 @@ class NativeAuthV2StatesTest {
             val restored = creator.createFromParcel(parcel)
             assertEquals(state.continuationToken, restored.continuationToken)
             assertEquals(state.correlationId, restored.correlationId)
+            assertEquals(state.scenario, restored.scenario)
             assertEquals(1, creator.newArray(1).size)
         } finally {
             parcel.recycle()
@@ -125,6 +126,7 @@ class NativeAuthV2StatesTest {
         val result = future.get(30, TimeUnit.SECONDS)
         assertTrue(result is NativeAuthErrorV2)
         assertTrue((result as NativeAuthErrorV2).isNotImplemented())
+        assertEquals(scenario, result.scenario)
     }
 
     @Test

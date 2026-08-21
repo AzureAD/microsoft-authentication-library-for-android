@@ -65,7 +65,7 @@ class NativeAuthV2ErrorsTest {
         assertFalse(error.isUserNotFound())
         assertFalse(error.isInvalidCredentials())
         assertFalse(error.isInvalidUsername())
-        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, error.scenario)
+        assertEquals(NativeAuthFlowScenarioV2.UNKNOWN, error.scenario)
     }
 
     @Test
@@ -101,7 +101,7 @@ class NativeAuthV2ErrorsTest {
         assertFalse(error.isInvalidAttributes())
         assertFalse(error.isInvalidPassword())
         assertFalse(error.isAuthNotSupported())
-        assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, error.scenario)
+        assertEquals(NativeAuthFlowScenarioV2.UNKNOWN, error.scenario)
     }
 
     @Test
@@ -125,7 +125,7 @@ class NativeAuthV2ErrorsTest {
         val error = ResetPasswordErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN)
         assertFalse(error.isUserNotFound())
         assertFalse(error.isInvalidUsername())
-        assertEquals(NativeAuthFlowScenarioV2.RESET_PASSWORD, error.scenario)
+        assertEquals(NativeAuthFlowScenarioV2.UNKNOWN, error.scenario)
     }
 
     @Test
