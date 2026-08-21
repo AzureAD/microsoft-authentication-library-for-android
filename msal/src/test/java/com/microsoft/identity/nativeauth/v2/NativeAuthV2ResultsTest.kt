@@ -22,11 +22,13 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.nativeauth.v2
 
+import com.microsoft.identity.client.IAccount
 import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.RequiredUserAttribute
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
+import com.microsoft.identity.nativeauth.statemachine.states.AccountState
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesInvalidStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
@@ -36,7 +38,11 @@ import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequired
 import com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthRegistrationRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthVerificationRequiredStateV2
+import io.mockk.mockk
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -51,6 +57,25 @@ class NativeAuthV2ResultsTest {
     private val correlationId = "correlation-id"
     private val scenario = NativeAuthFlowScenarioV2.SIGN_IN
     private val config = NativeAuthPublicClientApplicationConfiguration()
+
+    @Test
+    fun testCompleteExposesExpectedValues() {
+        val account = AccountState.createFromAccountResult(
+            account = mockk<IAccount>(relaxed = true),
+            correlationId = correlationId,
+            config = config
+        )
+        val result: NativeAuthResultV2 = NativeAuthResultV2.Complete(
+            resultValue = account,
+            scenario = scenario
+        )
+        assertSame(account, (result as NativeAuthResultV2.Complete).resultValue)
+        assertEquals(scenario, result.scenario)
+        // Exercise the inherited Result default methods (NativeAuthResultV2 default-method bridges).
+        assertTrue(result.isComplete())
+        assertFalse(result.isSuccess())
+        assertFalse(result.isError())
+    }
 
     @Test
     fun testCodeRequiredExposesExpectedValues() {

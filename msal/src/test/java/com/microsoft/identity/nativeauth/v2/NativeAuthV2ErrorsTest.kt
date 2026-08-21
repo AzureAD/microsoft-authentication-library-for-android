@@ -22,9 +22,11 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.nativeauth.v2
 
+import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.nativeauth.statemachine.errors.MFARequestChallengeErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.MFASubmitChallengeErrorV2
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
+import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.RegisterStrongAuthChallengeErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.RegisterStrongAuthSubmitChallengeErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorV2
@@ -36,6 +38,7 @@ import com.microsoft.identity.nativeauth.statemachine.errors.SubmitNewPasswordEr
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitPasswordErrorV2
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -193,5 +196,44 @@ class NativeAuthV2ErrorsTest {
         assertFalse(
             RegisterStrongAuthSubmitChallengeErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isInvalidChallenge()
         )
+    }
+
+    /**
+     * Constructs every V2 error type through its full (all-arguments) primary constructor and
+     * verifies the values passed to the shared [NativeAuthErrorV2] base are exposed. This exercises
+     * the constructor path that omits Kotlin's synthesized default-argument handling, which the
+     * other tests (relying on defaults) do not cover.
+     */
+    @Test
+    fun testErrorsExposeAllConstructorFields() {
+        val error = "server_error"
+        val errorCodes = listOf(1, 2, 3)
+        val exception = MsalClientException("client_error", "boom")
+        val scenario = NativeAuthFlowScenarioV2.SIGN_IN
+
+        val allErrors = listOf<NativeAuthErrorV2>(
+            SignInErrorV2("type", error, errorMessage, correlationId, scenario, errorCodes, exception),
+            SubmitPasswordErrorV2("type", error, errorMessage, correlationId, scenario, errorCodes, exception),
+            SignUpErrorV2("type", error, errorMessage, correlationId, scenario, errorCodes, exception),
+            SubmitAttributesErrorV2("type", error, errorMessage, correlationId, scenario, errorCodes, exception),
+            ResetPasswordErrorV2("type", error, errorMessage, correlationId, scenario, errorCodes, exception),
+            SubmitNewPasswordErrorV2("type", error, errorMessage, correlationId, scenario, errorCodes, "sub", exception),
+            SubmitCodeErrorV2("type", error, errorMessage, correlationId, scenario, errorCodes, "sub", exception),
+            MFARequestChallengeErrorV2("type", error, errorMessage, correlationId, scenario, errorCodes, "sub", exception),
+            MFASubmitChallengeErrorV2("type", error, errorMessage, correlationId, scenario, errorCodes, "sub", exception),
+            RegisterStrongAuthChallengeErrorV2("type", error, errorMessage, correlationId, scenario, errorCodes, exception),
+            RegisterStrongAuthSubmitChallengeErrorV2("type", error, errorMessage, correlationId, scenario, errorCodes, exception),
+            NativeAuthErrorV2("type", error, errorMessage, correlationId, scenario, errorCodes, exception)
+        )
+
+        for (built in allErrors) {
+            assertEquals(error, built.error)
+            assertEquals(errorMessage, built.errorMessage)
+            assertEquals(correlationId, built.correlationId)
+            assertEquals(errorCodes, built.errorCodes)
+            assertSame(exception, built.exception)
+            assertEquals(scenario, built.scenario)
+            assertFalse(built.isNotImplemented())
+        }
     }
 }

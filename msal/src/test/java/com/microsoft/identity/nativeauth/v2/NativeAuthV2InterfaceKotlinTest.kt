@@ -27,8 +27,12 @@ import androidx.test.core.app.ApplicationProvider
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest
+import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
+import com.microsoft.identity.common.java.exception.BaseException
+import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
@@ -57,6 +61,8 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.File
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.TimeUnit
 
 @ExperimentalCoroutinesApi
 @RunWith(RobolectricTestRunner::class)
@@ -99,6 +105,50 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         val result = application.resetPasswordV2(NativeAuthResetPasswordParameters(username = username))
         val error = assertNotImplemented(result, NativeAuthFlowScenarioV2.RESET_PASSWORD)
         assertEquals(NativeAuthFlowScenarioV2.RESET_PASSWORD, error.scenario)
+    }
+
+    @Test
+    fun signInV2RoutesExceptionToOnError() {
+        assertRoutesToOnError { future ->
+            application.signInV2(NativeAuthSignInParameters(username = username), throwingCallback(future))
+        }
+    }
+
+    @Test
+    fun signUpV2RoutesExceptionToOnError() {
+        assertRoutesToOnError { future ->
+            application.signUpV2(NativeAuthSignUpParameters(username = username), throwingCallback(future))
+        }
+    }
+
+    @Test
+    fun resetPasswordV2RoutesExceptionToOnError() {
+        assertRoutesToOnError { future ->
+            application.resetPasswordV2(NativeAuthResetPasswordParameters(username = username), throwingCallback(future))
+        }
+    }
+
+    /**
+     * Drives the error path of the application-level V2 callback overloads: when result delivery
+     * throws an [MsalException], the `catch` block must route it to the callback's `onError`. This
+     * covers the `catch`/`onError` branch of the callback overloads.
+     */
+    private fun assertRoutesToOnError(action: (ResultFuture<NativeAuthResultV2>) -> Unit) {
+        val future = ResultFuture<NativeAuthResultV2>()
+        action(future)
+        try {
+            future.get(30, TimeUnit.SECONDS)
+            fail("Expected the exception to be routed to onError")
+        } catch (e: ExecutionException) {
+            assertTrue(e.cause is MsalClientException)
+        }
+    }
+
+    private fun throwingCallback(future: ResultFuture<NativeAuthResultV2>): NativeAuthPublicClientApplication.NativeAuthV2Callback {
+        return object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
+            override fun onResult(result: NativeAuthResultV2): Unit = throw MsalClientException("test_error", "boom")
+            override fun onError(exception: BaseException) = future.setException(exception)
+        }
     }
 
     @Test

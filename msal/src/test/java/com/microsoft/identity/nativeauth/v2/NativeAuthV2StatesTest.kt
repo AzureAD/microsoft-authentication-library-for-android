@@ -24,6 +24,8 @@ package com.microsoft.identity.nativeauth.v2
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.microsoft.identity.client.exception.MsalClientException
+import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.nativeauth.AuthMethod
@@ -43,10 +45,13 @@ import com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredSta
 import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthRegistrationRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthVerificationRequiredStateV2
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 
 /**
@@ -127,6 +132,24 @@ class NativeAuthV2StatesTest {
         assertTrue(result is NativeAuthErrorV2)
         assertTrue((result as NativeAuthErrorV2).isNotImplemented())
         assertEquals(scenario, result.scenario)
+    }
+
+    /**
+     * Drives the error path of the callback overloads: when result delivery throws an
+     * [MsalException], the state's `catch` block must route it to the callback's `onError`. This
+     * covers the `catch`/`onError` branch of each callback overload, complementing the success-path
+     * tests above.
+     */
+    private fun assertCallbackRoutesToOnError(action: (ResultFuture<NativeAuthResultV2>, MsalException) -> Unit) {
+        val future = ResultFuture<NativeAuthResultV2>()
+        val thrown = MsalClientException("test_error", "boom")
+        action(future, thrown)
+        try {
+            future.get(30, TimeUnit.SECONDS)
+            fail("Expected the exception to be routed to onError")
+        } catch (e: ExecutionException) {
+            assertSame(thrown, e.cause)
+        }
     }
 
     @Test
@@ -254,6 +277,103 @@ class NativeAuthV2StatesTest {
                 "challenge",
                 object : StrongAuthVerificationRequiredStateV2.SubmitChallengeCallback {
                     override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
+                    override fun onError(exception: BaseException) = future.setException(exception)
+                }
+            )
+        }
+    }
+
+    @Test
+    fun testStateCallbacksRouteExceptionsToOnError() {
+        assertCallbackRoutesToOnError { future, thrown ->
+            CodeRequiredStateV2(continuationToken, correlationId, scenario, config).submitCode(
+                "1234",
+                object : CodeRequiredStateV2.SubmitCodeCallback {
+                    override fun onResult(result: NativeAuthResultV2): Unit = throw thrown
+                    override fun onError(exception: BaseException) = future.setException(exception)
+                }
+            )
+        }
+        assertCallbackRoutesToOnError { future, thrown ->
+            CodeRequiredStateV2(continuationToken, correlationId, scenario, config).resendCode(
+                object : CodeRequiredStateV2.ResendCodeCallback {
+                    override fun onResult(result: NativeAuthResultV2): Unit = throw thrown
+                    override fun onError(exception: BaseException) = future.setException(exception)
+                }
+            )
+        }
+        assertCallbackRoutesToOnError { future, thrown ->
+            PasswordRequiredStateV2(continuationToken, correlationId, scenario, config).submitPassword(
+                "password".toCharArray(),
+                object : PasswordRequiredStateV2.SubmitPasswordCallback {
+                    override fun onResult(result: NativeAuthResultV2): Unit = throw thrown
+                    override fun onError(exception: BaseException) = future.setException(exception)
+                }
+            )
+        }
+        assertCallbackRoutesToOnError { future, thrown ->
+            NewPasswordRequiredStateV2(continuationToken, correlationId, scenario, config).submitNewPassword(
+                "password".toCharArray(),
+                object : NewPasswordRequiredStateV2.SubmitNewPasswordCallback {
+                    override fun onResult(result: NativeAuthResultV2): Unit = throw thrown
+                    override fun onError(exception: BaseException) = future.setException(exception)
+                }
+            )
+        }
+        val attributes = UserAttributes.Builder().city("city").build()
+        assertCallbackRoutesToOnError { future, thrown ->
+            AttributesRequiredStateV2(continuationToken, correlationId, scenario, config).submitAttributes(
+                attributes,
+                object : AttributesRequiredStateV2.SubmitAttributesCallback {
+                    override fun onResult(result: NativeAuthResultV2): Unit = throw thrown
+                    override fun onError(exception: BaseException) = future.setException(exception)
+                }
+            )
+        }
+        assertCallbackRoutesToOnError { future, thrown ->
+            AttributesInvalidStateV2(continuationToken, correlationId, scenario, config).submitAttributes(
+                attributes,
+                object : AttributesInvalidStateV2.SubmitAttributesCallback {
+                    override fun onResult(result: NativeAuthResultV2): Unit = throw thrown
+                    override fun onError(exception: BaseException) = future.setException(exception)
+                }
+            )
+        }
+        val authMethod = AuthMethod("id", "oob", null, "email")
+        assertCallbackRoutesToOnError { future, thrown ->
+            MFARequiredStateV2(continuationToken, correlationId, scenario, config).selectAuthMethod(
+                authMethod,
+                null,
+                object : MFARequiredStateV2.SelectAuthMethodCallback {
+                    override fun onResult(result: NativeAuthResultV2): Unit = throw thrown
+                    override fun onError(exception: BaseException) = future.setException(exception)
+                }
+            )
+        }
+        assertCallbackRoutesToOnError { future, thrown ->
+            MFAVerificationRequiredStateV2(continuationToken, correlationId, scenario, config).submitChallenge(
+                "challenge",
+                object : MFAVerificationRequiredStateV2.SubmitChallengeCallback {
+                    override fun onResult(result: NativeAuthResultV2): Unit = throw thrown
+                    override fun onError(exception: BaseException) = future.setException(exception)
+                }
+            )
+        }
+        assertCallbackRoutesToOnError { future, thrown ->
+            StrongAuthRegistrationRequiredStateV2(continuationToken, correlationId, scenario, config).selectAuthMethod(
+                authMethod,
+                null,
+                object : StrongAuthRegistrationRequiredStateV2.SelectAuthMethodCallback {
+                    override fun onResult(result: NativeAuthResultV2): Unit = throw thrown
+                    override fun onError(exception: BaseException) = future.setException(exception)
+                }
+            )
+        }
+        assertCallbackRoutesToOnError { future, thrown ->
+            StrongAuthVerificationRequiredStateV2(continuationToken, correlationId, scenario, config).submitChallenge(
+                "challenge",
+                object : StrongAuthVerificationRequiredStateV2.SubmitChallengeCallback {
+                    override fun onResult(result: NativeAuthResultV2): Unit = throw thrown
                     override fun onError(exception: BaseException) = future.setException(exception)
                 }
             )
