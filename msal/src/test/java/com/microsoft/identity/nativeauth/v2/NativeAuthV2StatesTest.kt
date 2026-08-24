@@ -233,8 +233,7 @@ class NativeAuthV2StatesTest {
         assertCallbackNotImplemented { future ->
             MFARequiredStateV2(continuationToken, correlationId, scenario, config).selectAuthMethod(
                 authMethod,
-                null,
-                object : MFARequiredStateV2.SelectAuthMethodCallback {
+                callback = object : MFARequiredStateV2.SelectAuthMethodCallback {
                     override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
                     override fun onError(exception: BaseException) = future.setException(exception)
                 }
@@ -261,8 +260,7 @@ class NativeAuthV2StatesTest {
         assertCallbackNotImplemented { future ->
             StrongAuthRegistrationRequiredStateV2(continuationToken, correlationId, scenario, config).selectAuthMethod(
                 authMethod,
-                null,
-                object : StrongAuthRegistrationRequiredStateV2.SelectAuthMethodCallback {
+                callback = object : StrongAuthRegistrationRequiredStateV2.SelectAuthMethodCallback {
                     override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
                     override fun onError(exception: BaseException) = future.setException(exception)
                 }

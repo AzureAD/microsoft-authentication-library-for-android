@@ -236,4 +236,34 @@ class NativeAuthV2ErrorsTest {
             assertFalse(built.isNotImplemented())
         }
     }
+
+    /**
+     * Constructs every error type while omitting the optional [errorType] argument so the
+     * default-value (errorType = null) branch of the synthesized constructor is exercised.
+     */
+    @Test
+    fun testErrorsDefaultErrorTypeToNull() {
+        val scenario = NativeAuthFlowScenarioV2.UNKNOWN
+
+        val allErrors = listOf<NativeAuthErrorV2>(
+            SignInErrorV2(errorMessage = errorMessage, correlationId = correlationId, scenario = scenario),
+            SubmitPasswordErrorV2(errorMessage = errorMessage, correlationId = correlationId, scenario = scenario),
+            SignUpErrorV2(errorMessage = errorMessage, correlationId = correlationId, scenario = scenario),
+            SubmitAttributesErrorV2(errorMessage = errorMessage, correlationId = correlationId, scenario = scenario),
+            ResetPasswordErrorV2(errorMessage = errorMessage, correlationId = correlationId, scenario = scenario),
+            SubmitNewPasswordErrorV2(errorMessage = errorMessage, correlationId = correlationId, scenario = scenario),
+            SubmitCodeErrorV2(errorMessage = errorMessage, correlationId = correlationId, scenario = scenario),
+            MFARequestChallengeErrorV2(errorMessage = errorMessage, correlationId = correlationId, scenario = scenario),
+            MFASubmitChallengeErrorV2(errorMessage = errorMessage, correlationId = correlationId, scenario = scenario),
+            RegisterStrongAuthChallengeErrorV2(errorMessage = errorMessage, correlationId = correlationId, scenario = scenario),
+            RegisterStrongAuthSubmitChallengeErrorV2(errorMessage = errorMessage, correlationId = correlationId, scenario = scenario),
+            NativeAuthErrorV2(errorMessage = errorMessage, correlationId = correlationId, scenario = scenario)
+        )
+
+        for (built in allErrors) {
+            assertEquals(errorMessage, built.errorMessage)
+            assertEquals(correlationId, built.correlationId)
+            assertEquals(scenario, built.scenario)
+        }
+    }
 }

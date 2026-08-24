@@ -106,6 +106,16 @@ public class NativeAuthV2InterfaceJavaTest extends PublicClientApplicationAbstra
         assertNotImplemented(future.get(30, TimeUnit.SECONDS), NativeAuthFlowScenarioV2.RESET_PASSWORD);
     }
 
+    @Test
+    public void resultDefaultImplsDelegateToBaseResult() throws ExecutionException, InterruptedException, TimeoutException {
+        final ResultFuture<NativeAuthResultV2> future = new ResultFuture<>();
+        application.signInV2(new NativeAuthSignInParameters(username), newCallback(future));
+        final NativeAuthResultV2 result = future.get(30, TimeUnit.SECONDS);
+        assertFalse(NativeAuthResultV2.DefaultImpls.isSuccess(result));
+        assertFalse(NativeAuthResultV2.DefaultImpls.isComplete(result));
+        assertFalse(NativeAuthResultV2.DefaultImpls.isError(result));
+    }
+
     private NativeAuthPublicClientApplication.NativeAuthV2Callback newCallback(final ResultFuture<NativeAuthResultV2> future) {
         return new NativeAuthPublicClientApplication.NativeAuthV2Callback() {
             @Override
