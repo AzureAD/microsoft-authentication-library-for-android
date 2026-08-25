@@ -46,6 +46,8 @@ import com.microsoft.identity.labapi.utilities.constants.UserType;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.List;
+
 // WebApps API Tests via BrokerHost Broker API tab
 // End-to-end coverage of the WebApps APIs using the BrokerHost app's Broker API tab, exercising the
 // lookup-mode (Edge token binding) scenario end to end:
@@ -233,9 +235,33 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
                 "GetCookies should be supported",
                 cookiesResult.contains("Unsupported contract")
         );
+        final int cookiesJsonStart = cookiesResult.indexOf("{");
         Assert.assertTrue(
-                "GetCookies should return a successful response",
-                cookiesResult.contains("\"response\"")
+                "GetCookies result should contain a JSON response",
+                cookiesJsonStart >= 0
+        );
+        final GetCookiesResponse cookiesResponse = ObjectMapper.deserializeJsonStringToObject(
+                cookiesResult.substring(cookiesJsonStart),
+                GetCookiesResponse.class
+        );
+        Assert.assertNotNull(
+                "GetCookies JSON response should not be null",
+                cookiesResponse
+        );
+        Assert.assertNotNull(
+                "GetCookies response should contain a cookie list",
+                cookiesResponse.response
+        );
+        boolean hasUsableCookie = false;
+        for (final CookieItem cookie : cookiesResponse.response) {
+            if (cookie != null && !isBlank(cookie.name) && !isBlank(cookie.data)) {
+                hasUsableCookie = true;
+                break;
+            }
+        }
+        Assert.assertTrue(
+                "GetCookies should return at least one cookie with nonblank name and data",
+                hasUsableCookie
         );
 
         // -------- Step 4: GetAllSsoTokens --------
@@ -322,6 +348,19 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
         } catch (final UiObjectNotFoundException e) {
             throw new AssertionError("Could not find checkbox: " + resourceId, e);
         }
+    }
+
+    private static boolean isBlank(final String value) {
+        return value == null || value.trim().isEmpty();
+    }
+
+    private static final class GetCookiesResponse {
+        private List<CookieItem> response;
+    }
+
+    private static final class CookieItem {
+        private String name;
+        private String data;
     }
 
     @Override
