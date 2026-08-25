@@ -195,6 +195,8 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
     /**
      * Sign in a user with the Native Auth V2 surface; Kotlin coroutines variant.
      *
+     * Warning: This API is experimental. It may be changed in the future without notice. Do not use in production applications.
+     *
      * @param parameters parameters used for the signIn operation.
      * @return [NativeAuthResultV2] see the detailed possible return states under the object.
      * @throws [MsalException] if an account is already signed in.
@@ -203,6 +205,8 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
 
     /**
      * Sign in a user with the Native Auth V2 surface; callback variant.
+     *
+     * Warning: This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      *
      * @param parameters parameters used for the signIn operation.
      * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.NativeAuthV2Callback] to receive the result.
@@ -213,6 +217,8 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
     /**
      * Sign up a user with the Native Auth V2 surface; Kotlin coroutines variant.
      *
+     * Warning: This API is experimental. It may be changed in the future without notice. Do not use in production applications.
+     *
      * @param parameters parameters used for the signUp operation.
      * @return [NativeAuthResultV2] see the detailed possible return states under the object.
      * @throws MsalClientException if an account is already signed in.
@@ -221,6 +227,8 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
 
     /**
      * Sign up a user with the Native Auth V2 surface; callback variant.
+     *
+     * Warning: This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      *
      * @param parameters parameters used for the signUp operation.
      * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.NativeAuthV2Callback] to receive the result.
@@ -231,6 +239,8 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
     /**
      * Reset password for a user with the Native Auth V2 surface; Kotlin coroutines variant.
      *
+     * Warning: This API is experimental. It may be changed in the future without notice. Do not use in production applications.
+     *
      * @param parameters parameters used for the resetPassword operation.
      * @return [NativeAuthResultV2] see the detailed possible return states under the object.
      * @throws MsalClientException if an account is already signed in.
@@ -239,6 +249,8 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
 
     /**
      * Reset password for a user with the Native Auth V2 surface; callback variant.
+     *
+     * Warning: This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      *
      * @param parameters parameters used for the resetPassword operation.
      * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.NativeAuthV2Callback] to receive the result.
