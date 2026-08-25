@@ -25,6 +25,7 @@ package com.microsoft.identity.nativeauth.statemachine.errors
 
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
+import com.microsoft.identity.nativeauth.statemachine.states.NativeAuthBaseStateV2
 
 /**
  * NativeAuthErrorV2 is the base error type for the Native Auth V2 surface. All V2 errors are a
@@ -43,6 +44,7 @@ import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
  * @param scenario identifies which part of the Native Auth V2 surface produced this error.
  * @param errorCodes a list of specific error codes returned by the authentication server.
  * @param exception an internal unexpected exception that happened.
+ * @param nextState populated for recoverable errors (e.g. invalid code, password policy violation) so the caller can retry the same step without restarting the flow; null for terminal errors.
  */
 open class NativeAuthErrorV2(
     override val errorType: String? = null,
@@ -51,7 +53,8 @@ open class NativeAuthErrorV2(
     override val correlationId: String,
     override val scenario: NativeAuthFlowScenarioV2,
     override val errorCodes: List<Int>? = null,
-    override var exception: Exception? = null
+    override var exception: Exception? = null,
+    open val nextState: NativeAuthBaseStateV2? = null
 ) : NativeAuthResultV2,
     BrowserRequiredError,
     Error(

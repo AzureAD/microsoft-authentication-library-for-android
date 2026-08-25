@@ -41,6 +41,13 @@ import com.microsoft.identity.common.java.commands.parameters.DeviceCodeFlowComm
 import com.microsoft.identity.common.java.commands.parameters.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.SilentTokenCommandParameters;
 import com.microsoft.identity.common.java.constants.FidoConstants;
+import com.microsoft.identity.common.java.logging.DiagnosticContext;
+import com.microsoft.identity.common.java.logging.RequestContext;
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2ResendCodeCommandParameters;
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SignInAfterResetPasswordCommandParameters;
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitCodeCommandParameters;
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitNewPasswordCommandParameters;
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.ResetPasswordV2StartCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.JITChallengeAuthMethodCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.JITContinueCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFAChallengeAuthMethodCommandParameters;
@@ -54,6 +61,7 @@ import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInS
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInSubmitCodeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInSubmitPasswordCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInWithContinuationTokenCommandParameters;
+import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpResendCodeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpStartCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpSubmitCodeCommandParameters;
@@ -92,6 +100,7 @@ public class CommandParametersTest {
     private static final String AAD_CP1_CONFIG_FILE = "src/test/res/raw/aad_capabilities_cp1.json";
     private static final String AAD_NONE_CONFIG_FILE = "src/test/res/raw/aad_capabilities_none.json";
     private static final String WEBAUTHN_CAPABLE_CONFIG_FILE = "src/test/res/raw/webauthn_capable.json";
+    private static final String NATIVE_AUTH_CONFIG_FILE = "src/test/res/raw/native_auth_native_only_test_config.json";
 
     private Context mContext;
     private Activity mActivity;
@@ -601,6 +610,137 @@ public class CommandParametersTest {
 
     }
 
+    @Test
+    public void testCreateResetPasswordV2StartCommandParameters_CommandParamsContainsExpectedParams() throws ClientException {
+        final String correlationId = "00000000-0000-0000-0000-000000000001";
+        final RequestContext requestContext = new RequestContext();
+        requestContext.put(DiagnosticContext.CORRELATION_ID, correlationId);
+        DiagnosticContext.INSTANCE.setRequestContext(requestContext);
+
+        try {
+            final NativeAuthPublicClientApplicationConfiguration configuration = getNativeAuthConfiguration(NATIVE_AUTH_CONFIG_FILE);
+            final OAuth2TokenCache tokenCache = getCache();
+            final String username = "username@example.com";
+            final List<String> scopes = Arrays.asList("openid", "profile", "User.Read");
+
+            final ResetPasswordV2StartCommandParameters commandParameters =
+                    CommandParametersAdapter.createResetPasswordV2StartCommandParameters(
+                            configuration,
+                            tokenCache,
+                            username,
+                            scopes
+                    );
+
+            Assert.assertEquals(username, commandParameters.username);
+            Assert.assertEquals(scopes, commandParameters.scopes);
+            Assert.assertEquals(configuration.getChallengeTypes(), commandParameters.challengeType);
+            Assert.assertEquals(correlationId, commandParameters.getCorrelationId());
+            Assert.assertSame(tokenCache, commandParameters.getOAuth2TokenCache());
+        } finally {
+            DiagnosticContext.INSTANCE.clear();
+        }
+    }
+
+    @Test
+    public void testCreateNativeAuthV2SubmitCodeCommandParameters_CommandParamsContainsExpectedParams() throws ClientException {
+        final NativeAuthPublicClientApplicationConfiguration configuration = getNativeAuthConfiguration(NATIVE_AUTH_CONFIG_FILE);
+        final OAuth2TokenCache tokenCache = getCache();
+        final String code = "123456";
+        final List<String> scopes = Arrays.asList("api://scope/read", "offline_access");
+        final String correlationId = "00000000-0000-0000-0000-000000000002";
+        final NativeAuthV2ContinuationState continuationState =
+                getNativeAuthV2ContinuationState(correlationId, scopes, null);
+
+        final NativeAuthV2SubmitCodeCommandParameters commandParameters =
+                CommandParametersAdapter.createNativeAuthV2SubmitCodeCommandParameters(
+                        configuration,
+                        tokenCache,
+                        code,
+                        continuationState
+                );
+
+        Assert.assertEquals(code, commandParameters.code);
+        Assert.assertSame(continuationState, commandParameters.continuationState);
+        Assert.assertEquals(scopes, commandParameters.scopes);
+        Assert.assertEquals(configuration.getChallengeTypes(), commandParameters.challengeType);
+        Assert.assertEquals(correlationId, commandParameters.getCorrelationId());
+        Assert.assertSame(tokenCache, commandParameters.getOAuth2TokenCache());
+
+    }
+
+    @Test
+    public void testCreateNativeAuthV2ResendCodeCommandParameters_CommandParamsContainsExpectedParams() throws ClientException {
+        final NativeAuthPublicClientApplicationConfiguration configuration = getNativeAuthConfiguration(NATIVE_AUTH_CONFIG_FILE);
+        final OAuth2TokenCache tokenCache = getCache();
+        final List<String> scopes = Arrays.asList("api://scope/read", "offline_access");
+        final String correlationId = "00000000-0000-0000-0000-000000000003";
+        final NativeAuthV2ContinuationState continuationState =
+                getNativeAuthV2ContinuationState(correlationId, scopes, null);
+
+        final NativeAuthV2ResendCodeCommandParameters commandParameters =
+                CommandParametersAdapter.createNativeAuthV2ResendCodeCommandParameters(
+                        configuration,
+                        tokenCache,
+                        continuationState
+                );
+
+        Assert.assertSame(continuationState, commandParameters.continuationState);
+        Assert.assertEquals(scopes, commandParameters.scopes);
+        Assert.assertEquals(configuration.getChallengeTypes(), commandParameters.challengeType);
+        Assert.assertEquals(correlationId, commandParameters.getCorrelationId());
+        Assert.assertSame(tokenCache, commandParameters.getOAuth2TokenCache());
+    }
+
+    @Test
+    public void testCreateNativeAuthV2SubmitNewPasswordCommandParameters_CommandParamsContainsExpectedParams() throws ClientException {
+        final NativeAuthPublicClientApplicationConfiguration configuration = getNativeAuthConfiguration(NATIVE_AUTH_CONFIG_FILE);
+        final OAuth2TokenCache tokenCache = getCache();
+        final char[] newPassword = "newPassword!".toCharArray();
+        final List<String> scopes = Arrays.asList("api://scope/read", "offline_access");
+        final String correlationId = "00000000-0000-0000-0000-000000000004";
+        final NativeAuthV2ContinuationState continuationState =
+                getNativeAuthV2ContinuationState(correlationId, scopes, null);
+
+        final NativeAuthV2SubmitNewPasswordCommandParameters commandParameters =
+                CommandParametersAdapter.createNativeAuthV2SubmitNewPasswordCommandParameters(
+                        configuration,
+                        tokenCache,
+                        newPassword,
+                        continuationState
+                );
+
+        Assert.assertArrayEquals(newPassword, commandParameters.newPassword);
+        Assert.assertSame(continuationState, commandParameters.continuationState);
+        Assert.assertEquals(scopes, commandParameters.scopes);
+        Assert.assertEquals(configuration.getChallengeTypes(), commandParameters.challengeType);
+        Assert.assertEquals(correlationId, commandParameters.getCorrelationId());
+        Assert.assertSame(tokenCache, commandParameters.getOAuth2TokenCache());
+    }
+
+    @Test
+    public void testCreateNativeAuthV2SignInAfterResetPasswordCommandParameters_CommandParamsContainsExpectedParams() throws ClientException {
+        final NativeAuthPublicClientApplicationConfiguration configuration = getNativeAuthConfiguration(NATIVE_AUTH_CONFIG_FILE);
+        final OAuth2TokenCache tokenCache = getCache();
+        final String correlationId = "00000000-0000-0000-0000-000000000005";
+        final List<String> continuationScopes = Arrays.asList("continuation.scope");
+        final String continuationClaimsRequestJson = "{\"access_token\":{\"xms_cc\":{\"values\":[\"cp1\"]}}}";
+        final NativeAuthV2ContinuationState continuationState =
+                getNativeAuthV2ContinuationState(correlationId, continuationScopes, continuationClaimsRequestJson);
+        final NativeAuthV2SignInAfterResetPasswordCommandParameters commandParameters =
+                CommandParametersAdapter.createNativeAuthV2SignInAfterResetPasswordCommandParameters(
+                        configuration,
+                        tokenCache,
+                        continuationState
+                );
+
+        Assert.assertSame(continuationState, commandParameters.continuationState);
+        Assert.assertEquals(continuationScopes, commandParameters.scopes);
+        Assert.assertEquals(continuationClaimsRequestJson, commandParameters.claimsRequestJson);
+        Assert.assertEquals(configuration.getChallengeTypes(), commandParameters.challengeType);
+        Assert.assertEquals(correlationId, commandParameters.getCorrelationId());
+        Assert.assertSame(tokenCache, commandParameters.getOAuth2TokenCache());
+    }
+
     private NativeAuthPublicClientApplicationConfiguration getNativeAuthConfiguration(final List<String> challengeTypes) {
         final NativeAuthPublicClientApplicationConfiguration configuration = new NativeAuthPublicClientApplicationConfiguration();
         configuration.setChallengeTypes(challengeTypes);
@@ -1059,6 +1199,24 @@ public class CommandParametersTest {
 
     private PublicClientApplicationConfiguration getConfiguration(String path) {
         return PublicClientApplicationConfigurationFactory.initializeConfiguration(mContext, getConfigFile(path));
+    }
+
+    private NativeAuthPublicClientApplicationConfiguration getNativeAuthConfiguration(String path) {
+        return NativeAuthPublicClientApplicationConfigurationFactory.Companion.initializeNativeAuthConfiguration(
+                mContext,
+                getConfigFile(path)
+        );
+    }
+
+    private NativeAuthV2ContinuationState getNativeAuthV2ContinuationState(
+            @NonNull final String correlationId,
+            @NonNull final List<String> scopes,
+            @Nullable final String claimsRequestJson) {
+        final NativeAuthV2ContinuationState continuationState = Mockito.mock(NativeAuthV2ContinuationState.class);
+        Mockito.when(continuationState.getCorrelationId()).thenReturn(correlationId);
+        Mockito.when(continuationState.scopesForTokenRequest()).thenReturn(scopes);
+        Mockito.when(continuationState.claimsRequestJsonForTokenRequest()).thenReturn(claimsRequestJson);
+        return continuationState;
     }
 
     private OAuth2TokenCache getCache() {

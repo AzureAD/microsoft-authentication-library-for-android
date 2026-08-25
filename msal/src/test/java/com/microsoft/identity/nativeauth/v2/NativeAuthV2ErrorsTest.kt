@@ -36,6 +36,8 @@ import com.microsoft.identity.nativeauth.statemachine.errors.SubmitAttributesErr
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitNewPasswordErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitPasswordErrorV2
+import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertSame
@@ -146,6 +148,25 @@ class NativeAuthV2ErrorsTest {
     }
 
     @Test
+    fun testSubmitNewPasswordErrorV2ExposesTypedRetryState() {
+        val nextState = NewPasswordRequiredStateV2(
+            "continuation-token",
+            correlationId,
+            NativeAuthFlowScenarioV2.RESET_PASSWORD,
+            com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration()
+        )
+        val error = SubmitNewPasswordErrorV2(
+            errorMessage = errorMessage,
+            correlationId = correlationId,
+            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
+            nextState = nextState
+        )
+
+        val typedState: NewPasswordRequiredStateV2? = error.nextState
+        assertSame(nextState, typedState)
+    }
+
+    @Test
     fun testSubmitCodeErrorV2UtilityMethods() {
         assertTrue(
             SubmitCodeErrorV2(errorType = "invalid_code", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isInvalidCode()
@@ -153,6 +174,25 @@ class NativeAuthV2ErrorsTest {
         val error = SubmitCodeErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN, subError = "sub")
         assertFalse(error.isInvalidCode())
         assertEquals("sub", error.subError)
+    }
+
+    @Test
+    fun testSubmitCodeErrorV2ExposesTypedRetryState() {
+        val nextState = CodeRequiredStateV2(
+            "continuation-token",
+            correlationId,
+            NativeAuthFlowScenarioV2.RESET_PASSWORD,
+            com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration()
+        )
+        val error = SubmitCodeErrorV2(
+            errorMessage = errorMessage,
+            correlationId = correlationId,
+            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
+            nextState = nextState
+        )
+
+        val typedState: CodeRequiredStateV2? = error.nextState
+        assertSame(nextState, typedState)
     }
 
     @Test

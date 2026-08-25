@@ -33,18 +33,15 @@ import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
-import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SubmitNewPasswordCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SignInAfterResetPasswordCommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
-import com.microsoft.identity.common.java.util.StringUtil
-import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitNewPasswordCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInAfterResetPasswordCommand
 import com.microsoft.identity.common.nativeauth.internal.controllers.v2.NativeAuthV2FlowController
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
-import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorTypes
-import com.microsoft.identity.nativeauth.statemachine.errors.SubmitNewPasswordErrorV2
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.utils.getCancellable
@@ -56,16 +53,17 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * State that requires the user to submit a new password.
+ * State reached once a password reset has completed server-side. The token exchange and cache
+ * persistence are deferred until the app explicitly invokes [signIn].
  */
-class NewPasswordRequiredStateV2 internal constructor(
+class SignInAfterResetPasswordStateV2 internal constructor(
     continuationToken: String?,
     correlationId: String,
     scenario: NativeAuthFlowScenarioV2,
     config: NativeAuthPublicClientApplicationConfiguration,
     continuationState: NativeAuthV2ContinuationState? = null
 ) : NativeAuthBaseStateV2(continuationToken, correlationId, scenario, config, continuationState) {
-    private val TAG: String = NewPasswordRequiredStateV2::class.java.simpleName
+    private val TAG: String = SignInAfterResetPasswordStateV2::class.java.simpleName
 
     internal constructor(
         continuationState: NativeAuthV2ContinuationState,
@@ -87,126 +85,60 @@ class NewPasswordRequiredStateV2 internal constructor(
         continuationState = parcel.serializable<NativeAuthV2ContinuationState>()
     )
 
-    interface SubmitNewPasswordCallback : Callback<NativeAuthResultV2>
+    interface SignInCallback : Callback<NativeAuthResultV2>
 
     /**
-     * Submits a new password to the server; callback variant.
-     *
-     * The SDK overwrites [password] with null characters before this method completes, so callers
-     * must not reuse the array afterwards.
-     *
-     * @param password The new password to submit.
-     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2.SubmitNewPasswordCallback] to receive the result on.
+     * Explicit app-invoked sign-in step following a completed password reset flow. This is the only
+     * method that triggers the token exchange and cache persistence for the reset flow.
      */
-    fun submitNewPassword(password: CharArray, callback: SubmitNewPasswordCallback) {
+    fun signIn(callback: SignInCallback) {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.submitNewPassword(password: CharArray, callback: SubmitNewPasswordCallback)"
+            methodName = "${TAG}.signIn(callback: SignInCallback)"
         )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
-                callback.onResult(submitNewPassword(password))
+                callback.onResult(signIn())
             } catch (e: MsalException) {
-                Logger.error(TAG, "Exception thrown in submitNewPassword", e)
+                Logger.error(TAG, "Exception thrown in signIn", e)
                 callback.onError(e)
             }
         }
     }
 
     /**
-     * Submits a new password to the server; Kotlin coroutines variant.
-     *
-     * The SDK overwrites [password] with null characters before this method returns, so callers
-     * must not reuse the array afterwards.
-     *
-     * @param password The new password to submit.
-     * @return The results of the submit new password action.
+     * Explicit app-invoked sign-in step following a completed password reset flow. This is the only
+     * method that triggers the token exchange and cache persistence for the reset flow.
      */
-    suspend fun submitNewPassword(password: CharArray): NativeAuthResultV2 {
+    suspend fun signIn(): NativeAuthResultV2 {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.submitNewPassword(password: CharArray)"
+            methodName = "${TAG}.signIn()"
         )
-        try {
-            return submitNewPasswordInternal(password)
-        } finally {
-            // Common only clears the array once its interactor starts processing the request, so
-            // MSAL owns cleanup for failures that happen before then, and for cancellation.
-            StringUtil.overwriteWithNull(password)
-        }
-    }
-
-    private suspend fun submitNewPasswordInternal(password: CharArray): NativeAuthResultV2 {
         val state = continuationState ?: return notImplemented()
-        if (password.isEmpty()) {
-            return SubmitNewPasswordErrorV2(
-                errorType = ErrorTypes.INVALID_PASSWORD,
-                errorMessage = "Password cannot be empty.",
-                correlationId = correlationId,
-                scenario = scenario,
-                nextState = this
-            )
-        }
         return withContext(Dispatchers.IO) {
             try {
-                val parameters = CommandParametersAdapter.createNativeAuthV2SubmitNewPasswordCommandParameters(
+                val parameters = CommandParametersAdapter.createNativeAuthV2SignInAfterResetPasswordCommandParameters(
                     config,
                     config.oAuth2TokenCache,
-                    password,
                     state
                 )
-                val command = NativeAuthV2SubmitNewPasswordCommand(
+                val command = NativeAuthV2SignInAfterResetPasswordCommand(
                     parameters,
                     NativeAuthV2FlowController(),
-                    PublicApiId.NATIVE_AUTH_V2_RESET_PASSWORD_SUBMIT_NEW_PASSWORD
+                    PublicApiId.NATIVE_AUTH_V2_SIGN_IN_AFTER_RESET_PASSWORD
                 )
                 ensureActive()
                 val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
                 ensureActive()
-                when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitNewPasswordCommandResult>()) {
+                when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SignInAfterResetPasswordCommandResult>()) {
                     is NativeAuthV2CommandResult.Complete -> {
                         mapCompleteResult(result)
                     }
-                    is NativeAuthV2CommandResult.SignInAfterResetPasswordRequired -> {
-                        NativeAuthResultV2.SignInAfterResetPasswordRequired(
-                            nextState = SignInAfterResetPasswordStateV2(result.continuationState, scenario, config),
-                            scenario = scenario
-                        )
-                    }
-                    is NativeAuthV2CommandResult.PasswordNotAccepted -> {
-                        SubmitNewPasswordErrorV2(
-                            errorType = ErrorTypes.INVALID_PASSWORD,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario,
-                            errorCodes = result.errorCodes,
-                            subError = result.subError,
-                            nextState = this@NewPasswordRequiredStateV2
-                        )
-                    }
-                    is NativeAuthV2CommandResult.PasswordResetFailed -> {
-                        SubmitNewPasswordErrorV2(
-                            errorType = ResetPasswordErrorTypes.PASSWORD_RESET_FAILED,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario
-                        )
-                    }
-                    is NativeAuthV2CommandResult.NotImplemented -> {
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.NOT_IMPLEMENTED,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario
-                        )
-                    }
                     is INativeAuthCommandResult.Redirect -> {
-                        SubmitNewPasswordErrorV2(
+                        NativeAuthErrorV2(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
                             error = result.error,
                             errorMessage = result.errorDescription,
@@ -215,7 +147,7 @@ class NewPasswordRequiredStateV2 internal constructor(
                         )
                     }
                     is INativeAuthCommandResult.APIError -> {
-                        SubmitNewPasswordErrorV2(
+                        NativeAuthErrorV2(
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
@@ -228,10 +160,10 @@ class NewPasswordRequiredStateV2 internal constructor(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                Logger.error(TAG, correlationId, "Exception thrown in submitNewPassword", e)
-                SubmitNewPasswordErrorV2(
+                Logger.error(TAG, correlationId, "Exception thrown in signIn", e)
+                NativeAuthErrorV2(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
-                    errorMessage = "MSAL client exception occurred in submitNewPassword.",
+                    errorMessage = "MSAL client exception occurred in signIn.",
                     correlationId = correlationId,
                     scenario = scenario,
                     exception = e
@@ -240,9 +172,9 @@ class NewPasswordRequiredStateV2 internal constructor(
         }
     }
 
-    companion object CREATOR : Parcelable.Creator<NewPasswordRequiredStateV2> {
-        override fun createFromParcel(parcel: Parcel): NewPasswordRequiredStateV2 = NewPasswordRequiredStateV2(parcel)
+    companion object CREATOR : Parcelable.Creator<SignInAfterResetPasswordStateV2> {
+        override fun createFromParcel(parcel: Parcel): SignInAfterResetPasswordStateV2 = SignInAfterResetPasswordStateV2(parcel)
 
-        override fun newArray(size: Int): Array<NewPasswordRequiredStateV2?> = arrayOfNulls(size)
+        override fun newArray(size: Int): Array<SignInAfterResetPasswordStateV2?> = arrayOfNulls(size)
     }
 }

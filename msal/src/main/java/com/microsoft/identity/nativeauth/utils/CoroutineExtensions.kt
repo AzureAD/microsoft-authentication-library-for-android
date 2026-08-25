@@ -21,17 +21,18 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 
-package com.microsoft.identity.nativeauth.parameters
+package com.microsoft.identity.nativeauth.utils
 
-/**
- * Encapsulates the parameters passed to the resetPassword methods of NativeAuthPublicClientApplication.
- *
- * @param username username of the account whose password will be reset.
- * @param scopes optional list of OAuth 2.0 scopes to request during a V2 reset-password flow;
- *   merged with the default OIDC scopes by the SDK. This value is used only by
- *   `resetPasswordV2`; the V1 `resetPassword` overload ignores it.
- */
-class NativeAuthResetPasswordParameters @JvmOverloads constructor(
-    val username: String,
-    val scopes: List<String>? = null
-)
+import com.microsoft.identity.common.java.result.FinalizableResultFuture
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runInterruptible
+
+internal suspend fun <T> FinalizableResultFuture<T>.getCancellable(): T {
+    return try {
+        runInterruptible(Dispatchers.IO) { get() }
+    } catch (exception: CancellationException) {
+        cancelSignal()
+        throw exception
+    }
+}
