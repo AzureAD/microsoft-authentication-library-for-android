@@ -92,6 +92,7 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
     // Constants
     private static final String LEMON_GLACIER = "https://lemon-glacier-0fa89f11e.1.azurestaticapps.net/";
     private static final String MICROSOFT_ONLINE = "https://login.microsoftonline.com";
+    private static final String PRT_COOKIE_NAME = "x-ms-RefreshTokenCredential";
     private static final String SCOPE = "User.Read";
     // Extra token-body params (semicolon-separated key/value lists for the BrokerHost form) that mark
     // the request as an ESTS lookup-mode request. These are the values ESTS sends for a lookup request
@@ -252,17 +253,24 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
                 "GetCookies response should contain a cookie list",
                 cookiesResponse.response
         );
-        boolean hasUsableCookie = false;
-        for (final CookieItem cookie : cookiesResponse.response) {
-            if (cookie != null && !isBlank(cookie.name) && !isBlank(cookie.data)) {
-                hasUsableCookie = true;
-                break;
-            }
-        }
-        Assert.assertTrue(
-                "GetCookies should return at least one cookie with nonblank name and data",
-                hasUsableCookie
+        Assert.assertFalse(
+                "GetCookies should return at least one cookie",
+                cookiesResponse.response.isEmpty()
         );
+        for (int i = 0; i < cookiesResponse.response.size(); i++) {
+            final CookieItem cookie = cookiesResponse.response.get(i);
+            Assert.assertNotNull("GetCookies should not return a null cookie", cookie);
+            final String expectedName = i == 0 ? PRT_COOKIE_NAME : PRT_COOKIE_NAME + i;
+            Assert.assertEquals(
+                    "GetCookies should enumerate cookie names",
+                    expectedName,
+                    cookie.name
+            );
+            Assert.assertFalse(
+                    "GetCookies should return nonblank cookie data",
+                    isBlank(cookie.data)
+            );
+        }
 
         // -------- Step 4: GetAllSsoTokens --------
         // Navigate to the Broker API tab
