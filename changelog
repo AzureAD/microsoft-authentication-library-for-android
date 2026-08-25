@@ -2,6 +2,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+- [PATCH] Reenable GetCookies WebApps API automation coverage (#2557)
 
 Version 8.4.2
 ----------
