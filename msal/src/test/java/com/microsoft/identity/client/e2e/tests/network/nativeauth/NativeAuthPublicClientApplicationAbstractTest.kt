@@ -187,8 +187,6 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
                     throw e
                 }
                 retryOrFail(e, retryCount++, maxRetries)
-            } catch (e: Exception) {
-                retryOrFail(e, retryCount++, maxRetries)
             }
         }
     }
