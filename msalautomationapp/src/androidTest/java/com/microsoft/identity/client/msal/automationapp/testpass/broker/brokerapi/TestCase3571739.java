@@ -38,6 +38,7 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.Micr
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.common.java.commands.webapps.WebAppsGetTokenSubOperationResponse;
+import com.microsoft.identity.common.java.commands.webapps.WebAppsSupportedContracts;
 import com.microsoft.identity.common.java.util.ObjectMapper;
 import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
@@ -46,6 +47,7 @@ import com.microsoft.identity.labapi.utilities.constants.UserType;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.List;
 
 // WebApps API Tests via BrokerHost Broker API tab
@@ -62,7 +64,7 @@ import java.util.List;
 //           must resolve the account from the PRT/broker-account store keyed by homeAccountId
 //           rather than from the (empty) per-clientId MSAL token cache. It must succeed without
 //           falling back to an interactive account picker.
-// GetCookies, GetAllSsoTokens, and SignOut are also exercised.
+// Supported contracts are checked before GetCookies, GetAllSsoTokens, and SignOut are exercised.
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3571739
 @SupportedBrokers(brokers = BrokerHost.class)
 @LocalBrokerHostDebugUiTest
@@ -82,6 +84,8 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
     private static final String CHECKBOX_IS_STS = BROKER_HOST_PKG + ":id/checkbox_is_sts";
     private static final String BUTTON_EXECUTE_GET_TOKEN = BROKER_HOST_PKG + ":id/button_execute_get_token";
     private static final String BUTTON_EXECUTE_SIGN_OUT = BROKER_HOST_PKG + ":id/button_execute_sign_out";
+    private static final String BUTTON_GET_SUPPORTED_WEBAPP_CONTRACTS =
+            BROKER_HOST_PKG + ":id/button_get_supported_webapp_contracts";
     private static final String EDIT_TEXT_COOKIES_URL = BROKER_HOST_PKG + ":id/edit_text_webapps_cookie_url";
     private static final String BUTTON_GET_COOKIES = BROKER_HOST_PKG + ":id/button_get_webapp_cookies";
     private static final String BUTTON_GET_ALL_SSO_TOKENS = BROKER_HOST_PKG + ":id/button_get_sso_tokens";
@@ -110,7 +114,46 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
 
         final BrokerHost brokerHost = (BrokerHost) mBroker;
 
-        // -------- Step 1: Interactive GetToken (lookup mode) --------
+        // -------- Step 1: Get supported WebApps contracts --------
+        // Real callers query supported contracts before attempting a WebApps operation.
+        brokerHost.brokerApiFragment.launch();
+
+        new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(
+                new UiSelector().resourceId(BUTTON_GET_SUPPORTED_WEBAPP_CONTRACTS)
+        );
+        UiAutomatorUtils.handleButtonClick(BUTTON_GET_SUPPORTED_WEBAPP_CONTRACTS);
+
+        final String supportedContractsResult = dismissDialogAndGetText();
+        Assert.assertNotNull(
+                "Supported WebApps contracts result should not be null",
+                supportedContractsResult
+        );
+        final int contractsJsonStart = supportedContractsResult.indexOf("[");
+        Assert.assertTrue(
+                "Supported WebApps contracts result should contain a JSON array: "
+                        + supportedContractsResult,
+                contractsJsonStart >= 0
+        );
+        final String[] supportedContracts = ObjectMapper.deserializeJsonStringToObject(
+                supportedContractsResult.substring(contractsJsonStart),
+                String[].class
+        );
+        Assert.assertNotNull(
+                "Supported WebApps contracts JSON should not be null",
+                supportedContracts
+        );
+        final List<String> supportedContractsList = Arrays.asList(supportedContracts);
+        for (final String expectedContract : Arrays.asList(
+                WebAppsSupportedContracts.GET_TOKEN,
+                WebAppsSupportedContracts.SIGN_OUT,
+                WebAppsSupportedContracts.GET_COOKIES)) {
+            Assert.assertTrue(
+                    "Broker should advertise the " + expectedContract + " WebApps contract",
+                    supportedContractsList.contains(expectedContract)
+            );
+        }
+
+        // -------- Step 2: Interactive GetToken (lookup mode) --------
         // Navigate to the Broker API tab
         brokerHost.brokerApiFragment.launch();
 
@@ -175,7 +218,7 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
         final String homeAccountId = resultJson.getAccount().getHomeAccountId();
         Assert.assertNotNull("homeAccountId should not be null", homeAccountId);
 
-        // -------- Step 2: Silent GetToken (MSAL JS) --------
+        // -------- Step 3: Silent GetToken (MSAL JS) --------
         // Navigate to the Broker API tab
         brokerHost.brokerApiFragment.launch();
 
@@ -215,7 +258,7 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
                 silentMsalJsResult.contains(ACCESS_TOKEN_DESCRIPTION)
         );
 
-        // -------- Step 3: GetCookies --------
+        // -------- Step 4: GetCookies --------
         // Navigate to the Broker API tab
         brokerHost.brokerApiFragment.launch();
 
@@ -272,7 +315,7 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
             );
         }
 
-        // -------- Step 4: GetAllSsoTokens --------
+        // -------- Step 5: GetAllSsoTokens --------
         // Navigate to the Broker API tab
         brokerHost.brokerApiFragment.launch();
 
@@ -305,7 +348,7 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
                 allSsoTokensResult.isEmpty()
         );
 
-        // -------- Step 5: SignOut --------
+        // -------- Step 6: SignOut --------
         // Navigate to the Broker API tab
         brokerHost.brokerApiFragment.launch();
 
