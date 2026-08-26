@@ -92,8 +92,8 @@ class NewPasswordRequiredStateV2 internal constructor(
     /**
      * Submits a new password to the server; callback variant.
      *
-     * The SDK overwrites [password] with null characters before this method completes, so callers
-     * must not reuse the array afterwards.
+     * The SDK overwrites [password] with null characters before the asynchronous operation invokes
+     * [callback], so callers must not reuse the array afterwards.
      *
      * @param password The new password to submit.
      * @param callback [com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2.SubmitNewPasswordCallback] to receive the result on.
