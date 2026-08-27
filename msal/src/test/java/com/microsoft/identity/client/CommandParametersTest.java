@@ -621,18 +621,18 @@ public class CommandParametersTest {
             final NativeAuthPublicClientApplicationConfiguration configuration = getNativeAuthConfiguration(NATIVE_AUTH_CONFIG_FILE);
             final OAuth2TokenCache tokenCache = getCache();
             final String username = "username@example.com";
-            final List<String> scopes = Arrays.asList("openid", "profile", "User.Read");
 
             final ResetPasswordV2StartCommandParameters commandParameters =
                     CommandParametersAdapter.createResetPasswordV2StartCommandParameters(
                             configuration,
                             tokenCache,
-                            username,
-                            scopes
+                            username
                     );
 
             Assert.assertEquals(username, commandParameters.username);
-            Assert.assertEquals(scopes, commandParameters.scopes);
+            // No scopes are requested at the start of a reset-password flow; they are supplied at
+            // the sign-in-after-reset-password step instead, matching MSAL iOS/macOS.
+            Assert.assertNull(commandParameters.scopes);
             Assert.assertEquals(configuration.getChallengeTypes(), commandParameters.challengeType);
             Assert.assertEquals(correlationId, commandParameters.getCorrelationId());
             Assert.assertSame(tokenCache, commandParameters.getOAuth2TokenCache());
@@ -722,10 +722,8 @@ public class CommandParametersTest {
         final NativeAuthPublicClientApplicationConfiguration configuration = getNativeAuthConfiguration(NATIVE_AUTH_CONFIG_FILE);
         final OAuth2TokenCache tokenCache = getCache();
         final String correlationId = "00000000-0000-0000-0000-000000000005";
-        final List<String> continuationScopes = Arrays.asList("continuation.scope");
-        final String continuationClaimsRequestJson = "{\"access_token\":{\"xms_cc\":{\"values\":[\"cp1\"]}}}";
         final NativeAuthV2ContinuationState continuationState =
-                getNativeAuthV2ContinuationState(correlationId, continuationScopes, continuationClaimsRequestJson);
+                getNativeAuthV2ContinuationState(correlationId, Collections.emptyList(), null);
         final NativeAuthV2SignInAfterResetPasswordCommandParameters commandParameters =
                 CommandParametersAdapter.createNativeAuthV2SignInAfterResetPasswordCommandParameters(
                         configuration,
@@ -734,11 +732,43 @@ public class CommandParametersTest {
                 );
 
         Assert.assertSame(continuationState, commandParameters.continuationState);
-        Assert.assertEquals(continuationScopes, commandParameters.scopes);
-        Assert.assertEquals(continuationClaimsRequestJson, commandParameters.claimsRequestJson);
+        // The reset-password flow requests no scopes or claims at its start, so when the app
+        // supplies none at this step there are none to send.
+        Assert.assertNull(commandParameters.scopes);
+        Assert.assertNull(commandParameters.claimsRequestJson);
         Assert.assertEquals(configuration.getChallengeTypes(), commandParameters.challengeType);
         Assert.assertEquals(correlationId, commandParameters.getCorrelationId());
         Assert.assertSame(tokenCache, commandParameters.getOAuth2TokenCache());
+    }
+
+    @Test
+    public void testCreateNativeAuthV2SignInAfterResetPasswordCommandParameters_UsesSuppliedScopesAndClaims() throws ClientException {
+        final NativeAuthPublicClientApplicationConfiguration configuration = getNativeAuthConfiguration(NATIVE_AUTH_CONFIG_FILE);
+        final OAuth2TokenCache tokenCache = getCache();
+        final String correlationId = "00000000-0000-0000-0000-000000000006";
+        final NativeAuthV2ContinuationState continuationState =
+                getNativeAuthV2ContinuationState(correlationId, Collections.emptyList(), null);
+
+        final List<String> scopes = Arrays.asList("api://scope/read", "offline_access");
+        final ClaimsRequest claimsRequest = getAccessTokenClaimsRequest("xms_cc", "cp1");
+
+        final NativeAuthV2SignInAfterResetPasswordCommandParameters commandParameters =
+                CommandParametersAdapter.createNativeAuthV2SignInAfterResetPasswordCommandParameters(
+                        configuration,
+                        tokenCache,
+                        continuationState,
+                        scopes,
+                        claimsRequest
+                );
+
+        // This step is the sole source of scopes and claims for the reset-password flow.
+        Assert.assertEquals(scopes, commandParameters.scopes);
+        Assert.assertEquals(
+                ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest),
+                commandParameters.claimsRequestJson
+        );
+        Assert.assertSame(continuationState, commandParameters.continuationState);
+        Assert.assertEquals(correlationId, commandParameters.getCorrelationId());
     }
 
     private NativeAuthPublicClientApplicationConfiguration getNativeAuthConfiguration(final List<String> challengeTypes) {

@@ -1068,17 +1068,20 @@ public class CommandParametersAdapter {
 
     /**
      * Creates command parameter for [NativeAuthV2ResetPasswordStartCommand] of Native Auth.
+     *
+     * No scopes are supplied at the start of a reset-password flow. Matching MSAL iOS/macOS, the
+     * scopes for the resulting access token are supplied at the sign-in-after-reset-password step
+     * instead, since no token is issued until then.
+     *
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param username username associated with password change
-     * @param scopes scopes requested during the reset password flow
      * @return Command parameter object
      */
     public static ResetPasswordV2StartCommandParameters createResetPasswordV2StartCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull final String username,
-            @Nullable final List<String> scopes) throws ClientException {
+            @NonNull final String username) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
@@ -1106,7 +1109,6 @@ public class CommandParametersAdapter {
                         .challengeType(configuration.getChallengeTypes())
                         .requestInterceptor(configuration.getRequestInterceptor())
                         .capabilities(configuration.getCapabilities())
-                        .scopes(scopes)
                         .correlationId(DiagnosticContext.INSTANCE.getThreadCorrelationId())
                         .build();
 
@@ -1265,8 +1267,37 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final NativeAuthV2ContinuationState continuationState) throws ClientException {
+        return createNativeAuthV2SignInAfterResetPasswordCommandParameters(
+                configuration,
+                tokenCache,
+                continuationState,
+                null,
+                null
+        );
+    }
+
+    /**
+     * Creates command parameters for [[com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInAfterResetPasswordCommand]].
+     *
+     * The reset-password flow supplies no scopes or claims at its start, so this step is the sole
+     * source of both, matching MSAL iOS/macOS.
+     *
+     * @param configuration      PCA configuration
+     * @param tokenCache         token cache for storing results
+     * @param continuationState  the continuation state produced by the completed reset password flow
+     * @param scopes             (Optional) scopes to request for the resulting access token.
+     * @param claimsRequest      (Optional) claims request to send with the token request.
+     */
+    public static NativeAuthV2SignInAfterResetPasswordCommandParameters createNativeAuthV2SignInAfterResetPasswordCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final NativeAuthV2ContinuationState continuationState,
+            @Nullable final List<String> scopes,
+            @Nullable final ClaimsRequest claimsRequest) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        final String claimsRequestJson = ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest);
 
         final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
                 AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
@@ -1291,8 +1322,8 @@ public class CommandParametersAdapter {
                         .challengeType(configuration.getChallengeTypes())
                         .requestInterceptor(configuration.getRequestInterceptor())
                         .continuationState(continuationState)
-                        .scopes(continuationState.scopesForTokenRequest())
-                        .claimsRequestJson(continuationState.claimsRequestJsonForTokenRequest())
+                        .scopes(scopes)
+                        .claimsRequestJson(claimsRequestJson)
                         .clientId(configuration.getClientId())
                         .correlationId(continuationState.getCorrelationId())
                         .build();

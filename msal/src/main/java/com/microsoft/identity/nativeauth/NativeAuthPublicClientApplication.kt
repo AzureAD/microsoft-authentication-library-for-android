@@ -650,9 +650,13 @@ class NativeAuthPublicClientApplication(
             methodName = "${TAG}.resetPasswordV2(parameters: NativeAuthResetPasswordParameters)"
         )
         return withContext(Dispatchers.IO) {
-            verifyNoUserIsSignedIn()
             var correlationId = DiagnosticContext.INSTANCE.threadCorrelationId ?: "UNSET"
             try {
+                // Kept inside the try so an already-signed-in account is surfaced through the V2
+                // result contract as a ResetPasswordErrorV2, rather than escaping as a thrown
+                // MsalClientException. This matches the V1 flows, which catch the same exception.
+                verifyNoUserIsSignedIn()
+
                 if (parameters.username.isBlank()) {
                     return@withContext ResetPasswordErrorV2(
                         errorType = ErrorTypes.INVALID_USERNAME,
@@ -665,8 +669,7 @@ class NativeAuthPublicClientApplication(
                 val cmdParams = CommandParametersAdapter.createResetPasswordV2StartCommandParameters(
                     nativeAuthConfig,
                     nativeAuthConfig.oAuth2TokenCache,
-                    parameters.username,
-                    parameters.scopes
+                    parameters.username
                 )
                 correlationId = cmdParams.correlationId ?: correlationId
 

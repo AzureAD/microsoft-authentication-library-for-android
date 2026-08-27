@@ -226,37 +226,43 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun resetPasswordV2PropagatesSignedInPreconditionToSuspendAndCallback() = runTest {
+    fun resetPasswordV2SurfacesSignedInPreconditionAsResultToSuspendAndCallback() = runTest {
         mockkObject(NativeAuthPublicClientApplication.Companion)
         every {
             NativeAuthPublicClientApplication.getCurrentAccountInternal(any())
         } returns mockk<IAccount>()
         try {
-            try {
-                application.resetPasswordV2(NativeAuthResetPasswordParameters(username))
-                fail("Expected MsalClientException")
-            } catch (e: MsalClientException) {
-                assertEquals("An account is already signed in.", e.message)
-            }
+            // The precondition must be surfaced through the V2 result contract, not thrown. This
+            // matches the V1 flows, whose guard sits inside the try/catch that converts it to an
+            // error result.
+            val suspendResult = application.resetPasswordV2(NativeAuthResetPasswordParameters(username))
+            assertTrue(suspendResult is ResetPasswordErrorV2)
+            assertEquals(ErrorTypes.CLIENT_EXCEPTION, (suspendResult as ResetPasswordErrorV2).errorType)
+            val suspendCause = suspendResult.exception
+            assertTrue(suspendCause is MsalClientException)
+            assertEquals("An account is already signed in.", suspendCause?.message)
 
-            val callbackError = ResultFuture<BaseException>()
+            val callbackResult = ResultFuture<NativeAuthResultV2>()
             application.resetPasswordV2(
                 NativeAuthResetPasswordParameters(username),
                 object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
                     override fun onResult(result: NativeAuthResultV2) {
-                        callbackError.setException(
-                            IllegalStateException("Expected callback.onError")
-                        )
+                        callbackResult.setResult(result)
                     }
 
                     override fun onError(exception: BaseException) {
-                        callbackError.setResult(exception)
+                        callbackResult.setException(
+                            IllegalStateException("Expected callback.onResult", exception)
+                        )
                     }
                 }
             )
-            val exception = callbackError.get(10, TimeUnit.SECONDS)
-            assertTrue(exception is MsalClientException)
-            assertEquals("An account is already signed in.", exception.message)
+            val result = callbackResult.get(10, TimeUnit.SECONDS)
+            assertTrue(result is ResetPasswordErrorV2)
+            assertEquals(ErrorTypes.CLIENT_EXCEPTION, (result as ResetPasswordErrorV2).errorType)
+            val callbackCause = result.exception
+            assertTrue(callbackCause is MsalClientException)
+            assertEquals("An account is already signed in.", callbackCause?.message)
         } finally {
             unmockkObject(NativeAuthPublicClientApplication.Companion)
         }
