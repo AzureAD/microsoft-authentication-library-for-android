@@ -29,6 +29,7 @@ import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParam
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
+import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
@@ -190,4 +191,70 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      * @throws MsalClientException if an account is already signed in.
      */
     fun resetPassword(parameters: NativeAuthResetPasswordParameters, callback: NativeAuthPublicClientApplication.ResetPasswordCallback)
+
+    /**
+     * Sign in a user with the Native Auth V2 surface; Kotlin coroutines variant.
+     *
+     * Warning: This API is experimental. It may be changed in the future without notice. Do not use in production applications.
+     *
+     * @param parameters parameters used for the signIn operation.
+     * @return [NativeAuthResultV2] see the detailed possible return states under the object.
+     * @throws [MsalException] if an account is already signed in.
+     */
+    suspend fun signInV2(parameters: NativeAuthSignInParameters): NativeAuthResultV2
+
+    /**
+     * Sign in a user with the Native Auth V2 surface; callback variant.
+     *
+     * Warning: This API is experimental. It may be changed in the future without notice. Do not use in production applications.
+     *
+     * @param parameters parameters used for the signIn operation.
+     * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.NativeAuthV2Callback] to receive the result.
+     * @throws [MsalException] if an account is already signed in.
+     */
+    fun signInV2(parameters: NativeAuthSignInParameters, callback: NativeAuthPublicClientApplication.NativeAuthV2Callback)
+
+    /**
+     * Sign up a user with the Native Auth V2 surface; Kotlin coroutines variant.
+     *
+     * Warning: This API is experimental. It may be changed in the future without notice. Do not use in production applications.
+     *
+     * @param parameters parameters used for the signUp operation.
+     * @return [NativeAuthResultV2] see the detailed possible return states under the object.
+     * @throws MsalClientException if an account is already signed in.
+     */
+    suspend fun signUpV2(parameters: NativeAuthSignUpParameters): NativeAuthResultV2
+
+    /**
+     * Sign up a user with the Native Auth V2 surface; callback variant.
+     *
+     * Warning: This API is experimental. It may be changed in the future without notice. Do not use in production applications.
+     *
+     * @param parameters parameters used for the signUp operation.
+     * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.NativeAuthV2Callback] to receive the result.
+     * @throws MsalClientException if an account is already signed in.
+     */
+    fun signUpV2(parameters: NativeAuthSignUpParameters, callback: NativeAuthPublicClientApplication.NativeAuthV2Callback)
+
+    /**
+     * Reset password for a user with the Native Auth V2 surface; Kotlin coroutines variant.
+     *
+     * Warning: This API is experimental. It may be changed in the future without notice. Do not use in production applications.
+     *
+     * @param parameters parameters used for the resetPassword operation.
+     * @return [NativeAuthResultV2] see the detailed possible return states under the object.
+     * @throws MsalClientException if an account is already signed in.
+     */
+    suspend fun resetPasswordV2(parameters: NativeAuthResetPasswordParameters): NativeAuthResultV2
+
+    /**
+     * Reset password for a user with the Native Auth V2 surface; callback variant.
+     *
+     * Warning: This API is experimental. It may be changed in the future without notice. Do not use in production applications.
+     *
+     * @param parameters parameters used for the resetPassword operation.
+     * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.NativeAuthV2Callback] to receive the result.
+     * @throws MsalClientException if an account is already signed in.
+     */
+    fun resetPasswordV2(parameters: NativeAuthResetPasswordParameters, callback: NativeAuthPublicClientApplication.NativeAuthV2Callback)
 }
