@@ -53,18 +53,19 @@ import java.util.List;
 // WebApps API Tests via BrokerHost Broker API tab
 // End-to-end coverage of the WebApps APIs using the BrokerHost app's Broker API tab, exercising the
 // lookup-mode (Edge token binding) scenario end to end:
-//   Step 1: an interactive GetToken sent as a lookup-mode request (nativebroker=1 +
+//   Step 1: query the supported WebApps contracts and verify that all known operations are present.
+//   Step 2: an interactive GetToken sent as a lookup-mode request (nativebroker=1 +
 //           nativebroker_mode=Lookup extra params, the values ESTS sends for a lookup request).
 //           A lookup-mode request establishes the PRT-backed broker account and registers the
 //           client, but is NOT persisted to the per-clientId MSAL token cache. Because the
 //           lookup-mode response carries "none" for the tokens, we only assert that a successful
 //           (non-error) response comes back, then read the homeAccountId from it.
-//   Step 2: a silent MSAL JS GetToken supplying only that homeAccountId (no login hint), like the
+//   Step 3: a silent MSAL JS GetToken supplying only that homeAccountId (no login hint), like the
 //           real MSAL JS client. This is the request that used to fail with UiRequired: the broker
 //           must resolve the account from the PRT/broker-account store keyed by homeAccountId
 //           rather than from the (empty) per-clientId MSAL token cache. It must succeed without
 //           falling back to an interactive account picker.
-// Supported contracts are checked before GetCookies, GetAllSsoTokens, and SignOut are exercised.
+// GetCookies, GetAllSsoTokens, and SignOut are exercised after the GetToken flow.
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3571739
 @SupportedBrokers(brokers = BrokerHost.class)
 @LocalBrokerHostDebugUiTest
@@ -129,13 +130,14 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
                 supportedContractsResult
         );
         final int contractsJsonStart = supportedContractsResult.indexOf("[");
+        final int contractsJsonEnd = supportedContractsResult.lastIndexOf("]");
         Assert.assertTrue(
-                "Supported WebApps contracts result should contain a JSON array: "
+                "Supported WebApps contracts result should contain a complete JSON array: "
                         + supportedContractsResult,
-                contractsJsonStart >= 0
+                contractsJsonStart >= 0 && contractsJsonEnd > contractsJsonStart
         );
         final String[] supportedContracts = ObjectMapper.deserializeJsonStringToObject(
-                supportedContractsResult.substring(contractsJsonStart),
+                supportedContractsResult.substring(contractsJsonStart, contractsJsonEnd + 1),
                 String[].class
         );
         Assert.assertNotNull(
