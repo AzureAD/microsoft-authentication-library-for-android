@@ -26,7 +26,6 @@ package com.microsoft.identity.client.e2e.tests.network.nativeauth
 import com.microsoft.identity.client.claims.ClaimsRequest
 import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
-import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.parameters.NativeAuthGetAccessTokenParameters
@@ -45,8 +44,6 @@ import org.junit.Test
 import java.util.Base64
 
 class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
-
-    private val tempEmailApi = TemporaryEmailService()
 
     private lateinit var resources: List<NativeAuthTestConfig.Resource>
 
@@ -90,6 +87,7 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
                 assertResult<SignInResult.MFARequired>(result)
 
                 // Initiate challenge, send code to email
+                tempEmailApi.markCheckpoint(username)
                 val sendChallengeResult =
                     (result as SignInResult.MFARequired).nextState.requestChallenge(result.authMethods.first())
                 assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
@@ -104,6 +102,7 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
                 assertTrue((submitIncorrectChallengeResult as MFASubmitChallengeError).isInvalidChallenge())
 
                 // Request new challenge
+                tempEmailApi.markCheckpoint(username)
                 val requestNewChallengeResult = sendChallengeResult.nextState.requestChallenge(result.authMethods.first())
                 assertResult<MFARequiredResult.VerificationRequired>(requestNewChallengeResult)
                 (requestNewChallengeResult as MFARequiredResult.VerificationRequired)
@@ -159,6 +158,7 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
                 assertResult<SignInResult.MFARequired>(result)
 
                 // Initiate challenge, send code to email
+                tempEmailApi.markCheckpoint(username)
                 val sendChallengeResult =
                     (result as SignInResult.MFARequired).nextState.requestChallenge(result.authMethods.first())
                 assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)

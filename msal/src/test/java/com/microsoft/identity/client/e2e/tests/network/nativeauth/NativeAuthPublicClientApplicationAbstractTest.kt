@@ -30,11 +30,13 @@ import com.google.gson.reflect.TypeToken
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
 import com.microsoft.identity.client.e2e.tests.IPublicClientApplicationTest
+import com.microsoft.identity.client.e2e.utils.NativeAuthEmailOTPErrorClassifier
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
 import com.microsoft.identity.common.java.nativeauth.BuildValues
 import com.microsoft.identity.internal.testutils.TestUtils
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
+import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.labapi.utilities.BuildConfig
 import com.microsoft.identity.labapi.utilities.authentication.LabApiAuthenticationClient
@@ -69,6 +71,23 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         const val INVALID_PASSWORD = "password"
         const val INCORRECT_CODE = "00000000"
 
+        /**
+         * Retry budget for OTP-throttled (AADSTS701014) auth flows.
+         *
+         * Each retry re-runs the whole flow (new temporary inbox + signup + OTP request), so
+         * attempts are expensive in wall-clock time on top of the backoff itself. With 3 retries
+         * and the delay capped at [MAX_RETRY_DELAY_MILLIS], a persistently throttled test sleeps at
+         * most 5s + 10s + 20s = 35s across 4 attempts.
+         *
+         * iOS keeps 5 attempts only because XCTest's plan-level `maximumTestRepetitions` /
+         * `retryOnFailure` costs no extra wall-clock on success, and because its throttle path
+         * raises `XCTSkip` (via `skipIfEmailOTPThrottled`) instead of retrying into the throttle.
+         * This hand-rolled loop has neither property, hence the tighter budget.
+         */
+        const val MAX_THROTTLE_RETRIES = 3
+        private const val RETRY_BASE_DELAY_MILLIS = 5_000L
+        private const val MAX_RETRY_DELAY_MILLIS = 20_000L
+
         private val labApiAuthenticationClient: LabApiAuthenticationClient =
             LabApiAuthenticationClient(BuildConfig.LAB_CLIENT_SECRET)
         val labClient: LabClient = LabClient(labApiAuthenticationClient)
@@ -76,6 +95,7 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
 
     private lateinit var context: Context
     private lateinit var activity: Activity
+    protected val tempEmailApi = TemporaryEmailService()
 
     // Remove default Coroutine test timeout of 10 seconds.
     private val testDispatcher = StandardTestDispatcher()
@@ -150,27 +170,36 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
     }
 
     fun <T> retryOperation(
-        maxRetries: Int = 5,
+        maxRetries: Int = MAX_THROTTLE_RETRIES,
         authFlow: () -> T
     ) {
         var retryCount = 0
-        var shouldRetry = true
 
-        while (shouldRetry) {
+        while (true) {
             try {
                 authFlow()
-                shouldRetry = false // authFlow() has succeeded, so we don't need to retry.
-            } catch (e: Exception) {
-                //1secmail occasionally has a delay for emails to arrive / return from the API, or throws an internal server error, which causes tests to fail
-                //In this case, retry the test
-                if (retryCount >= maxRetries) {
-                    Assert.fail(e.message)
-                    shouldRetry = false
-                } else {
-                    retryCount++
+                return
+            } catch (e: AssertionError) {
+                // Classification (typed errorCodes first, assertion message as unconditional
+                // fallback) lives in the classifier so it is unit-testable without standing up
+                // this Robolectric-backed abstract test.
+                if (!NativeAuthEmailOTPErrorClassifier.isThrottleError(e)) {
+                    throw e
                 }
+                retryOrFail(e, retryCount++, maxRetries)
             }
         }
+    }
+
+    private fun retryOrFail(error: Throwable, retryCount: Int, maxRetries: Int) {
+        if (retryCount >= maxRetries) {
+            throw AssertionError(error.message).apply { initCause(error) }
+        }
+
+        // Avoid repeatedly requesting OTPs while the Native Auth test tenant is throttling them.
+        Thread.sleep(
+            minOf(RETRY_BASE_DELAY_MILLIS * (1L shl retryCount), MAX_RETRY_DELAY_MILLIS)
+        )
     }
 
     private fun readConfigFile(filePath: String): String {

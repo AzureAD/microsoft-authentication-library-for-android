@@ -75,6 +75,59 @@ stages:
           tasks: msal:jacocoTestReport  -PcodeCoverageEnabled=true -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PmockApiUrl=$(MOCK_API_URL) -PnativeAuthConfigString=$(NATIVE_AUTH_CONFIG_STRING)
           javaHomeSelection: $(BuildParameters.javaHomeSelection)
           jdkVersion: 1.17
+      - bash: |
+          set -euo pipefail
+          SKIP_LABEL="skip-native-auth-e2e-tests"
+          # AGENT_TEMPDIRECTORY is a Windows path on the windows-2022 pool; normalise the
+          # separators so curl/grep never see a backslash path under Git Bash/MSYS.
+          TEMP_DIR="${AGENT_TEMPDIRECTORY:-.}"
+          LABELS_FILE="${TEMP_DIR//\\//}/native-auth-pr-labels.json"
+
+          if [ -z "${PR_NUMBER:-}" ]; then
+            echo "No PR number available (not a PR build). Skipping Native Auth E2E tests."
+            echo "##vso[task.setvariable variable=SKIP_NATIVE_AUTH_E2E]true"
+            exit 0
+          fi
+
+          LABELS_URL="https://api.github.com/repos/${REPO}/issues/${PR_NUMBER}/labels"
+          echo "Fetching PR labels from ${LABELS_URL}"
+          # Capture the body and the HTTP status separately, so that a failed API call is
+          # distinguishable from a successful call that simply returned no matching label.
+          HTTP_STATUS=$(curl -sS -o "$LABELS_FILE" -w "%{http_code}" "$LABELS_URL" || echo "000")
+
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "GitHub labels API returned HTTP ${HTTP_STATUS}. Skipping Native Auth E2E tests as a preventive measure (fail-safe to skipping, never to blocking)."
+            echo "##vso[task.setvariable variable=SKIP_NATIVE_AUTH_E2E]true"
+            exit 0
+          fi
+
+          # jq is not reliably available on the windows-2022 pool, so match on the raw JSON.
+          if grep -q "\"name\"[[:space:]]*:[[:space:]]*\"${SKIP_LABEL}\"" "$LABELS_FILE"; then
+            echo "Label '${SKIP_LABEL}' is present on PR #${PR_NUMBER}. Skipping Native Auth E2E tests."
+            echo "##vso[task.setvariable variable=SKIP_NATIVE_AUTH_E2E]true"
+          else
+            echo "Label '${SKIP_LABEL}' is not present on PR #${PR_NUMBER}. Running Native Auth E2E tests."
+            echo "##vso[task.setvariable variable=SKIP_NATIVE_AUTH_E2E]false"
+          fi
+        displayName: Check for skip-native-auth-e2e-tests label
+        env:
+          PR_NUMBER: $(System.PullRequest.PullRequestNumber)
+          REPO: $(Build.Repository.Name)
+      - task: Gradle@2
+        displayName: Run Native Auth E2E Tests
+        # Mirrors iOS (microsoft-authentication-library-for-objc) pr-validation.yml, which guards its
+        # native auth E2E jobs with the same opt-out label and a 30 minute timeout.
+        condition: and(succeeded(), ne(variables['SKIP_NATIVE_AUTH_E2E'], 'true'))
+        timeoutInMinutes: 30
+        inputs:
+          tasks: msal:testLocalDebugUnitTest -Plabtest -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PnativeAuthConfigString=$(NATIVE_AUTH_CONFIG_STRING) --tests com.microsoft.identity.client.e2e.tests.network.nativeauth.*
+          javaHomeSelection: $(BuildParameters.javaHomeSelection)
+          jdkVersion: 1.17
+          publishJUnitResults: true
+          testResultsFiles: '**/build/test-results/testLocalDebugUnitTest/TEST-*.xml'
+          testRunTitle: Native Auth E2E Tests (PR Branch)
+        env:
+          EMAIL_PROVIDER_PASSWORD: $(EMAIL_PROVIDER_PASSWORD)
       - publish: $(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
         artifact: jacocoReport
         displayName: 'Publish JaCoCo Report Artifact (PR Branch)'
