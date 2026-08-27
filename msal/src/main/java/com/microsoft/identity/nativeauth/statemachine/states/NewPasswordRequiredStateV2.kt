@@ -92,9 +92,6 @@ class NewPasswordRequiredStateV2 internal constructor(
     /**
      * Submits a new password to the server; callback variant.
      *
-     * The SDK overwrites [password] with null characters before the asynchronous operation invokes
-     * [callback], so callers must not reuse the array afterwards.
-     *
      * @param password The new password to submit.
      * @param callback [com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2.SubmitNewPasswordCallback] to receive the result on.
      */
@@ -115,15 +112,7 @@ class NewPasswordRequiredStateV2 internal constructor(
     }
 
     /**
-    * Submits a new password to the server; Kotlin coroutines variant.
-     *
-     * @param password The new password to submit.
-     * @return The results of the submit new password action.
-     */
      * Submits a new password to the server; Kotlin coroutines variant.
-     *
-     * The SDK overwrites [password] with null characters before this method returns, so callers
-     * must not reuse the array afterwards.
      *
      * @param password The new password to submit.
      * @return The results of the submit new password action.
@@ -137,8 +126,6 @@ class NewPasswordRequiredStateV2 internal constructor(
         try {
             return submitNewPasswordInternal(password)
         } finally {
-            // Common only clears the array once its interactor starts processing the request, so
-            // MSAL owns cleanup for failures that happen before then, and for cancellation.
             StringUtil.overwriteWithNull(password)
         }
     }

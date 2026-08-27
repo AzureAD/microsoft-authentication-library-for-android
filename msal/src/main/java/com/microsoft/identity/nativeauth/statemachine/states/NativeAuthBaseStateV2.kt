@@ -90,8 +90,8 @@ abstract class NativeAuthBaseStateV2 internal constructor(
     }
 
     /**
-     * Writes every field of this base class, including [continuationState]. Subclasses must not
-     * override this method to append base fields; each subclass's `Parcel` constructor is required
+     * Subclasses must not override this method to append base fields; each subclass's `Parcel`
+     * constructor is required
      * to read the fields in exactly this order - continuationToken, correlationId, scenario, config,
      * continuationState - otherwise the reads desynchronise from the writes. Subclasses that never
      * carry a continuation state should read config via [readConfigAndSkipContinuationState].
@@ -108,8 +108,7 @@ abstract class NativeAuthBaseStateV2 internal constructor(
 }
 
 /**
- * Reads the config field and then drains the trailing continuationState field written by
- * [NativeAuthBaseStateV2.writeToParcel]. Used by states that never carry a continuation state, so
+ * Used by states that never carry a continuation state, so
  * that the parcel read order stays symmetric with the write order.
  */
 internal fun Parcel.readConfigAndSkipContinuationState(): NativeAuthPublicClientApplicationConfiguration {

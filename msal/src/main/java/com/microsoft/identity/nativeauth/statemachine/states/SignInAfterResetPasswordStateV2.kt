@@ -87,11 +87,8 @@ class SignInAfterResetPasswordStateV2 internal constructor(
 
     interface SignInCallback : Callback<NativeAuthResultV2>
 
-/**
- * Explicit app-invoked sign-in step following a completed password reset flow.
- */
-     * Explicit app-invoked sign-in step following a completed password reset flow. This is the only
-     * method that triggers the token exchange and cache persistence for the reset flow.
+    /**
+     * Explicit app-invoked sign-in step following a completed password reset flow.
      */
     fun signIn(callback: SignInCallback) {
         LogSession.logMethodCall(
@@ -146,7 +143,7 @@ class SignInAfterResetPasswordStateV2 internal constructor(
     }
 
     /**
-     * Explicit app-invoked sign-in step following a completed password reset flow, Kotlin coroutines      
+     * Explicit app-invoked sign-in step following a completed password reset flow, Kotlin coroutines
      * variant.
      *
      * @param parameters parameters used for the sign-in-after-reset-password operation. Scopes and
