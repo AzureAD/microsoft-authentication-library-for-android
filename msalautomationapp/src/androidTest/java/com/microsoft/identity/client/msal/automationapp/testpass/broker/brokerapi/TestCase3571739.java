@@ -94,7 +94,7 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
     private static final String DIALOG_OK_BUTTON = "android:id/button1";
 
     // Constants
-    private static final String LEMON_GLACIER = "https://lemon-glacier-0fa89f11e.1.azurestaticapps.net/";
+    private static final String GRAY_WAVE = "https://gray-wave-0bd4f371e.7.azurestaticapps.net/";
     private static final String MICROSOFT_ONLINE = "https://login.microsoftonline.com";
     private static final String PRT_COOKIE_NAME = "x-ms-RefreshTokenCredential";
     private static final String SCOPE = "User.Read";
@@ -226,7 +226,7 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
         new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().resourceId(INPUT_LOGIN_HINT));
 
         // Set sender origin for MSAL JS
-        UiAutomatorUtils.handleInput(INPUT_SENDER_ORIGIN, LEMON_GLACIER);
+        UiAutomatorUtils.handleInput(INPUT_SENDER_ORIGIN, GRAY_WAVE);
 
         // Fill the WebApps GetToken form for a silent MSAL JS request. This is the request that used
         // to fail with UiRequired after a lookup-mode establishing request: the per-clientId MSAL
