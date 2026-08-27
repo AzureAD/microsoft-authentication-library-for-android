@@ -23,7 +23,6 @@
 
 package com.microsoft.identity.nativeauth.statemachine.errors
 
-import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 
 /**
@@ -40,7 +39,6 @@ import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
  * @param errorCodes a list of specific error codes returned by the authentication server.
  * @param subError the sub error returned by the authentication server.
  * @param exception an internal unexpected exception that happened.
- * @param nextState populated for recoverable errors (e.g. invalid code) so the caller can retry the same step without restarting the flow; null for terminal errors.
  */
 class SubmitCodeErrorV2(
     errorType: String? = null,
@@ -50,9 +48,8 @@ class SubmitCodeErrorV2(
     scenario: NativeAuthFlowScenarioV2,
     errorCodes: List<Int>? = null,
     val subError: String? = null,
-    exception: Exception? = null,
-    override val nextState: CodeRequiredStateV2? = null
-) : NativeAuthErrorV2(errorType, error, errorMessage, correlationId, scenario, errorCodes, exception, nextState) {
+    exception: Exception? = null
+) : NativeAuthErrorV2(errorType, error, errorMessage, correlationId, scenario, errorCodes, exception) {
 
     fun isInvalidCode(): Boolean = this.errorType == ErrorTypes.INVALID_CODE
 }

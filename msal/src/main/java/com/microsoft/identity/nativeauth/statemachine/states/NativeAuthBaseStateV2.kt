@@ -64,6 +64,13 @@ abstract class NativeAuthBaseStateV2 internal constructor(
         scenario = scenario
     )
 
+    protected fun invalidState(): NativeAuthResultV2 = NativeAuthErrorV2(
+        errorType = ErrorTypes.INVALID_STATE,
+        errorMessage = "The continuation state is unavailable. Restart the flow.",
+        correlationId = correlationId,
+        scenario = scenario
+    )
+
     /**
      * Maps a completed V2 command result to a [NativeAuthResultV2.Complete] when an inline
      * sign-in result is present, otherwise to an API error carrying the flow [scenario].

@@ -137,8 +137,7 @@ class NewPasswordRequiredStateV2 internal constructor(
                 errorType = ErrorTypes.INVALID_PASSWORD,
                 errorMessage = "Password cannot be empty.",
                 correlationId = correlationId,
-                scenario = scenario,
-                nextState = this
+                scenario = scenario
             )
         }
         return withContext(Dispatchers.IO) {
@@ -175,8 +174,7 @@ class NewPasswordRequiredStateV2 internal constructor(
                             correlationId = result.correlationId,
                             scenario = scenario,
                             errorCodes = result.errorCodes,
-                            subError = result.subError,
-                            nextState = this@NewPasswordRequiredStateV2
+                            subError = result.subError
                         )
                     }
                     is NativeAuthV2CommandResult.PasswordResetFailed -> {

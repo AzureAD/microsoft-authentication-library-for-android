@@ -286,7 +286,6 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         assertTrue(incorrectCode.isInvalidCode())
         assertEquals(errorCodes, incorrectCode.errorCodes)
         assertEquals(subError, incorrectCode.subError)
-        assertSame(state, incorrectCode.nextState)
 
         enqueueResult(
             NativeAuthV2CommandResult.NewPasswordRequired(correlationId, createContinuationState()),
@@ -363,7 +362,24 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         val error = state.submitCode("") as SubmitCodeErrorV2
 
         assertTrue(error.isInvalidCode())
-        assertSame(state, error.nextState)
+    }
+
+    @Test
+    fun codeOperationsWithoutContinuationStateReturnInvalidState() = runTest {
+        val state = CodeRequiredStateV2(
+            null,
+            correlationId,
+            NativeAuthFlowScenarioV2.RESET_PASSWORD,
+            NativeAuthPublicClientApplicationConfiguration()
+        )
+
+        val submitError = state.submitCode("123456") as NativeAuthErrorV2
+        val resendError = state.resendCode() as NativeAuthErrorV2
+
+        assertEquals(ErrorTypes.INVALID_STATE, submitError.errorType)
+        assertEquals("The continuation state is unavailable. Restart the flow.", submitError.errorMessage)
+        assertEquals(ErrorTypes.INVALID_STATE, resendError.errorType)
+        assertEquals("The continuation state is unavailable. Restart the flow.", resendError.errorMessage)
     }
 
     @Test
@@ -390,7 +406,6 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         assertTrue(rejected.isInvalidPassword())
         assertEquals(errorCodes, rejected.errorCodes)
         assertEquals(subError, rejected.subError)
-        assertSame(state, rejected.nextState)
 
         enqueueResult(
             NativeAuthV2CommandResult.PasswordResetFailed(correlationId, "reset_failed", "Failed"),
@@ -462,7 +477,6 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         val error = state.submitNewPassword(charArrayOf()) as SubmitNewPasswordErrorV2
 
         assertTrue(error.isInvalidPassword())
-        assertSame(state, error.nextState)
     }
 
     /**
@@ -631,8 +645,8 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         val authMethod = com.microsoft.identity.nativeauth.AuthMethod("id", "oob", null, "email")
 
         val codeRequired = CodeRequiredStateV2("continuation-token", "correlation-id", scenario, config)
-        assertNotImplemented(codeRequired.submitCode("1234"))
-        assertNotImplemented(codeRequired.resendCode())
+        assertInvalidState(codeRequired.submitCode("1234"))
+        assertInvalidState(codeRequired.resendCode())
 
         assertNotImplemented(PasswordRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitPassword("password".toCharArray()))
         assertNotImplemented(NewPasswordRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitNewPassword("password".toCharArray()))
@@ -685,6 +699,11 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         val error = result as NativeAuthErrorV2
         assertTrue(error.isNotImplemented())
         return error
+    }
+
+    private fun assertInvalidState(result: NativeAuthResultV2) {
+        assertTrue(result is NativeAuthErrorV2)
+        assertEquals(ErrorTypes.INVALID_STATE, (result as NativeAuthErrorV2).errorType)
     }
 
     private suspend fun codeRequiredState(): CodeRequiredStateV2 {

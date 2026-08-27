@@ -111,14 +111,13 @@ class CodeRequiredStateV2 internal constructor(
             correlationId = correlationId,
             methodName = "${TAG}.submitCode(code: String)"
         )
-        val state = continuationState ?: return notImplemented()
+        val state = continuationState ?: return invalidState()
         if (code.isEmpty()) {
             return SubmitCodeErrorV2(
                 errorType = ErrorTypes.INVALID_CODE,
                 errorMessage = "Code cannot be empty.",
                 correlationId = correlationId,
-                scenario = scenario,
-                nextState = this
+                scenario = scenario
             )
         }
         return withContext(Dispatchers.IO) {
@@ -155,8 +154,7 @@ class CodeRequiredStateV2 internal constructor(
                             correlationId = result.correlationId,
                             scenario = scenario,
                             errorCodes = result.errorCodes,
-                            subError = result.subError,
-                            nextState = this@CodeRequiredStateV2
+                            subError = result.subError
                         )
                     }
                     is NativeAuthV2CommandResult.NotImplemented -> {
@@ -227,7 +225,7 @@ class CodeRequiredStateV2 internal constructor(
             correlationId = correlationId,
             methodName = "${TAG}.resendCode()"
         )
-        val state = continuationState ?: return notImplemented()
+        val state = continuationState ?: return invalidState()
         return withContext(Dispatchers.IO) {
             try {
                 val parameters = CommandParametersAdapter.createNativeAuthV2ResendCodeCommandParameters(
