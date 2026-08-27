@@ -34,6 +34,7 @@ import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.UserAttributes
+import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
@@ -179,6 +180,16 @@ class NativeAuthV2StatesTest {
         assertEquals(scenario, result.scenario)
     }
 
+    private fun assertCallbackInvalidState(action: (ResultFuture<NativeAuthResultV2>) -> Unit) {
+        val future = ResultFuture<NativeAuthResultV2>()
+        action(future)
+        val result = future.get(30, TimeUnit.SECONDS)
+        assertTrue(result is NativeAuthErrorV2)
+        assertEquals(ErrorTypes.INVALID_STATE, (result as NativeAuthErrorV2).errorType)
+        assertEquals("The continuation state is unavailable. Restart the flow.", result.errorMessage)
+        assertEquals(scenario, result.scenario)
+    }
+
     /**
      * Drives the error path of the callback overloads: when result delivery throws an
      * [MsalException], the state's `catch` block must route it to the callback's `onError`. This
@@ -198,8 +209,8 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
-    fun testCodeRequiredStateCallbacksReturnNotImplemented() {
-        assertCallbackNotImplemented { future ->
+    fun testCodeRequiredStateCallbacksReturnInvalidState() {
+        assertCallbackInvalidState { future ->
             CodeRequiredStateV2(continuationToken, correlationId, scenario, config).submitCode(
                 "1234",
                 object : CodeRequiredStateV2.SubmitCodeCallback {
@@ -208,7 +219,7 @@ class NativeAuthV2StatesTest {
                 }
             )
         }
-        assertCallbackNotImplemented { future ->
+        assertCallbackInvalidState { future ->
             CodeRequiredStateV2(continuationToken, correlationId, scenario, config).resendCode(
                 object : CodeRequiredStateV2.ResendCodeCallback {
                     override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
