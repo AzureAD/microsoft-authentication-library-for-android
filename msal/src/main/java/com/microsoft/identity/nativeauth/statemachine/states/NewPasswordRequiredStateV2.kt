@@ -115,6 +115,11 @@ class NewPasswordRequiredStateV2 internal constructor(
     }
 
     /**
+    * Submits a new password to the server; Kotlin coroutines variant.
+     *
+     * @param password The new password to submit.
+     * @return The results of the submit new password action.
+     */
      * Submits a new password to the server; Kotlin coroutines variant.
      *
      * The SDK overwrites [password] with null characters before this method returns, so callers

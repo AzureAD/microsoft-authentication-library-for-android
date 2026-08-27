@@ -54,8 +54,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * State reached once a password reset has completed server-side. The token exchange and cache
- * persistence are deferred until the app explicitly invokes [signIn].
+ * State reached once a password reset has completed server-side.
  */
 class SignInAfterResetPasswordStateV2 internal constructor(
     continuationToken: String?,
@@ -88,7 +87,9 @@ class SignInAfterResetPasswordStateV2 internal constructor(
 
     interface SignInCallback : Callback<NativeAuthResultV2>
 
-    /**
+/**
+ * Explicit app-invoked sign-in step following a completed password reset flow.
+ */
      * Explicit app-invoked sign-in step following a completed password reset flow. This is the only
      * method that triggers the token exchange and cache persistence for the reset flow.
      */
@@ -109,8 +110,7 @@ class SignInAfterResetPasswordStateV2 internal constructor(
     }
 
     /**
-     * Explicit app-invoked sign-in step following a completed password reset flow. This is the only
-     * method that triggers the token exchange and cache persistence for the reset flow; callback variant.
+     * Explicit app-invoked sign-in step following a completed password reset flow, callback variant.
      *
      * @param parameters parameters used for the sign-in-after-reset-password operation. Scopes and
      * claims supplied here take precedence over any supplied at the start of the reset flow.
@@ -134,8 +134,7 @@ class SignInAfterResetPasswordStateV2 internal constructor(
     }
 
     /**
-     * Explicit app-invoked sign-in step following a completed password reset flow. This is the only
-     * method that triggers the token exchange and cache persistence for the reset flow.
+     * Explicit app-invoked sign-in step following a completed password reset flow.
      */
     suspend fun signIn(): NativeAuthResultV2 {
         LogSession.logMethodCall(
@@ -147,9 +146,8 @@ class SignInAfterResetPasswordStateV2 internal constructor(
     }
 
     /**
-     * Explicit app-invoked sign-in step following a completed password reset flow. This is the only
-     * method that triggers the token exchange and cache persistence for the reset flow; Kotlin
-     * coroutines variant.
+     * Explicit app-invoked sign-in step following a completed password reset flow, Kotlin coroutines      
+     * variant.
      *
      * @param parameters parameters used for the sign-in-after-reset-password operation. Scopes and
      * claims supplied here take precedence over any supplied at the start of the reset flow.
