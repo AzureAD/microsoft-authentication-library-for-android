@@ -416,12 +416,12 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
 
     @Override
     public UserType getJsonUserType() {
-        return null;
+        return UserType.BASIC;
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return TempUserType.BASIC;
+        return null;
     }
 
     @Override
