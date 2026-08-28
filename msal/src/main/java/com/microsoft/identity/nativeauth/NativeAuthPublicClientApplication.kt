@@ -47,6 +47,8 @@ import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2ResetPasswordStartCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.ResetPasswordCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.ResetPasswordStartCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInCommandResult
@@ -57,10 +59,12 @@ import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandRes
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory
 import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.common.java.util.StringUtil
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResetPasswordStartCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordStartCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.SignInStartCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.SignUpStartCommand
 import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
+import com.microsoft.identity.common.nativeauth.internal.controllers.v2.NativeAuthV2FlowController
 import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
@@ -69,6 +73,7 @@ import com.microsoft.identity.nativeauth.statemachine.errors.GetAccountError
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
+import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
@@ -89,9 +94,13 @@ import com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequi
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpPasswordRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
+import com.microsoft.identity.nativeauth.utils.getCancellable
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.UUID
@@ -640,7 +649,137 @@ class NativeAuthPublicClientApplication(
             correlationId = null,
             methodName = "${TAG}.resetPasswordV2(parameters: NativeAuthResetPasswordParameters)"
         )
-        return notImplementedV2(NativeAuthFlowScenarioV2.RESET_PASSWORD)
+        return withContext(Dispatchers.IO) {
+            var correlationId = DiagnosticContext.INSTANCE.threadCorrelationId ?: "UNSET"
+            try {
+                // Kept inside the try so an already-signed-in account is surfaced through the V2
+                // result contract as a ResetPasswordErrorV2, rather than escaping as a thrown
+                // MsalClientException. This matches the V1 flows, which catch the same exception.
+                verifyNoUserIsSignedIn()
+
+                if (parameters.username.isBlank()) {
+                    return@withContext ResetPasswordErrorV2(
+                        errorType = ErrorTypes.INVALID_USERNAME,
+                        errorMessage = "Empty or blank username",
+                        correlationId = correlationId,
+                        scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD
+                    )
+                }
+
+                val cmdParams = CommandParametersAdapter.createResetPasswordV2StartCommandParameters(
+                    nativeAuthConfig,
+                    nativeAuthConfig.oAuth2TokenCache,
+                    parameters.username
+                )
+                correlationId = cmdParams.correlationId ?: correlationId
+
+                val command = NativeAuthV2ResetPasswordStartCommand(
+                    cmdParams,
+                    NativeAuthV2FlowController(),
+                    PublicApiId.NATIVE_AUTH_V2_RESET_PASSWORD_START
+                )
+
+                ensureActive()
+                val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
+                ensureActive()
+
+                when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2ResetPasswordStartCommandResult>()) {
+                    is NativeAuthV2CommandResult.CodeRequired -> {
+                        NativeAuthResultV2.CodeRequired(
+                            nextState = CodeRequiredStateV2(
+                                continuationState = result.continuationState,
+                                scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
+                                config = nativeAuthConfig
+                            ),
+                            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
+                            codeLength = result.codeLength,
+                            sentTo = result.challengeTargetLabel,
+                            channel = result.challengeChannel
+                        )
+                    }
+                    is NativeAuthV2CommandResult.Complete -> {
+                        val localAuthResult = result.authenticationResult
+                        if (localAuthResult != null) {
+                            val authenticationResult = AuthenticationResultAdapter.adapt(localAuthResult)
+                            NativeAuthResultV2.Complete(
+                                resultValue = AccountState.createFromAuthenticationResult(
+                                    authenticationResult = authenticationResult,
+                                    correlationId = result.correlationId,
+                                    config = nativeAuthConfig
+                                ),
+                                scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD
+                            )
+                        } else {
+                            Logger.warn(TAG, result.correlationId, "V2 resetPassword start Complete with no inline sign-in result.")
+                            ResetPasswordErrorV2(
+                                errorMessage = "Password reset completed but no sign-in result was returned.",
+                                correlationId = result.correlationId,
+                                scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD
+                            )
+                        }
+                    }
+                    is NativeAuthV2CommandResult.UserNotFound -> {
+                        ResetPasswordErrorV2(
+                            errorType = ErrorTypes.USER_NOT_FOUND,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
+                            errorCodes = result.errorCodes
+                        )
+                    }
+                    is INativeAuthCommandResult.InvalidUsername -> {
+                        ResetPasswordErrorV2(
+                            errorType = ErrorTypes.INVALID_USERNAME,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
+                            errorCodes = result.errorCodes
+                        )
+                    }
+                    is NativeAuthV2CommandResult.NotImplemented -> {
+                        NativeAuthErrorV2(
+                            errorType = ErrorTypes.NOT_IMPLEMENTED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD
+                        )
+                    }
+                    is INativeAuthCommandResult.Redirect -> {
+                        ResetPasswordErrorV2(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD
+                        )
+                    }
+                    is INativeAuthCommandResult.APIError -> {
+                        ResetPasswordErrorV2(
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
+                            errorCodes = result.errorCodes,
+                            exception = result.exception
+                        )
+                    }
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Logger.error(TAG, correlationId, "Exception thrown in resetPasswordV2", e)
+                ResetPasswordErrorV2(
+                    errorType = ErrorTypes.CLIENT_EXCEPTION,
+                    errorMessage = "MSAL client exception occurred in resetPasswordV2.",
+                    correlationId = correlationId,
+                    scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
+                    exception = e
+                )
+            }
+        }
     }
 
     override fun resetPasswordV2(parameters: NativeAuthResetPasswordParameters, callback: NativeAuthV2Callback) {
@@ -919,13 +1058,7 @@ class NativeAuthPublicClientApplication(
 
         return withContext(Dispatchers.IO) {
             try {
-                val doesAccountExist = checkForPersistedAccount().get()
-                if (doesAccountExist) {
-                    throw MsalClientException(
-                        MsalClientException.INVALID_PARAMETER,
-                        "An account is already signed in."
-                    )
-                }
+                verifyNoUserIsSignedIn()
 
                 if (username.isBlank()) {
                     return@withContext SignUpError(
@@ -1110,13 +1243,7 @@ class NativeAuthPublicClientApplication(
     private suspend fun internalResetPassword(username: String): ResetPasswordStartResult {
         try {
             return withContext(Dispatchers.IO) {
-                val doesAccountExist = checkForPersistedAccount().get()
-                if (doesAccountExist) {
-                    throw MsalClientException(
-                        MsalClientException.INVALID_PARAMETER,
-                        "An account is already signed in."
-                    )
-                }
+                verifyNoUserIsSignedIn()
 
                 if (username.isBlank()) {
                     return@withContext ResetPasswordError(

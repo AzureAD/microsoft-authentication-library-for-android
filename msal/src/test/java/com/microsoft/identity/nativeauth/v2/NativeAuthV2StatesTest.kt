@@ -27,10 +27,14 @@ import android.os.Parcelable
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.common.java.exception.BaseException
+import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
+import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2LinkRelation
+import com.microsoft.identity.common.java.nativeauth.providers.v2.NativeAuthV2FlowScenario
 import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.UserAttributes
+import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
@@ -42,10 +46,12 @@ import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequ
 import com.microsoft.identity.nativeauth.statemachine.states.NativeAuthBaseStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterResetPasswordStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthRegistrationRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthVerificationRequiredStateV2
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
@@ -69,7 +75,7 @@ class NativeAuthV2StatesTest {
     private fun <T : NativeAuthBaseStateV2> assertParcelRoundTrip(
         state: T,
         creator: Parcelable.Creator<T>
-    ) {
+    ): T {
         assertEquals(0, state.describeContents())
         val parcel = Parcel.obtain()
         try {
@@ -80,6 +86,7 @@ class NativeAuthV2StatesTest {
             assertEquals(state.correlationId, restored.correlationId)
             assertEquals(state.scenario, restored.scenario)
             assertEquals(1, creator.newArray(1).size)
+            return restored
         } finally {
             parcel.recycle()
         }
@@ -125,12 +132,61 @@ class NativeAuthV2StatesTest {
         )
     }
 
+    @Test
+    fun testContinuationStatesParcelOpaqueStateWithoutInventingContinuationToken() {
+        val continuationState = createContinuationState()
+
+        val restoredCodeState = assertParcelRoundTrip(
+            CodeRequiredStateV2(continuationState, NativeAuthFlowScenarioV2.RESET_PASSWORD, config),
+            CodeRequiredStateV2.CREATOR
+        )
+        val restoredPasswordState = assertParcelRoundTrip(
+            NewPasswordRequiredStateV2(continuationState, NativeAuthFlowScenarioV2.RESET_PASSWORD, config),
+            NewPasswordRequiredStateV2.CREATOR
+        )
+        val restoredSignInState = assertParcelRoundTrip(
+            SignInAfterResetPasswordStateV2(continuationState, NativeAuthFlowScenarioV2.RESET_PASSWORD, config),
+            SignInAfterResetPasswordStateV2.CREATOR
+        )
+
+        listOf(restoredCodeState, restoredPasswordState, restoredSignInState).forEach { restored ->
+            assertNull(restored.continuationToken)
+            assertEquals(correlationId, restored.correlationId)
+            assertEquals(listOf("scope"), restored.continuationState?.scopesForTokenRequest())
+        }
+    }
+
+    private fun createContinuationState(): NativeAuthV2ContinuationState {
+        val constructor = NativeAuthV2ContinuationState::class.java.declaredConstructors
+            .single { it.parameterCount == 7 }
+        constructor.isAccessible = true
+        return constructor.newInstance(
+            "opaque-token",
+            emptyMap<String, String>(),
+            listOf("scope"),
+            null,
+            correlationId,
+            NativeAuthV2LinkRelation.RESET_PASSWORD.value,
+            NativeAuthV2FlowScenario.RESET_PASSWORD
+        ) as NativeAuthV2ContinuationState
+    }
+
     private fun assertCallbackNotImplemented(action: (ResultFuture<NativeAuthResultV2>) -> Unit) {
         val future = ResultFuture<NativeAuthResultV2>()
         action(future)
         val result = future.get(30, TimeUnit.SECONDS)
         assertTrue(result is NativeAuthErrorV2)
         assertTrue((result as NativeAuthErrorV2).isNotImplemented())
+        assertEquals(scenario, result.scenario)
+    }
+
+    private fun assertCallbackInvalidState(action: (ResultFuture<NativeAuthResultV2>) -> Unit) {
+        val future = ResultFuture<NativeAuthResultV2>()
+        action(future)
+        val result = future.get(30, TimeUnit.SECONDS)
+        assertTrue(result is NativeAuthErrorV2)
+        assertEquals(ErrorTypes.INVALID_STATE, (result as NativeAuthErrorV2).errorType)
+        assertEquals("The continuation state is unavailable. Restart the flow.", result.errorMessage)
         assertEquals(scenario, result.scenario)
     }
 
@@ -153,8 +209,8 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
-    fun testCodeRequiredStateCallbacksReturnNotImplemented() {
-        assertCallbackNotImplemented { future ->
+    fun testCodeRequiredStateCallbacksReturnInvalidState() {
+        assertCallbackInvalidState { future ->
             CodeRequiredStateV2(continuationToken, correlationId, scenario, config).submitCode(
                 "1234",
                 object : CodeRequiredStateV2.SubmitCodeCallback {
@@ -163,7 +219,7 @@ class NativeAuthV2StatesTest {
                 }
             )
         }
-        assertCallbackNotImplemented { future ->
+        assertCallbackInvalidState { future ->
             CodeRequiredStateV2(continuationToken, correlationId, scenario, config).resendCode(
                 object : CodeRequiredStateV2.ResendCodeCallback {
                     override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
