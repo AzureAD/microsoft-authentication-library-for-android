@@ -140,6 +140,9 @@ android {
 
     kotlinOptions {
         jvmTarget = "1.8"
+        // Pinned to 1.9 so published metadata stays readable by consumers still on Kotlin 1.8.
+        languageVersion = "1.9"
+        apiVersion = "1.9"
     }
 
     buildTypes {
