@@ -35,12 +35,14 @@ import com.microsoft.identity.common.java.exception.BaseException;
 import com.microsoft.identity.common.java.util.ResultFuture;
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication;
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication;
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration;
 import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters;
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters;
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters;
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2;
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2;
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2;
+import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterResetPasswordStateV2;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -100,9 +102,27 @@ public class NativeAuthV2InterfaceJavaTest extends PublicClientApplicationAbstra
     }
 
     @Test
-    public void resetPasswordV2ReturnsNotImplemented() throws ExecutionException, InterruptedException, TimeoutException {
+    public void signInAfterResetPasswordReturnsNotImplemented() throws ExecutionException, InterruptedException, TimeoutException {
+        final SignInAfterResetPasswordStateV2 state = new SignInAfterResetPasswordStateV2(
+                "continuation-token",
+                "correlation-id",
+                NativeAuthFlowScenarioV2.RESET_PASSWORD,
+                new NativeAuthPublicClientApplicationConfiguration(),
+                null
+        );
         final ResultFuture<NativeAuthResultV2> future = new ResultFuture<>();
-        application.resetPasswordV2(new NativeAuthResetPasswordParameters(username), newCallback(future));
+        state.signIn(new SignInAfterResetPasswordStateV2.SignInCallback() {
+            @Override
+            public void onResult(NativeAuthResultV2 result) {
+                future.setResult(result);
+            }
+
+            @Override
+            public void onError(@NonNull BaseException exception) {
+                future.setException(exception);
+            }
+        });
+
         assertNotImplemented(future.get(30, TimeUnit.SECONDS), NativeAuthFlowScenarioV2.RESET_PASSWORD);
     }
 
