@@ -38,6 +38,7 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.Micr
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.common.java.commands.webapps.WebAppsGetTokenSubOperationResponse;
+import com.microsoft.identity.common.java.commands.webapps.WebAppsSupportedContracts;
 import com.microsoft.identity.common.java.util.ObjectMapper;
 import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
@@ -46,23 +47,25 @@ import com.microsoft.identity.labapi.utilities.constants.UserType;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.List;
 
 // WebApps API Tests via BrokerHost Broker API tab
 // End-to-end coverage of the WebApps APIs using the BrokerHost app's Broker API tab, exercising the
 // lookup-mode (Edge token binding) scenario end to end:
-//   Step 1: an interactive GetToken sent as a lookup-mode request (nativebroker=1 +
+//   Step 1: query the supported WebApps contracts and verify that all known operations are present.
+//   Step 2: an interactive GetToken sent as a lookup-mode request (nativebroker=1 +
 //           nativebroker_mode=Lookup extra params, the values ESTS sends for a lookup request).
 //           A lookup-mode request establishes the PRT-backed broker account and registers the
 //           client, but is NOT persisted to the per-clientId MSAL token cache. Because the
 //           lookup-mode response carries "none" for the tokens, we only assert that a successful
 //           (non-error) response comes back, then read the homeAccountId from it.
-//   Step 2: a silent MSAL JS GetToken supplying only that homeAccountId (no login hint), like the
+//   Step 3: a silent MSAL JS GetToken supplying only that homeAccountId (no login hint), like the
 //           real MSAL JS client. This is the request that used to fail with UiRequired: the broker
 //           must resolve the account from the PRT/broker-account store keyed by homeAccountId
 //           rather than from the (empty) per-clientId MSAL token cache. It must succeed without
 //           falling back to an interactive account picker.
-// GetCookies, GetAllSsoTokens, and SignOut are also exercised.
+// GetCookies, GetAllSsoTokens, and SignOut are exercised after the GetToken flow.
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3571739
 @SupportedBrokers(brokers = BrokerHost.class)
 @LocalBrokerHostDebugUiTest
@@ -82,6 +85,8 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
     private static final String CHECKBOX_IS_STS = BROKER_HOST_PKG + ":id/checkbox_is_sts";
     private static final String BUTTON_EXECUTE_GET_TOKEN = BROKER_HOST_PKG + ":id/button_execute_get_token";
     private static final String BUTTON_EXECUTE_SIGN_OUT = BROKER_HOST_PKG + ":id/button_execute_sign_out";
+    private static final String BUTTON_GET_SUPPORTED_WEBAPP_CONTRACTS =
+            BROKER_HOST_PKG + ":id/button_get_supported_webapp_contracts";
     private static final String EDIT_TEXT_COOKIES_URL = BROKER_HOST_PKG + ":id/edit_text_webapps_cookie_url";
     private static final String BUTTON_GET_COOKIES = BROKER_HOST_PKG + ":id/button_get_webapp_cookies";
     private static final String BUTTON_GET_ALL_SSO_TOKENS = BROKER_HOST_PKG + ":id/button_get_sso_tokens";
@@ -90,7 +95,7 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
     private static final String DIALOG_OK_BUTTON = "android:id/button1";
 
     // Constants
-    private static final String LEMON_GLACIER = "https://lemon-glacier-0fa89f11e.1.azurestaticapps.net/";
+    private static final String GRAY_WAVE = "https://gray-wave-0bd4f371e.7.azurestaticapps.net/";
     private static final String MICROSOFT_ONLINE = "https://login.microsoftonline.com";
     private static final String PRT_COOKIE_NAME = "x-ms-RefreshTokenCredential";
     private static final String SCOPE = "User.Read";
@@ -110,7 +115,47 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
 
         final BrokerHost brokerHost = (BrokerHost) mBroker;
 
-        // -------- Step 1: Interactive GetToken (lookup mode) --------
+        // -------- Step 1: Get supported WebApps contracts --------
+        // Real callers query supported contracts before attempting a WebApps operation.
+        brokerHost.brokerApiFragment.launch();
+
+        new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(
+                new UiSelector().resourceId(BUTTON_GET_SUPPORTED_WEBAPP_CONTRACTS)
+        );
+        UiAutomatorUtils.handleButtonClick(BUTTON_GET_SUPPORTED_WEBAPP_CONTRACTS);
+
+        final String supportedContractsResult = dismissDialogAndGetText();
+        Assert.assertNotNull(
+                "Supported WebApps contracts result should not be null",
+                supportedContractsResult
+        );
+        final int contractsJsonStart = supportedContractsResult.indexOf("[");
+        final int contractsJsonEnd = supportedContractsResult.lastIndexOf("]");
+        Assert.assertTrue(
+                "Supported WebApps contracts result should contain a complete JSON array: "
+                        + supportedContractsResult,
+                contractsJsonStart >= 0 && contractsJsonEnd > contractsJsonStart
+        );
+        final String[] supportedContracts = ObjectMapper.deserializeJsonStringToObject(
+                supportedContractsResult.substring(contractsJsonStart, contractsJsonEnd + 1),
+                String[].class
+        );
+        Assert.assertNotNull(
+                "Supported WebApps contracts JSON should not be null",
+                supportedContracts
+        );
+        final List<String> supportedContractsList = Arrays.asList(supportedContracts);
+        for (final String expectedContract : Arrays.asList(
+                WebAppsSupportedContracts.GET_TOKEN,
+                WebAppsSupportedContracts.SIGN_OUT,
+                WebAppsSupportedContracts.GET_COOKIES)) {
+            Assert.assertTrue(
+                    "Broker should advertise the " + expectedContract + " WebApps contract",
+                    supportedContractsList.contains(expectedContract)
+            );
+        }
+
+        // -------- Step 2: Interactive GetToken (lookup mode) --------
         // Navigate to the Broker API tab
         brokerHost.brokerApiFragment.launch();
 
@@ -175,7 +220,7 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
         final String homeAccountId = resultJson.getAccount().getHomeAccountId();
         Assert.assertNotNull("homeAccountId should not be null", homeAccountId);
 
-        // -------- Step 2: Silent GetToken (MSAL JS) --------
+        // -------- Step 3: Silent GetToken (MSAL JS) --------
         // Navigate to the Broker API tab
         brokerHost.brokerApiFragment.launch();
 
@@ -183,7 +228,7 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
         new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().resourceId(INPUT_LOGIN_HINT));
 
         // Set sender origin for MSAL JS
-        UiAutomatorUtils.handleInput(INPUT_SENDER_ORIGIN, LEMON_GLACIER);
+        UiAutomatorUtils.handleInput(INPUT_SENDER_ORIGIN, GRAY_WAVE);
 
         // Fill the WebApps GetToken form for a silent MSAL JS request. This is the request that used
         // to fail with UiRequired after a lookup-mode establishing request: the per-clientId MSAL
@@ -215,7 +260,7 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
                 silentMsalJsResult.contains(ACCESS_TOKEN_DESCRIPTION)
         );
 
-        // -------- Step 3: GetCookies --------
+        // -------- Step 4: GetCookies --------
         // Navigate to the Broker API tab
         brokerHost.brokerApiFragment.launch();
 
@@ -272,7 +317,7 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
             );
         }
 
-        // -------- Step 4: GetAllSsoTokens --------
+        // -------- Step 5: GetAllSsoTokens --------
         // Navigate to the Broker API tab
         brokerHost.brokerApiFragment.launch();
 
@@ -305,7 +350,7 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
                 allSsoTokensResult.isEmpty()
         );
 
-        // -------- Step 5: SignOut --------
+        // -------- Step 6: SignOut --------
         // Navigate to the Broker API tab
         brokerHost.brokerApiFragment.launch();
 
