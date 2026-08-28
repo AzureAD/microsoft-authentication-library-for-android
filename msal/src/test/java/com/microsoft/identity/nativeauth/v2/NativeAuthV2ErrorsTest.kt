@@ -146,6 +146,20 @@ class NativeAuthV2ErrorsTest {
     }
 
     @Test
+    fun testNativeAuthV2ErrorsDoNotExposeRetryState() {
+        listOf(
+            NativeAuthErrorV2::class.java,
+            SubmitCodeErrorV2::class.java,
+            SubmitNewPasswordErrorV2::class.java
+        ).forEach { errorClass ->
+            assertFalse(
+                "${errorClass.simpleName} must not expose retry state",
+                errorClass.methods.any { it.name == "getNextState" }
+            )
+        }
+    }
+
+    @Test
     fun testSubmitCodeErrorV2UtilityMethods() {
         assertTrue(
             SubmitCodeErrorV2(errorType = "invalid_code", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isInvalidCode()
