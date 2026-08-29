@@ -2,6 +2,10 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+
+Version 0.0.02468-rc-RC1
+----------
+- [PATCH] Update common @0.0.02468-rc-RC1
 - [MINOR] Bump Kotlin to 2.0.21 with languageVersion/apiVersion pinned to 1.9 (#2561)
 - [MINOR] Added v2 private preview interfaces
 
