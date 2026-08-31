@@ -60,8 +60,9 @@ import kotlinx.coroutines.withContext
  *
  * No challenge is sent until the app selects a method explicitly. [authMethods] is exactly the set
  * the server offered for this step; selecting anything else fails without issuing a request. This
- * increment supports email one-time codes only, so any other channel returns a typed
- * not-supported error rather than following the wrong link.
+ * increment supports email one-time codes only, so any other channel returns a not-implemented
+ * error ([com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2.isNotImplemented])
+ * rather than following the wrong link.
  */
 class MFARequiredStateV2 internal constructor(
     continuationToken: String?,
@@ -160,7 +161,11 @@ class MFARequiredStateV2 internal constructor(
             )
 
         if (!offeredMethod.challengeChannel.equals(NativeAuthConstants.ChallengeChannel.EMAIL, ignoreCase = true)) {
+            // Reported as not-implemented rather than a bare error so the app can tell "this SDK
+            // increment only supports email one-time codes" apart from an unspecified server error,
+            // which is what an untyped error would be indistinguishable from.
             return MFARequestChallengeErrorV2(
+                errorType = ErrorTypes.NOT_IMPLEMENTED,
                 errorMessage = "Only email authentication methods are supported for multi-factor authentication.",
                 correlationId = correlationId,
                 scenario = scenario

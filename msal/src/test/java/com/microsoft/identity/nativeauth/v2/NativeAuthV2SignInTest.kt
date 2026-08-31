@@ -499,7 +499,11 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         val result = state.selectAuthMethod(state.authMethods.single())
 
         assertTrue(result is MFARequestChallengeErrorV2)
-        assertFalse((result as MFARequestChallengeErrorV2).isAuthMethodBlocked())
+        val error = result as MFARequestChallengeErrorV2
+        // Distinguishable from an unspecified server error: this increment supports email only.
+        assertTrue(error.isNotImplemented())
+        assertFalse(error.isAuthMethodBlocked())
+        assertFalse(error.isBrowserRequired())
     }
 
     @Test
