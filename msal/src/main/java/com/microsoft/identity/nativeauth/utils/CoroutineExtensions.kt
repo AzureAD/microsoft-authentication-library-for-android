@@ -21,13 +21,18 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 
-package com.microsoft.identity.nativeauth.parameters
+package com.microsoft.identity.nativeauth.utils
 
-/**
- * Encapsulates the parameters passed to the resetPassword methods of NativeAuthPublicClientApplication.
- *
- * @param username username of the account whose password will be reset.
- */
-class NativeAuthResetPasswordParameters(
-    val username: String
-)
+import com.microsoft.identity.common.java.result.FinalizableResultFuture
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runInterruptible
+
+internal suspend fun <T> FinalizableResultFuture<T>.getCancellable(): T {
+    return try {
+        runInterruptible(Dispatchers.IO) { get() }
+    } catch (exception: CancellationException) {
+        cancelSignal()
+        throw exception
+    }
+}
