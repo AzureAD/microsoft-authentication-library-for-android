@@ -78,5 +78,25 @@ class SubmitPasswordErrorV2(
     exception: Exception? = null
 ) : NativeAuthErrorV2(errorType, error, errorMessage, correlationId, scenario, errorCodes, exception) {
 
+    /**
+     * Returns true if the password submitted through
+     * [com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2.submitPassword]
+     * was rejected. The caller can retry on the same state instance.
+     */
+    fun isInvalidPassword(): Boolean = this.errorType == ErrorTypes.INVALID_PASSWORD
+
+    /**
+     * Always false for this error.
+     *
+     * A deferred password rejection is reported as [isInvalidPassword], matching MSAL iOS/macOS:
+     * the account was already accepted at the sign-in entry point, so only the password was wrong.
+     * Invalid credentials are reported by
+     * [com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication.signInV2] as a
+     * [SignInErrorV2] instead. Retained only for source compatibility.
+     */
+    @Deprecated(
+        message = "A password rejected by PasswordRequiredStateV2.submitPassword is an invalid password, not invalid credentials. Use isInvalidPassword() instead.",
+        replaceWith = ReplaceWith("isInvalidPassword()")
+    )
     fun isInvalidCredentials(): Boolean = this.errorType == SignInErrorTypes.INVALID_CREDENTIALS
 }

@@ -49,6 +49,7 @@ import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2ResetPasswordStartCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SignInStartCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.ResetPasswordCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.ResetPasswordStartCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInCommandResult
@@ -60,6 +61,7 @@ import com.microsoft.identity.common.java.providers.microsoft.azureactivedirecto
 import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.common.java.util.StringUtil
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResetPasswordStartCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInStartCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordStartCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.SignInStartCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.SignUpStartCommand
@@ -76,6 +78,7 @@ import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorTypes
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
@@ -95,6 +98,8 @@ import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesReq
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpPasswordRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.utils.getCancellable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CancellationException
@@ -599,7 +604,167 @@ class NativeAuthPublicClientApplication(
             correlationId = null,
             methodName = "${TAG}.signInV2(parameters: NativeAuthSignInParameters)"
         )
-        return notImplementedV2(NativeAuthFlowScenarioV2.SIGN_IN)
+        return withContext(Dispatchers.IO) {
+            var correlationId = DiagnosticContext.INSTANCE.threadCorrelationId ?: "UNSET"
+            // Copied so the caller keeps ownership of its own buffer, while this copy is cleared
+            // below on every exit path, including cancellation. A password is never stored in a
+            // Parcelable state or in the opaque continuation state.
+            val passwordCopy = parameters.password?.copyOf()
+            try {
+                // Kept inside the try so an already-signed-in account is surfaced through the V2
+                // result contract rather than escaping as a thrown MsalClientException, matching
+                // resetPasswordV2. Android V1 behaviour is otherwise preserved: V2 rejects sign-in
+                // while an account is signed in, and does not support repeated same-account or
+                // switch-account sign-in.
+                verifyNoUserIsSignedIn()
+
+                if (parameters.username.isBlank()) {
+                    return@withContext SignInErrorV2(
+                        errorType = ErrorTypes.INVALID_USERNAME,
+                        errorMessage = "Empty or blank username",
+                        correlationId = correlationId,
+                        scenario = NativeAuthFlowScenarioV2.SIGN_IN
+                    )
+                }
+
+                val cmdParams = CommandParametersAdapter.createSignInV2StartCommandParameters(
+                    nativeAuthConfig,
+                    nativeAuthConfig.oAuth2TokenCache,
+                    parameters.username,
+                    passwordCopy,
+                    parameters.scopes,
+                    parameters.claimsRequest
+                )
+                correlationId = cmdParams.correlationId ?: correlationId
+
+                val command = NativeAuthV2SignInStartCommand(
+                    cmdParams,
+                    NativeAuthV2FlowController(),
+                    PublicApiId.NATIVE_AUTH_V2_SIGN_IN_START
+                )
+
+                ensureActive()
+                val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
+                ensureActive()
+
+                when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SignInStartCommandResult>()) {
+                    is NativeAuthV2CommandResult.Complete -> {
+                        val localAuthResult = result.authenticationResult
+                        if (localAuthResult != null) {
+                            NativeAuthResultV2.Complete(
+                                resultValue = AccountState.createFromAuthenticationResult(
+                                    authenticationResult = AuthenticationResultAdapter.adapt(localAuthResult),
+                                    correlationId = result.correlationId,
+                                    config = nativeAuthConfig
+                                ),
+                                scenario = NativeAuthFlowScenarioV2.SIGN_IN
+                            )
+                        } else {
+                            Logger.warn(TAG, result.correlationId, "V2 signIn Complete with no authentication result.")
+                            SignInErrorV2(
+                                errorMessage = "Sign in completed but no authentication result was returned.",
+                                correlationId = result.correlationId,
+                                scenario = NativeAuthFlowScenarioV2.SIGN_IN
+                            )
+                        }
+                    }
+                    is NativeAuthV2CommandResult.PasswordRequired -> {
+                        NativeAuthResultV2.PasswordRequired(
+                            nextState = PasswordRequiredStateV2(
+                                continuationState = result.continuationState,
+                                scenario = NativeAuthFlowScenarioV2.SIGN_IN,
+                                config = nativeAuthConfig
+                            ),
+                            scenario = NativeAuthFlowScenarioV2.SIGN_IN
+                        )
+                    }
+                    is NativeAuthV2CommandResult.MFARequired -> {
+                        val authMethods = result.authMethods.toListOfV2AuthMethods()
+                        NativeAuthResultV2.MFARequired(
+                            nextState = MFARequiredStateV2(
+                                continuationState = result.continuationState,
+                                authMethods = authMethods,
+                                scenario = NativeAuthFlowScenarioV2.SIGN_IN,
+                                config = nativeAuthConfig
+                            ),
+                            scenario = NativeAuthFlowScenarioV2.SIGN_IN,
+                            authMethods = authMethods
+                        )
+                    }
+                    is NativeAuthV2CommandResult.InvalidCredentials -> {
+                        SignInErrorV2(
+                            errorType = SignInErrorTypes.INVALID_CREDENTIALS,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = NativeAuthFlowScenarioV2.SIGN_IN,
+                            errorCodes = result.errorCodes
+                        )
+                    }
+                    is NativeAuthV2CommandResult.UserNotFound -> {
+                        SignInErrorV2(
+                            errorType = ErrorTypes.USER_NOT_FOUND,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = NativeAuthFlowScenarioV2.SIGN_IN,
+                            errorCodes = result.errorCodes
+                        )
+                    }
+                    is INativeAuthCommandResult.InvalidUsername -> {
+                        SignInErrorV2(
+                            errorType = ErrorTypes.INVALID_USERNAME,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = NativeAuthFlowScenarioV2.SIGN_IN,
+                            errorCodes = result.errorCodes
+                        )
+                    }
+                    is NativeAuthV2CommandResult.NotImplemented -> {
+                        NativeAuthErrorV2(
+                            errorType = ErrorTypes.NOT_IMPLEMENTED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = NativeAuthFlowScenarioV2.SIGN_IN
+                        )
+                    }
+                    is INativeAuthCommandResult.Redirect -> {
+                        SignInErrorV2(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = NativeAuthFlowScenarioV2.SIGN_IN
+                        )
+                    }
+                    is INativeAuthCommandResult.APIError -> {
+                        SignInErrorV2(
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = NativeAuthFlowScenarioV2.SIGN_IN,
+                            errorCodes = result.errorCodes,
+                            exception = result.exception
+                        )
+                    }
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Logger.error(TAG, correlationId, "Exception thrown in signInV2", e)
+                SignInErrorV2(
+                    errorType = ErrorTypes.CLIENT_EXCEPTION,
+                    errorMessage = "MSAL client exception occurred in signInV2.",
+                    correlationId = correlationId,
+                    scenario = NativeAuthFlowScenarioV2.SIGN_IN,
+                    exception = e
+                )
+            } finally {
+                StringUtil.overwriteWithNull(passwordCopy)
+            }
+        }
     }
 
     override fun signInV2(parameters: NativeAuthSignInParameters, callback: NativeAuthV2Callback) {

@@ -158,11 +158,12 @@ class NativeAuthV2StatesTest {
 
     private fun createContinuationState(): NativeAuthV2ContinuationState {
         val constructor = NativeAuthV2ContinuationState::class.java.declaredConstructors
-            .single { it.parameterCount == 7 }
+            .single { it.parameterCount == 8 }
         constructor.isAccessible = true
         return constructor.newInstance(
             "opaque-token",
             emptyMap<String, String>(),
+            emptyMap<String, Map<String, String>>(),
             listOf("scope"),
             null,
             correlationId,
@@ -230,8 +231,8 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
-    fun testPasswordRequiredStateCallbackReturnsNotImplemented() {
-        assertCallbackNotImplemented { future ->
+    fun testPasswordRequiredStateCallbackReturnsInvalidState() {
+        assertCallbackInvalidState { future ->
             PasswordRequiredStateV2(continuationToken, correlationId, scenario, config).submitPassword(
                 "password".toCharArray(),
                 object : PasswordRequiredStateV2.SubmitPasswordCallback {
@@ -284,9 +285,9 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
-    fun testMFARequiredStateCallbackReturnsNotImplemented() {
+    fun testMFARequiredStateCallbackReturnsInvalidState() {
         val authMethod = AuthMethod("id", "oob", null, "email")
-        assertCallbackNotImplemented { future ->
+        assertCallbackInvalidState { future ->
             MFARequiredStateV2(continuationToken, correlationId, scenario, config).selectAuthMethod(
                 authMethod,
                 callback = object : MFARequiredStateV2.SelectAuthMethodCallback {
@@ -298,8 +299,8 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
-    fun testMFAVerificationRequiredStateCallbackReturnsNotImplemented() {
-        assertCallbackNotImplemented { future ->
+    fun testMFAVerificationRequiredStateCallbackReturnsInvalidState() {
+        assertCallbackInvalidState { future ->
             MFAVerificationRequiredStateV2(continuationToken, correlationId, scenario, config).submitChallenge(
                 "challenge",
                 object : MFAVerificationRequiredStateV2.SubmitChallengeCallback {

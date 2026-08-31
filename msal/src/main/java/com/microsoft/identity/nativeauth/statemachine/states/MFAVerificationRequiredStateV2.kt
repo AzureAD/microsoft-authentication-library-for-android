@@ -26,36 +26,78 @@ package com.microsoft.identity.nativeauth.statemachine.states
 import android.os.Parcel
 import android.os.Parcelable
 import com.microsoft.identity.client.exception.MsalException
+import com.microsoft.identity.client.internal.CommandParametersAdapter
+import com.microsoft.identity.common.java.controllers.CommandDispatcher
+import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
+import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SubmitMFAChallengeCommandResult
+import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
+import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitMFAChallengeCommand
+import com.microsoft.identity.common.nativeauth.internal.controllers.v2.NativeAuthV2FlowController
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
+import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
+import com.microsoft.identity.nativeauth.statemachine.errors.MFASubmitChallengeErrorV2
+import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
+import com.microsoft.identity.nativeauth.utils.getCancellable
+import com.microsoft.identity.nativeauth.utils.serializable
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * State that requires the user to submit a multi-factor authentication challenge.
+ *
+ * A wrong code is a recoverable [MFASubmitChallengeErrorV2] with
+ * [MFASubmitChallengeErrorV2.isInvalidChallenge]; the caller retries on this same state instance,
+ * or requests a fresh challenge from the [MFARequiredStateV2] it still holds. No error result
+ * carries a next state.
  */
 class MFAVerificationRequiredStateV2 internal constructor(
-    continuationToken: String,
+    continuationToken: String?,
     correlationId: String,
     scenario: NativeAuthFlowScenarioV2,
-    config: NativeAuthPublicClientApplicationConfiguration
-) : NativeAuthBaseStateV2(continuationToken, correlationId, scenario, config) {
+    config: NativeAuthPublicClientApplicationConfiguration,
+    continuationState: NativeAuthV2ContinuationState? = null
+) : NativeAuthBaseStateV2(continuationToken, correlationId, scenario, config, continuationState) {
     private val TAG: String = MFAVerificationRequiredStateV2::class.java.simpleName
 
+    internal constructor(
+        continuationState: NativeAuthV2ContinuationState,
+        scenario: NativeAuthFlowScenarioV2,
+        config: NativeAuthPublicClientApplicationConfiguration
+    ) : this(
+        continuationToken = null,
+        correlationId = continuationState.correlationId,
+        scenario = scenario,
+        config = config,
+        continuationState = continuationState
+    )
+
     private constructor(parcel: Parcel) : this(
-        continuationToken = parcel.readString() ?: "",
+        continuationToken = parcel.readString(),
         correlationId = parcel.readString() ?: "UNSET",
         scenario = NativeAuthFlowScenarioV2.valueOf(parcel.readString() ?: NativeAuthFlowScenarioV2.UNKNOWN.name),
-        // Also drains the continuationState field written by the base class, so the read order
-        // stays symmetric with NativeAuthBaseStateV2.writeToParcel even though this state has none.
-        config = parcel.readConfigAndSkipContinuationState()
+        config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration,
+        continuationState = parcel.serializable<NativeAuthV2ContinuationState>()
     )
 
     interface SubmitChallengeCallback : Callback<NativeAuthResultV2>
 
+    /**
+     * Submits the multi-factor one-time code; callback variant.
+     *
+     * @param challenge the one-time code the user entered.
+     * @param callback [SubmitChallengeCallback] to receive the result.
+     */
     fun submitChallenge(challenge: String, callback: SubmitChallengeCallback) {
         LogSession.logMethodCall(
             tag = TAG,
@@ -72,13 +114,100 @@ class MFAVerificationRequiredStateV2 internal constructor(
         }
     }
 
+    /**
+     * Submits the multi-factor one-time code; Kotlin coroutines variant.
+     *
+     * @param challenge the one-time code the user entered.
+     * @return [NativeAuthResultV2] see detailed possible return state under the object.
+     */
     suspend fun submitChallenge(challenge: String): NativeAuthResultV2 {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
             methodName = "${TAG}.submitChallenge(challenge: String)"
         )
-        return notImplemented()
+        val state = continuationState ?: return invalidState()
+        if (challenge.isEmpty()) {
+            return MFASubmitChallengeErrorV2(
+                errorType = ErrorTypes.INVALID_CHALLENGE,
+                errorMessage = "Challenge cannot be empty.",
+                correlationId = correlationId,
+                scenario = scenario
+            )
+        }
+        return withContext(Dispatchers.IO) {
+            try {
+                val parameters = CommandParametersAdapter.createNativeAuthV2SubmitMFAChallengeCommandParameters(
+                    config,
+                    config.oAuth2TokenCache,
+                    challenge,
+                    state
+                )
+                val command = NativeAuthV2SubmitMFAChallengeCommand(
+                    parameters,
+                    NativeAuthV2FlowController(),
+                    PublicApiId.NATIVE_AUTH_V2_SIGN_IN_SUBMIT_MFA_CHALLENGE
+                )
+                ensureActive()
+                val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
+                ensureActive()
+                when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitMFAChallengeCommandResult>()) {
+                    is NativeAuthV2CommandResult.Complete -> {
+                        mapCompleteResult(result)
+                    }
+                    is NativeAuthV2CommandResult.IncorrectCode -> {
+                        MFASubmitChallengeErrorV2(
+                            errorType = ErrorTypes.INVALID_CHALLENGE,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario,
+                            errorCodes = result.errorCodes,
+                            subError = result.subError
+                        )
+                    }
+                    is NativeAuthV2CommandResult.NotImplemented -> {
+                        NativeAuthErrorV2(
+                            errorType = ErrorTypes.NOT_IMPLEMENTED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario
+                        )
+                    }
+                    is INativeAuthCommandResult.Redirect -> {
+                        MFASubmitChallengeErrorV2(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario
+                        )
+                    }
+                    is INativeAuthCommandResult.APIError -> {
+                        MFASubmitChallengeErrorV2(
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario,
+                            errorCodes = result.errorCodes,
+                            exception = result.exception
+                        )
+                    }
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Logger.error(TAG, correlationId, "Exception thrown in submitChallenge", e)
+                MFASubmitChallengeErrorV2(
+                    errorType = ErrorTypes.CLIENT_EXCEPTION,
+                    errorMessage = "MSAL client exception occurred in submitChallenge.",
+                    correlationId = correlationId,
+                    scenario = scenario,
+                    exception = e
+                )
+            }
+        }
     }
 
     companion object CREATOR : Parcelable.Creator<MFAVerificationRequiredStateV2> {

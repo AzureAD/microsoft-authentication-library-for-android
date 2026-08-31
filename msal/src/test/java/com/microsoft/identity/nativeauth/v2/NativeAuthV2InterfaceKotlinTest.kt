@@ -138,13 +138,6 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun signInV2ReturnsNotImplemented() = runTest {
-        val result = application.signInV2(NativeAuthSignInParameters(username = username))
-        val error = assertNotImplemented(result)
-        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, error.scenario)
-    }
-
-    @Test
     fun signUpV2ReturnsNotImplemented() = runTest {
         val result = application.signUpV2(NativeAuthSignUpParameters(username = username))
         val error = assertNotImplemented(result, NativeAuthFlowScenarioV2.SIGN_UP)
@@ -648,13 +641,13 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         assertInvalidState(codeRequired.submitCode("1234"))
         assertInvalidState(codeRequired.resendCode())
 
-        assertNotImplemented(PasswordRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitPassword("password".toCharArray()))
+        assertInvalidState(PasswordRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitPassword("password".toCharArray()))
         assertNotImplemented(NewPasswordRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitNewPassword("password".toCharArray()))
         assertNotImplemented(SignInAfterResetPasswordStateV2("continuation-token", "correlation-id", scenario, config).signIn())
         assertNotImplemented(AttributesRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitAttributes(attributes))
         assertNotImplemented(AttributesInvalidStateV2("continuation-token", "correlation-id", scenario, config).submitAttributes(attributes))
-        assertNotImplemented(MFARequiredStateV2("continuation-token", "correlation-id", scenario, config).selectAuthMethod(authMethod))
-        assertNotImplemented(MFAVerificationRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitChallenge("challenge"))
+        assertInvalidState(MFARequiredStateV2("continuation-token", "correlation-id", scenario, config).selectAuthMethod(authMethod))
+        assertInvalidState(MFAVerificationRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitChallenge("challenge"))
         assertNotImplemented(StrongAuthRegistrationRequiredStateV2("continuation-token", "correlation-id", scenario, config).selectAuthMethod(authMethod))
         assertNotImplemented(StrongAuthVerificationRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitChallenge("challenge"))
     }
@@ -839,11 +832,12 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
 
     private fun createContinuationState(): NativeAuthV2ContinuationState {
         val constructor = NativeAuthV2ContinuationState::class.java.declaredConstructors
-            .single { it.parameterCount == 7 }
+            .single { it.parameterCount == 8 }
         constructor.isAccessible = true
         return constructor.newInstance(
             "opaque-token",
             emptyMap<String, String>(),
+            emptyMap<String, Map<String, String>>(),
             listOf("scope"),
             null,
             correlationId,

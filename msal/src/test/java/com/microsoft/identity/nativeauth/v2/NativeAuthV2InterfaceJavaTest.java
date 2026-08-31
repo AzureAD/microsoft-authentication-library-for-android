@@ -41,6 +41,7 @@ import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters;
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters;
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2;
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2;
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorV2;
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2;
 import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterResetPasswordStateV2;
 
@@ -88,10 +89,15 @@ public class NativeAuthV2InterfaceJavaTest extends PublicClientApplicationAbstra
     }
 
     @Test
-    public void signInV2ReturnsNotImplemented() throws ExecutionException, InterruptedException, TimeoutException {
+    public void signInV2RejectsBlankUsername() throws ExecutionException, InterruptedException, TimeoutException {
+        // A blank username is rejected before any command is dispatched, so this exercises the
+        // Java callback surface of the now-implemented signInV2 without needing a service.
         final ResultFuture<NativeAuthResultV2> future = new ResultFuture<>();
-        application.signInV2(new NativeAuthSignInParameters(username), newCallback(future));
-        assertNotImplemented(future.get(30, TimeUnit.SECONDS), NativeAuthFlowScenarioV2.SIGN_IN);
+        application.signInV2(new NativeAuthSignInParameters(" "), newCallback(future));
+        final NativeAuthResultV2 result = future.get(30, TimeUnit.SECONDS);
+        assertTrue(result instanceof SignInErrorV2);
+        assertTrue(((SignInErrorV2) result).isInvalidUsername());
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.getScenario());
     }
 
     @Test
@@ -129,7 +135,7 @@ public class NativeAuthV2InterfaceJavaTest extends PublicClientApplicationAbstra
     @Test
     public void resultDefaultImplsDelegateToBaseResult() throws ExecutionException, InterruptedException, TimeoutException {
         final ResultFuture<NativeAuthResultV2> future = new ResultFuture<>();
-        application.signInV2(new NativeAuthSignInParameters(username), newCallback(future));
+        application.signUpV2(new NativeAuthSignUpParameters(username), newCallback(future));
         final NativeAuthResultV2 result = future.get(30, TimeUnit.SECONDS);
         assertFalse(NativeAuthResultV2.DefaultImpls.isSuccess(result));
         assertFalse(NativeAuthResultV2.DefaultImpls.isComplete(result));
