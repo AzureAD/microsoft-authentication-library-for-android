@@ -37,6 +37,7 @@ import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequ
 import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterResetPasswordStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthRegistrationRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthVerificationRequiredStateV2
 
@@ -108,6 +109,19 @@ interface NativeAuthResultV2 : Result {
      */
     class SignInAfterResetPasswordRequired(
         override val nextState: SignInAfterResetPasswordStateV2,
+        override val scenario: NativeAuthFlowScenarioV2
+    ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2
+
+    /**
+     * SignInAfterSignUpRequired Result, which indicates the sign-up flow has completed server-side.
+     * Token exchange and cache persistence are deferred until the app explicitly invokes
+     * [SignInAfterSignUpStateV2.signIn] on [nextState].
+     *
+     * @param nextState the current state with the follow-on signIn() method.
+     * @param scenario identifies which part of the Native Auth V2 surface produced this result.
+     */
+    class SignInAfterSignUpRequired(
+        override val nextState: SignInAfterSignUpStateV2,
         override val scenario: NativeAuthFlowScenarioV2
     ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2
 
