@@ -299,6 +299,27 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
+    fun testMFARequiredStateDefensivelyCopiesAuthMethods() {
+        val source = mutableListOf(AuthMethod("id", "oob", null, "email"))
+        val state = MFARequiredStateV2(
+            continuationToken,
+            correlationId,
+            scenario,
+            config,
+            authMethods = source
+        )
+
+        source.clear()
+        assertEquals(1, state.authMethods.size)
+        try {
+            (state.authMethods as MutableList<AuthMethod>).clear()
+            fail("Expected authMethods to be unmodifiable")
+        } catch (_: UnsupportedOperationException) {
+            // Expected.
+        }
+    }
+
+    @Test
     fun testMFAVerificationRequiredStateCallbackReturnsInvalidState() {
         assertCallbackInvalidState { future ->
             MFAVerificationRequiredStateV2(continuationToken, correlationId, scenario, config).submitChallenge(

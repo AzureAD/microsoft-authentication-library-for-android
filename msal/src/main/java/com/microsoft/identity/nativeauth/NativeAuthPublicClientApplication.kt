@@ -101,6 +101,7 @@ import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.utils.getCancellable
+import com.microsoft.identity.nativeauth.utils.launchOwningPasswordSnapshot
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -773,9 +774,14 @@ class NativeAuthPublicClientApplication(
             correlationId = null,
             methodName = "${TAG}.signInV2(parameters: NativeAuthSignInParameters, callback: NativeAuthV2Callback)"
         )
-        pcaScope.launch {
+        val parametersSnapshot = NativeAuthSignInParameters(parameters.username).also {
+            it.password = parameters.password?.copyOf()
+            it.scopes = parameters.scopes?.toList()
+            it.claimsRequest = parameters.claimsRequest
+        }
+        pcaScope.launchOwningPasswordSnapshot(parametersSnapshot.password) {
             try {
-                callback.onResult(signInV2(parameters))
+                callback.onResult(signInV2(parametersSnapshot))
             } catch (e: MsalException) {
                 Logger.error(TAG, "Exception thrown in signInV2", e)
                 callback.onError(e)

@@ -86,13 +86,13 @@ class SubmitPasswordErrorV2(
     fun isInvalidPassword(): Boolean = this.errorType == ErrorTypes.INVALID_PASSWORD
 
     /**
-     * Always false for this error.
-     *
      * A deferred password rejection is reported as [isInvalidPassword], matching MSAL iOS/macOS:
      * the account was already accepted at the sign-in entry point, so only the password was wrong.
      * Invalid credentials are reported by
      * [com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication.signInV2] as a
-     * [SignInErrorV2] instead. Retained only for source compatibility.
+     * [SignInErrorV2] instead. This method returns true only when this error was explicitly
+     * constructed with [SignInErrorTypes.INVALID_CREDENTIALS], and is retained for source
+     * compatibility.
      */
     @Deprecated(
         message = "A password rejected by PasswordRequiredStateV2.submitPassword is an invalid password, not invalid credentials. Use isInvalidPassword() instead.",
