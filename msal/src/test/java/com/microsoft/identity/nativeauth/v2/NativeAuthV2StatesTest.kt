@@ -309,6 +309,14 @@ class NativeAuthV2StatesTest {
                 }
             )
         }
+        assertCallbackInvalidState { future ->
+            MFAVerificationRequiredStateV2(continuationToken, correlationId, scenario, config).resendChallenge(
+                object : MFAVerificationRequiredStateV2.ResendChallengeCallback {
+                    override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
+                    override fun onError(exception: BaseException) = future.setException(exception)
+                }
+            )
+        }
     }
 
     @Test
@@ -409,6 +417,14 @@ class NativeAuthV2StatesTest {
             MFAVerificationRequiredStateV2(continuationToken, correlationId, scenario, config).submitChallenge(
                 "challenge",
                 object : MFAVerificationRequiredStateV2.SubmitChallengeCallback {
+                    override fun onResult(result: NativeAuthResultV2): Unit = throw thrown
+                    override fun onError(exception: BaseException) = future.setException(exception)
+                }
+            )
+        }
+        assertCallbackRoutesToOnError { future, thrown ->
+            MFAVerificationRequiredStateV2(continuationToken, correlationId, scenario, config).resendChallenge(
+                object : MFAVerificationRequiredStateV2.ResendChallengeCallback {
                     override fun onResult(result: NativeAuthResultV2): Unit = throw thrown
                     override fun onError(exception: BaseException) = future.setException(exception)
                 }

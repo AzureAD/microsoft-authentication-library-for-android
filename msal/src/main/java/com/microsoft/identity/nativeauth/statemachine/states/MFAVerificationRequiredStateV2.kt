@@ -33,9 +33,11 @@ import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2ResendCodeCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SubmitMFAChallengeCommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResendCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitMFAChallengeCommand
 import com.microsoft.identity.common.nativeauth.internal.controllers.v2.NativeAuthV2FlowController
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
@@ -57,9 +59,10 @@ import kotlinx.coroutines.withContext
  * State that requires the user to submit a multi-factor authentication challenge.
  *
  * A wrong code is a recoverable [MFASubmitChallengeErrorV2] with
- * [MFASubmitChallengeErrorV2.isInvalidChallenge]; the caller retries on this same state instance,
- * or requests a fresh challenge from the [MFARequiredStateV2] it still holds. No error result
- * carries a next state.
+ * [MFASubmitChallengeErrorV2.isInvalidCode]; the caller retries on this same state instance or
+ * requests a fresh challenge through [resendChallenge]. Successful resends return a fresh
+ * [NativeAuthResultV2.MFAVerificationRequired] whose state carries the latest opaque continuation
+ * required for subsequent submit/resend calls. No error result carries a next state.
  */
 class MFAVerificationRequiredStateV2 internal constructor(
     continuationToken: String?,
@@ -91,6 +94,7 @@ class MFAVerificationRequiredStateV2 internal constructor(
     )
 
     interface SubmitChallengeCallback : Callback<NativeAuthResultV2>
+    interface ResendChallengeCallback : Callback<NativeAuthResultV2>
 
     /**
      * Submits the multi-factor one-time code; callback variant.
@@ -129,7 +133,7 @@ class MFAVerificationRequiredStateV2 internal constructor(
         val state = continuationState ?: return invalidState()
         if (challenge.isEmpty()) {
             return MFASubmitChallengeErrorV2(
-                errorType = ErrorTypes.INVALID_CHALLENGE,
+                errorType = ErrorTypes.INVALID_CODE,
                 errorMessage = "Challenge cannot be empty.",
                 correlationId = correlationId,
                 scenario = scenario
@@ -157,7 +161,7 @@ class MFAVerificationRequiredStateV2 internal constructor(
                     }
                     is NativeAuthV2CommandResult.IncorrectCode -> {
                         MFASubmitChallengeErrorV2(
-                            errorType = ErrorTypes.INVALID_CHALLENGE,
+                            errorType = ErrorTypes.INVALID_CODE,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
@@ -202,6 +206,112 @@ class MFAVerificationRequiredStateV2 internal constructor(
                 MFASubmitChallengeErrorV2(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in submitChallenge.",
+                    correlationId = correlationId,
+                    scenario = scenario,
+                    exception = e
+                )
+            }
+        }
+    }
+
+    /**
+     * Requests the service to resend the MFA challenge; callback variant.
+     *
+     * @param callback [ResendChallengeCallback] to receive the result.
+     */
+    fun resendChallenge(callback: ResendChallengeCallback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.resendChallenge(callback: ResendChallengeCallback)"
+        )
+        NativeAuthPublicClientApplication.pcaScope.launch {
+            try {
+                callback.onResult(resendChallenge())
+            } catch (e: MsalException) {
+                Logger.error(TAG, "Exception thrown in resendChallenge", e)
+                callback.onError(e)
+            }
+        }
+    }
+
+    /**
+     * Requests the service to resend the MFA challenge; Kotlin coroutines variant.
+     *
+     * @return [NativeAuthResultV2] a fresh [NativeAuthResultV2.MFAVerificationRequired] on
+     * success, or a [NativeAuthErrorV2] for redirect/API/not-implemented/invalid-state cases.
+     */
+    suspend fun resendChallenge(): NativeAuthResultV2 {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.resendChallenge()"
+        )
+        val state = continuationState ?: return invalidState()
+        return withContext(Dispatchers.IO) {
+            try {
+                val parameters = CommandParametersAdapter.createNativeAuthV2ResendCodeCommandParameters(
+                    config,
+                    config.oAuth2TokenCache,
+                    state
+                )
+                val command = NativeAuthV2ResendCodeCommand(
+                    parameters,
+                    NativeAuthV2FlowController(),
+                    PublicApiId.NATIVE_AUTH_V2_SIGN_IN_RESEND_MFA_CHALLENGE
+                )
+                ensureActive()
+                val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
+                ensureActive()
+                when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2ResendCodeCommandResult>()) {
+                    is NativeAuthV2CommandResult.CodeRequired -> {
+                        NativeAuthResultV2.MFAVerificationRequired(
+                            nextState = MFAVerificationRequiredStateV2(result.continuationState, scenario, config),
+                            scenario = scenario,
+                            codeLength = result.codeLength,
+                            sentTo = result.challengeTargetLabel,
+                            channel = result.challengeChannel
+                        )
+                    }
+                    is NativeAuthV2CommandResult.Complete -> {
+                        mapCompleteResult(result)
+                    }
+                    is NativeAuthV2CommandResult.NotImplemented -> {
+                        NativeAuthErrorV2(
+                            errorType = ErrorTypes.NOT_IMPLEMENTED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario
+                        )
+                    }
+                    is INativeAuthCommandResult.Redirect -> {
+                        NativeAuthErrorV2(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario
+                        )
+                    }
+                    is INativeAuthCommandResult.APIError -> {
+                        NativeAuthErrorV2(
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario,
+                            errorCodes = result.errorCodes,
+                            exception = result.exception
+                        )
+                    }
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Logger.error(TAG, correlationId, "Exception thrown in resendChallenge", e)
+                NativeAuthErrorV2(
+                    errorType = ErrorTypes.CLIENT_EXCEPTION,
+                    errorMessage = "MSAL client exception occurred in resendChallenge.",
                     correlationId = correlationId,
                     scenario = scenario,
                     exception = e

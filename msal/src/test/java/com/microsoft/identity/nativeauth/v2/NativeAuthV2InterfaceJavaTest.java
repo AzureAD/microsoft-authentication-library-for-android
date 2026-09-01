@@ -43,6 +43,7 @@ import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2;
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2;
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorV2;
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2;
+import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredStateV2;
 import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterResetPasswordStateV2;
 
 import org.junit.Before;
@@ -133,6 +134,31 @@ public class NativeAuthV2InterfaceJavaTest extends PublicClientApplicationAbstra
     }
 
     @Test
+    public void mfaVerificationRequiredResendChallengeReturnsInvalidState() throws ExecutionException, InterruptedException, TimeoutException {
+        final MFAVerificationRequiredStateV2 state = new MFAVerificationRequiredStateV2(
+                "continuation-token",
+                "correlation-id",
+                NativeAuthFlowScenarioV2.SIGN_IN,
+                new NativeAuthPublicClientApplicationConfiguration(),
+                null
+        );
+        final ResultFuture<NativeAuthResultV2> future = new ResultFuture<>();
+        state.resendChallenge(new MFAVerificationRequiredStateV2.ResendChallengeCallback() {
+            @Override
+            public void onResult(final NativeAuthResultV2 result) {
+                future.setResult(result);
+            }
+
+            @Override
+            public void onError(@NonNull final BaseException exception) {
+                future.setException(exception);
+            }
+        });
+
+        assertInvalidState(future.get(30, TimeUnit.SECONDS), NativeAuthFlowScenarioV2.SIGN_IN);
+    }
+
+    @Test
     public void resultDefaultImplsDelegateToBaseResult() throws ExecutionException, InterruptedException, TimeoutException {
         final ResultFuture<NativeAuthResultV2> future = new ResultFuture<>();
         application.signUpV2(new NativeAuthSignUpParameters(username), newCallback(future));
@@ -161,6 +187,15 @@ public class NativeAuthV2InterfaceJavaTest extends PublicClientApplicationAbstra
         NativeAuthErrorV2 error = (NativeAuthErrorV2) result;
         assertTrue(error.isNotImplemented());
         assertFalse(error.isBrowserRequired());
+        assertEquals(scenario, error.getScenario());
+    }
+
+    private void assertInvalidState(final NativeAuthResultV2 result, final NativeAuthFlowScenarioV2 scenario) {
+        assertTrue(result instanceof NativeAuthErrorV2);
+        final NativeAuthErrorV2 error = (NativeAuthErrorV2) result;
+        assertFalse(error.isNotImplemented());
+        assertFalse(error.isBrowserRequired());
+        assertEquals("The continuation state is unavailable. Restart the flow.", error.getErrorMessage());
         assertEquals(scenario, error.getScenario());
     }
 }
