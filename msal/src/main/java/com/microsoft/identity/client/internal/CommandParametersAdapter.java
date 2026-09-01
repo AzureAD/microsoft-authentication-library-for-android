@@ -1205,6 +1205,7 @@ public class CommandParametersAdapter {
                         .requestInterceptor(configuration.getRequestInterceptor())
                         .continuationState(continuationState)
                         .scopes(continuationState.scopesForTokenRequest())
+                        .claimsRequestJson(continuationState.claimsRequestJsonForTokenRequest())
                         .clientId(configuration.getClientId())
                         .correlationId(continuationState.getCorrelationId())
                         .build();

@@ -690,9 +690,10 @@ public class CommandParametersTest {
             final OAuth2TokenCache tokenCache = getCache();
             final char[] password = "Password123!".toCharArray();
             final List<String> scopes = Arrays.asList("api://scope/read", "offline_access");
+            final String claimsRequestJson = "claims-request-json";
             final String correlationId = "00000000-0000-0000-0000-000000000012";
             final NativeAuthV2ContinuationState continuationState =
-                    getNativeAuthV2ContinuationState(correlationId, scopes, null);
+                    getNativeAuthV2ContinuationState(correlationId, scopes, claimsRequestJson);
 
             final NativeAuthV2SubmitPasswordCommandParameters commandParameters =
                     CommandParametersAdapter.createNativeAuthV2SubmitPasswordCommandParameters(
@@ -705,6 +706,7 @@ public class CommandParametersTest {
             Assert.assertSame(password, commandParameters.password);
             Assert.assertSame(continuationState, commandParameters.continuationState);
             Assert.assertEquals(scopes, commandParameters.scopes);
+            Assert.assertEquals(claimsRequestJson, commandParameters.claimsRequestJson);
             Assert.assertEquals(correlationId, commandParameters.getCorrelationId());
             Assert.assertSame(tokenCache, commandParameters.getOAuth2TokenCache());
         }
@@ -715,9 +717,10 @@ public class CommandParametersTest {
             final OAuth2TokenCache tokenCache = getCache();
             final String methodId = "email-1";
             final List<String> scopes = Arrays.asList("api://scope/read", "offline_access");
+            final String claimsRequestJson = "claims-request-json";
             final String correlationId = "00000000-0000-0000-0000-000000000013";
             final NativeAuthV2ContinuationState continuationState =
-                    getNativeAuthV2ContinuationState(correlationId, scopes, null);
+                    getNativeAuthV2ContinuationState(correlationId, scopes, claimsRequestJson);
 
             final NativeAuthV2SelectMFAMethodCommandParameters commandParameters =
                     CommandParametersAdapter.createNativeAuthV2SelectMFAMethodCommandParameters(
@@ -730,6 +733,7 @@ public class CommandParametersTest {
             Assert.assertEquals(methodId, commandParameters.methodId);
             Assert.assertSame(continuationState, commandParameters.continuationState);
             Assert.assertEquals(scopes, commandParameters.scopes);
+            Assert.assertEquals(claimsRequestJson, commandParameters.claimsRequestJson);
             Assert.assertEquals(correlationId, commandParameters.getCorrelationId());
             Assert.assertSame(tokenCache, commandParameters.getOAuth2TokenCache());
         }
@@ -740,9 +744,10 @@ public class CommandParametersTest {
             final OAuth2TokenCache tokenCache = getCache();
             final String code = "123456";
             final List<String> scopes = Arrays.asList("api://scope/read", "offline_access");
+            final String claimsRequestJson = "claims-request-json";
             final String correlationId = "00000000-0000-0000-0000-000000000014";
             final NativeAuthV2ContinuationState continuationState =
-                    getNativeAuthV2ContinuationState(correlationId, scopes, null);
+                    getNativeAuthV2ContinuationState(correlationId, scopes, claimsRequestJson);
 
             final NativeAuthV2SubmitMFAChallengeCommandParameters commandParameters =
                     CommandParametersAdapter.createNativeAuthV2SubmitMFAChallengeCommandParameters(
@@ -755,6 +760,7 @@ public class CommandParametersTest {
             Assert.assertEquals(code, commandParameters.code);
             Assert.assertSame(continuationState, commandParameters.continuationState);
             Assert.assertEquals(scopes, commandParameters.scopes);
+            Assert.assertEquals(claimsRequestJson, commandParameters.claimsRequestJson);
             Assert.assertEquals(correlationId, commandParameters.getCorrelationId());
             Assert.assertSame(tokenCache, commandParameters.getOAuth2TokenCache());
         }
@@ -791,9 +797,10 @@ public class CommandParametersTest {
         final NativeAuthPublicClientApplicationConfiguration configuration = getNativeAuthConfiguration(NATIVE_AUTH_CONFIG_FILE);
         final OAuth2TokenCache tokenCache = getCache();
         final List<String> scopes = Arrays.asList("api://scope/read", "offline_access");
+        final String claimsRequestJson = "claims-request-json";
         final String correlationId = "00000000-0000-0000-0000-000000000003";
         final NativeAuthV2ContinuationState continuationState =
-                getNativeAuthV2ContinuationState(correlationId, scopes, null);
+                getNativeAuthV2ContinuationState(correlationId, scopes, claimsRequestJson);
 
         final NativeAuthV2ResendCodeCommandParameters commandParameters =
                 CommandParametersAdapter.createNativeAuthV2ResendCodeCommandParameters(
@@ -804,6 +811,7 @@ public class CommandParametersTest {
 
         Assert.assertSame(continuationState, commandParameters.continuationState);
         Assert.assertEquals(scopes, commandParameters.scopes);
+        Assert.assertEquals(claimsRequestJson, commandParameters.claimsRequestJson);
         Assert.assertEquals(configuration.getChallengeTypes(), commandParameters.challengeType);
         Assert.assertEquals(correlationId, commandParameters.getCorrelationId());
         Assert.assertSame(tokenCache, commandParameters.getOAuth2TokenCache());
