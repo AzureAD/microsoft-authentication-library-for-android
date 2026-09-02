@@ -135,8 +135,10 @@ interface NativeAuthResultV2 : Result {
     class AttributesRequired(
         override val nextState: AttributesRequiredStateV2,
         override val scenario: NativeAuthFlowScenarioV2,
-        val requiredAttributes: List<RequiredUserAttribute>
-    ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2
+        requiredAttributes: List<RequiredUserAttribute>
+    ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2 {
+        val requiredAttributes: List<RequiredUserAttribute> = Collections.unmodifiableList(ArrayList(requiredAttributes))
+    }
 
     /**
      * AttributesInvalid Result, which indicates the submitted attributes were rejected and must be corrected.
@@ -147,8 +149,10 @@ interface NativeAuthResultV2 : Result {
     class AttributesInvalid(
         override val nextState: AttributesInvalidStateV2,
         override val scenario: NativeAuthFlowScenarioV2,
-        val invalidAttributes: List<String>
-    ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2
+        invalidAttributes: List<String>
+    ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2 {
+        val invalidAttributes: List<String> = Collections.unmodifiableList(ArrayList(invalidAttributes))
+    }
 
     /**
      * MFARequired Result, which indicates multi-factor authentication is required and the user must
