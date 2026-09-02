@@ -49,6 +49,7 @@ import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResendCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResetPasswordStartCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInAfterResetPasswordCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignUpStartCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitNewPasswordCommand
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
@@ -138,10 +139,27 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun signUpV2ReturnsNotImplemented() = runTest {
+    fun signUpV2MapsCodeRequiredWithoutNetwork() = runTest {
+        val continuationState = createContinuationState()
+        enqueueResult(
+            NativeAuthV2CommandResult.CodeRequired(
+                correlationId = correlationId,
+                continuationState = continuationState,
+                codeLength = 6,
+                challengeTargetLabel = "a***@example.com",
+                challengeChannel = "email"
+            ),
+            NativeAuthV2SignUpStartCommand::class
+        )
+
         val result = application.signUpV2(NativeAuthSignUpParameters(username = username))
-        val error = assertNotImplemented(result, NativeAuthFlowScenarioV2.SIGN_UP)
-        assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, error.scenario)
+
+        assertTrue(result is NativeAuthResultV2.CodeRequired)
+        result as NativeAuthResultV2.CodeRequired
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, result.scenario)
+        assertEquals(6, result.codeLength)
+        assertEquals("a***@example.com", result.sentTo)
+        assertNull(result.nextState.continuationToken)
     }
 
     @Test
@@ -644,8 +662,8 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         assertInvalidState(PasswordRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitPassword("password".toCharArray()))
         assertNotImplemented(NewPasswordRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitNewPassword("password".toCharArray()))
         assertNotImplemented(SignInAfterResetPasswordStateV2("continuation-token", "correlation-id", scenario, config).signIn())
-        assertNotImplemented(AttributesRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitAttributes(attributes))
-        assertNotImplemented(AttributesInvalidStateV2("continuation-token", "correlation-id", scenario, config).submitAttributes(attributes))
+        assertInvalidState(AttributesRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitAttributes(attributes))
+        assertInvalidState(AttributesInvalidStateV2("continuation-token", "correlation-id", scenario, config).submitAttributes(attributes))
         assertInvalidState(MFARequiredStateV2("continuation-token", "correlation-id", scenario, config).selectAuthMethod(authMethod))
         assertInvalidState(MFAVerificationRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitChallenge("challenge"))
         assertInvalidState(MFAVerificationRequiredStateV2("continuation-token", "correlation-id", scenario, config).resendChallenge())
@@ -833,7 +851,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
 
     private fun createContinuationState(): NativeAuthV2ContinuationState {
         val constructor = NativeAuthV2ContinuationState::class.java.declaredConstructors
-            .single { it.parameterCount == 8 }
+            .single { it.parameterCount == 9 }
         constructor.isAccessible = true
         return constructor.newInstance(
             "opaque-token",
@@ -843,7 +861,8 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             null,
             correlationId,
             NativeAuthV2LinkRelation.RESET_PASSWORD.value,
-            NativeAuthV2FlowScenario.RESET_PASSWORD
+            NativeAuthV2FlowScenario.RESET_PASSWORD,
+            emptySet<String>()
         ) as NativeAuthV2ContinuationState
     }
 

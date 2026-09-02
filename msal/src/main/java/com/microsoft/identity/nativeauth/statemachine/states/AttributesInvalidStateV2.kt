@@ -28,31 +28,45 @@ import android.os.Parcelable
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
+import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.UserAttributes
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
+import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.launch
 
 /**
  * State that requires the user to correct previously rejected account attributes.
  */
 class AttributesInvalidStateV2 internal constructor(
-    continuationToken: String,
+    continuationToken: String?,
     correlationId: String,
     scenario: NativeAuthFlowScenarioV2,
-    config: NativeAuthPublicClientApplicationConfiguration
-) : NativeAuthBaseStateV2(continuationToken, correlationId, scenario, config) {
+    config: NativeAuthPublicClientApplicationConfiguration,
+    continuationState: NativeAuthV2ContinuationState? = null
+) : NativeAuthBaseStateV2(continuationToken, correlationId, scenario, config, continuationState) {
     private val TAG: String = AttributesInvalidStateV2::class.java.simpleName
 
+    internal constructor(
+        continuationState: NativeAuthV2ContinuationState,
+        scenario: NativeAuthFlowScenarioV2,
+        config: NativeAuthPublicClientApplicationConfiguration
+    ) : this(
+        continuationToken = null,
+        correlationId = continuationState.correlationId,
+        scenario = scenario,
+        config = config,
+        continuationState = continuationState
+    )
+
     private constructor(parcel: Parcel) : this(
-        continuationToken = parcel.readString() ?: "",
+        continuationToken = parcel.readString(),
         correlationId = parcel.readString() ?: "UNSET",
         scenario = NativeAuthFlowScenarioV2.valueOf(parcel.readString() ?: NativeAuthFlowScenarioV2.UNKNOWN.name),
-        // Also drains the continuationState field written by the base class, so the read order
-        // stays symmetric with NativeAuthBaseStateV2.writeToParcel even though this state has none.
-        config = parcel.readConfigAndSkipContinuationState()
+        config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration,
+        continuationState = parcel.serializable<NativeAuthV2ContinuationState>()
     )
 
     interface SubmitAttributesCallback : Callback<NativeAuthResultV2>
@@ -79,7 +93,7 @@ class AttributesInvalidStateV2 internal constructor(
             correlationId = correlationId,
             methodName = "${TAG}.submitAttributes(attributes: UserAttributes)"
         )
-        return notImplemented()
+        return submitAttributesInternal(scenario, config, continuationState, correlationId, attributes)
     }
 
     companion object CREATOR : Parcelable.Creator<AttributesInvalidStateV2> {

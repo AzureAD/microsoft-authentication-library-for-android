@@ -1002,7 +1002,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         correlationId: String = NativeAuthV2SignInTest.correlationId
     ): NativeAuthV2ContinuationState {
         val constructor = NativeAuthV2ContinuationState::class.java.declaredConstructors
-            .single { it.parameterCount == 8 }
+            .single { it.parameterCount == 9 }
         constructor.isAccessible = true
         return constructor.newInstance(
             "opaque-token",
@@ -1012,7 +1012,8 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             null,
             correlationId,
             NativeAuthV2LinkRelation.SIGN_IN.value,
-            NativeAuthV2FlowScenario.SIGN_IN
+            NativeAuthV2FlowScenario.SIGN_IN,
+            emptySet<String>()
         ) as NativeAuthV2ContinuationState
     }
 

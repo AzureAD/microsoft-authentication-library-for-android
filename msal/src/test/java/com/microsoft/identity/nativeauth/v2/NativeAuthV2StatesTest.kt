@@ -158,7 +158,7 @@ class NativeAuthV2StatesTest {
 
     private fun createContinuationState(): NativeAuthV2ContinuationState {
         val constructor = NativeAuthV2ContinuationState::class.java.declaredConstructors
-            .single { it.parameterCount == 8 }
+            .single { it.parameterCount == 9 }
         constructor.isAccessible = true
         return constructor.newInstance(
             "opaque-token",
@@ -168,7 +168,8 @@ class NativeAuthV2StatesTest {
             null,
             correlationId,
             NativeAuthV2LinkRelation.RESET_PASSWORD.value,
-            NativeAuthV2FlowScenario.RESET_PASSWORD
+            NativeAuthV2FlowScenario.RESET_PASSWORD,
+            emptySet<String>()
         ) as NativeAuthV2ContinuationState
     }
 
@@ -257,9 +258,9 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
-    fun testAttributesRequiredStateCallbackReturnsNotImplemented() {
+    fun testAttributesRequiredStateCallbackReturnsInvalidState() {
         val attributes = UserAttributes.Builder().city("city").build()
-        assertCallbackNotImplemented { future ->
+        assertCallbackInvalidState { future ->
             AttributesRequiredStateV2(continuationToken, correlationId, scenario, config).submitAttributes(
                 attributes,
                 object : AttributesRequiredStateV2.SubmitAttributesCallback {
@@ -271,9 +272,9 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
-    fun testAttributesInvalidStateCallbackReturnsNotImplemented() {
+    fun testAttributesInvalidStateCallbackReturnsInvalidState() {
         val attributes = UserAttributes.Builder().city("city").build()
-        assertCallbackNotImplemented { future ->
+        assertCallbackInvalidState { future ->
             AttributesInvalidStateV2(continuationToken, correlationId, scenario, config).submitAttributes(
                 attributes,
                 object : AttributesInvalidStateV2.SubmitAttributesCallback {

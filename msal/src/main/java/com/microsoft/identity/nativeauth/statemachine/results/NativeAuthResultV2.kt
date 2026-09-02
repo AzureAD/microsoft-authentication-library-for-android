@@ -37,6 +37,7 @@ import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequ
 import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterResetPasswordStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthRegistrationRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthVerificationRequiredStateV2
 import java.util.Collections
@@ -113,6 +114,19 @@ interface NativeAuthResultV2 : Result {
     ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2
 
     /**
+     * SignInAfterSignUpRequired Result, which indicates the sign-up flow has completed server-side.
+     * Token exchange and cache persistence are deferred until the app explicitly invokes
+     * [SignInAfterSignUpStateV2.signIn] on [nextState].
+     *
+     * @param nextState the current state with the follow-on signIn() method.
+     * @param scenario identifies which part of the Native Auth V2 surface produced this result.
+     */
+    class SignInAfterSignUpRequired(
+        override val nextState: SignInAfterSignUpStateV2,
+        override val scenario: NativeAuthFlowScenarioV2
+    ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2
+
+    /**
      * AttributesRequired Result, which indicates user attributes are required to continue.
      *
      * @param nextState the current state with follow-on methods.
@@ -121,8 +135,10 @@ interface NativeAuthResultV2 : Result {
     class AttributesRequired(
         override val nextState: AttributesRequiredStateV2,
         override val scenario: NativeAuthFlowScenarioV2,
-        val requiredAttributes: List<RequiredUserAttribute>
-    ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2
+        requiredAttributes: List<RequiredUserAttribute>
+    ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2 {
+        val requiredAttributes: List<RequiredUserAttribute> = Collections.unmodifiableList(ArrayList(requiredAttributes))
+    }
 
     /**
      * AttributesInvalid Result, which indicates the submitted attributes were rejected and must be corrected.
@@ -133,8 +149,10 @@ interface NativeAuthResultV2 : Result {
     class AttributesInvalid(
         override val nextState: AttributesInvalidStateV2,
         override val scenario: NativeAuthFlowScenarioV2,
-        val invalidAttributes: List<String>
-    ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2
+        invalidAttributes: List<String>
+    ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2 {
+        val invalidAttributes: List<String> = Collections.unmodifiableList(ArrayList(invalidAttributes))
+    }
 
     /**
      * MFARequired Result, which indicates multi-factor authentication is required and the user must

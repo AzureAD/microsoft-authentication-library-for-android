@@ -47,6 +47,7 @@ import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeErrorV2
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
+import com.microsoft.identity.nativeauth.toListOfRequiredUserAttributeV2
 import com.microsoft.identity.nativeauth.utils.getCancellable
 import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
@@ -140,6 +141,25 @@ class CodeRequiredStateV2 internal constructor(
                     is NativeAuthV2CommandResult.NewPasswordRequired -> {
                         NativeAuthResultV2.NewPasswordRequired(
                             nextState = NewPasswordRequiredStateV2(result.continuationState, scenario, config),
+                            scenario = scenario
+                        )
+                    }
+                    is NativeAuthV2CommandResult.AttributesRequired -> {
+                        NativeAuthResultV2.AttributesRequired(
+                            nextState = AttributesRequiredStateV2(result.continuationState, scenario, config),
+                            scenario = scenario,
+                            requiredAttributes = result.requiredAttributes.toListOfRequiredUserAttributeV2()
+                        )
+                    }
+                    is NativeAuthV2CommandResult.PasswordRequired -> {
+                        NativeAuthResultV2.PasswordRequired(
+                            nextState = PasswordRequiredStateV2(result.continuationState, scenario, config),
+                            scenario = scenario
+                        )
+                    }
+                    is NativeAuthV2CommandResult.SignInAfterSignUpRequired -> {
+                        NativeAuthResultV2.SignInAfterSignUpRequired(
+                            nextState = SignInAfterSignUpStateV2(result.continuationState, scenario, config),
                             scenario = scenario
                         )
                     }
