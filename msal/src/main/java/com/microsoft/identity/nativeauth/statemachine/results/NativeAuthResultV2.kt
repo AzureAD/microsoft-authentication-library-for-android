@@ -40,6 +40,7 @@ import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterResetPas
 import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthRegistrationRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthVerificationRequiredStateV2
+import java.util.Collections
 
 /**
  * NativeAuthResultV2 is the single unified result for the Native Auth V2 surface.
@@ -159,8 +160,10 @@ interface NativeAuthResultV2 : Result {
     class MFARequired(
         override val nextState: MFARequiredStateV2,
         override val scenario: NativeAuthFlowScenarioV2,
-        val authMethods: List<AuthMethod>
-    ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2
+        authMethods: List<AuthMethod>
+    ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2 {
+        val authMethods: List<AuthMethod> = Collections.unmodifiableList(ArrayList(authMethods))
+    }
 
     /**
      * MFAVerificationRequired Result, which indicates an MFA challenge was sent and the user must

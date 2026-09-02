@@ -54,6 +54,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Collections
 
 /**
  * State that requires the user to select an authentication method for multi-factor authentication.
@@ -74,9 +75,10 @@ class MFARequiredStateV2 internal constructor(
     /**
      * The authentication methods the server offered for this multi-factor step.
      */
-    val authMethods: List<AuthMethod> = emptyList()
+    authMethods: List<AuthMethod> = emptyList()
 ) : NativeAuthBaseStateV2(continuationToken, correlationId, scenario, config, continuationState) {
     private val TAG: String = MFARequiredStateV2::class.java.simpleName
+    val authMethods: List<AuthMethod> = Collections.unmodifiableList(ArrayList(authMethods))
 
     internal constructor(
         continuationState: NativeAuthV2ContinuationState,

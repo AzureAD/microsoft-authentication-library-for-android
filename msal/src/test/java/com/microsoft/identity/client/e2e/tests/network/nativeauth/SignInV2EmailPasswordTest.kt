@@ -169,7 +169,7 @@ class SignInV2EmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest(
 
     /**
      * Password first factor followed by an email one-time code: submit an invalid code, request a
-     * fresh challenge from the retained MFA state, then submit the correct code and complete.
+     * fresh challenge from the retained verification state, then submit the correct code and complete.
      * Also asserts the scopes requested at sign in are present in the resulting token.
      */
     @Ignore("Native Auth V2 sign-in endpoints are not available on the E2E slice.")
@@ -203,10 +203,9 @@ class SignInV2EmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest(
 
                 val incorrect = challengeResult.nextState.submitChallenge(INCORRECT_CODE)
                 assertTrue(incorrect is MFASubmitChallengeErrorV2)
-                assertTrue((incorrect as MFASubmitChallengeErrorV2).isInvalidChallenge())
+                assertTrue((incorrect as MFASubmitChallengeErrorV2).isInvalidCode())
 
-                // A fresh challenge is requested from the retained MFA state, not from the error.
-                val freshChallenge = mfaState.selectAuthMethod(emailMethod)
+                val freshChallenge = challengeResult.nextState.resendChallenge()
                 assertResult<NativeAuthResultV2.MFAVerificationRequired>(freshChallenge)
 
                 val otp = tempEmailApi.retrieveCodeFromInbox(username)

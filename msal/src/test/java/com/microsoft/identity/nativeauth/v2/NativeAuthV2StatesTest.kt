@@ -300,11 +300,40 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
+    fun testMFARequiredStateDefensivelyCopiesAuthMethods() {
+        val source = mutableListOf(AuthMethod("id", "oob", null, "email"))
+        val state = MFARequiredStateV2(
+            continuationToken,
+            correlationId,
+            scenario,
+            config,
+            authMethods = source
+        )
+
+        source.clear()
+        assertEquals(1, state.authMethods.size)
+        try {
+            (state.authMethods as MutableList<AuthMethod>).clear()
+            fail("Expected authMethods to be unmodifiable")
+        } catch (_: UnsupportedOperationException) {
+            // Expected.
+        }
+    }
+
+    @Test
     fun testMFAVerificationRequiredStateCallbackReturnsInvalidState() {
         assertCallbackInvalidState { future ->
             MFAVerificationRequiredStateV2(continuationToken, correlationId, scenario, config).submitChallenge(
                 "challenge",
                 object : MFAVerificationRequiredStateV2.SubmitChallengeCallback {
+                    override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
+                    override fun onError(exception: BaseException) = future.setException(exception)
+                }
+            )
+        }
+        assertCallbackInvalidState { future ->
+            MFAVerificationRequiredStateV2(continuationToken, correlationId, scenario, config).resendChallenge(
+                object : MFAVerificationRequiredStateV2.ResendChallengeCallback {
                     override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
                     override fun onError(exception: BaseException) = future.setException(exception)
                 }
@@ -410,6 +439,14 @@ class NativeAuthV2StatesTest {
             MFAVerificationRequiredStateV2(continuationToken, correlationId, scenario, config).submitChallenge(
                 "challenge",
                 object : MFAVerificationRequiredStateV2.SubmitChallengeCallback {
+                    override fun onResult(result: NativeAuthResultV2): Unit = throw thrown
+                    override fun onError(exception: BaseException) = future.setException(exception)
+                }
+            )
+        }
+        assertCallbackRoutesToOnError { future, thrown ->
+            MFAVerificationRequiredStateV2(continuationToken, correlationId, scenario, config).resendChallenge(
+                object : MFAVerificationRequiredStateV2.ResendChallengeCallback {
                     override fun onResult(result: NativeAuthResultV2): Unit = throw thrown
                     override fun onError(exception: BaseException) = future.setException(exception)
                 }

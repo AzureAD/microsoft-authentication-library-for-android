@@ -53,12 +53,12 @@ import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.toListOfRequiredUserAttributeV2
 import com.microsoft.identity.nativeauth.toListOfV2AuthMethods
 import com.microsoft.identity.nativeauth.utils.getCancellable
+import com.microsoft.identity.nativeauth.utils.launchOwningPasswordSnapshot
 import com.microsoft.identity.nativeauth.utils.serializable
 import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
@@ -113,9 +113,10 @@ class PasswordRequiredStateV2 internal constructor(
             correlationId = correlationId,
             methodName = "${TAG}.submitPassword(password: CharArray, callback: SubmitPasswordCallback)"
         )
-        NativeAuthPublicClientApplication.pcaScope.launch {
+        val passwordSnapshot = password.copyOf()
+        NativeAuthPublicClientApplication.pcaScope.launchOwningPasswordSnapshot(passwordSnapshot) {
             try {
-                callback.onResult(submitPassword(password))
+                callback.onResult(submitPassword(passwordSnapshot))
             } catch (e: MsalException) {
                 Logger.error(TAG, "Exception thrown in submitPassword", e)
                 callback.onError(e)

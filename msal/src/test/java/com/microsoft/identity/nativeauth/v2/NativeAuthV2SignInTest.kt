@@ -35,8 +35,12 @@ import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.commands.BaseCommand
 import com.microsoft.identity.common.java.commands.ICommandResult
 import com.microsoft.identity.common.java.controllers.CommandResult
+import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.logging.DiagnosticContext
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2ResendCodeCommandParameters
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitPasswordCommandParameters
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInV2StartCommandParameters
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2AuthMethod
@@ -44,6 +48,7 @@ import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.Nati
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2LinkRelation
 import com.microsoft.identity.common.java.nativeauth.providers.v2.NativeAuthV2FlowScenario
 import com.microsoft.identity.common.java.result.FinalizableResultFuture
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResendCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SelectMFAMethodCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInStartCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitMFAChallengeCommand
@@ -77,6 +82,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -88,6 +94,7 @@ import org.robolectric.annotation.Config
 import java.io.File
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Parity coverage for Native Auth V2 sign-in: password first factor and password followed by email
@@ -225,7 +232,8 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun signInV2ClearsTheCallersPasswordCopyAndLeavesTheOriginalIntact() = runTest {
+    fun signInV2ClearsTheOwnedPasswordCopyOnCompletionAndCancellationWhileLeavingTheCallersBufferIntact() = runTest(timeout = 60.seconds) {
+        var capturedOnCompletion: CharArray? = null
         enqueueResult(
             NativeAuthV2CommandResult.InvalidCredentials(
                 correlationId,
@@ -234,14 +242,64 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
                 "invalidUserNameOrPassword"
             ),
             NativeAuthV2SignInStartCommand::class
-        )
+        ) { command ->
+            capturedOnCompletion = (command.parameters as SignInV2StartCommandParameters).password
+        }
 
         val callerPassword = "Password123!".toCharArray()
         application.signInV2(signInParameters(password = callerPassword))
 
-        // signInV2 copies the buffer, so the caller's own array is untouched while the copy handed
-        // to Common is cleared. A password is never stored in a state or continuation state.
+        // The command must have received a distinct, owned copy -- never the caller's own array.
+        assertNotSame(callerPassword, capturedOnCompletion)
         assertEquals("Password123!", String(callerPassword))
+        assertPasswordCleared(capturedOnCompletion!!)
+
+        var capturedOnCancellation: CharArray? = null
+        enqueueCancellation(NativeAuthV2SignInStartCommand::class) { command ->
+            capturedOnCancellation = (command.parameters as SignInV2StartCommandParameters).password
+        }
+        val secondCallerPassword = "Password123!".toCharArray()
+        try {
+            application.signInV2(signInParameters(password = secondCallerPassword))
+            fail("Expected CancellationException")
+        } catch (_: CancellationException) {
+            // Expected.
+        }
+
+        // The owned copy must be cleared even when the command is cancelled, while the caller's
+        // own buffer -- which it never handed over -- remains untouched.
+        assertEquals("Password123!", String(secondCallerPassword))
+        assertPasswordCleared(capturedOnCancellation!!)
+    }
+
+    @Test
+    fun signInV2CallbackSnapshotsThePasswordSynchronouslyBeforeLaunch() = runTest {
+        var capturedPassword: CharArray? = null
+        enqueueResult(
+            NativeAuthV2CommandResult.PasswordRequired(correlationId, createContinuationState()),
+            NativeAuthV2SignInStartCommand::class
+        ) { command ->
+            capturedPassword = (command.parameters as SignInV2StartCommandParameters).password?.copyOf()
+        }
+
+        val callerPassword = "Password123!".toCharArray()
+        val future = ResultFuture<NativeAuthResultV2>()
+        application.signInV2(
+            signInParameters(password = callerPassword),
+            object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
+                override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
+                override fun onError(exception: BaseException) = future.setException(exception)
+            }
+        )
+        // Mutate the caller's own buffer immediately after the call returns, before the launched
+        // coroutine has necessarily had a chance to run. If the snapshot were taken lazily (inside
+        // the coroutine body, as opposed to synchronously before launch), this mutation could race
+        // with -- and change -- what actually gets submitted to Common.
+        callerPassword.fill('X')
+
+        future.get(10, TimeUnit.SECONDS)
+
+        assertEquals("Password123!", String(capturedPassword!!))
     }
 
     @Test
@@ -357,17 +415,70 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun submitPasswordClearsItsOwnCopyAndLeavesTheCallersBufferIntact() = runTest {
+    fun submitPasswordClearsTheOwnedPasswordCopyOnCompletionAndCancellationWhileLeavingTheCallersBufferIntact() = runTest(timeout = 60.seconds) {
         val state = passwordRequiredState()
+        var capturedOnCompletion: CharArray? = null
         enqueueResult(
             INativeAuthCommandResult.Redirect(correlationId, "browser"),
             NativeAuthV2SubmitPasswordCommand::class
-        )
+        ) { command ->
+            capturedOnCompletion = (command.parameters as NativeAuthV2SubmitPasswordCommandParameters).password
+        }
 
         val callerPassword = "Password123!".toCharArray()
         state.submitPassword(callerPassword)
 
+        // The command must have received a distinct, owned copy -- never the caller's own array.
+        assertNotSame(callerPassword, capturedOnCompletion)
         assertEquals("Password123!", String(callerPassword))
+        assertPasswordCleared(capturedOnCompletion!!)
+
+        var capturedOnCancellation: CharArray? = null
+        enqueueCancellation(NativeAuthV2SubmitPasswordCommand::class) { command ->
+            capturedOnCancellation = (command.parameters as NativeAuthV2SubmitPasswordCommandParameters).password
+        }
+        val secondCallerPassword = "Password123!".toCharArray()
+        try {
+            state.submitPassword(secondCallerPassword)
+            fail("Expected CancellationException")
+        } catch (_: CancellationException) {
+            // Expected.
+        }
+
+        // The owned copy must be cleared even when the command is cancelled, while the caller's
+        // own buffer -- which it never handed over -- remains untouched.
+        assertEquals("Password123!", String(secondCallerPassword))
+        assertPasswordCleared(capturedOnCancellation!!)
+    }
+
+    @Test
+    fun submitPasswordCallbackSnapshotsThePasswordSynchronouslyBeforeLaunch() = runTest {
+        val state = passwordRequiredState()
+        var capturedPassword: CharArray? = null
+        enqueueResult(
+            INativeAuthCommandResult.Redirect(correlationId, "browser"),
+            NativeAuthV2SubmitPasswordCommand::class
+        ) { command ->
+            capturedPassword = (command.parameters as NativeAuthV2SubmitPasswordCommandParameters).password.copyOf()
+        }
+
+        val callerPassword = "Password123!".toCharArray()
+        val future = ResultFuture<NativeAuthResultV2>()
+        state.submitPassword(
+            callerPassword,
+            object : PasswordRequiredStateV2.SubmitPasswordCallback {
+                override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
+                override fun onError(exception: BaseException) = future.setException(exception)
+            }
+        )
+        // Mutate the caller's own buffer immediately after the call returns, before the launched
+        // coroutine has necessarily had a chance to run, for the same reason as the signInV2
+        // callback variant above.
+        callerPassword.fill('X')
+
+        future.get(10, TimeUnit.SECONDS)
+
+        assertEquals("Password123!", String(capturedPassword!!))
     }
 
     @Test
@@ -542,23 +653,43 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2SubmitMFAChallengeCommand::class
         )
         val wrongCode = verificationState.submitChallenge("000000") as MFASubmitChallengeErrorV2
-        assertTrue(wrongCode.isInvalidChallenge())
+        assertTrue(wrongCode.isInvalidCode())
         assertEquals("invalidOneTimeCode", wrongCode.subError)
 
-        // The app requests a fresh challenge from the retained MFARequiredStateV2, not from a
-        // state carried on the error.
-        enqueueResult(
-            NativeAuthV2CommandResult.MFAVerificationRequired(
-                correlationId,
-                createContinuationState(),
-                6,
-                "u***@contoso.com",
-                "email"
-            ),
-            NativeAuthV2SelectMFAMethodCommand::class
+        val refreshedContinuationState = createContinuationState(correlationId = "resend-correlation-id")
+        val resendFuture = FinalizableResultFuture<CommandResult<Any>>()
+        resendFuture.setResult(
+            CommandResult(
+                ICommandResult.ResultStatus.COMPLETED,
+                NativeAuthV2CommandResult.CodeRequired(
+                    correlationId = "resend-correlation-id",
+                    continuationState = refreshedContinuationState,
+                    codeLength = 8,
+                    challengeTargetLabel = "n***@contoso.com",
+                    challengeChannel = "email"
+                ) as Any,
+                "resend-correlation-id"
+            )
         )
-        val fresh = mfaState.selectAuthMethod(mfaState.authMethods.single())
+        every {
+            CommandDispatcher.submitSilentReturningFuture(
+                match {
+                    it is NativeAuthV2ResendCodeCommand &&
+                        it.publicApiId == PublicApiId.NATIVE_AUTH_V2_SIGN_IN_RESEND_MFA_CHALLENGE &&
+                        (it.parameters as NativeAuthV2ResendCodeCommandParameters).continuationState === verificationState.continuationState
+                }
+            )
+        } returns resendFuture
+
+        val fresh = verificationState.resendChallenge()
         assertTrue(fresh is NativeAuthResultV2.MFAVerificationRequired)
+        fresh as NativeAuthResultV2.MFAVerificationRequired
+        assertEquals(8, fresh.codeLength)
+        assertEquals("n***@contoso.com", fresh.sentTo)
+        assertEquals("email", fresh.channel)
+        assertEquals("resend-correlation-id", fresh.nextState.correlationId)
+        assertTrue(fresh.nextState !== verificationState)
+        assertTrue(fresh.nextState.continuationState === refreshedContinuationState)
 
         // Retrying on the state instance the caller already holds also works.
         enqueueResult(
@@ -570,7 +701,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             ),
             NativeAuthV2SubmitMFAChallengeCommand::class
         )
-        assertTrue((verificationState.submitChallenge("111111") as MFASubmitChallengeErrorV2).isInvalidChallenge())
+        assertTrue((verificationState.submitChallenge("111111") as MFASubmitChallengeErrorV2).isInvalidCode())
     }
 
     @Test
@@ -579,7 +710,8 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
 
         val result = verificationState.submitChallenge("") as MFASubmitChallengeErrorV2
 
-        assertTrue(result.isInvalidChallenge())
+        assertTrue(result.isInvalidCode())
+        assertEquals(ErrorTypes.INVALID_CODE, result.errorType)
     }
 
     @Test
@@ -597,6 +729,32 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2SubmitMFAChallengeCommand::class
         )
         assertTrue((verificationState.submitChallenge("123456") as NativeAuthErrorV2).isNotImplemented())
+    }
+
+    @Test
+    fun signInCompletionWithoutAuthenticationResultUsesScenarioNeutralDiagnostic() = runTest {
+        val expectedMessage =
+            "Native Auth V2 flow completed but no authentication result was returned."
+
+        val passwordState = passwordRequiredState()
+        enqueueResult(
+            NativeAuthV2CommandResult.Complete(correlationId, null, null, null),
+            NativeAuthV2SubmitPasswordCommand::class
+        )
+        assertEquals(
+            expectedMessage,
+            (passwordState.submitPassword("Password123!".toCharArray()) as NativeAuthErrorV2).errorMessage
+        )
+
+        val verificationState = mfaVerificationState(mfaRequiredState())
+        enqueueResult(
+            NativeAuthV2CommandResult.Complete(correlationId, null, null, null),
+            NativeAuthV2SubmitMFAChallengeCommand::class
+        )
+        assertEquals(
+            expectedMessage,
+            (verificationState.submitChallenge("123456") as NativeAuthErrorV2).errorMessage
+        )
     }
 
     @Test
@@ -624,7 +782,6 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             ),
             NativeAuthV2SubmitMFAChallengeCommand::class
         )
-
         val future = ResultFuture<NativeAuthResultV2>()
         verificationState.submitChallenge(
             "000000",
@@ -635,7 +792,72 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             }
         )
 
-        assertTrue((future.get(30, TimeUnit.SECONDS) as MFASubmitChallengeErrorV2).isInvalidChallenge())
+        assertTrue((future.get(30, TimeUnit.SECONDS) as MFASubmitChallengeErrorV2).isInvalidCode())
+    }
+
+    @Test
+    fun resendChallengeCallbackDeliversARefreshedVerificationStateThroughOnResult() = runTest {
+        val verificationState = mfaVerificationState(mfaRequiredState())
+        val refreshedContinuationState = createContinuationState(correlationId = "callback-resend-correlation-id")
+        enqueueResult(
+            NativeAuthV2CommandResult.CodeRequired(
+                correlationId = "callback-resend-correlation-id",
+                continuationState = refreshedContinuationState,
+                codeLength = 7,
+                challengeTargetLabel = "c***@contoso.com",
+                challengeChannel = "email"
+            ),
+            NativeAuthV2ResendCodeCommand::class
+        )
+
+        val future = ResultFuture<NativeAuthResultV2>()
+        verificationState.resendChallenge(
+            object : MFAVerificationRequiredStateV2.ResendChallengeCallback {
+                override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
+                override fun onError(exception: BaseException) =
+                    future.setException(IllegalStateException("Expected callback.onResult", exception))
+            }
+        )
+
+        val result = future.get(30, TimeUnit.SECONDS)
+        assertTrue(result is NativeAuthResultV2.MFAVerificationRequired)
+        result as NativeAuthResultV2.MFAVerificationRequired
+        assertEquals(7, result.codeLength)
+        assertEquals("c***@contoso.com", result.sentTo)
+        assertEquals("email", result.channel)
+        assertTrue(result.nextState.continuationState === refreshedContinuationState)
+    }
+
+    @Test
+    fun resendChallengeMapsNotImplementedRedirectAndApiErrorThenPropagatesCancellation() = runTest(timeout = 60.seconds) {
+        val verificationState = mfaVerificationState(mfaRequiredState())
+
+        enqueueResult(
+            INativeAuthCommandResult.Redirect(correlationId, "browser"),
+            NativeAuthV2ResendCodeCommand::class
+        )
+        assertTrue((verificationState.resendChallenge() as NativeAuthErrorV2).isBrowserRequired())
+
+        enqueueResult(
+            NativeAuthV2CommandResult.NotImplemented(correlationId, "not_implemented", "nope"),
+            NativeAuthV2ResendCodeCommand::class
+        )
+        assertTrue((verificationState.resendChallenge() as NativeAuthErrorV2).isNotImplemented())
+
+        enqueueResult(
+            INativeAuthCommandResult.APIError("api_error", "API failed", correlationId = correlationId, errorCodes = errorCodes),
+            NativeAuthV2ResendCodeCommand::class
+        )
+        val apiError = verificationState.resendChallenge() as NativeAuthErrorV2
+        assertEquals(errorCodes, apiError.errorCodes)
+
+        enqueueCancellation(NativeAuthV2ResendCodeCommand::class)
+        try {
+            verificationState.resendChallenge()
+            fail("Expected CancellationException")
+        } catch (_: CancellationException) {
+            // Expected: cancellation is not an authentication failure.
+        }
     }
 
     // -----------------------------------------------------------------------------------------
@@ -735,9 +957,14 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         }
     }
 
+    private fun assertPasswordCleared(password: CharArray) {
+        password.forEach { assertEquals('\u0000', it) }
+    }
+
     private fun enqueueResult(
         result: INativeAuthCommandResult,
-        commandClass: KClass<out BaseCommand<*>>
+        commandClass: KClass<out BaseCommand<*>>,
+        onCommand: (BaseCommand<*>) -> Unit = {}
     ) {
         val future = FinalizableResultFuture<CommandResult<Any>>()
         future.setResult(
@@ -751,18 +978,29 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             CommandDispatcher.submitSilentReturningFuture(
                 match { commandClass.java.isInstance(it) }
             )
-        } returns future
+        } answers {
+            onCommand(firstArg())
+            future
+        }
     }
 
-    private fun enqueueCancellation(commandClass: KClass<out BaseCommand<*>>) {
+    private fun enqueueCancellation(
+        commandClass: KClass<out BaseCommand<*>>,
+        onCommand: (BaseCommand<*>) -> Unit = {}
+    ) {
         every {
             CommandDispatcher.submitSilentReturningFuture(
                 match { commandClass.java.isInstance(it) }
             )
-        } throws CancellationException("cancelled")
+        } answers {
+            onCommand(firstArg())
+            throw CancellationException("cancelled")
+        }
     }
 
-    private fun createContinuationState(): NativeAuthV2ContinuationState {
+    private fun createContinuationState(
+        correlationId: String = NativeAuthV2SignInTest.correlationId
+    ): NativeAuthV2ContinuationState {
         val constructor = NativeAuthV2ContinuationState::class.java.declaredConstructors
             .single { it.parameterCount == 9 }
         constructor.isAccessible = true
