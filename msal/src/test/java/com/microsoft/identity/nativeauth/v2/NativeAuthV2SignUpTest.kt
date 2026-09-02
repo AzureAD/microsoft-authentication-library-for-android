@@ -39,6 +39,7 @@ import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.controllers.CommandResult
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.logging.DiagnosticContext
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpV2StartCommandParameters
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
@@ -82,6 +83,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
@@ -292,18 +294,41 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun signUpV2ClearsTheCallersPasswordCopyAndLeavesTheOriginalIntact() = runTest {
+    fun signUpV2ClearsTheOwnedPasswordCopyOnCompletionAndCancellationWhileLeavingTheCallersBufferIntact() = runTest {
+        var capturedOnCompletion: CharArray? = null
         enqueueResult(
             NativeAuthV2CommandResult.PasswordRequired(correlationId, createContinuationState()),
             NativeAuthV2SignUpStartCommand::class
-        )
+        ) { command ->
+            capturedOnCompletion = (command.parameters as SignUpV2StartCommandParameters).password
+        }
 
         val callerPassword = "Password123!".toCharArray()
         application.signUpV2(signUpParameters(password = callerPassword))
 
-        // signUpV2 copies the buffer, so the caller's own array is untouched. A password is never
-        // stored in a state or continuation state.
+        // signUpV2 submits a distinct, owned copy -- never the caller's own array -- and wipes that
+        // copy on exit, so the caller's buffer stays intact while the owned copy is zeroed. A
+        // password is never stored in a Parcelable state or in the opaque continuation state.
+        assertNotSame(callerPassword, capturedOnCompletion)
         assertEquals("Password123!", String(callerPassword))
+        assertPasswordCleared(capturedOnCompletion!!)
+
+        var capturedOnCancellation: CharArray? = null
+        enqueueCancellation(NativeAuthV2SignUpStartCommand::class) { command ->
+            capturedOnCancellation = (command.parameters as SignUpV2StartCommandParameters).password
+        }
+        val secondCallerPassword = "Password123!".toCharArray()
+        try {
+            application.signUpV2(signUpParameters(password = secondCallerPassword))
+            fail("Expected CancellationException")
+        } catch (_: CancellationException) {
+            // Expected.
+        }
+
+        // The owned copy must be cleared even when the command is cancelled, while the caller's
+        // own buffer -- which it never handed over -- remains untouched.
+        assertEquals("Password123!", String(secondCallerPassword))
+        assertPasswordCleared(capturedOnCancellation!!)
     }
 
     @Test
@@ -665,7 +690,8 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
 
     private fun enqueueResult(
         result: INativeAuthCommandResult,
-        commandClass: KClass<out BaseCommand<*>>
+        commandClass: KClass<out BaseCommand<*>>,
+        onCommand: (BaseCommand<*>) -> Unit = {}
     ) {
         val future = FinalizableResultFuture<CommandResult<Any>>()
         future.setResult(
@@ -679,15 +705,28 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
             CommandDispatcher.submitSilentReturningFuture(
                 match { commandClass.java.isInstance(it) }
             )
-        } returns future
+        } answers {
+            onCommand(firstArg())
+            future
+        }
     }
 
-    private fun enqueueCancellation(commandClass: KClass<out BaseCommand<*>>) {
+    private fun enqueueCancellation(
+        commandClass: KClass<out BaseCommand<*>>,
+        onCommand: (BaseCommand<*>) -> Unit = {}
+    ) {
         every {
             CommandDispatcher.submitSilentReturningFuture(
                 match { commandClass.java.isInstance(it) }
             )
-        } throws CancellationException("cancelled")
+        } answers {
+            onCommand(firstArg())
+            throw CancellationException("cancelled")
+        }
+    }
+
+    private fun assertPasswordCleared(password: CharArray) {
+        password.forEach { assertEquals('\u0000', it) }
     }
 
     private fun createContinuationState(): NativeAuthV2ContinuationState {
