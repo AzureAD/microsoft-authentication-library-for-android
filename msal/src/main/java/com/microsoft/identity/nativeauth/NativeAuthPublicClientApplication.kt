@@ -628,7 +628,7 @@ class NativeAuthPublicClientApplication(
                     )
                 }
 
-                val cmdParams = CommandParametersAdapter.createSignInV2StartCommandParameters(
+                val cmdParams = CommandParametersAdapter.createNativeAuthV2SignInCommandParameters(
                     nativeAuthConfig,
                     nativeAuthConfig.oAuth2TokenCache,
                     parameters.username,

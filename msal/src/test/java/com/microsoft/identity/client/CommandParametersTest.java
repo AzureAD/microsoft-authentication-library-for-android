@@ -646,7 +646,7 @@ public class CommandParametersTest {
     }
 
         @Test
-        public void testCreateSignInV2StartCommandParameters_CommandParamsContainsExpectedParams() throws ClientException {
+        public void testCreateNativeAuthV2SignInCommandParameters_CommandParamsContainsExpectedParams() throws ClientException {
             final String correlationId = "00000000-0000-0000-0000-000000000011";
             final RequestContext requestContext = new RequestContext();
             requestContext.put(DiagnosticContext.CORRELATION_ID, correlationId);
@@ -661,7 +661,7 @@ public class CommandParametersTest {
                 final ClaimsRequest claimsRequest = getAccessTokenClaimsRequest("xms_cc", "cp1");
 
                 final SignInV2StartCommandParameters commandParameters =
-                        CommandParametersAdapter.createSignInV2StartCommandParameters(
+                        CommandParametersAdapter.createNativeAuthV2SignInCommandParameters(
                                 configuration,
                                 tokenCache,
                                 username,

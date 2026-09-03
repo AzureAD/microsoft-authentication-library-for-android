@@ -1348,7 +1348,7 @@ public class CommandParametersAdapter {
      * @param claimsRequest (Optional) claims request to send with the token request
      * @return Command parameter object
      */
-    public static SignInV2StartCommandParameters createSignInV2StartCommandParameters(
+    public static SignInV2StartCommandParameters createNativeAuthV2SignInCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String username,
