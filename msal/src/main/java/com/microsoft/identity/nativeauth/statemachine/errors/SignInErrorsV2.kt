@@ -86,8 +86,8 @@ class SubmitPasswordErrorV2(
     fun isInvalidPassword(): Boolean = this.errorType == ErrorTypes.INVALID_PASSWORD
 
     /**
-     * A deferred password rejection is reported as [isInvalidPassword], matching MSAL iOS/macOS:
-     * the account was already accepted at the sign-in entry point, so only the password was wrong.
+     * A deferred password rejection is reported as [isInvalidPassword], the account was already accepted 
+     * at the sign-in entry point, so only the password was wrong.
      * Invalid credentials are reported by
      * [com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication.signInV2] as a
      * [SignInErrorV2] instead. This method returns true only when this error was explicitly
