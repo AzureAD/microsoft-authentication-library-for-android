@@ -653,7 +653,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2SubmitMFAChallengeCommand::class
         )
         val wrongCode = verificationState.submitChallenge("000000") as MFASubmitChallengeErrorV2
-        assertTrue(wrongCode.isInvalidCode())
+        assertTrue(wrongCode.isInvalidChallenge())
         assertEquals("invalidOneTimeCode", wrongCode.subError)
 
         val refreshedContinuationState = createContinuationState(correlationId = "resend-correlation-id")
@@ -701,7 +701,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             ),
             NativeAuthV2SubmitMFAChallengeCommand::class
         )
-        assertTrue((verificationState.submitChallenge("111111") as MFASubmitChallengeErrorV2).isInvalidCode())
+        assertTrue((verificationState.submitChallenge("111111") as MFASubmitChallengeErrorV2).isInvalidChallenge())
     }
 
     @Test
@@ -710,7 +710,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
 
         val result = verificationState.submitChallenge("") as MFASubmitChallengeErrorV2
 
-        assertTrue(result.isInvalidCode())
+        assertTrue(result.isInvalidChallenge())
         assertEquals(ErrorTypes.INVALID_CODE, result.errorType)
     }
 
@@ -792,7 +792,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             }
         )
 
-        assertTrue((future.get(30, TimeUnit.SECONDS) as MFASubmitChallengeErrorV2).isInvalidCode())
+        assertTrue((future.get(30, TimeUnit.SECONDS) as MFASubmitChallengeErrorV2).isInvalidChallenge())
     }
 
     @Test

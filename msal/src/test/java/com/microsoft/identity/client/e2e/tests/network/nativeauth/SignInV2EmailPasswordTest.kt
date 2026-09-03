@@ -203,7 +203,7 @@ class SignInV2EmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest(
 
                 val incorrect = challengeResult.nextState.submitChallenge(INCORRECT_CODE)
                 assertTrue(incorrect is MFASubmitChallengeErrorV2)
-                assertTrue((incorrect as MFASubmitChallengeErrorV2).isInvalidCode())
+                assertTrue((incorrect as MFASubmitChallengeErrorV2).isInvalidChallenge())
 
                 val freshChallenge = challengeResult.nextState.resendChallenge()
                 assertResult<NativeAuthResultV2.MFAVerificationRequired>(freshChallenge)
