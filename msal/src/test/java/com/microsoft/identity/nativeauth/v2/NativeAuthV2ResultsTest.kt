@@ -137,12 +137,19 @@ class NativeAuthV2ResultsTest {
     @Test
     fun testMFARequiredExposesExpectedValues() {
         val authMethods = mutableListOf(AuthMethod("id", "oob", "user@email.com", "email"))
-        val result = NativeAuthResultV2.MFARequired(
-            nextState = MFARequiredStateV2(continuationToken, correlationId, scenario, config),
-            scenario = scenario,
+        val nextState = MFARequiredStateV2(
+            continuationToken,
+            correlationId,
+            scenario,
+            config,
             authMethods = authMethods
         )
+        val result = NativeAuthResultV2.MFARequired(
+            nextState = nextState,
+            scenario = scenario
+        )
         assertEquals(authMethods, result.authMethods)
+        assertSame(nextState.authMethods, result.authMethods)
         assertEquals(scenario, result.scenario)
 
         authMethods.clear()

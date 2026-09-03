@@ -688,8 +688,7 @@ class NativeAuthPublicClientApplication(
                                 scenario = NativeAuthFlowScenarioV2.SIGN_IN,
                                 config = nativeAuthConfig
                             ),
-                            scenario = NativeAuthFlowScenarioV2.SIGN_IN,
-                            authMethods = authMethods
+                            scenario = NativeAuthFlowScenarioV2.SIGN_IN
                         )
                     }
                     is NativeAuthV2CommandResult.InvalidCredentials -> {
