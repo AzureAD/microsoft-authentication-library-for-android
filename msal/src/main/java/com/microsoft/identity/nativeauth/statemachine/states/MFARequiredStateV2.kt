@@ -204,17 +204,6 @@ class MFARequiredStateV2 internal constructor(
                             channel = result.challengeChannel
                         )
                     }
-                    is NativeAuthV2CommandResult.AuthMethodBlocked -> {
-                        MFARequestChallengeErrorV2(
-                            errorType = ErrorTypes.AUTH_METHOD_BLOCKED,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario,
-                            errorCodes = result.errorCodes,
-                            subError = result.subError
-                        )
-                    }
                     is NativeAuthV2CommandResult.NotImplemented -> {
                         NativeAuthErrorV2(
                             errorType = ErrorTypes.NOT_IMPLEMENTED,

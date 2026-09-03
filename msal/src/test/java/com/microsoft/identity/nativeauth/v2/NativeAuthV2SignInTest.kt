@@ -618,22 +618,23 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun selectAuthMethodMapsBlockedMethod() = runTest {
+    fun selectAuthMethodMapsApiError() = runTest {
         val state = mfaRequiredState()
         enqueueResult(
-            NativeAuthV2CommandResult.AuthMethodBlocked(
-                correlationId,
-                "accessDenied",
-                "blocked",
-                "providerBlockedByRep",
-                errorCodes
+            INativeAuthCommandResult.APIError(
+                error = "accessDenied",
+                errorDescription = "blocked",
+                correlationId = correlationId,
+                errorCodes = errorCodes
             ),
             NativeAuthV2SelectMFAMethodCommand::class
         )
 
         val result = state.selectAuthMethod(state.authMethods.single()) as MFARequestChallengeErrorV2
 
-        assertTrue(result.isAuthMethodBlocked())
+        assertFalse(result.isAuthMethodBlocked())
+        assertEquals("accessDenied", result.error)
+        assertEquals("blocked", result.errorMessage)
         assertEquals(errorCodes, result.errorCodes)
     }
 
