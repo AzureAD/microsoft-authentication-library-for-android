@@ -140,13 +140,17 @@ interface NativeAuthResultV2 : Result {
      * select an authentication method.
      *
      * @param nextState the current state with follow-on methods.
-     * @param authMethods the authentication methods available to the user.
      */
     class MFARequired(
         override val nextState: MFARequiredStateV2,
-        override val scenario: NativeAuthFlowScenarioV2,
+        override val scenario: NativeAuthFlowScenarioV2
+    ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2 {
+        /**
+         * The authentication methods available to the user.
+         */
         val authMethods: List<AuthMethod>
-    ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2
+            get() = nextState.authMethods
+    }
 
     /**
      * MFAVerificationRequired Result, which indicates an MFA challenge was sent and the user must

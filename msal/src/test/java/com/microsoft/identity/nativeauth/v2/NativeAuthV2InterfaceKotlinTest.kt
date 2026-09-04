@@ -41,8 +41,6 @@ import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
-import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2LinkRelation
-import com.microsoft.identity.common.java.nativeauth.providers.v2.NativeAuthV2FlowScenario
 import com.microsoft.identity.common.java.result.FinalizableResultFuture
 import com.microsoft.identity.common.java.result.ILocalAuthenticationResult
 import com.microsoft.identity.common.java.util.ResultFuture
@@ -135,13 +133,6 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     @After
     fun tearDown() {
         unmockkStatic(CommandDispatcher::class)
-    }
-
-    @Test
-    fun signInV2ReturnsNotImplemented() = runTest {
-        val result = application.signInV2(NativeAuthSignInParameters(username = username))
-        val error = assertNotImplemented(result)
-        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, error.scenario)
     }
 
     @Test
@@ -648,13 +639,14 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         assertInvalidState(codeRequired.submitCode("1234"))
         assertInvalidState(codeRequired.resendCode())
 
-        assertNotImplemented(PasswordRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitPassword("password".toCharArray()))
+        assertInvalidState(PasswordRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitPassword("password".toCharArray()))
         assertNotImplemented(NewPasswordRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitNewPassword("password".toCharArray()))
         assertNotImplemented(SignInAfterResetPasswordStateV2("continuation-token", "correlation-id", scenario, config).signIn())
         assertNotImplemented(AttributesRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitAttributes(attributes))
         assertNotImplemented(AttributesInvalidStateV2("continuation-token", "correlation-id", scenario, config).submitAttributes(attributes))
-        assertNotImplemented(MFARequiredStateV2("continuation-token", "correlation-id", scenario, config).selectAuthMethod(authMethod))
-        assertNotImplemented(MFAVerificationRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitChallenge("challenge"))
+        assertInvalidState(MFARequiredStateV2("continuation-token", "correlation-id", scenario, config).selectAuthMethod(authMethod))
+        assertInvalidState(MFAVerificationRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitChallenge("challenge"))
+        assertInvalidState(MFAVerificationRequiredStateV2("continuation-token", "correlation-id", scenario, config).resendChallenge())
         assertNotImplemented(StrongAuthRegistrationRequiredStateV2("continuation-token", "correlation-id", scenario, config).selectAuthMethod(authMethod))
         assertNotImplemented(StrongAuthVerificationRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitChallenge("challenge"))
     }
@@ -837,20 +829,8 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         } returns future
     }
 
-    private fun createContinuationState(): NativeAuthV2ContinuationState {
-        val constructor = NativeAuthV2ContinuationState::class.java.declaredConstructors
-            .single { it.parameterCount == 7 }
-        constructor.isAccessible = true
-        return constructor.newInstance(
-            "opaque-token",
-            emptyMap<String, String>(),
-            listOf("scope"),
-            null,
-            correlationId,
-            NativeAuthV2LinkRelation.RESET_PASSWORD.value,
-            NativeAuthV2FlowScenario.RESET_PASSWORD
-        ) as NativeAuthV2ContinuationState
-    }
+    private fun createContinuationState(): NativeAuthV2ContinuationState =
+        newContinuationState(correlationId)
 
     @Suppress("unused")
     private fun exhaustiveWhen(result: NativeAuthResultV2): String = when (result) {

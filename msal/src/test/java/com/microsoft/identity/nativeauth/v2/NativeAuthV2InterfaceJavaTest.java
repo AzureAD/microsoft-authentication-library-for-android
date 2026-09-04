@@ -41,7 +41,9 @@ import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters;
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters;
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2;
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2;
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorV2;
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2;
+import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredStateV2;
 import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterResetPasswordStateV2;
 
 import org.junit.Before;
@@ -88,10 +90,15 @@ public class NativeAuthV2InterfaceJavaTest extends PublicClientApplicationAbstra
     }
 
     @Test
-    public void signInV2ReturnsNotImplemented() throws ExecutionException, InterruptedException, TimeoutException {
+    public void signInV2RejectsBlankUsername() throws ExecutionException, InterruptedException, TimeoutException {
+        // A blank username is rejected before any command is dispatched, so this exercises the
+        // Java callback surface of the now-implemented signInV2 without needing a service.
         final ResultFuture<NativeAuthResultV2> future = new ResultFuture<>();
-        application.signInV2(new NativeAuthSignInParameters(username), newCallback(future));
-        assertNotImplemented(future.get(30, TimeUnit.SECONDS), NativeAuthFlowScenarioV2.SIGN_IN);
+        application.signInV2(new NativeAuthSignInParameters(" "), newCallback(future));
+        final NativeAuthResultV2 result = future.get(30, TimeUnit.SECONDS);
+        assertTrue(result instanceof SignInErrorV2);
+        assertTrue(((SignInErrorV2) result).isInvalidUsername());
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.getScenario());
     }
 
     @Test
@@ -127,9 +134,34 @@ public class NativeAuthV2InterfaceJavaTest extends PublicClientApplicationAbstra
     }
 
     @Test
+    public void mfaVerificationRequiredResendChallengeReturnsInvalidState() throws ExecutionException, InterruptedException, TimeoutException {
+        final MFAVerificationRequiredStateV2 state = new MFAVerificationRequiredStateV2(
+                "continuation-token",
+                "correlation-id",
+                NativeAuthFlowScenarioV2.SIGN_IN,
+                new NativeAuthPublicClientApplicationConfiguration(),
+                null
+        );
+        final ResultFuture<NativeAuthResultV2> future = new ResultFuture<>();
+        state.resendChallenge(new MFAVerificationRequiredStateV2.ResendChallengeCallback() {
+            @Override
+            public void onResult(final NativeAuthResultV2 result) {
+                future.setResult(result);
+            }
+
+            @Override
+            public void onError(@NonNull final BaseException exception) {
+                future.setException(exception);
+            }
+        });
+
+        assertInvalidState(future.get(30, TimeUnit.SECONDS), NativeAuthFlowScenarioV2.SIGN_IN);
+    }
+
+    @Test
     public void resultDefaultImplsDelegateToBaseResult() throws ExecutionException, InterruptedException, TimeoutException {
         final ResultFuture<NativeAuthResultV2> future = new ResultFuture<>();
-        application.signInV2(new NativeAuthSignInParameters(username), newCallback(future));
+        application.signUpV2(new NativeAuthSignUpParameters(username), newCallback(future));
         final NativeAuthResultV2 result = future.get(30, TimeUnit.SECONDS);
         assertFalse(NativeAuthResultV2.DefaultImpls.isSuccess(result));
         assertFalse(NativeAuthResultV2.DefaultImpls.isComplete(result));
@@ -155,6 +187,15 @@ public class NativeAuthV2InterfaceJavaTest extends PublicClientApplicationAbstra
         NativeAuthErrorV2 error = (NativeAuthErrorV2) result;
         assertTrue(error.isNotImplemented());
         assertFalse(error.isBrowserRequired());
+        assertEquals(scenario, error.getScenario());
+    }
+
+    private void assertInvalidState(final NativeAuthResultV2 result, final NativeAuthFlowScenarioV2 scenario) {
+        assertTrue(result instanceof NativeAuthErrorV2);
+        final NativeAuthErrorV2 error = (NativeAuthErrorV2) result;
+        assertFalse(error.isNotImplemented());
+        assertFalse(error.isBrowserRequired());
+        assertEquals("The continuation state is unavailable. Restart the flow.", error.getErrorMessage());
         assertEquals(scenario, error.getScenario());
     }
 }

@@ -59,6 +59,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
+import java.lang.reflect.Constructor
 
 /**
  * Unit tests for the Native Auth V2 states, covering Parcelable serialization and the
@@ -156,20 +157,8 @@ class NativeAuthV2StatesTest {
         }
     }
 
-    private fun createContinuationState(): NativeAuthV2ContinuationState {
-        val constructor = NativeAuthV2ContinuationState::class.java.declaredConstructors
-            .single { it.parameterCount == 7 }
-        constructor.isAccessible = true
-        return constructor.newInstance(
-            "opaque-token",
-            emptyMap<String, String>(),
-            listOf("scope"),
-            null,
-            correlationId,
-            NativeAuthV2LinkRelation.RESET_PASSWORD.value,
-            NativeAuthV2FlowScenario.RESET_PASSWORD
-        ) as NativeAuthV2ContinuationState
-    }
+    private fun createContinuationState(): NativeAuthV2ContinuationState =
+        newContinuationState(correlationId)
 
     private fun assertCallbackNotImplemented(action: (ResultFuture<NativeAuthResultV2>) -> Unit) {
         val future = ResultFuture<NativeAuthResultV2>()
@@ -230,8 +219,8 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
-    fun testPasswordRequiredStateCallbackReturnsNotImplemented() {
-        assertCallbackNotImplemented { future ->
+    fun testPasswordRequiredStateCallbackReturnsInvalidState() {
+        assertCallbackInvalidState { future ->
             PasswordRequiredStateV2(continuationToken, correlationId, scenario, config).submitPassword(
                 "password".toCharArray(),
                 object : PasswordRequiredStateV2.SubmitPasswordCallback {
@@ -284,9 +273,9 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
-    fun testMFARequiredStateCallbackReturnsNotImplemented() {
+    fun testMFARequiredStateCallbackReturnsInvalidState() {
         val authMethod = AuthMethod("id", "oob", null, "email")
-        assertCallbackNotImplemented { future ->
+        assertCallbackInvalidState { future ->
             MFARequiredStateV2(continuationToken, correlationId, scenario, config).selectAuthMethod(
                 authMethod,
                 callback = object : MFARequiredStateV2.SelectAuthMethodCallback {
@@ -298,11 +287,40 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
-    fun testMFAVerificationRequiredStateCallbackReturnsNotImplemented() {
-        assertCallbackNotImplemented { future ->
+    fun testMFARequiredStateDefensivelyCopiesAuthMethods() {
+        val source = mutableListOf(AuthMethod("id", "oob", null, "email"))
+        val state = MFARequiredStateV2(
+            continuationToken,
+            correlationId,
+            scenario,
+            config,
+            authMethods = source
+        )
+
+        source.clear()
+        assertEquals(1, state.authMethods.size)
+        try {
+            (state.authMethods as MutableList<AuthMethod>).clear()
+            fail("Expected authMethods to be unmodifiable")
+        } catch (_: UnsupportedOperationException) {
+            // Expected.
+        }
+    }
+
+    @Test
+    fun testMFAVerificationRequiredStateCallbackReturnsInvalidState() {
+        assertCallbackInvalidState { future ->
             MFAVerificationRequiredStateV2(continuationToken, correlationId, scenario, config).submitChallenge(
                 "challenge",
                 object : MFAVerificationRequiredStateV2.SubmitChallengeCallback {
+                    override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
+                    override fun onError(exception: BaseException) = future.setException(exception)
+                }
+            )
+        }
+        assertCallbackInvalidState { future ->
+            MFAVerificationRequiredStateV2(continuationToken, correlationId, scenario, config).resendChallenge(
+                object : MFAVerificationRequiredStateV2.ResendChallengeCallback {
                     override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
                     override fun onError(exception: BaseException) = future.setException(exception)
                 }
@@ -414,6 +432,14 @@ class NativeAuthV2StatesTest {
             )
         }
         assertCallbackRoutesToOnError { future, thrown ->
+            MFAVerificationRequiredStateV2(continuationToken, correlationId, scenario, config).resendChallenge(
+                object : MFAVerificationRequiredStateV2.ResendChallengeCallback {
+                    override fun onResult(result: NativeAuthResultV2): Unit = throw thrown
+                    override fun onError(exception: BaseException) = future.setException(exception)
+                }
+            )
+        }
+        assertCallbackRoutesToOnError { future, thrown ->
             StrongAuthRegistrationRequiredStateV2(continuationToken, correlationId, scenario, config).selectAuthMethod(
                 authMethod,
                 null,
@@ -433,4 +459,63 @@ class NativeAuthV2StatesTest {
             )
         }
     }
+}
+
+/**
+ * The synthetic marker Kotlin appends to the extra constructor it generates for a class that takes
+ * a value class parameter.
+ */
+private const val DEFAULT_CONSTRUCTOR_MARKER = "kotlin.jvm.internal.DefaultConstructorMarker"
+
+/**
+ * Builds a real [NativeAuthV2ContinuationState] for the tests in this package.
+ *
+ * common4j keeps the constructor private and its factories internal, so the state has to be built
+ * reflectively, and a mock will not do because callers parcel it and assert on the restored values.
+ *
+ * The lookup binds to the widest real constructor and derives the argument list from its shape
+ * rather than pinning a single arity. common4j keeps adding fields to this state as Native Auth V2
+ * grows, and a hard-coded arity turns each of those additions into a mass failure here even though
+ * no MSAL production code constructs the type. Constructors taking a `DefaultConstructorMarker` are
+ * skipped: `entryRelation` is a value class, so the compiler emits a synthetic overload next to the
+ * real constructor.
+ */
+internal fun newContinuationState(correlationId: String): NativeAuthV2ContinuationState {
+    val constructor: Constructor<*> = NativeAuthV2ContinuationState::class.java.declaredConstructors
+        .filterNot { candidate ->
+            candidate.parameterTypes.any { it.name == DEFAULT_CONSTRUCTOR_MARKER }
+        }
+        .maxByOrNull { it.parameterCount }
+        ?: error("NativeAuthV2ContinuationState declares no usable constructor")
+    constructor.isAccessible = true
+
+    val continuationToken = "opaque-token"
+    val links = emptyMap<String, String>()
+    val methodLinks = emptyMap<String, Map<String, String>>()
+    val scopes = listOf("scope")
+    val claimsRequestJson: String? = null
+    // Value classes are erased to their underlying type, so reflection needs the raw String here.
+    val entryRelation = NativeAuthV2LinkRelation.RESET_PASSWORD.value
+    val scenario = NativeAuthV2FlowScenario.RESET_PASSWORD
+    val authenticationFactor: String? = null
+
+    val arguments: Array<Any?> = when (constructor.parameterCount) {
+        7 -> arrayOf(
+            continuationToken, links, scopes, claimsRequestJson, correlationId, entryRelation,
+            scenario
+        )
+        8 -> arrayOf(
+            continuationToken, links, methodLinks, scopes, claimsRequestJson, correlationId,
+            entryRelation, scenario
+        )
+        9 -> arrayOf(
+            continuationToken, links, methodLinks, scopes, claimsRequestJson, correlationId,
+            entryRelation, scenario, authenticationFactor
+        )
+        else -> error(
+            "Unrecognised NativeAuthV2ContinuationState constructor, update this helper: $constructor"
+        )
+    }
+
+    return constructor.newInstance(*arguments) as NativeAuthV2ContinuationState
 }

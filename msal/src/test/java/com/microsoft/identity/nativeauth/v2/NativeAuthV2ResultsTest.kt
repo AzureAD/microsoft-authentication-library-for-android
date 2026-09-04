@@ -136,14 +136,30 @@ class NativeAuthV2ResultsTest {
 
     @Test
     fun testMFARequiredExposesExpectedValues() {
-        val authMethods = listOf(AuthMethod("id", "oob", "user@email.com", "email"))
-        val result = NativeAuthResultV2.MFARequired(
-            nextState = MFARequiredStateV2(continuationToken, correlationId, scenario, config),
-            scenario = scenario,
+        val authMethods = mutableListOf(AuthMethod("id", "oob", "user@email.com", "email"))
+        val nextState = MFARequiredStateV2(
+            continuationToken,
+            correlationId,
+            scenario,
+            config,
             authMethods = authMethods
         )
+        val result = NativeAuthResultV2.MFARequired(
+            nextState = nextState,
+            scenario = scenario
+        )
         assertEquals(authMethods, result.authMethods)
+        assertSame(nextState.authMethods, result.authMethods)
         assertEquals(scenario, result.scenario)
+
+        authMethods.clear()
+        assertEquals(1, result.authMethods.size)
+        try {
+            (result.authMethods as MutableList<AuthMethod>).clear()
+            org.junit.Assert.fail("Expected authMethods to be unmodifiable")
+        } catch (_: UnsupportedOperationException) {
+            // Expected.
+        }
     }
 
     @Test
