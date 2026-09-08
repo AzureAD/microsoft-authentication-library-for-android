@@ -436,12 +436,10 @@ private const val DEFAULT_CONSTRUCTOR_MARKER = "kotlin.jvm.internal.DefaultConst
  * common4j keeps the constructor private and its factories internal, so the state has to be built
  * reflectively, and a mock will not do because callers parcel it and assert on the restored values.
  *
- * The lookup binds to the widest real constructor and derives the argument list from its shape
- * rather than pinning a single arity. common4j keeps adding fields to this state as Native Auth V2
- * grows, and a hard-coded arity turns each of those additions into a mass failure here even though
- * no MSAL production code constructs the type. Constructors taking a `DefaultConstructorMarker` are
- * skipped: `entryRelation` is a value class, so the compiler emits a synthetic overload next to the
- * real constructor.
+ * The lookup binds to the widest real constructor and supports the current common4j shape plus the
+ * incoming shape needed by consumer validation. Constructors taking a `DefaultConstructorMarker`
+ * are skipped: `entryRelation` is a value class, so the compiler emits a synthetic overload next to
+ * the real constructor.
  */
 internal fun newContinuationState(correlationId: String): NativeAuthV2ContinuationState {
     val constructor: Constructor<*> = NativeAuthV2ContinuationState::class.java.declaredConstructors
@@ -466,10 +464,6 @@ internal fun newContinuationState(correlationId: String): NativeAuthV2Continuati
         7 -> arrayOf(
             continuationToken, links, scopes, claimsRequestJson, correlationId, entryRelation,
             scenario
-        )
-        8 -> arrayOf(
-            continuationToken, links, methodLinks, scopes, claimsRequestJson, correlationId,
-            entryRelation, scenario
         )
         9 -> arrayOf(
             continuationToken, links, methodLinks, scopes, claimsRequestJson, correlationId,
