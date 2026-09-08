@@ -59,6 +59,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
+import java.lang.reflect.Constructor
 
 /**
  * Unit tests for the Native Auth V2 states, covering Parcelable serialization and the
@@ -156,20 +157,8 @@ class NativeAuthV2StatesTest {
         }
     }
 
-    private fun createContinuationState(): NativeAuthV2ContinuationState {
-        val constructor = NativeAuthV2ContinuationState::class.java.declaredConstructors
-            .single { it.parameterCount == 7 }
-        constructor.isAccessible = true
-        return constructor.newInstance(
-            "opaque-token",
-            emptyMap<String, String>(),
-            listOf("scope"),
-            null,
-            correlationId,
-            NativeAuthV2LinkRelation.RESET_PASSWORD.value,
-            NativeAuthV2FlowScenario.RESET_PASSWORD
-        ) as NativeAuthV2ContinuationState
-    }
+    private fun createContinuationState(): NativeAuthV2ContinuationState =
+        newContinuationState(correlationId)
 
     private fun assertCallbackNotImplemented(action: (ResultFuture<NativeAuthResultV2>) -> Unit) {
         val future = ResultFuture<NativeAuthResultV2>()
@@ -433,4 +422,51 @@ class NativeAuthV2StatesTest {
             )
         }
     }
+}
+
+/**
+ * The synthetic marker Kotlin appends to the extra constructor it generates for a class that takes
+ * a value class parameter.
+ */
+private const val DEFAULT_CONSTRUCTOR_MARKER = "kotlin.jvm.internal.DefaultConstructorMarker"
+
+/**
+ * Builds a real [NativeAuthV2ContinuationState] for parcel tests using its private constructor.
+ *
+ * Supports the transitional 7/9-parameter shapes and skips Kotlin's synthetic value-class overload.
+ */
+internal fun newContinuationState(correlationId: String): NativeAuthV2ContinuationState {
+    val constructor: Constructor<*> = NativeAuthV2ContinuationState::class.java.declaredConstructors
+        .filterNot { candidate ->
+            candidate.parameterTypes.any { it.name == DEFAULT_CONSTRUCTOR_MARKER }
+        }
+        .maxByOrNull { it.parameterCount }
+        ?: error("NativeAuthV2ContinuationState declares no usable constructor")
+    constructor.isAccessible = true
+
+    val continuationToken = "opaque-token"
+    val links = emptyMap<String, String>()
+    val methodLinks = emptyMap<String, Map<String, String>>()
+    val scopes = listOf("scope")
+    val claimsRequestJson: String? = null
+    // Value classes are erased to their underlying type, so reflection needs the raw String here.
+    val entryRelation = NativeAuthV2LinkRelation.RESET_PASSWORD.value
+    val scenario = NativeAuthV2FlowScenario.RESET_PASSWORD
+    val authenticationFactor: String? = null
+
+    val arguments: Array<Any?> = when (constructor.parameterCount) {
+        7 -> arrayOf(
+            continuationToken, links, scopes, claimsRequestJson, correlationId, entryRelation,
+            scenario
+        )
+        9 -> arrayOf(
+            continuationToken, links, methodLinks, scopes, claimsRequestJson, correlationId,
+            entryRelation, scenario, authenticationFactor
+        )
+        else -> error(
+            "Unrecognised NativeAuthV2ContinuationState constructor, update this helper: $constructor"
+        )
+    }
+
+    return constructor.newInstance(*arguments) as NativeAuthV2ContinuationState
 }
