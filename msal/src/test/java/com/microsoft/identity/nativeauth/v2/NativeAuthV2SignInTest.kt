@@ -397,11 +397,6 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         assertTrue(result is SubmitPasswordErrorV2)
         result as SubmitPasswordErrorV2
         assertTrue(result.isInvalidPassword())
-        @Suppress("DEPRECATION")
-        assertFalse(
-            "A deferred password rejection must not be classified as invalid credentials",
-            result.isInvalidCredentials()
-        )
         assertEquals(errorCodes, result.errorCodes)
     }
 
