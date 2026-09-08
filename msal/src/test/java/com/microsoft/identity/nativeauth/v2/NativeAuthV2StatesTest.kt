@@ -431,15 +431,9 @@ class NativeAuthV2StatesTest {
 private const val DEFAULT_CONSTRUCTOR_MARKER = "kotlin.jvm.internal.DefaultConstructorMarker"
 
 /**
- * Builds a real [NativeAuthV2ContinuationState] for the tests in this package.
+ * Builds a real [NativeAuthV2ContinuationState] for parcel tests using its private constructor.
  *
- * common4j keeps the constructor private and its factories internal, so the state has to be built
- * reflectively, and a mock will not do because callers parcel it and assert on the restored values.
- *
- * The lookup binds to the widest real constructor and supports the current common4j shape plus the
- * incoming shape needed by consumer validation. Constructors taking a `DefaultConstructorMarker`
- * are skipped: `entryRelation` is a value class, so the compiler emits a synthetic overload next to
- * the real constructor.
+ * Supports the transitional 7/9-parameter shapes and skips Kotlin's synthetic value-class overload.
  */
 internal fun newContinuationState(correlationId: String): NativeAuthV2ContinuationState {
     val constructor: Constructor<*> = NativeAuthV2ContinuationState::class.java.declaredConstructors
