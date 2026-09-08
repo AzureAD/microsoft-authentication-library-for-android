@@ -183,10 +183,10 @@ class NativeAuthV2ErrorsTest {
     @Test
     fun testMFASubmitChallengeErrorV2UtilityMethods() {
         assertTrue(
-            MFASubmitChallengeErrorV2(errorType = ErrorTypes.INVALID_CODE, errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isInvalidCode()
+            MFASubmitChallengeErrorV2(errorType = ErrorTypes.INVALID_CODE, errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isInvalidChallenge()
         )
         val error = MFASubmitChallengeErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN, subError = "sub")
-        assertFalse(error.isInvalidCode())
+        assertFalse(error.isInvalidChallenge())
         assertEquals("sub", error.subError)
     }
 

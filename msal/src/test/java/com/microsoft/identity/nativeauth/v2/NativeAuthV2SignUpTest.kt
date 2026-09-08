@@ -729,22 +729,12 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         password.forEach { assertEquals('\u0000', it) }
     }
 
-    private fun createContinuationState(): NativeAuthV2ContinuationState {
-        val constructor = NativeAuthV2ContinuationState::class.java.declaredConstructors
-            .single { it.parameterCount == 9 }
-        constructor.isAccessible = true
-        return constructor.newInstance(
-            "opaque-token",
-            emptyMap<String, String>(),
-            emptyMap<String, Map<String, String>>(),
-            listOf("scope"),
-            null,
-            correlationId,
-            NativeAuthV2LinkRelation.SIGN_UP.value,
-            NativeAuthV2FlowScenario.SIGN_UP,
-            emptySet<String>()
-        ) as NativeAuthV2ContinuationState
-    }
+    private fun createContinuationState(): NativeAuthV2ContinuationState =
+        newContinuationState(
+            correlationId = correlationId,
+            entryRelation = NativeAuthV2LinkRelation.SIGN_UP,
+            scenario = NativeAuthV2FlowScenario.SIGN_UP
+        )
 
     private companion object {
         const val correlationId = "correlation-id"

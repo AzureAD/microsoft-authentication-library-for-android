@@ -634,7 +634,7 @@ class NativeAuthPublicClientApplication(
                     )
                 }
 
-                val cmdParams = CommandParametersAdapter.createSignInV2StartCommandParameters(
+                val cmdParams = CommandParametersAdapter.createNativeAuthV2SignInCommandParameters(
                     nativeAuthConfig,
                     nativeAuthConfig.oAuth2TokenCache,
                     parameters.username,
@@ -694,8 +694,7 @@ class NativeAuthPublicClientApplication(
                                 scenario = NativeAuthFlowScenarioV2.SIGN_IN,
                                 config = nativeAuthConfig
                             ),
-                            scenario = NativeAuthFlowScenarioV2.SIGN_IN,
-                            authMethods = authMethods
+                            scenario = NativeAuthFlowScenarioV2.SIGN_IN
                         )
                     }
                     is NativeAuthV2CommandResult.InvalidCredentials -> {

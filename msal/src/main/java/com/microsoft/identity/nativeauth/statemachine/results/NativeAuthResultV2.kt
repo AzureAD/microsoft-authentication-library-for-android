@@ -159,14 +159,16 @@ interface NativeAuthResultV2 : Result {
      * select an authentication method.
      *
      * @param nextState the current state with follow-on methods.
-     * @param authMethods the authentication methods available to the user.
      */
     class MFARequired(
         override val nextState: MFARequiredStateV2,
-        override val scenario: NativeAuthFlowScenarioV2,
-        authMethods: List<AuthMethod>
+        override val scenario: NativeAuthFlowScenarioV2
     ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2 {
-        val authMethods: List<AuthMethod> = Collections.unmodifiableList(ArrayList(authMethods))
+        /**
+         * The authentication methods available to the user.
+         */
+        val authMethods: List<AuthMethod>
+            get() = nextState.authMethods
     }
 
     /**

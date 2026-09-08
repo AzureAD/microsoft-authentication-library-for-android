@@ -79,8 +79,8 @@ class MFASubmitChallengeErrorV2(
 ) : NativeAuthErrorV2(errorType, error, errorMessage, correlationId, scenario, errorCodes, exception) {
 
     /**
-     * Returns true when the submitted MFA one-time code was rejected and the caller can retry on
-     * the same [com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredStateV2].
+     * Returns true when the submitted MFA challenge was rejected and the caller can retry on the
+     * same [com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredStateV2].
      */
-    fun isInvalidCode(): Boolean = this.errorType == ErrorTypes.INVALID_CODE
+    fun isInvalidChallenge(): Boolean = this.errorType == ErrorTypes.INVALID_CODE
 }

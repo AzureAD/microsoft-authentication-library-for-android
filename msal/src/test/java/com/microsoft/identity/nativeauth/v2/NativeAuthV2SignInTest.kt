@@ -618,22 +618,23 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun selectAuthMethodMapsBlockedMethod() = runTest {
+    fun selectAuthMethodMapsApiError() = runTest {
         val state = mfaRequiredState()
         enqueueResult(
-            NativeAuthV2CommandResult.AuthMethodBlocked(
-                correlationId,
-                "accessDenied",
-                "blocked",
-                "providerBlockedByRep",
-                errorCodes
+            INativeAuthCommandResult.APIError(
+                error = "accessDenied",
+                errorDescription = "blocked",
+                correlationId = correlationId,
+                errorCodes = errorCodes
             ),
             NativeAuthV2SelectMFAMethodCommand::class
         )
 
         val result = state.selectAuthMethod(state.authMethods.single()) as MFARequestChallengeErrorV2
 
-        assertTrue(result.isAuthMethodBlocked())
+        assertFalse(result.isAuthMethodBlocked())
+        assertEquals("accessDenied", result.error)
+        assertEquals("blocked", result.errorMessage)
         assertEquals(errorCodes, result.errorCodes)
     }
 
@@ -653,7 +654,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2SubmitMFAChallengeCommand::class
         )
         val wrongCode = verificationState.submitChallenge("000000") as MFASubmitChallengeErrorV2
-        assertTrue(wrongCode.isInvalidCode())
+        assertTrue(wrongCode.isInvalidChallenge())
         assertEquals("invalidOneTimeCode", wrongCode.subError)
 
         val refreshedContinuationState = createContinuationState(correlationId = "resend-correlation-id")
@@ -701,7 +702,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             ),
             NativeAuthV2SubmitMFAChallengeCommand::class
         )
-        assertTrue((verificationState.submitChallenge("111111") as MFASubmitChallengeErrorV2).isInvalidCode())
+        assertTrue((verificationState.submitChallenge("111111") as MFASubmitChallengeErrorV2).isInvalidChallenge())
     }
 
     @Test
@@ -710,7 +711,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
 
         val result = verificationState.submitChallenge("") as MFASubmitChallengeErrorV2
 
-        assertTrue(result.isInvalidCode())
+        assertTrue(result.isInvalidChallenge())
         assertEquals(ErrorTypes.INVALID_CODE, result.errorType)
     }
 
@@ -792,7 +793,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             }
         )
 
-        assertTrue((future.get(30, TimeUnit.SECONDS) as MFASubmitChallengeErrorV2).isInvalidCode())
+        assertTrue((future.get(30, TimeUnit.SECONDS) as MFASubmitChallengeErrorV2).isInvalidChallenge())
     }
 
     @Test
@@ -1000,22 +1001,12 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
 
     private fun createContinuationState(
         correlationId: String = NativeAuthV2SignInTest.correlationId
-    ): NativeAuthV2ContinuationState {
-        val constructor = NativeAuthV2ContinuationState::class.java.declaredConstructors
-            .single { it.parameterCount == 9 }
-        constructor.isAccessible = true
-        return constructor.newInstance(
-            "opaque-token",
-            emptyMap<String, String>(),
-            emptyMap<String, Map<String, String>>(),
-            listOf("scope"),
-            null,
-            correlationId,
-            NativeAuthV2LinkRelation.SIGN_IN.value,
-            NativeAuthV2FlowScenario.SIGN_IN,
-            emptySet<String>()
-        ) as NativeAuthV2ContinuationState
-    }
+    ): NativeAuthV2ContinuationState =
+        newContinuationState(
+            correlationId = correlationId,
+            entryRelation = NativeAuthV2LinkRelation.SIGN_IN,
+            scenario = NativeAuthV2FlowScenario.SIGN_IN
+        )
 
     private companion object {
         const val correlationId = "correlation-id"

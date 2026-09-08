@@ -183,8 +183,7 @@ class PasswordRequiredStateV2 internal constructor(
                                 scenario = scenario,
                                 config = config
                             ),
-                            scenario = scenario,
-                            authMethods = authMethods
+                            scenario = scenario
                         )
                     }
                     is NativeAuthV2CommandResult.IncorrectPassword -> {

@@ -59,7 +59,7 @@ import kotlinx.coroutines.withContext
  * State that requires the user to submit a multi-factor authentication challenge.
  *
  * A wrong code is a recoverable [MFASubmitChallengeErrorV2] with
- * [MFASubmitChallengeErrorV2.isInvalidCode]; the caller retries on this same state instance or
+ * [MFASubmitChallengeErrorV2.isInvalidChallenge]; the caller retries on this same state instance or
  * requests a fresh challenge through [resendChallenge]. Successful resends return a fresh
  * [NativeAuthResultV2.MFAVerificationRequired] whose state carries the latest opaque continuation
  * required for subsequent submit/resend calls. No error result carries a next state.
