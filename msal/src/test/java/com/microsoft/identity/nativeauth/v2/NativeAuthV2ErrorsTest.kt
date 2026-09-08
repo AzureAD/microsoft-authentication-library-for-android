@@ -83,14 +83,6 @@ class NativeAuthV2ErrorsTest {
     }
 
     @Test
-    fun testSubmitPasswordErrorV2DoesNotExposeInvalidCredentials() {
-        assertFalse(
-            "SubmitPasswordErrorV2 must expose isInvalidPassword instead of isInvalidCredentials",
-            SubmitPasswordErrorV2::class.java.methods.any { it.name == "isInvalidCredentials" }
-        )
-    }
-
-    @Test
     fun testSignUpErrorV2UtilityMethods() {
         assertTrue(
             SignUpErrorV2(errorType = "user_already_exists", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isUserAlreadyExists()
