@@ -41,8 +41,6 @@ import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
-import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2LinkRelation
-import com.microsoft.identity.common.java.nativeauth.providers.v2.NativeAuthV2FlowScenario
 import com.microsoft.identity.common.java.result.FinalizableResultFuture
 import com.microsoft.identity.common.java.result.ILocalAuthenticationResult
 import com.microsoft.identity.common.java.util.ResultFuture
@@ -837,20 +835,8 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         } returns future
     }
 
-    private fun createContinuationState(): NativeAuthV2ContinuationState {
-        val constructor = NativeAuthV2ContinuationState::class.java.declaredConstructors
-            .single { it.parameterCount == 7 }
-        constructor.isAccessible = true
-        return constructor.newInstance(
-            "opaque-token",
-            emptyMap<String, String>(),
-            listOf("scope"),
-            null,
-            correlationId,
-            NativeAuthV2LinkRelation.RESET_PASSWORD.value,
-            NativeAuthV2FlowScenario.RESET_PASSWORD
-        ) as NativeAuthV2ContinuationState
-    }
+    private fun createContinuationState(): NativeAuthV2ContinuationState =
+        newContinuationState(correlationId)
 
     @Suppress("unused")
     private fun exhaustiveWhen(result: NativeAuthResultV2): String = when (result) {
