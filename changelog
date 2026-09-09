@@ -9,6 +9,10 @@ Version 0.004136-RC1
 - [PATCH] Upgrade Apache HttpCore to 5.4.3 to address CVE-2026-54399 (AB#3746140) (#2566)
 - [MINOR] Bump Kotlin to 2.0.21 with languageVersion/apiVersion pinned to 1.9 (#2561)
 - [MINOR] Added v2 private preview interfaces
+- [PATCH] Temporarily support current and incoming common4j continuation-state constructors in MSAL tests (#2567)
+- [PATCH] MSAL automation: add com.msft.authentication.testapp to <queries>, Fixes AB#3734780 (#2560)
+- [PATCH] Implement Native Auth V2 SSPR flow, Fixes AB#3693580 (#2558)
+- [PATCH] Native Auth V2 SDK interface for Android Fixes AB#3693579 (#2547)
 
 Version 8.4.2
 ----------
