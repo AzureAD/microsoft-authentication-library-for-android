@@ -66,9 +66,12 @@ import com.microsoft.identity.common.java.nativeauth.authorities.NativeAuthCIAMA
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFAChallengeAuthMethodCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFASubmitChallengeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2ResendCodeCommandParameters;
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SelectMFAMethodCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SignInAfterResetPasswordCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitCodeCommandParameters;
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitMFAChallengeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitNewPasswordCommandParameters;
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitPasswordCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.ResetPasswordV2StartCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.ResetPasswordResendCodeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.ResetPasswordStartCommandParameters;
@@ -78,6 +81,7 @@ import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInR
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInStartCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInSubmitCodeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInSubmitPasswordCommandParameters;
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInV2StartCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInWithContinuationTokenCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpResendCodeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpStartCommandParameters;
@@ -1201,6 +1205,7 @@ public class CommandParametersAdapter {
                         .requestInterceptor(configuration.getRequestInterceptor())
                         .continuationState(continuationState)
                         .scopes(continuationState.scopesForTokenRequest())
+                        .claimsRequestJson(continuationState.claimsRequestJsonForTokenRequest())
                         .clientId(configuration.getClientId())
                         .correlationId(continuationState.getCorrelationId())
                         .build();
@@ -1325,6 +1330,213 @@ public class CommandParametersAdapter {
                         .scopes(scopes)
                         .claimsRequestJson(claimsRequestJson)
                         .clientId(configuration.getClientId())
+                        .correlationId(continuationState.getCorrelationId())
+                        .build();
+
+        return commandParameters;
+    }
+
+    /**
+     * Creates command parameter for [[com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInStartCommand]] of Native Auth.
+     *
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param username username of the account signing in
+     * @param password (Optional) password to submit for the password first factor. The caller's
+     *                 array is passed through unchanged so the same buffer can be cleared later.
+     * @param scopes (Optional) scopes to request for the resulting access token
+     * @param claimsRequest (Optional) claims request to send with the token request
+     * @return Command parameter object
+     */
+    public static SignInV2StartCommandParameters createNativeAuthV2SignInCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final String username,
+            @Nullable final char[] password,
+            @Nullable final List<String> scopes,
+            @Nullable final ClaimsRequest claimsRequest) throws ClientException {
+
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        final String claimsRequestJson = ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest);
+
+        final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
+                AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
+                null
+        );
+
+        final SignInV2StartCommandParameters commandParameters =
+                SignInV2StartCommandParameters.builder()
+                        .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                        .applicationName(configuration.getAppContext().getPackageName())
+                        .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                        .clientId(configuration.getClientId())
+                        .isSharedDevice(configuration.getIsSharedDevice())
+                        .redirectUri(configuration.getRedirectUri())
+                        .oAuth2TokenCache(tokenCache)
+                        .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                        .sdkType(SdkType.MSAL)
+                        .sdkVersion(PublicClientApplication.getSdkVersion())
+                        .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                        .authority(authority)
+                        .authenticationScheme(authenticationScheme)
+                        .challengeType(configuration.getChallengeTypes())
+                        .requestInterceptor(configuration.getRequestInterceptor())
+                        .capabilities(configuration.getCapabilities())
+                        .username(username)
+                        .password(password)
+                        .scopes(scopes)
+                        .claimsRequestJson(claimsRequestJson)
+                        .correlationId(DiagnosticContext.INSTANCE.getThreadCorrelationId())
+                        .build();
+
+        return commandParameters;
+    }
+
+    /**
+     * Creates command parameter for [[com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitPasswordCommand]] of Native Auth.
+     *
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param password the password to verify
+     * @param continuationState opaque continuation state from the previous V2 response
+     * @return Command parameter object
+     */
+    public static NativeAuthV2SubmitPasswordCommandParameters createNativeAuthV2SubmitPasswordCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final char[] password,
+            @NonNull final NativeAuthV2ContinuationState continuationState) throws ClientException {
+
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
+                AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
+                null
+        );
+
+        final NativeAuthV2SubmitPasswordCommandParameters commandParameters =
+                NativeAuthV2SubmitPasswordCommandParameters.builder()
+                        .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                        .applicationName(configuration.getAppContext().getPackageName())
+                        .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                        .clientId(configuration.getClientId())
+                        .isSharedDevice(configuration.getIsSharedDevice())
+                        .redirectUri(configuration.getRedirectUri())
+                        .oAuth2TokenCache(tokenCache)
+                        .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                        .sdkType(SdkType.MSAL)
+                        .sdkVersion(PublicClientApplication.getSdkVersion())
+                        .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                        .authority(authority)
+                        .authenticationScheme(authenticationScheme)
+                        .challengeType(configuration.getChallengeTypes())
+                        .requestInterceptor(configuration.getRequestInterceptor())
+                        .capabilities(configuration.getCapabilities())
+                        .password(password)
+                        .continuationState(continuationState)
+                        .scopes(continuationState.scopesForTokenRequest())
+                        .claimsRequestJson(continuationState.claimsRequestJsonForTokenRequest())
+                        .correlationId(continuationState.getCorrelationId())
+                        .build();
+
+        return commandParameters;
+    }
+
+    /**
+     * Creates command parameter for [[com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SelectMFAMethodCommand]] of Native Auth.
+     *
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param methodId server-issued ID of the authentication method the app selected
+     * @param continuationState opaque continuation state from the previous V2 response
+     * @return Command parameter object
+     */
+    public static NativeAuthV2SelectMFAMethodCommandParameters createNativeAuthV2SelectMFAMethodCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final String methodId,
+            @NonNull final NativeAuthV2ContinuationState continuationState) throws ClientException {
+
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
+                AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
+                null
+        );
+
+        final NativeAuthV2SelectMFAMethodCommandParameters commandParameters =
+                NativeAuthV2SelectMFAMethodCommandParameters.builder()
+                        .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                        .applicationName(configuration.getAppContext().getPackageName())
+                        .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                        .clientId(configuration.getClientId())
+                        .isSharedDevice(configuration.getIsSharedDevice())
+                        .redirectUri(configuration.getRedirectUri())
+                        .oAuth2TokenCache(tokenCache)
+                        .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                        .sdkType(SdkType.MSAL)
+                        .sdkVersion(PublicClientApplication.getSdkVersion())
+                        .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                        .authority(authority)
+                        .authenticationScheme(authenticationScheme)
+                        .challengeType(configuration.getChallengeTypes())
+                        .requestInterceptor(configuration.getRequestInterceptor())
+                        .capabilities(configuration.getCapabilities())
+                        .methodId(methodId)
+                        .continuationState(continuationState)
+                        .scopes(continuationState.scopesForTokenRequest())
+                        .claimsRequestJson(continuationState.claimsRequestJsonForTokenRequest())
+                        .correlationId(continuationState.getCorrelationId())
+                        .build();
+
+        return commandParameters;
+    }
+
+    /**
+     * Creates command parameter for [[com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitMFAChallengeCommand]] of Native Auth.
+     *
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param code the one-time code the user entered
+     * @param continuationState opaque continuation state from the previous V2 response
+     * @return Command parameter object
+     */
+    public static NativeAuthV2SubmitMFAChallengeCommandParameters createNativeAuthV2SubmitMFAChallengeCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final String code,
+            @NonNull final NativeAuthV2ContinuationState continuationState) throws ClientException {
+
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
+                AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
+                null
+        );
+
+        final NativeAuthV2SubmitMFAChallengeCommandParameters commandParameters =
+                NativeAuthV2SubmitMFAChallengeCommandParameters.builder()
+                        .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                        .applicationName(configuration.getAppContext().getPackageName())
+                        .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                        .clientId(configuration.getClientId())
+                        .isSharedDevice(configuration.getIsSharedDevice())
+                        .redirectUri(configuration.getRedirectUri())
+                        .oAuth2TokenCache(tokenCache)
+                        .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                        .sdkType(SdkType.MSAL)
+                        .sdkVersion(PublicClientApplication.getSdkVersion())
+                        .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                        .authority(authority)
+                        .authenticationScheme(authenticationScheme)
+                        .challengeType(configuration.getChallengeTypes())
+                        .requestInterceptor(configuration.getRequestInterceptor())
+                        .capabilities(configuration.getCapabilities())
+                        .code(code)
+                        .continuationState(continuationState)
+                        .scopes(continuationState.scopesForTokenRequest())
+                        .claimsRequestJson(continuationState.claimsRequestJsonForTokenRequest())
                         .correlationId(continuationState.getCorrelationId())
                         .build();
 

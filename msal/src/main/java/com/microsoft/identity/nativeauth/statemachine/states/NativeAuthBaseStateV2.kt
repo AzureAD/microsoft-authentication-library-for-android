@@ -89,7 +89,7 @@ abstract class NativeAuthBaseStateV2 internal constructor(
         } else {
             Logger.warn(TAG, result.correlationId, "V2 Complete result has no inline sign-in token; returning API error.")
             NativeAuthErrorV2(
-                errorMessage = "Password reset completed but no sign-in result was returned.",
+                errorMessage = "Native Auth V2 flow completed but no authentication result was returned.",
                 correlationId = result.correlationId,
                 scenario = scenario
             )

@@ -219,8 +219,8 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
-    fun testPasswordRequiredStateCallbackReturnsNotImplemented() {
-        assertCallbackNotImplemented { future ->
+    fun testPasswordRequiredStateCallbackReturnsInvalidState() {
+        assertCallbackInvalidState { future ->
             PasswordRequiredStateV2(continuationToken, correlationId, scenario, config).submitPassword(
                 "password".toCharArray(),
                 object : PasswordRequiredStateV2.SubmitPasswordCallback {
@@ -273,9 +273,9 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
-    fun testMFARequiredStateCallbackReturnsNotImplemented() {
+    fun testMFARequiredStateCallbackReturnsInvalidState() {
         val authMethod = AuthMethod("id", "oob", null, "email")
-        assertCallbackNotImplemented { future ->
+        assertCallbackInvalidState { future ->
             MFARequiredStateV2(continuationToken, correlationId, scenario, config).selectAuthMethod(
                 authMethod,
                 callback = object : MFARequiredStateV2.SelectAuthMethodCallback {
@@ -287,11 +287,40 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
-    fun testMFAVerificationRequiredStateCallbackReturnsNotImplemented() {
-        assertCallbackNotImplemented { future ->
+    fun testMFARequiredStateDefensivelyCopiesAuthMethods() {
+        val source = mutableListOf(AuthMethod("id", "oob", null, "email"))
+        val state = MFARequiredStateV2(
+            continuationToken,
+            correlationId,
+            scenario,
+            config,
+            authMethods = source
+        )
+
+        source.clear()
+        assertEquals(1, state.authMethods.size)
+        try {
+            (state.authMethods as MutableList<AuthMethod>).clear()
+            fail("Expected authMethods to be unmodifiable")
+        } catch (_: UnsupportedOperationException) {
+            // Expected.
+        }
+    }
+
+    @Test
+    fun testMFAVerificationRequiredStateCallbackReturnsInvalidState() {
+        assertCallbackInvalidState { future ->
             MFAVerificationRequiredStateV2(continuationToken, correlationId, scenario, config).submitChallenge(
                 "challenge",
                 object : MFAVerificationRequiredStateV2.SubmitChallengeCallback {
+                    override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
+                    override fun onError(exception: BaseException) = future.setException(exception)
+                }
+            )
+        }
+        assertCallbackInvalidState { future ->
+            MFAVerificationRequiredStateV2(continuationToken, correlationId, scenario, config).resendChallenge(
+                object : MFAVerificationRequiredStateV2.ResendChallengeCallback {
                     override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
                     override fun onError(exception: BaseException) = future.setException(exception)
                 }
@@ -397,6 +426,14 @@ class NativeAuthV2StatesTest {
             MFAVerificationRequiredStateV2(continuationToken, correlationId, scenario, config).submitChallenge(
                 "challenge",
                 object : MFAVerificationRequiredStateV2.SubmitChallengeCallback {
+                    override fun onResult(result: NativeAuthResultV2): Unit = throw thrown
+                    override fun onError(exception: BaseException) = future.setException(exception)
+                }
+            )
+        }
+        assertCallbackRoutesToOnError { future, thrown ->
+            MFAVerificationRequiredStateV2(continuationToken, correlationId, scenario, config).resendChallenge(
+                object : MFAVerificationRequiredStateV2.ResendChallengeCallback {
                     override fun onResult(result: NativeAuthResultV2): Unit = throw thrown
                     override fun onError(exception: BaseException) = future.setException(exception)
                 }
