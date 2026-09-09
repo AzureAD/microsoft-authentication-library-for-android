@@ -1002,7 +1002,6 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             entryRelation = NativeAuthV2LinkRelation.SIGN_IN,
             scenario = NativeAuthV2FlowScenario.SIGN_IN
         )
-    ): NativeAuthV2ContinuationState = newContinuationState(correlationId)
 
     private companion object {
         const val correlationId = "correlation-id"

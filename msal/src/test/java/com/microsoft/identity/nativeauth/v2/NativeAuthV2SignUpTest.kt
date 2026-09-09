@@ -51,9 +51,9 @@ import com.microsoft.identity.common.java.result.FinalizableResultFuture
 import com.microsoft.identity.common.java.result.ILocalAuthenticationResult
 import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInAfterSignUpCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignUpSubmitCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignUpStartCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitAttributesCommand
-import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitCodeCommand
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.UserAttributes
@@ -401,7 +401,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         val state = codeRequiredState()
         enqueueResult(
             NativeAuthV2CommandResult.SignInAfterSignUpRequired(correlationId, createContinuationState()),
-            NativeAuthV2SubmitCodeCommand::class
+            NativeAuthV2SignUpSubmitCodeCommand::class
         )
 
         val result = state.submitCode("123456")
@@ -423,13 +423,13 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
                 createContinuationState(),
                 listOf(NativeAuthV2RequiredAttribute("city", "string", true))
             ),
-            NativeAuthV2SubmitCodeCommand::class
+            NativeAuthV2SignUpSubmitCodeCommand::class
         )
         assertTrue(state.submitCode("123456") is NativeAuthResultV2.AttributesRequired)
 
         enqueueResult(
             NativeAuthV2CommandResult.PasswordRequired(correlationId, createContinuationState()),
-            NativeAuthV2SubmitCodeCommand::class
+            NativeAuthV2SignUpSubmitCodeCommand::class
         )
         assertTrue(state.submitCode("123456") is NativeAuthResultV2.PasswordRequired)
     }
@@ -445,7 +445,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
                 "invalidOneTimeCode",
                 listOf(50181)
             ),
-            NativeAuthV2SubmitCodeCommand::class
+            NativeAuthV2SignUpSubmitCodeCommand::class
         )
 
         val result = state.submitCode("000000") as SubmitCodeErrorV2
@@ -762,7 +762,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     private suspend fun signInAfterSignUpState(): SignInAfterSignUpStateV2 {
         enqueueResult(
             NativeAuthV2CommandResult.SignInAfterSignUpRequired(correlationId, createContinuationState()),
-            NativeAuthV2SubmitCodeCommand::class
+            NativeAuthV2SignUpSubmitCodeCommand::class
         )
         return (codeRequiredState().submitCode("123456") as
             NativeAuthResultV2.SignInAfterSignUpRequired).nextState
