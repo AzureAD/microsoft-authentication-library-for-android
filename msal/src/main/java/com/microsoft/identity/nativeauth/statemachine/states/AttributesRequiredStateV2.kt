@@ -93,6 +93,15 @@ class AttributesRequiredStateV2 internal constructor(
 
     interface SubmitAttributesCallback : Callback<NativeAuthResultV2>
 
+    /**
+     * Submits the requested account attributes.
+     *
+     * The attribute names `email` and `password` are reserved and must not be included.
+     * Supply them through the dedicated parameters and states exposed by the sign-up flow.
+     *
+     * @param attributes account attributes requested by the sign-up flow.
+     * @param callback callback that receives the result.
+     */
     fun submitAttributes(attributes: UserAttributes, callback: SubmitAttributesCallback) {
         LogSession.logMethodCall(
             tag = TAG,
@@ -109,6 +118,15 @@ class AttributesRequiredStateV2 internal constructor(
         }
     }
 
+    /**
+     * Submits the requested account attributes.
+     *
+     * The attribute names `email` and `password` are reserved and must not be included.
+     * Supply them through the dedicated parameters and states exposed by the sign-up flow.
+     *
+     * @param attributes account attributes requested by the sign-up flow.
+     * @return the result of submitting the attributes.
+     */
     suspend fun submitAttributes(attributes: UserAttributes): NativeAuthResultV2 {
         LogSession.logMethodCall(
             tag = TAG,

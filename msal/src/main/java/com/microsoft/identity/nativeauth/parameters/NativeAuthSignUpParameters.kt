@@ -41,7 +41,10 @@ class NativeAuthSignUpParameters(
     var password: CharArray? = null
 
     /**
-     * user attributes to be used during account creation.
+     * User attributes to be used during account creation.
+     *
+     * The attribute names `email` and `password` are reserved and must not be included.
+     * Supply them through the dedicated [username] and [password] properties instead.
      */
     var attributes: UserAttributes? = null
 }

@@ -298,7 +298,9 @@ class PasswordRequiredStateV2 internal constructor(
                 )
             }
             is NativeAuthV2CommandResult.AttributesInvalid -> {
-                if (result.invalidAttributes.any { it.equals("password", ignoreCase = true) }) {
+                val onlyPasswordIsInvalid = result.invalidAttributes.isNotEmpty() &&
+                    result.invalidAttributes.all { it.equals("password", ignoreCase = true) }
+                if (onlyPasswordIsInvalid) {
                     SubmitPasswordErrorV2(
                         errorType = ErrorTypes.INVALID_PASSWORD,
                         error = result.error,

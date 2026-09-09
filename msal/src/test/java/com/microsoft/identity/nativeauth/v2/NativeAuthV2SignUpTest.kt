@@ -598,6 +598,48 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         assertTrue(result.isInvalidPassword())
     }
 
+    @Test
+    fun submitPasswordWithNonPasswordValidationErrorReturnsAttributesInvalid() = runTest {
+        val state = signUpPasswordRequiredState()
+        enqueueResult(
+            NativeAuthV2CommandResult.AttributesInvalid(
+                correlationId,
+                createContinuationState(),
+                listOf("displayName"),
+                "attribute_validation_failed",
+                "AADSTS1002027: attribute validation failed.",
+                listOf(1002027)
+            ),
+            NativeAuthV2SubmitAttributesCommand::class
+        )
+
+        val result = state.submitPassword("Password123!".toCharArray()) as
+            NativeAuthResultV2.AttributesInvalid
+
+        assertEquals(listOf("displayName"), result.invalidAttributes)
+    }
+
+    @Test
+    fun submitPasswordWithMixedValidationErrorsReturnsAttributesInvalid() = runTest {
+        val state = signUpPasswordRequiredState()
+        enqueueResult(
+            NativeAuthV2CommandResult.AttributesInvalid(
+                correlationId,
+                createContinuationState(),
+                listOf("password", "displayName"),
+                "attribute_validation_failed",
+                "AADSTS1002027: attribute validation failed.",
+                listOf(1002027)
+            ),
+            NativeAuthV2SubmitAttributesCommand::class
+        )
+
+        val result = state.submitPassword("weak".toCharArray()) as
+            NativeAuthResultV2.AttributesInvalid
+
+        assertEquals(listOf("password", "displayName"), result.invalidAttributes)
+    }
+
     // -----------------------------------------------------------------------------------------
     // Sign-in after sign-up
     // -----------------------------------------------------------------------------------------
