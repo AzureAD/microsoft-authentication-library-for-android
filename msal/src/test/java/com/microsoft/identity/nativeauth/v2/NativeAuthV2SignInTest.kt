@@ -45,8 +45,6 @@ import com.microsoft.identity.common.java.nativeauth.controllers.results.INative
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2AuthMethod
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
-import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2LinkRelation
-import com.microsoft.identity.common.java.nativeauth.providers.v2.NativeAuthV2FlowScenario
 import com.microsoft.identity.common.java.result.FinalizableResultFuture
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResendCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SelectMFAMethodCommand
@@ -1002,6 +1000,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             entryRelation = NativeAuthV2LinkRelation.SIGN_IN,
             scenario = NativeAuthV2FlowScenario.SIGN_IN
         )
+    ): NativeAuthV2ContinuationState = newContinuationState(correlationId)
 
     private companion object {
         const val correlationId = "correlation-id"
