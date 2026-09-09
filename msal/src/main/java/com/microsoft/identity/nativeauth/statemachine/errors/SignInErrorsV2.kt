@@ -78,5 +78,10 @@ class SubmitPasswordErrorV2(
     exception: Exception? = null
 ) : NativeAuthErrorV2(errorType, error, errorMessage, correlationId, scenario, errorCodes, exception) {
 
-    fun isInvalidCredentials(): Boolean = this.errorType == SignInErrorTypes.INVALID_CREDENTIALS
+    /**
+     * Returns true if the password submitted through
+     * [com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2.submitPassword]
+     * was rejected. The caller can retry on the same state instance.
+     */
+    fun isInvalidPassword(): Boolean = this.errorType == ErrorTypes.INVALID_PASSWORD
 }
