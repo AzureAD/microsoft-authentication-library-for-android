@@ -255,7 +255,8 @@ class PasswordRequiredStateV2 internal constructor(
         val parameters = CommandParametersAdapter.createNativeAuthV2SubmitAttributesCommandParameters(
             config,
             config.oAuth2TokenCache,
-            mapOf("password" to String(passwordCopy)),
+            emptyMap(),
+            passwordCopy,
             state
         )
         val command = NativeAuthV2SubmitAttributesCommand(
@@ -296,14 +297,22 @@ class PasswordRequiredStateV2 internal constructor(
                 )
             }
             is NativeAuthV2CommandResult.AttributesInvalid -> {
-                SubmitPasswordErrorV2(
-                    errorType = ErrorTypes.INVALID_PASSWORD,
-                    error = result.error,
-                    errorMessage = result.errorDescription,
-                    correlationId = result.correlationId,
-                    scenario = scenario,
-                    errorCodes = result.errorCodes
-                )
+                if (result.invalidAttributes.any { it.equals("password", ignoreCase = true) }) {
+                    SubmitPasswordErrorV2(
+                        errorType = ErrorTypes.INVALID_PASSWORD,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId,
+                        scenario = scenario,
+                        errorCodes = result.errorCodes
+                    )
+                } else {
+                    NativeAuthResultV2.AttributesInvalid(
+                        nextState = AttributesInvalidStateV2(result.continuationState, scenario, config),
+                        scenario = scenario,
+                        invalidAttributes = result.invalidAttributes
+                    )
+                }
             }
             is NativeAuthV2CommandResult.UserAlreadyExists -> {
                 SignUpErrorV2(

@@ -896,6 +896,15 @@ class NativeAuthPublicClientApplication(
                             errorCodes = result.errorCodes
                         )
                     }
+                    is SignUpCommandResult.InvalidAttributes -> {
+                        SignUpErrorV2(
+                            errorType = SignUpErrorTypes.INVALID_ATTRIBUTES,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = NativeAuthFlowScenarioV2.SIGN_UP
+                        )
+                    }
                     is INativeAuthCommandResult.InvalidUsername -> {
                         SignUpErrorV2(
                             errorType = ErrorTypes.INVALID_USERNAME,

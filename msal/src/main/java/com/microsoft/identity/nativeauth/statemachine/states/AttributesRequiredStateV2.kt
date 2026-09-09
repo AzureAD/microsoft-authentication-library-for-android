@@ -34,6 +34,7 @@ import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SubmitAttributesCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.SignUpCommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitAttributesCommand
@@ -203,6 +204,15 @@ internal suspend fun submitAttributesInternal(
                         correlationId = result.correlationId,
                         scenario = scenario,
                         errorCodes = result.errorCodes
+                    )
+                }
+                is SignUpCommandResult.InvalidAttributes -> {
+                    SubmitAttributesErrorV2(
+                        errorType = SignUpErrorTypes.INVALID_ATTRIBUTES,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId,
+                        scenario = scenario
                     )
                 }
                 is NativeAuthV2CommandResult.NotImplemented -> {

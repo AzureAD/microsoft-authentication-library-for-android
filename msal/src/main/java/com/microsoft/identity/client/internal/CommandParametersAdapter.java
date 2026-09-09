@@ -1189,6 +1189,21 @@ public class CommandParametersAdapter {
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final Map<String, String> attributes,
             @NonNull final NativeAuthV2ContinuationState continuationState) throws ClientException {
+        return createNativeAuthV2SubmitAttributesCommandParameters(
+                configuration,
+                tokenCache,
+                attributes,
+                null,
+                continuationState
+        );
+    }
+
+    public static NativeAuthV2SubmitAttributesCommandParameters createNativeAuthV2SubmitAttributesCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final Map<String, String> attributes,
+            @Nullable final char[] password,
+            @NonNull final NativeAuthV2ContinuationState continuationState) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
@@ -1216,6 +1231,7 @@ public class CommandParametersAdapter {
                         .requestInterceptor(configuration.getRequestInterceptor())
                         .capabilities(configuration.getCapabilities())
                         .attributes(attributes)
+                        .password(password)
                         .continuationState(continuationState)
                         .correlationId(continuationState.getCorrelationId())
                         .build();

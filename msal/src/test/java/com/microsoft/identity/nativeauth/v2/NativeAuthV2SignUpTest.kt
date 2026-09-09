@@ -42,6 +42,7 @@ import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpV2StartCommandParameters
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.SignUpCommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2LinkRelation
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2RequiredAttribute
@@ -154,6 +155,23 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         } finally {
             unmockkObject(DiagnosticContext.INSTANCE)
         }
+    }
+
+    @Test
+    fun signUpV2MapsTypedInvalidAttributesError() = runTest {
+        enqueueResult(
+            SignUpCommandResult.InvalidAttributes(
+                error = "invalid_attributes",
+                errorDescription = "Reserved attributes were supplied.",
+                invalidAttributes = listOf("email"),
+                correlationId = correlationId
+            ),
+            NativeAuthV2SignUpStartCommand::class
+        )
+
+        val result = application.signUpV2(signUpParameters()) as SignUpErrorV2
+
+        assertTrue(result.isInvalidAttributes())
     }
 
     @Test
@@ -505,6 +523,26 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         val result = state.submitAttributes(UserAttributes.Builder().build()) as SubmitAttributesErrorV2
 
         assertTrue(result.isBrowserRequired())
+    }
+
+    @Test
+    fun submitAttributesMapsTypedInvalidAttributesError() = runTest {
+        val state = attributesRequiredState()
+        enqueueResult(
+            SignUpCommandResult.InvalidAttributes(
+                error = "invalid_attributes",
+                errorDescription = "Reserved attributes were supplied.",
+                invalidAttributes = listOf("password"),
+                correlationId = correlationId
+            ),
+            NativeAuthV2SubmitAttributesCommand::class
+        )
+
+        val result = state.submitAttributes(
+            UserAttributes.Builder().build()
+        ) as SubmitAttributesErrorV2
+
+        assertTrue(result.isInvalidAttributes())
     }
 
     @Test
