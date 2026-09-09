@@ -1292,7 +1292,7 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [NativeAuthV2SubmitCodeCommand] of Native Auth.
+     * Creates command parameters for a Native Auth V2 submit-code operation.
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param code out of band code

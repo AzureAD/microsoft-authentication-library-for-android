@@ -35,13 +35,13 @@ import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeA
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2ResendCodeCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2ResetPasswordSubmitCodeCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SignUpSubmitCodeCommandResult
-import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SubmitCodeCommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResendCodeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResetPasswordSubmitCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignUpSubmitCodeCommand
-import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.controllers.v2.NativeAuthV2FlowController
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
@@ -210,7 +210,7 @@ class CodeRequiredStateV2 internal constructor(
     private suspend fun submitResetPasswordCode(
         parameters: NativeAuthV2SubmitCodeCommandParameters
     ): NativeAuthResultV2 {
-        val command = NativeAuthV2SubmitCodeCommand(
+        val command = NativeAuthV2ResetPasswordSubmitCodeCommand(
             parameters,
             NativeAuthV2FlowController(),
             PublicApiId.NATIVE_AUTH_V2_RESET_PASSWORD_SUBMIT_CODE
@@ -221,7 +221,7 @@ class CodeRequiredStateV2 internal constructor(
         coroutineContext.ensureActive()
         return when (
             val result =
-                rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitCodeCommandResult>()
+                rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2ResetPasswordSubmitCodeCommandResult>()
         ) {
             is NativeAuthV2CommandResult.NewPasswordRequired -> {
                 NativeAuthResultV2.NewPasswordRequired(
