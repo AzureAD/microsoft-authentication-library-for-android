@@ -39,8 +39,8 @@ jobs:
           # Sanitize PR body by removing backticks before parsing (aligns behavior with the Common repository workflow)
           clean=$(printf "%s" "$PR_BODY" | tr -d '`')
 
-          # Extract AB ID (AB#1234567) - takes first match if multiple exist
-          result=$(printf "%s" "$clean" | grep -oP -m 1 '(?<=AB#)\d+')
+          # Extract AB ID (AB#1234567) - take the first match if multiple exist
+          result=$(printf "%s" "$clean" | grep -oP '(?<=AB#)\d+' | head -n 1)
 
           echo "id=$result" >> "$GITHUB_OUTPUT"
 
