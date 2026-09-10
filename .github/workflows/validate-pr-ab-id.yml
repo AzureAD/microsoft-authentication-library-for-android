@@ -20,15 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.labels.*.name, 'skip AB ID validation')"
     steps:
-      - name: Validate AB ID
-        env:
-          PR_BODY: ${{ github.event.pull_request.body }}
-        run: |
-          clean=$(printf "%s" "$PR_BODY" | tr -d '`')
-          if ! printf "%s" "$clean" | grep -qP 'AB#\d+'; then
-            echo "::error::Pull request description must contain a valid ADO work item ID in the format AB#1234567."
-            exit 1
-          fi
+      - uses: danhellem/github-actions-pr-is-linked-to-work-item@main
         
   # Get AB#ID
   get_ab_id:
