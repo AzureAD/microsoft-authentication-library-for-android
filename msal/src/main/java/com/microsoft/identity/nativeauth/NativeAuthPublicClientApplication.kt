@@ -96,6 +96,7 @@ import com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState
 import com.microsoft.identity.nativeauth.statemachine.states.Callback
 import com.microsoft.identity.nativeauth.statemachine.states.RegisterStrongAuthState
 import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordMethodRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequiredState
@@ -1042,6 +1043,16 @@ class NativeAuthPublicClientApplication(
                             codeLength = result.codeLength,
                             sentTo = result.challengeTargetLabel,
                             channel = result.challengeChannel
+                        )
+                    }
+                    is NativeAuthV2CommandResult.ResetPasswordMethodRequired -> {
+                        NativeAuthResultV2.ResetPasswordMethodRequired(
+                            nextState = ResetPasswordMethodRequiredStateV2(
+                                continuationState = result.continuationState,
+                                authMethods = result.authMethods.toListOfV2AuthMethods(),
+                                config = nativeAuthConfig
+                            ),
+                            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD
                         )
                     }
                     is NativeAuthV2CommandResult.Complete -> {

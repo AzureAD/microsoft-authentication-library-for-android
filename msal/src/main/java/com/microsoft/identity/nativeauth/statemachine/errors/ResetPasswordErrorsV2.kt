@@ -27,8 +27,8 @@ import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 
 /**
  * Reset password error for the Native Auth V2 surface. Use the utility methods of this class to
- * identify and handle the error. This error is produced by
- * [com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication.resetPasswordV2].
+ * identify and handle the error. This error is produced while starting password reset or selecting
+ * a reset-password verification method.
  *
  * @param errorType the error type value of the error that occurred.
  * @param error the error returned by the authentication server.
