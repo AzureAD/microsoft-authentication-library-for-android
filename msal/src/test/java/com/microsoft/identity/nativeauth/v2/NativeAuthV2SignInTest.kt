@@ -45,6 +45,7 @@ import com.microsoft.identity.common.java.nativeauth.controllers.results.INative
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2AuthMethod
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
+import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationStateTestFactory
 import com.microsoft.identity.common.java.result.FinalizableResultFuture
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResendCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SelectMFAMethodCommand
@@ -994,7 +995,8 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
 
     private fun createContinuationState(
         correlationId: String = NativeAuthV2SignInTest.correlationId
-    ): NativeAuthV2ContinuationState = newContinuationState(correlationId)
+    ): NativeAuthV2ContinuationState =
+        NativeAuthV2ContinuationStateTestFactory.create(correlationId)
 
     private companion object {
         const val correlationId = "correlation-id"
