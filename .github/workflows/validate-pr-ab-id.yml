@@ -40,7 +40,7 @@ jobs:
           clean=$(printf "%s" "$PR_BODY" | tr -d '`')
 
           # Extract AB ID (AB#1234567) - takes first match if multiple exist
-          result=$(printf "%s" "$clean" | grep -oP '(?<=AB#)\d+' | head -n 1)
+          result=$(printf "%s" "$clean" | grep -oP -m 1 '(?<=AB#)\d+')
 
           echo "id=$result" >> "$GITHUB_OUTPUT"
 
