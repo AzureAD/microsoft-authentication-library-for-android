@@ -128,6 +128,18 @@ class CodeRequiredStateV2 internal constructor(
                 scenario = scenario
             )
         }
+        val submitCodeOperation: suspend (NativeAuthV2SubmitCodeCommandParameters) -> NativeAuthResultV2 =
+            when (scenario) {
+                NativeAuthFlowScenarioV2.SIGN_IN -> ::submitSignInCode
+                NativeAuthFlowScenarioV2.SIGN_UP -> ::submitSignUpCode
+                NativeAuthFlowScenarioV2.RESET_PASSWORD -> ::submitResetPasswordCode
+                NativeAuthFlowScenarioV2.UNKNOWN -> return NativeAuthErrorV2(
+                    errorType = ErrorTypes.INVALID_STATE,
+                    errorMessage = "Code submission is not available for the $scenario scenario.",
+                    correlationId = correlationId,
+                    scenario = scenario
+                )
+            }
         return withContext(Dispatchers.IO) {
             try {
                 val parameters = CommandParametersAdapter.createNativeAuthV2SubmitCodeCommandParameters(
@@ -136,17 +148,7 @@ class CodeRequiredStateV2 internal constructor(
                     code,
                     state
                 )
-                when (scenario) {
-                    NativeAuthFlowScenarioV2.SIGN_IN -> submitSignInCode(parameters)
-                    NativeAuthFlowScenarioV2.SIGN_UP -> submitSignUpCode(parameters)
-                    NativeAuthFlowScenarioV2.RESET_PASSWORD -> submitResetPasswordCode(parameters)
-                    NativeAuthFlowScenarioV2.UNKNOWN -> NativeAuthErrorV2(
-                        errorType = ErrorTypes.INVALID_STATE,
-                        errorMessage = "Code submission is not available for the $scenario scenario.",
-                        correlationId = correlationId,
-                        scenario = scenario
-                    )
-                }
+                submitCodeOperation(parameters)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -192,7 +194,6 @@ class CodeRequiredStateV2 internal constructor(
                 )
             }
             is NativeAuthV2CommandResult.IncorrectCode,
-            is NativeAuthV2CommandResult.NotImplemented,
             is INativeAuthCommandResult.Redirect,
             is INativeAuthCommandResult.APIError -> mapSubmitCodeError(result)
         }
@@ -366,8 +367,7 @@ class CodeRequiredStateV2 internal constructor(
         val publicApiId = when (scenario) {
             NativeAuthFlowScenarioV2.SIGN_IN ->
                 PublicApiId.NATIVE_AUTH_V2_SIGN_IN_RESEND_CODE
-            NativeAuthFlowScenarioV2.SIGN_UP ->
-                PublicApiId.NATIVE_AUTH_V2_SIGN_UP_RESEND_CODE
+            NativeAuthFlowScenarioV2.SIGN_UP,
             NativeAuthFlowScenarioV2.RESET_PASSWORD ->
                 PublicApiId.NATIVE_AUTH_V2_RESET_PASSWORD_RESEND_CODE
             NativeAuthFlowScenarioV2.UNKNOWN -> return NativeAuthErrorV2(

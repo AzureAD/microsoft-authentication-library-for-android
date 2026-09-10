@@ -54,9 +54,9 @@ import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.Nati
 import com.microsoft.identity.common.java.nativeauth.providers.v2.NativeAuthV2FlowScenario
 import com.microsoft.identity.common.java.result.FinalizableResultFuture
 import com.microsoft.identity.common.java.result.ILocalAuthenticationResult
-import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResendCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SelectMFAMethodCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInSubmitCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInStartCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitMFAChallengeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitPasswordCommand
@@ -419,7 +419,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
                 "invalidOneTimeCode",
                 errorCodes
             ),
-            NativeAuthV2SubmitCodeCommand::class
+            NativeAuthV2SignInSubmitCodeCommand::class
         )
 
         val result = state.submitCode("00000000") as SubmitCodeErrorV2
@@ -430,7 +430,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         verify {
             CommandDispatcher.submitSilentReturningFuture(
                 match {
-                    it is NativeAuthV2SubmitCodeCommand &&
+                    it is NativeAuthV2SignInSubmitCodeCommand &&
                         it.publicApiId == PublicApiId.NATIVE_AUTH_V2_SIGN_IN_SUBMIT_CODE &&
                         (it.parameters as NativeAuthV2SubmitCodeCommandParameters).code == "00000000"
                 }
@@ -447,7 +447,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
                 createContinuationState(),
                 listOf(NativeAuthV2AuthMethod("email-2", "email", "u***@contoso.com"))
             ),
-            NativeAuthV2SubmitCodeCommand::class
+            NativeAuthV2SignInSubmitCodeCommand::class
         )
 
         val result = state.submitCode("12345678") as NativeAuthResultV2.MFARequired
@@ -469,7 +469,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             every { AuthenticationResultAdapter.adapt(localResult) } returns authenticationResult
             enqueueResult(
                 NativeAuthV2CommandResult.Complete(correlationId, localResult, null, null),
-                NativeAuthV2SubmitCodeCommand::class
+                NativeAuthV2SignInSubmitCodeCommand::class
             )
 
             val result = state.submitCode("12345678") as NativeAuthResultV2.Complete
