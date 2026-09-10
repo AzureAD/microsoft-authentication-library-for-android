@@ -36,7 +36,7 @@ jobs:
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: |
-          # Sanitize PR body by removing backticks to prevent command substitution
+          # Sanitize PR body by removing backticks before parsing (aligns behavior with the Common repository workflow)
           clean=$(printf "%s" "$PR_BODY" | tr -d '`')
 
           # Extract AB ID (AB#1234567) - takes first match if multiple exist
