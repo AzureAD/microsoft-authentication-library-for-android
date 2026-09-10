@@ -130,16 +130,31 @@ class CodeRequiredStateV2 internal constructor(
         }
         return withContext(Dispatchers.IO) {
             try {
-                val parameters = CommandParametersAdapter.createNativeAuthV2SubmitCodeCommandParameters(
-                    config,
-                    config.oAuth2TokenCache,
-                    code,
-                    state
-                )
                 when (scenario) {
-                    NativeAuthFlowScenarioV2.SIGN_IN -> submitSignInCode(parameters)
-                    NativeAuthFlowScenarioV2.SIGN_UP -> submitSignUpCode(parameters)
-                    NativeAuthFlowScenarioV2.RESET_PASSWORD -> submitResetPasswordCode(parameters)
+                    NativeAuthFlowScenarioV2.SIGN_IN -> submitSignInCode(
+                        CommandParametersAdapter.createNativeAuthV2SubmitCodeCommandParameters(
+                            config,
+                            config.oAuth2TokenCache,
+                            code,
+                            state
+                        )
+                    )
+                    NativeAuthFlowScenarioV2.SIGN_UP -> submitSignUpCode(
+                        CommandParametersAdapter.createNativeAuthV2SubmitCodeCommandParameters(
+                            config,
+                            config.oAuth2TokenCache,
+                            code,
+                            state
+                        )
+                    )
+                    NativeAuthFlowScenarioV2.RESET_PASSWORD -> submitResetPasswordCode(
+                        CommandParametersAdapter.createNativeAuthV2SubmitCodeCommandParameters(
+                            config,
+                            config.oAuth2TokenCache,
+                            code,
+                            state
+                        )
+                    )
                     NativeAuthFlowScenarioV2.UNKNOWN -> NativeAuthErrorV2(
                         errorType = ErrorTypes.INVALID_STATE,
                         errorMessage = "Code submission is not available for the $scenario scenario.",
