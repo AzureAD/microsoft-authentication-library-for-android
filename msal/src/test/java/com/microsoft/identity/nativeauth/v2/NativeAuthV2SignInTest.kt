@@ -26,6 +26,9 @@ package com.microsoft.identity.nativeauth.v2
 import android.content.Context
 import android.os.Parcel
 import androidx.test.core.app.ApplicationProvider
+import com.microsoft.identity.client.AuthenticationResultAdapter
+import com.microsoft.identity.client.IAccount
+import com.microsoft.identity.client.IAuthenticationResult
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest
@@ -39,6 +42,7 @@ import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2ResendCodeCommandParameters
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitCodeCommandParameters
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitPasswordCommandParameters
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInV2StartCommandParameters
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
@@ -49,6 +53,8 @@ import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.Nati
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2LinkRelation
 import com.microsoft.identity.common.java.nativeauth.providers.v2.NativeAuthV2FlowScenario
 import com.microsoft.identity.common.java.result.FinalizableResultFuture
+import com.microsoft.identity.common.java.result.ILocalAuthenticationResult
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResendCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SelectMFAMethodCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInStartCommand
@@ -64,9 +70,11 @@ import com.microsoft.identity.nativeauth.statemachine.errors.MFARequestChallenge
 import com.microsoft.identity.nativeauth.statemachine.errors.MFASubmitChallengeErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorV2
+import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitPasswordErrorV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.statemachine.states.Callback
+import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2
@@ -77,6 +85,7 @@ import io.mockk.mockkObject
 import io.mockk.mockkStatic
 import io.mockk.unmockkObject
 import io.mockk.unmockkStatic
+import io.mockk.verify
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
@@ -98,17 +107,16 @@ import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.seconds
 
 /**
- * Parity coverage for Native Auth V2 sign-in: password first factor and password followed by email
- * one-time-code MFA.
+ * Parity coverage for Native Auth V2 sign-in: email one-time-code or password first factor,
+ * followed by the existing MFA flow when required.
  *
  * Every scenario is driven through mocked Common command results, so the whole public surface is
  * exercised without a service. The live end-to-end equivalents are gated separately on a
  * V2-capable slice.
  *
- * The scenarios mirror the in-scope iOS V2 cases: password success, unknown user, an invalid
- * entry-supplied password reported as invalid credentials, an invalid deferred password reported as
- * an invalid password, deferred-password state, password + email MFA success, invalid OTP followed
- * by a fresh challenge, browser-required, and the Android V1 existing-account rejection.
+ * The scenarios mirror the in-scope iOS V2 cases: email-code and password success, unknown user,
+ * invalid entry and deferred passwords, invalid OTP recovery, MFA transitions, browser-required,
+ * and the Android V1 existing-account rejection.
  */
 @ExperimentalCoroutinesApi
 @RunWith(RobolectricTestRunner::class)
@@ -160,7 +168,32 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun signInV2WithoutPasswordReturnsPasswordRequiredState() = runTest {
+    fun signInV2WithoutPasswordReturnsEmailCodeRequiredState() = runTest {
+        enqueueResult(
+            NativeAuthV2CommandResult.CodeRequired(
+                correlationId = correlationId,
+                continuationState = createContinuationState(),
+                codeLength = 8,
+                challengeTargetLabel = "u***@contoso.com",
+                challengeChannel = "email"
+            ),
+            NativeAuthV2SignInStartCommand::class
+        )
+
+        val result = application.signInV2(NativeAuthSignInParameters(username))
+
+        assertTrue(result is NativeAuthResultV2.CodeRequired)
+        result as NativeAuthResultV2.CodeRequired
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.scenario)
+        assertEquals(8, result.codeLength)
+        assertEquals("u***@contoso.com", result.sentTo)
+        assertEquals("email", result.channel)
+        assertNull(result.nextState.continuationToken)
+        assertEquals(correlationId, result.nextState.correlationId)
+    }
+
+    @Test
+    fun signInV2MapsPasswordRequiredWhenCommonSelectsPassword() = runTest {
         enqueueResult(
             NativeAuthV2CommandResult.PasswordRequired(correlationId, createContinuationState()),
             NativeAuthV2SignInStartCommand::class
@@ -169,11 +202,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         val result = application.signInV2(NativeAuthSignInParameters(username))
 
         assertTrue(result is NativeAuthResultV2.PasswordRequired)
-        result as NativeAuthResultV2.PasswordRequired
         assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.scenario)
-        // The public state exposes no continuation token; the opaque DTO carries it instead.
-        assertNull(result.nextState.continuationToken)
-        assertEquals(correlationId, result.nextState.correlationId)
     }
 
     @Test
@@ -351,13 +380,13 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     @Test
     fun signInV2CallbackAndSuspendSurfacesAgree() = runTest {
         enqueueResult(
-            NativeAuthV2CommandResult.PasswordRequired(correlationId, createContinuationState()),
+            emailCodeRequiredResult(),
             NativeAuthV2SignInStartCommand::class
         )
         val suspendResult = application.signInV2(signInParameters(password = null))
 
         enqueueResult(
-            NativeAuthV2CommandResult.PasswordRequired(correlationId, createContinuationState()),
+            emailCodeRequiredResult(),
             NativeAuthV2SignInStartCommand::class
         )
         val future = ResultFuture<NativeAuthResultV2>()
@@ -370,9 +399,120 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         )
         val callbackResult = future.get(30, TimeUnit.SECONDS)
 
-        assertTrue(suspendResult is NativeAuthResultV2.PasswordRequired)
-        assertTrue(callbackResult is NativeAuthResultV2.PasswordRequired)
+        assertTrue(suspendResult is NativeAuthResultV2.CodeRequired)
+        assertTrue(callbackResult is NativeAuthResultV2.CodeRequired)
         assertEquals(suspendResult.scenario, callbackResult.scenario)
+    }
+
+    // -----------------------------------------------------------------------------------------
+    // Email OTP first factor
+    // -----------------------------------------------------------------------------------------
+
+    @Test
+    fun submitFirstFactorEmailCodeWithWrongCodeIsRecoverable() = runTest {
+        val state = codeRequiredState()
+        enqueueResult(
+            NativeAuthV2CommandResult.IncorrectCode(
+                correlationId,
+                "invalidGrant",
+                "AADSTS50184: invalid code.",
+                "invalidOneTimeCode",
+                errorCodes
+            ),
+            NativeAuthV2SubmitCodeCommand::class
+        )
+
+        val result = state.submitCode("00000000") as SubmitCodeErrorV2
+
+        assertTrue(result.isInvalidCode())
+        assertEquals("invalidOneTimeCode", result.subError)
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.scenario)
+        verify {
+            CommandDispatcher.submitSilentReturningFuture(
+                match {
+                    it is NativeAuthV2SubmitCodeCommand &&
+                        it.publicApiId == PublicApiId.NATIVE_AUTH_V2_SIGN_IN_SUBMIT_CODE &&
+                        (it.parameters as NativeAuthV2SubmitCodeCommandParameters).code == "00000000"
+                }
+            )
+        }
+    }
+
+    @Test
+    fun submitFirstFactorEmailCodeCanTransitionToExistingMFAFlow() = runTest {
+        val state = codeRequiredState()
+        enqueueResult(
+            NativeAuthV2CommandResult.MFARequired(
+                correlationId,
+                createContinuationState(),
+                listOf(NativeAuthV2AuthMethod("email-2", "email", "u***@contoso.com"))
+            ),
+            NativeAuthV2SubmitCodeCommand::class
+        )
+
+        val result = state.submitCode("12345678") as NativeAuthResultV2.MFARequired
+
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.scenario)
+        assertEquals(1, result.authMethods.size)
+        assertEquals("email-2", result.authMethods.single().id)
+        assertEquals("email", result.authMethods.single().challengeChannel)
+    }
+
+    @Test
+    fun submitFirstFactorEmailCodeCanCompleteSignIn() = runTest {
+        val state = codeRequiredState()
+        val localResult = mockk<ILocalAuthenticationResult>()
+        val authenticationResult = mockk<IAuthenticationResult>()
+        every { authenticationResult.account } returns mockk<IAccount>()
+        mockkStatic(AuthenticationResultAdapter::class)
+        try {
+            every { AuthenticationResultAdapter.adapt(localResult) } returns authenticationResult
+            enqueueResult(
+                NativeAuthV2CommandResult.Complete(correlationId, localResult, null, null),
+                NativeAuthV2SubmitCodeCommand::class
+            )
+
+            val result = state.submitCode("12345678") as NativeAuthResultV2.Complete
+
+            assertEquals(correlationId, result.resultValue.correlationId)
+            assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.scenario)
+        } finally {
+            unmockkStatic(AuthenticationResultAdapter::class)
+        }
+    }
+
+    @Test
+    fun resendFirstFactorEmailCodeReturnsRefreshedCodeRequiredState() = runTest {
+        val state = codeRequiredState()
+        val refreshedState = createContinuationState(correlationId = "resend-correlation-id")
+        enqueueResult(
+            NativeAuthV2CommandResult.CodeRequired(
+                correlationId = "resend-correlation-id",
+                continuationState = refreshedState,
+                codeLength = 8,
+                challengeTargetLabel = "n***@contoso.com",
+                challengeChannel = "email"
+            ),
+            NativeAuthV2ResendCodeCommand::class
+        )
+
+        val result = state.resendCode() as NativeAuthResultV2.CodeRequired
+
+        assertEquals(8, result.codeLength)
+        assertEquals("n***@contoso.com", result.sentTo)
+        assertEquals("email", result.channel)
+        assertEquals("resend-correlation-id", result.nextState.correlationId)
+        assertTrue(result.nextState !== state)
+        verify {
+            CommandDispatcher.submitSilentReturningFuture(
+                match {
+                    it is NativeAuthV2ResendCodeCommand &&
+                        it.publicApiId == PublicApiId.NATIVE_AUTH_V2_SIGN_IN_RESEND_CODE &&
+                        (it.parameters as NativeAuthV2ResendCodeCommandParameters)
+                            .continuationState === state.continuationState
+                }
+            )
+        }
     }
 
     // -----------------------------------------------------------------------------------------
@@ -903,6 +1043,27 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     ): NativeAuthSignInParameters = NativeAuthSignInParameters(username).also {
         it.password = password
         it.scopes = scopes
+    }
+
+    private fun emailCodeRequiredResult(
+        correlationId: String = NativeAuthV2SignInTest.correlationId,
+        continuationState: NativeAuthV2ContinuationState = createContinuationState(correlationId)
+    ): NativeAuthV2CommandResult.CodeRequired =
+        NativeAuthV2CommandResult.CodeRequired(
+            correlationId = correlationId,
+            continuationState = continuationState,
+            codeLength = 8,
+            challengeTargetLabel = "u***@contoso.com",
+            challengeChannel = "email"
+        )
+
+    private suspend fun codeRequiredState(): CodeRequiredStateV2 {
+        enqueueResult(
+            emailCodeRequiredResult(),
+            NativeAuthV2SignInStartCommand::class
+        )
+        return (application.signInV2(signInParameters(password = null)) as
+            NativeAuthResultV2.CodeRequired).nextState
     }
 
     private suspend fun passwordRequiredState(): PasswordRequiredStateV2 {
