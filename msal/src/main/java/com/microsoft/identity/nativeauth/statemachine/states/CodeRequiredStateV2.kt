@@ -128,18 +128,6 @@ class CodeRequiredStateV2 internal constructor(
                 scenario = scenario
             )
         }
-        val submitCodeOperation: suspend (NativeAuthV2SubmitCodeCommandParameters) -> NativeAuthResultV2 =
-            when (scenario) {
-                NativeAuthFlowScenarioV2.SIGN_IN -> ::submitSignInCode
-                NativeAuthFlowScenarioV2.SIGN_UP -> ::submitSignUpCode
-                NativeAuthFlowScenarioV2.RESET_PASSWORD -> ::submitResetPasswordCode
-                NativeAuthFlowScenarioV2.UNKNOWN -> return NativeAuthErrorV2(
-                    errorType = ErrorTypes.INVALID_STATE,
-                    errorMessage = "Code submission is not available for the $scenario scenario.",
-                    correlationId = correlationId,
-                    scenario = scenario
-                )
-            }
         return withContext(Dispatchers.IO) {
             try {
                 val parameters = CommandParametersAdapter.createNativeAuthV2SubmitCodeCommandParameters(
@@ -148,7 +136,17 @@ class CodeRequiredStateV2 internal constructor(
                     code,
                     state
                 )
-                submitCodeOperation(parameters)
+                when (scenario) {
+                    NativeAuthFlowScenarioV2.SIGN_IN -> submitSignInCode(parameters)
+                    NativeAuthFlowScenarioV2.SIGN_UP -> submitSignUpCode(parameters)
+                    NativeAuthFlowScenarioV2.RESET_PASSWORD -> submitResetPasswordCode(parameters)
+                    NativeAuthFlowScenarioV2.UNKNOWN -> NativeAuthErrorV2(
+                        errorType = ErrorTypes.INVALID_STATE,
+                        errorMessage = "Code submission is not available for the $scenario scenario.",
+                        correlationId = correlationId,
+                        scenario = scenario
+                    )
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
