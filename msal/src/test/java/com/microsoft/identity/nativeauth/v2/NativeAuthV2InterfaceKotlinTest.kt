@@ -393,6 +393,24 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
+    fun codeOperationsRejectUnknownScenario() = runTest {
+        val scenario = NativeAuthFlowScenarioV2.UNKNOWN
+        val state = CodeRequiredStateV2(
+            createContinuationState(),
+            scenario,
+            NativeAuthPublicClientApplicationConfiguration()
+        )
+
+        val submitError = state.submitCode("123456") as NativeAuthErrorV2
+        val resendError = state.resendCode() as NativeAuthErrorV2
+
+        assertEquals(ErrorTypes.INVALID_STATE, submitError.errorType)
+        assertEquals(scenario, submitError.scenario)
+        assertEquals(ErrorTypes.INVALID_STATE, resendError.errorType)
+        assertEquals(scenario, resendError.scenario)
+    }
+
+    @Test
     fun submitNewPasswordMapsAllResultKinds() = runTest {
         val codeState = codeRequiredState()
         enqueueResult(
