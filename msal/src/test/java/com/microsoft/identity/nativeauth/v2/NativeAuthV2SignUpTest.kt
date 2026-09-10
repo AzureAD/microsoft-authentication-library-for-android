@@ -44,6 +44,7 @@ import com.microsoft.identity.common.java.nativeauth.controllers.results.INative
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignUpCommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
+import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationStateTestFactory
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2LinkRelation
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2RequiredAttribute
 import com.microsoft.identity.common.java.nativeauth.providers.v2.NativeAuthV2FlowScenario
@@ -810,7 +811,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     }
 
     private fun createContinuationState(): NativeAuthV2ContinuationState =
-        newContinuationState(
+        NativeAuthV2ContinuationStateTestFactory.create(
             correlationId = correlationId,
             entryRelation = NativeAuthV2LinkRelation.SIGN_UP,
             scenario = NativeAuthV2FlowScenario.SIGN_UP

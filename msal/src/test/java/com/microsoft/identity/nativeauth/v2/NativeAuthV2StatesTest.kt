@@ -28,8 +28,7 @@ import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
-import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2LinkRelation
-import com.microsoft.identity.common.java.nativeauth.providers.v2.NativeAuthV2FlowScenario
+import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationStateTestFactory
 import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
@@ -59,7 +58,6 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
-import java.lang.reflect.Constructor
 
 /**
  * Unit tests for the Native Auth V2 states, covering Parcelable serialization and the
@@ -158,7 +156,7 @@ class NativeAuthV2StatesTest {
     }
 
     private fun createContinuationState(): NativeAuthV2ContinuationState =
-        newContinuationState(correlationId)
+        NativeAuthV2ContinuationStateTestFactory.create(correlationId)
 
     private fun assertCallbackNotImplemented(action: (ResultFuture<NativeAuthResultV2>) -> Unit) {
         val future = ResultFuture<NativeAuthResultV2>()
@@ -459,71 +457,4 @@ class NativeAuthV2StatesTest {
             )
         }
     }
-}
-
-/**
- * The synthetic marker Kotlin appends to the extra constructor it generates for a class that takes
- * a value class parameter.
- */
-private const val DEFAULT_CONSTRUCTOR_MARKER = "kotlin.jvm.internal.DefaultConstructorMarker"
-
-/**
- * Builds a real [NativeAuthV2ContinuationState] for the tests in this package.
- *
- * The widest constructor is used so sign-up-specific continuation data remains available to tests.
- * Kotlin's synthetic value-class overload is excluded.
- */
-internal fun newContinuationState(
-    correlationId: String,
-    entryRelation: NativeAuthV2LinkRelation = NativeAuthV2LinkRelation.RESET_PASSWORD,
-    scenario: NativeAuthV2FlowScenario = NativeAuthV2FlowScenario.RESET_PASSWORD,
-    authenticationFactor: String? = null,
-    submittedAttributes: Set<String> = emptySet()
-): NativeAuthV2ContinuationState {
-    val constructor: Constructor<*> = NativeAuthV2ContinuationState::class.java.declaredConstructors
-        .filterNot { candidate ->
-            candidate.parameterTypes.any { it.name == DEFAULT_CONSTRUCTOR_MARKER }
-        }
-        .maxByOrNull { it.parameterCount }
-        ?: error("NativeAuthV2ContinuationState declares no usable constructor")
-    constructor.isAccessible = true
-
-    val continuationToken = "opaque-token"
-    val links = emptyMap<String, String>()
-    val methodLinks = emptyMap<String, Map<String, String>>()
-    val scopes = listOf("scope")
-    val claimsRequestJson: String? = null
-    // Value classes are erased to their underlying type, so reflection needs the raw String here.
-    val serializedEntryRelation = entryRelation.value
-
-    val arguments: Array<Any?> = when (constructor.parameterCount) {
-        7 -> arrayOf(
-            continuationToken, links, scopes, claimsRequestJson, correlationId, serializedEntryRelation,
-            scenario
-        )
-        8 -> arrayOf(
-            continuationToken, links, methodLinks, scopes, claimsRequestJson, correlationId,
-            serializedEntryRelation, scenario
-        )
-        9 -> {
-            val finalArgument = if (Set::class.java.isAssignableFrom(constructor.parameterTypes.last())) {
-                submittedAttributes
-            } else {
-                authenticationFactor
-            }
-            arrayOf(
-                continuationToken, links, methodLinks, scopes, claimsRequestJson, correlationId,
-                serializedEntryRelation, scenario, finalArgument
-            )
-        }
-        10 -> arrayOf(
-            continuationToken, links, methodLinks, scopes, claimsRequestJson, correlationId,
-            serializedEntryRelation, scenario, authenticationFactor, submittedAttributes
-        )
-        else -> error(
-            "Unrecognised NativeAuthV2ContinuationState constructor, update this helper: $constructor"
-        )
-    }
-
-    return constructor.newInstance(*arguments) as NativeAuthV2ContinuationState
 }
