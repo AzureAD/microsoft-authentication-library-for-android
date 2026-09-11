@@ -354,6 +354,48 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
+    fun signUpV2CallbackSnapshotsMutableParametersSynchronouslyBeforeLaunch() = runTest {
+        var capturedUsername: String? = null
+        var capturedPassword: CharArray? = null
+        var capturedAttributes: Map<String, String>? = null
+        enqueueResult(
+            NativeAuthV2CommandResult.PasswordRequired(correlationId, createContinuationState()),
+            NativeAuthV2SignUpStartCommand::class
+        ) { command ->
+            val commandParameters = command.parameters as SignUpV2StartCommandParameters
+            capturedUsername = commandParameters.username
+            capturedPassword = commandParameters.password?.copyOf()
+            capturedAttributes = commandParameters.attributes?.toMap()
+        }
+
+        val callerPassword = "Password123!".toCharArray()
+        val attributesBuilder = UserAttributes.Builder().city("Redmond")
+        val parameters = signUpParameters(
+            username = username,
+            password = callerPassword,
+            attributes = attributesBuilder.build()
+        )
+        val future = ResultFuture<NativeAuthResultV2>()
+        application.signUpV2(
+            parameters,
+            object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
+                override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
+                override fun onError(exception: BaseException) = future.setException(exception)
+            }
+        )
+        callerPassword.fill('X')
+        attributesBuilder.city("Seattle")
+        parameters.password = null
+        parameters.attributes = null
+
+        future.get(10, TimeUnit.SECONDS)
+
+        assertEquals(username, capturedUsername)
+        assertEquals("Password123!", String(capturedPassword!!))
+        assertEquals(mapOf("city" to "Redmond"), capturedAttributes)
+    }
+
+    @Test
     fun signUpV2RejectsWhenAnAccountIsAlreadySignedIn() = runTest {
         mockkObject(NativeAuthPublicClientApplication.Companion)
         every {

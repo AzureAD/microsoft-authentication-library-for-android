@@ -967,9 +967,15 @@ class NativeAuthPublicClientApplication(
             correlationId = null,
             methodName = "${TAG}.signUpV2(parameters: NativeAuthSignUpParameters, callback: NativeAuthV2Callback)"
         )
-        pcaScope.launch {
+        val parametersSnapshot = NativeAuthSignUpParameters(parameters.username).also {
+            it.password = parameters.password?.copyOf()
+            it.attributes = parameters.attributes?.let { attributes ->
+                UserAttributes(attributes.toMap())
+            }
+        }
+        pcaScope.launchOwningPasswordSnapshot(parametersSnapshot.password) {
             try {
-                callback.onResult(signUpV2(parameters))
+                callback.onResult(signUpV2(parametersSnapshot))
             } catch (e: MsalException) {
                 Logger.error(TAG, "Exception thrown in signUpV2", e)
                 callback.onError(e)
