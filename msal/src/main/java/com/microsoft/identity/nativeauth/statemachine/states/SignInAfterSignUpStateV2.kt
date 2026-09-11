@@ -160,7 +160,7 @@ class SignInAfterSignUpStateV2 internal constructor(
     }
 
     private suspend fun internalSignIn(signInParameters: NativeAuthSignInContinuationParameters?): NativeAuthResultV2 {
-        val state = continuationState ?: return notImplemented()
+val state = continuationState ?: return invalidState()
         return withContext(Dispatchers.IO) {
             try {
                 val parameters = CommandParametersAdapter.createNativeAuthV2SignInAfterSignUpCommandParameters(
