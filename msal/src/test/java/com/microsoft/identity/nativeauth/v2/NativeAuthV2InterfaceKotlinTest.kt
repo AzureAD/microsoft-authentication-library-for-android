@@ -36,6 +36,7 @@ import com.microsoft.identity.common.java.commands.BaseCommand
 import com.microsoft.identity.common.java.commands.ICommandResult
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.controllers.CommandResult
+import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
@@ -333,7 +334,12 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
                 "sms"
             ),
             NativeAuthV2ResendCodeCommand::class
-        )
+        ) {
+            assertEquals(
+                PublicApiId.NATIVE_AUTH_V2_RESET_PASSWORD_RESEND_CODE,
+                it.publicApiId
+            )
+        }
         val resent = state.resendCode() as NativeAuthResultV2.CodeRequired
         assertEquals(8, resent.codeLength)
         assertEquals("phone", resent.sentTo)
@@ -831,7 +837,8 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
 
     private fun enqueueResult(
         result: INativeAuthCommandResult,
-        commandClass: KClass<out BaseCommand<*>>
+        commandClass: KClass<out BaseCommand<*>>,
+        onCommand: (BaseCommand<*>) -> Unit = {}
     ) {
         val future = FinalizableResultFuture<CommandResult<Any>>()
         future.setResult(
@@ -845,7 +852,10 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             CommandDispatcher.submitSilentReturningFuture(
                 match { commandClass.java.isInstance(it) }
             )
-        } returns future
+        } answers {
+            onCommand(firstArg())
+            future
+        }
     }
 
     private fun createContinuationState(): NativeAuthV2ContinuationState =

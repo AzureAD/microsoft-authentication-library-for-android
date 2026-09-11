@@ -37,6 +37,7 @@ import com.microsoft.identity.common.java.commands.BaseCommand
 import com.microsoft.identity.common.java.commands.ICommandResult
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.controllers.CommandResult
+import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpV2StartCommandParameters
@@ -51,6 +52,7 @@ import com.microsoft.identity.common.java.nativeauth.providers.v2.NativeAuthV2Fl
 import com.microsoft.identity.common.java.result.FinalizableResultFuture
 import com.microsoft.identity.common.java.result.ILocalAuthenticationResult
 import com.microsoft.identity.common.java.util.ResultFuture
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResendCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInAfterSignUpCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignUpSubmitCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignUpStartCommand
@@ -78,6 +80,7 @@ import io.mockk.mockkObject
 import io.mockk.mockkStatic
 import io.mockk.unmockkObject
 import io.mockk.unmockkStatic
+import io.mockk.verify
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
@@ -452,6 +455,51 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         val result = state.submitCode("000000") as SubmitCodeErrorV2
 
         assertTrue(result.isInvalidCode())
+    }
+
+    @Test
+    fun resendCodeUsesSignUpPublicApiId() = runTest {
+        val signUpState = codeRequiredState()
+        var signUpPublicApiId: String? = null
+        enqueueResult(
+            NativeAuthV2CommandResult.CodeRequired(
+                correlationId,
+                createContinuationState(),
+                6,
+                "u***@contoso.com",
+                "email"
+            ),
+            NativeAuthV2ResendCodeCommand::class
+        ) { signUpPublicApiId = it.publicApiId }
+
+        assertTrue(signUpState.resendCode() is NativeAuthResultV2.CodeRequired)
+        assertEquals(PublicApiId.NATIVE_AUTH_V2_SIGN_UP_RESEND_CODE, signUpPublicApiId)
+    }
+
+    @Test
+    fun resendCodeRejectsInvalidScenariosWithoutDispatching() = runTest {
+        val signUpState = codeRequiredState()
+
+        listOf(
+            NativeAuthFlowScenarioV2.SIGN_IN,
+            NativeAuthFlowScenarioV2.UNKNOWN
+        ).forEach { scenario ->
+            val state = CodeRequiredStateV2(
+                createContinuationState(),
+                scenario,
+                signUpState.config
+            )
+
+            val result = state.resendCode()
+
+            assertTrue(result is NativeAuthErrorV2)
+            assertEquals(ErrorTypes.INVALID_STATE, (result as NativeAuthErrorV2).errorType)
+        }
+        verify(exactly = 0) {
+            CommandDispatcher.submitSilentReturningFuture(
+                match { it is NativeAuthV2ResendCodeCommand }
+            )
+        }
     }
 
     // -----------------------------------------------------------------------------------------

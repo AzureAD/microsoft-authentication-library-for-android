@@ -318,6 +318,12 @@ class CodeRequiredStateV2 internal constructor(
             methodName = "${TAG}.resendCode()"
         )
         val state = continuationState ?: return invalidState()
+        val publicApiId = when (scenario) {
+            NativeAuthFlowScenarioV2.SIGN_UP -> PublicApiId.NATIVE_AUTH_V2_SIGN_UP_RESEND_CODE
+            NativeAuthFlowScenarioV2.RESET_PASSWORD -> PublicApiId.NATIVE_AUTH_V2_RESET_PASSWORD_RESEND_CODE
+            NativeAuthFlowScenarioV2.SIGN_IN,
+            NativeAuthFlowScenarioV2.UNKNOWN -> return invalidState()
+        }
         return withContext(Dispatchers.IO) {
             try {
                 val parameters = CommandParametersAdapter.createNativeAuthV2ResendCodeCommandParameters(
@@ -328,7 +334,7 @@ class CodeRequiredStateV2 internal constructor(
                 val command = NativeAuthV2ResendCodeCommand(
                     parameters,
                     NativeAuthV2FlowController(),
-                    PublicApiId.NATIVE_AUTH_V2_RESET_PASSWORD_RESEND_CODE
+                    publicApiId
                 )
                 ensureActive()
                 val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
