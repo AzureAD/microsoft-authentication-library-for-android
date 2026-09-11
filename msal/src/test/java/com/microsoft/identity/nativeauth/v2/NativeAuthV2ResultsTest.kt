@@ -112,7 +112,7 @@ class NativeAuthV2ResultsTest {
 
     @Test
     fun testAttributesRequiredExposesExpectedValues() {
-        val requiredAttributes = listOf(RequiredUserAttribute("city", "string", true, null))
+        val requiredAttributes = mutableListOf(RequiredUserAttribute("city", "string", true, null))
         val result = NativeAuthResultV2.AttributesRequired(
             nextState = AttributesRequiredStateV2(continuationToken, correlationId, scenario, config),
             scenario = scenario,
@@ -120,11 +120,20 @@ class NativeAuthV2ResultsTest {
         )
         assertEquals(requiredAttributes, result.requiredAttributes)
         assertEquals(scenario, result.scenario)
+
+        requiredAttributes.clear()
+        assertEquals(1, result.requiredAttributes.size)
+        try {
+            (result.requiredAttributes as MutableList<RequiredUserAttribute>).clear()
+            org.junit.Assert.fail("Expected requiredAttributes to be unmodifiable")
+        } catch (_: UnsupportedOperationException) {
+            // Expected.
+        }
     }
 
     @Test
     fun testAttributesInvalidExposesExpectedValues() {
-        val invalidAttributes = listOf("city")
+        val invalidAttributes = mutableListOf("city")
         val result = NativeAuthResultV2.AttributesInvalid(
             nextState = AttributesInvalidStateV2(continuationToken, correlationId, scenario, config),
             scenario = scenario,
@@ -132,6 +141,15 @@ class NativeAuthV2ResultsTest {
         )
         assertEquals(invalidAttributes, result.invalidAttributes)
         assertEquals(scenario, result.scenario)
+
+        invalidAttributes.clear()
+        assertEquals(1, result.invalidAttributes.size)
+        try {
+            (result.invalidAttributes as MutableList<String>).clear()
+            org.junit.Assert.fail("Expected invalidAttributes to be unmodifiable")
+        } catch (_: UnsupportedOperationException) {
+            // Expected.
+        }
     }
 
     @Test
