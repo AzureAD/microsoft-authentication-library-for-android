@@ -30,7 +30,7 @@ import com.google.gson.reflect.TypeToken
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
 import com.microsoft.identity.client.e2e.tests.IPublicClientApplicationTest
-import com.microsoft.identity.client.e2e.utils.NativeAuthEmailOTPErrorClassifier
+import com.microsoft.identity.client.e2e.utils.NativeAuthTestRetry
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
 import com.microsoft.identity.common.java.nativeauth.BuildValues
@@ -76,9 +76,7 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
          * Each retry re-runs the auth flow. Backoff totals at most 35 seconds across four
          * attempts; persistent throttling remains a failure rather than a skipped test.
          */
-        const val MAX_THROTTLE_RETRIES = 3
-        private const val RETRY_BASE_DELAY_MILLIS = 5_000L
-        private const val MAX_RETRY_DELAY_MILLIS = 20_000L
+        const val MAX_THROTTLE_RETRIES = NativeAuthTestRetry.MAX_THROTTLE_RETRIES
 
         private val labApiAuthenticationClient: LabApiAuthenticationClient =
             LabApiAuthenticationClient(BuildConfig.LAB_CLIENT_SECRET)
@@ -163,35 +161,7 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
     fun <T> retryOperation(
         maxRetries: Int = MAX_THROTTLE_RETRIES,
         authFlow: () -> T
-    ) {
-        var retryCount = 0
-
-        while (true) {
-            try {
-                authFlow()
-                return
-            } catch (e: AssertionError) {
-                // Classification (typed errorCodes first, assertion message as unconditional
-                // fallback) lives in the classifier so it is unit-testable without standing up
-                // this Robolectric-backed abstract test.
-                if (!NativeAuthEmailOTPErrorClassifier.isThrottleError(e)) {
-                    throw e
-                }
-                retryOrFail(e, retryCount++, maxRetries)
-            }
-        }
-    }
-
-    private fun retryOrFail(error: Throwable, retryCount: Int, maxRetries: Int) {
-        if (retryCount >= maxRetries) {
-            throw AssertionError(error.message).apply { initCause(error) }
-        }
-
-        // Avoid repeatedly requesting OTPs while the Native Auth test tenant is throttling them.
-        Thread.sleep(
-            minOf(RETRY_BASE_DELAY_MILLIS * (1L shl retryCount), MAX_RETRY_DELAY_MILLIS)
-        )
-    }
+    ) = NativeAuthTestRetry.retryOperation(maxRetries, authFlow)
 
     private fun readConfigFile(filePath: String): String {
         val sb = StringBuilder()

@@ -22,14 +22,16 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.utils
 
-import com.microsoft.identity.client.e2e.tests.network.nativeauth.NativeAuthPublicClientApplicationAbstractTest
+import com.microsoft.identity.client.e2e.utils.NativeAuthTestRetry.retryOperation
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertThrows
 import org.junit.Test
 
-class NativeAuthPublicClientApplicationAbstractTestTest :
-    NativeAuthPublicClientApplicationAbstractTest() {
+/**
+ * Exercises the retry policy without initializing Robolectric or shared account-cache handles.
+ */
+class NativeAuthTestRetryTest {
 
     @Test
     fun retryOperationDoesNotRetryNonThrottleExceptions() {
