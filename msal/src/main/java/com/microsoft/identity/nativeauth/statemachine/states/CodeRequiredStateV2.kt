@@ -363,17 +363,10 @@ class CodeRequiredStateV2 internal constructor(
         )
         val state = continuationState ?: return invalidState()
         val publicApiId = when (scenario) {
-            NativeAuthFlowScenarioV2.SIGN_IN ->
-                PublicApiId.NATIVE_AUTH_V2_SIGN_IN_RESEND_CODE
-            NativeAuthFlowScenarioV2.SIGN_UP,
-            NativeAuthFlowScenarioV2.RESET_PASSWORD ->
-                PublicApiId.NATIVE_AUTH_V2_RESET_PASSWORD_RESEND_CODE
-            NativeAuthFlowScenarioV2.UNKNOWN -> return NativeAuthErrorV2(
-                errorType = ErrorTypes.INVALID_STATE,
-                errorMessage = "Code resend is not available for the $scenario scenario.",
-                correlationId = correlationId,
-                scenario = scenario
-            )
+            NativeAuthFlowScenarioV2.SIGN_UP -> PublicApiId.NATIVE_AUTH_V2_SIGN_UP_RESEND_CODE
+            NativeAuthFlowScenarioV2.RESET_PASSWORD -> PublicApiId.NATIVE_AUTH_V2_RESET_PASSWORD_RESEND_CODE
+            NativeAuthFlowScenarioV2.SIGN_IN -> PublicApiId.NATIVE_AUTH_V2_SIGN_IN_RESEND_CODE
+            NativeAuthFlowScenarioV2.UNKNOWN -> return invalidState()
         }
         return withContext(Dispatchers.IO) {
             try {
