@@ -21,13 +21,14 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 
-package com.microsoft.identity.nativeauth.parameters
+package com.microsoft.identity.nativeauth.statemachine
 
 /**
- * Encapsulates the parameters passed to the resetPassword methods of NativeAuthPublicClientApplication.
- *
- * @param username username of the account whose password will be reset.
+ * Native Auth V2 flow scenario identifier (sign-in, sign-up, reset password).
  */
-class NativeAuthResetPasswordParameters(
-    val username: String
-)
+enum class NativeAuthFlowScenarioV2 {
+    SIGN_IN,
+    SIGN_UP,
+    RESET_PASSWORD,
+    UNKNOWN
+}

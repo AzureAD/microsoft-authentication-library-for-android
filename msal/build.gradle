@@ -140,6 +140,9 @@ android {
 
     kotlinOptions {
         jvmTarget = "1.8"
+        // Pinned to 1.9 so published metadata stays readable by consumers still on Kotlin 1.8.
+        languageVersion = "1.9"
+        apiVersion = "1.9"
     }
 
     buildTypes {
@@ -289,7 +292,7 @@ dependencies {
     implementation ("com.nimbusds:nimbus-jose-jwt:$rootProject.ext.nimbusVersion") {
         exclude module: 'asm'
     }
-    implementation 'org.apache.httpcomponents.core5:httpcore5:5.3'
+    implementation 'org.apache.httpcomponents.core5:httpcore5:5.4.3'
     implementation "androidx.constraintlayout:constraintlayout:$rootProject.ext.constraintLayoutVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.ext.kotlinXCoroutinesVersion"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$rootProject.ext.kotlinXCoroutinesVersion"
