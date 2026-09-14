@@ -37,6 +37,7 @@ import com.microsoft.identity.common.java.commands.BaseCommand
 import com.microsoft.identity.common.java.commands.ICommandResult
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.controllers.CommandResult
+import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpV2StartCommandParameters
@@ -51,6 +52,7 @@ import com.microsoft.identity.common.java.nativeauth.providers.v2.NativeAuthV2Fl
 import com.microsoft.identity.common.java.result.FinalizableResultFuture
 import com.microsoft.identity.common.java.result.ILocalAuthenticationResult
 import com.microsoft.identity.common.java.util.ResultFuture
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResendCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInAfterSignUpCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignUpSubmitCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignUpStartCommand
@@ -78,6 +80,7 @@ import io.mockk.mockkObject
 import io.mockk.mockkStatic
 import io.mockk.unmockkObject
 import io.mockk.unmockkStatic
+import io.mockk.verify
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
@@ -351,6 +354,48 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
+    fun signUpV2CallbackSnapshotsMutableParametersSynchronouslyBeforeLaunch() = runTest {
+        var capturedUsername: String? = null
+        var capturedPassword: CharArray? = null
+        var capturedAttributes: Map<String, String>? = null
+        enqueueResult(
+            NativeAuthV2CommandResult.PasswordRequired(correlationId, createContinuationState()),
+            NativeAuthV2SignUpStartCommand::class
+        ) { command ->
+            val commandParameters = command.parameters as SignUpV2StartCommandParameters
+            capturedUsername = commandParameters.username
+            capturedPassword = commandParameters.password?.copyOf()
+            capturedAttributes = commandParameters.attributes?.toMap()
+        }
+
+        val callerPassword = "Password123!".toCharArray()
+        val attributesBuilder = UserAttributes.Builder().city("Redmond")
+        val parameters = signUpParameters(
+            username = username,
+            password = callerPassword,
+            attributes = attributesBuilder.build()
+        )
+        val future = ResultFuture<NativeAuthResultV2>()
+        application.signUpV2(
+            parameters,
+            object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
+                override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
+                override fun onError(exception: BaseException) = future.setException(exception)
+            }
+        )
+        callerPassword.fill('X')
+        attributesBuilder.city("Seattle")
+        parameters.password = null
+        parameters.attributes = null
+
+        future.get(10, TimeUnit.SECONDS)
+
+        assertEquals(username, capturedUsername)
+        assertEquals("Password123!", String(capturedPassword!!))
+        assertEquals(mapOf("city" to "Redmond"), capturedAttributes)
+    }
+
+    @Test
     fun signUpV2RejectsWhenAnAccountIsAlreadySignedIn() = runTest {
         mockkObject(NativeAuthPublicClientApplication.Companion)
         every {
@@ -452,6 +497,45 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         val result = state.submitCode("000000") as SubmitCodeErrorV2
 
         assertTrue(result.isInvalidCode())
+    }
+
+    @Test
+    fun resendCodeUsesSignUpPublicApiId() = runTest {
+        val signUpState = codeRequiredState()
+        var signUpPublicApiId: String? = null
+        enqueueResult(
+            NativeAuthV2CommandResult.CodeRequired(
+                correlationId,
+                createContinuationState(),
+                6,
+                "u***@contoso.com",
+                "email"
+            ),
+            NativeAuthV2ResendCodeCommand::class
+        ) { signUpPublicApiId = it.publicApiId }
+
+        assertTrue(signUpState.resendCode() is NativeAuthResultV2.CodeRequired)
+        assertEquals(PublicApiId.NATIVE_AUTH_V2_SIGN_UP_RESEND_CODE, signUpPublicApiId)
+    }
+
+    @Test
+    fun resendCodeRejectsUnknownScenarioWithoutDispatching() = runTest {
+        val signUpState = codeRequiredState()
+        val state = CodeRequiredStateV2(
+            createContinuationState(),
+            NativeAuthFlowScenarioV2.UNKNOWN,
+            signUpState.config
+        )
+
+        val result = state.resendCode()
+
+        assertTrue(result is NativeAuthErrorV2)
+        assertEquals(ErrorTypes.INVALID_STATE, (result as NativeAuthErrorV2).errorType)
+        verify(exactly = 0) {
+            CommandDispatcher.submitSilentReturningFuture(
+                match { it is NativeAuthV2ResendCodeCommand }
+            )
+        }
     }
 
     // -----------------------------------------------------------------------------------------

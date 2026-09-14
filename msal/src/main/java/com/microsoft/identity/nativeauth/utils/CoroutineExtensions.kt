@@ -46,11 +46,10 @@ internal suspend fun <T> FinalizableResultFuture<T>.getCancellable(): T {
  * the launched job completes -- including when the job is cancelled before [block] ever starts
  * running (for example, because this scope was already cancelled at the time of the call).
  *
- * [block] remains responsible for clearing [passwordSnapshot] itself once it has consumed it
- * (typically via a `try`/`finally` around command submission). This function is purely a safety
- * net for the case where [block] never runs at all: [StringUtil.overwriteWithNull] is idempotent
- * and null-tolerant, so invoking it again here after [block] already cleared the array is
- * harmless.
+ * [passwordSnapshot] is always cleared by this function when the job completes (via
+ * [Job.invokeOnCompletion]). [block] may clear it earlier once it has consumed the password to
+ * minimize the in-memory lifetime; clearing it again on completion is safe because
+ * [StringUtil.overwriteWithNull] is idempotent and null-tolerant.
  */
 internal fun CoroutineScope.launchOwningPasswordSnapshot(
     passwordSnapshot: CharArray?,
