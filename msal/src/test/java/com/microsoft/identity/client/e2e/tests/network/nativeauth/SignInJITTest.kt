@@ -26,6 +26,7 @@ package com.microsoft.identity.client.e2e.tests.network.nativeauth
 import com.microsoft.identity.client.claims.ClaimsRequest
 import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
+import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.parameters.NativeAuthChallengeAuthMethodParameters
@@ -45,6 +46,8 @@ import org.junit.Ignore
 import org.junit.Test
 
 class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
+
+    private val tempEmailApi = TemporaryEmailService()
 
     private lateinit var resources: List<NativeAuthTestConfig.Resource>
 
@@ -77,10 +80,9 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
         retryOperation {
             runBlocking {
                 // SignUp a new user with username and password
-                val username = tempEmailApi.createRandomEmailAddress()
+                val username = tempEmailApi.generateRandomEmailAddressLocally()
                 val signUpParams = NativeAuthSignUpParameters(username)
                 signUpParams.password = getSafePassword().toCharArray()
-                tempEmailApi.markCheckpoint(username)
                 val signUpResult = application.signUp(signUpParams)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
                 val otp1 = tempEmailApi.retrieveCodeFromInbox(username)
@@ -95,13 +97,12 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
                 assertResult<SignInResult.StrongAuthMethodRegistrationRequired>(signInResult)
                 val authMethod = (signInResult as SignInResult.StrongAuthMethodRegistrationRequired).authMethods[0]
 
-                val contact = tempEmailApi.createRandomEmailAddress()
+                val contact = tempEmailApi.generateRandomEmailAddressLocally()
 
                 // Specify a different email as verification contact.
                 val authMethodParams = NativeAuthChallengeAuthMethodParameters(authMethod, contact)
 
                 // Complete JIT. Verification email should be sent to the second email.
-                tempEmailApi.markCheckpoint(contact)
                 val challengeResult = signInResult.nextState.challengeAuthMethod(authMethodParams)
                 val otp2 = tempEmailApi.retrieveCodeFromInbox(contact)
                 val submitChallengeResult = (challengeResult as  RegisterStrongAuthChallengeResult.VerificationRequired).result.getNextState().submitChallenge(otp2)
@@ -140,10 +141,9 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
         retryOperation {
             runBlocking {
                 // SignUp a new user with username and password.
-                val username = tempEmailApi.createRandomEmailAddress()
+                val username = tempEmailApi.generateRandomEmailAddressLocally()
                 val signUpParams = NativeAuthSignUpParameters(username)
                 signUpParams.password = getSafePassword().toCharArray()
-                tempEmailApi.markCheckpoint(username)
                 val signUpResult = application.signUp(signUpParams)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
                 val otp1 = tempEmailApi.retrieveCodeFromInbox(username)
@@ -159,13 +159,12 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
                 assertResult<SignInResult.StrongAuthMethodRegistrationRequired>(signWithContinuationResult)
                 val authMethod = (signWithContinuationResult as SignInResult.StrongAuthMethodRegistrationRequired).authMethods[0]
 
-                val contact = tempEmailApi.createRandomEmailAddress()
+                val contact = tempEmailApi.generateRandomEmailAddressLocally()
 
                 // Specify a different email as verification contact.
                 val authMethodParams = NativeAuthChallengeAuthMethodParameters(authMethod, contact)
 
                 // Complete JIT. Verification email should be sent to the second email.
-                tempEmailApi.markCheckpoint(contact)
                 val challengeResult = signWithContinuationResult.nextState.challengeAuthMethod(authMethodParams)
                 val otp2 = tempEmailApi.retrieveCodeFromInbox(contact)
                 val submitChallengeResult = (challengeResult as  RegisterStrongAuthChallengeResult.VerificationRequired).result.getNextState().submitChallenge(otp2)
@@ -205,10 +204,9 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
         retryOperation {
             runBlocking {
                 // SignUp a new user with username and password
-                val username = tempEmailApi.createRandomEmailAddress()
+                val username = tempEmailApi.generateRandomEmailAddressLocally()
                 val signUpParams = NativeAuthSignUpParameters(username)
                 signUpParams.password = getSafePassword().toCharArray()
-                tempEmailApi.markCheckpoint(username)
                 val signUpResult = application.signUp(signUpParams)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
                 val otp1 = tempEmailApi.retrieveCodeFromInbox(username)

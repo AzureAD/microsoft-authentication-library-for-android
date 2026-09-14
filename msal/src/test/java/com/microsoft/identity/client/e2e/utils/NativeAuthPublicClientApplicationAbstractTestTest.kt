@@ -20,8 +20,9 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.e2e.tests.network.nativeauth
+package com.microsoft.identity.client.e2e.utils
 
+import com.microsoft.identity.client.e2e.tests.network.nativeauth.NativeAuthPublicClientApplicationAbstractTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertThrows
@@ -43,6 +44,38 @@ class NativeAuthPublicClientApplicationAbstractTestTest :
         }
 
         assertSame(expected, actual)
+        assertEquals(1, attempts)
+    }
+
+    @Test
+    fun retryOperationDoesNotRetryNonThrottleAssertions() {
+        val expected = AssertionError("Unexpected reset password result")
+        var attempts = 0
+
+        val actual = assertThrows(AssertionError::class.java) {
+            retryOperation(maxRetries = 1) {
+                attempts++
+                throw expected
+            }
+        }
+
+        assertSame(expected, actual)
+        assertEquals(1, attempts)
+    }
+
+    @Test
+    fun retryOperationPreservesThrottleFailureWhenRetriesAreExhausted() {
+        val expected = AssertionError("AADSTS701014: Cannot generate more one time passcodes")
+        var attempts = 0
+
+        val actual = assertThrows(AssertionError::class.java) {
+            retryOperation(maxRetries = 0) {
+                attempts++
+                throw expected
+            }
+        }
+
+        assertSame(expected, actual.cause)
         assertEquals(1, attempts)
     }
 }

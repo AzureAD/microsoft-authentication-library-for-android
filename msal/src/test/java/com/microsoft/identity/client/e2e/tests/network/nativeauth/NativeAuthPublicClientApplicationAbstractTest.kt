@@ -36,7 +36,6 @@ import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelpe
 import com.microsoft.identity.common.java.nativeauth.BuildValues
 import com.microsoft.identity.internal.testutils.TestUtils
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
-import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.labapi.utilities.BuildConfig
 import com.microsoft.identity.labapi.utilities.authentication.LabApiAuthenticationClient
@@ -74,15 +73,8 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         /**
          * Retry budget for OTP-throttled (AADSTS701014) auth flows.
          *
-         * Each retry re-runs the whole flow (new temporary inbox + signup + OTP request), so
-         * attempts are expensive in wall-clock time on top of the backoff itself. With 3 retries
-         * and the delay capped at [MAX_RETRY_DELAY_MILLIS], a persistently throttled test sleeps at
-         * most 5s + 10s + 20s = 35s across 4 attempts.
-         *
-         * iOS keeps 5 attempts only because XCTest's plan-level `maximumTestRepetitions` /
-         * `retryOnFailure` costs no extra wall-clock on success, and because its throttle path
-         * raises `XCTSkip` (via `skipIfEmailOTPThrottled`) instead of retrying into the throttle.
-         * This hand-rolled loop has neither property, hence the tighter budget.
+         * Each retry re-runs the auth flow. Backoff totals at most 35 seconds across four
+         * attempts; persistent throttling remains a failure rather than a skipped test.
          */
         const val MAX_THROTTLE_RETRIES = 3
         private const val RETRY_BASE_DELAY_MILLIS = 5_000L
@@ -95,7 +87,6 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
 
     private lateinit var context: Context
     private lateinit var activity: Activity
-    protected val tempEmailApi = TemporaryEmailService()
 
     // Remove default Coroutine test timeout of 10 seconds.
     private val testDispatcher = StandardTestDispatcher()

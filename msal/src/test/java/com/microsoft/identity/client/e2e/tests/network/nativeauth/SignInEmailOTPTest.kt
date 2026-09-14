@@ -25,6 +25,7 @@ package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
 import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
+import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
@@ -38,6 +39,8 @@ import org.junit.Ignore
 import org.junit.Test
 
 class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
+
+    private val tempEmailApi = TemporaryEmailService()
 
     lateinit var application: INativeAuthPublicClientApplication
     lateinit var config: NativeAuthTestConfig.Config
@@ -60,7 +63,6 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
             runBlocking {
                 val user = config.email
                 val param = NativeAuthSignInParameters(username = user)
-                tempEmailApi.markCheckpoint(user)
                 val signInResult = application.signIn(param)
                 assertResult<SignInResult.CodeRequired>(signInResult)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
@@ -81,7 +83,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         retryOperation {
             runBlocking {
-                val username = tempEmailApi.generateRandomUnregisteredEmailAddress()
+                val username = tempEmailApi.generateRandomEmailAddressLocally()
                 val param = NativeAuthSignInParameters(username = username)
                 val signInResult = application.signIn(param)
                 Assert.assertTrue(signInResult is SignInError)
@@ -144,13 +146,11 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
             runBlocking {
                 val user = config.email
                 val param = NativeAuthSignInParameters(username = user)
-                tempEmailApi.markCheckpoint(user)
                 val signInResult = application.signIn(param)
                 assertResult<SignInResult.CodeRequired>(signInResult)
 
                 val otp1 = tempEmailApi.retrieveCodeFromInbox(user)
                 val codeRequiredState = (signInResult as SignInResult.CodeRequired).nextState
-                tempEmailApi.markCheckpoint(user)
                 val resendCodeResult = codeRequiredState.resendCode()
                 assertResult<SignInResendCodeResult.Success>(resendCodeResult)
 

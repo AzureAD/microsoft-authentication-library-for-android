@@ -25,6 +25,7 @@ package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
 import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
+import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters
@@ -40,6 +41,8 @@ import org.junit.Ignore
 import org.junit.Test
 
 class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
+
+    private val tempEmailApi = TemporaryEmailService()
 
     lateinit var application: INativeAuthPublicClientApplication
     lateinit var config: NativeAuthTestConfig.Config
@@ -142,7 +145,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
                 val otp2 = tempEmailApi.retrieveCodeFromInbox(user)
                 Assert.assertNotEquals(otp1, otp2)
 
-                val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp2)
+                val submitCodeResult = (resendCodeResult as ResetPasswordResendCodeResult.Success).nextState.submitCode(otp2)
                 assertResult<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
 
                 val password = getSafePassword()

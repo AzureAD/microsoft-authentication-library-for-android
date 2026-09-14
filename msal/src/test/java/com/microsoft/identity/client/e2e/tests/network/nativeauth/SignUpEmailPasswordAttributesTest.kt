@@ -26,6 +26,7 @@ package com.microsoft.identity.client.e2e.tests.network.nativeauth
 import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpStartCommandParameters
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
+import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.UserAttributes
@@ -38,6 +39,8 @@ import org.junit.Ignore
 import org.junit.Test
 
 class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstractTest() {
+
+    private val tempEmailApi = TemporaryEmailService()
 
     lateinit var application: INativeAuthPublicClientApplication
     lateinit var config: NativeAuthTestConfig.Config
@@ -64,14 +67,13 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
     fun testEmailPasswordAttributesOnSameScreen() {
         retryOperation {
             runBlocking {
-                val user = tempEmailApi.createRandomEmailAddress()
+                val user = tempEmailApi.generateRandomEmailAddressLocally()
                 val attributes = UserAttributes.Builder().country("Ireland").city("Dublin").flatUsername("flatusername").build()
 
                 val param = NativeAuthSignUpParameters(username = user)
                 param.password = getSafePassword().toCharArray()
                 param.attributes = attributes
 
-                tempEmailApi.markCheckpoint(user)
                 val signUpResult = application.signUp(param)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
@@ -95,9 +97,8 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
     fun testSeparateEmailPasswordAndAttributesOnSameScreen() {
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.createRandomEmailAddress()
+                val user = tempEmailApi.generateRandomEmailAddressLocally()
                 val param = NativeAuthSignUpParameters(username = user)
-                tempEmailApi.markCheckpoint(user)
                 val signUpResult = application.signUp(param)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
@@ -134,9 +135,8 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
     fun testSeparateEmailPasswordAndAttributesOnMultipleScreens() {
         retryOperation {
             runBlocking {
-                val user = tempEmailApi.createRandomEmailAddress()
+                val user = tempEmailApi.generateRandomEmailAddressLocally()
                 val param = NativeAuthSignUpParameters(username = user)
-                tempEmailApi.markCheckpoint(user)
                 val signUpResult = application.signUp(param)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
