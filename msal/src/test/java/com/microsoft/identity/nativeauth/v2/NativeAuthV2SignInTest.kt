@@ -459,6 +459,25 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
+    fun submitFirstFactorEmailCodeCanTransitionToSmsMFA() = runTest {
+        val state = codeRequiredState()
+        enqueueResult(
+            NativeAuthV2CommandResult.MFARequired(
+                correlationId,
+                createContinuationState(),
+                listOf(NativeAuthV2AuthMethod("sms-1", "sms", "+X XXX XXX 34"))
+            ),
+            NativeAuthV2SignInSubmitCodeCommand::class
+        )
+
+        val result = state.submitCode("12345678") as NativeAuthResultV2.MFARequired
+
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.scenario)
+        assertEquals("sms-1", result.authMethods.single().id)
+        assertEquals("sms", result.authMethods.single().challengeChannel)
+    }
+
+    @Test
     fun submitFirstFactorEmailCodeCanCompleteSignIn() = runTest {
         val state = codeRequiredState()
         val localResult = mockk<ILocalAuthenticationResult>()
@@ -677,7 +696,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     }
 
     // -----------------------------------------------------------------------------------------
-    // Email OTP MFA
+    // Email and SMS OTP MFA
     // -----------------------------------------------------------------------------------------
 
     @Test
@@ -700,6 +719,26 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         assertEquals("oob", method.challengeType)
         assertEquals("u***@contoso.com", method.loginHint)
         assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.scenario)
+    }
+
+    @Test
+    fun signInV2WithPasswordCanTransitionToSmsMFA() = runTest {
+        enqueueResult(
+            NativeAuthV2CommandResult.MFARequired(
+                correlationId,
+                createContinuationState(),
+                listOf(NativeAuthV2AuthMethod("sms-1", "sms", "+X XXX XXX 34"))
+            ),
+            NativeAuthV2SignInStartCommand::class
+        )
+
+        val result = application.signInV2(signInParameters()) as NativeAuthResultV2.MFARequired
+        val method = result.authMethods.single()
+
+        assertEquals("sms-1", method.id)
+        assertEquals("sms", method.challengeChannel)
+        assertEquals("sms", method.challengeType)
+        assertEquals("+X XXX XXX 34", method.loginHint)
     }
 
     @Test
@@ -726,6 +765,31 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
+    fun selectSmsAuthMethodTransitionsToMFAVerificationRequired() = runTest {
+        val state = mfaRequiredState(
+            methods = listOf(NativeAuthV2AuthMethod("sms-1", "sms", "+X XXX XXX 34"))
+        )
+        enqueueResult(
+            NativeAuthV2CommandResult.MFAVerificationRequired(
+                correlationId,
+                createContinuationState(),
+                7,
+                "+X XXX XXX 34",
+                "sms"
+            ),
+            NativeAuthV2SelectMFAMethodCommand::class
+        )
+
+        val result = state.selectAuthMethod(state.authMethods.single()) as
+            NativeAuthResultV2.MFAVerificationRequired
+
+        assertEquals(7, result.codeLength)
+        assertEquals("+X XXX XXX 34", result.sentTo)
+        assertEquals("sms", result.channel)
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.scenario)
+    }
+
+    @Test
     fun selectAuthMethodRejectsAMethodTheServerDidNotOffer() = runTest {
         val state = mfaRequiredState()
 
@@ -738,16 +802,15 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun selectAuthMethodRejectsAnUnsupportedChannelWithoutIssuingACommand() = runTest {
+    fun selectAuthMethodRejectsAnUnknownChannelWithoutIssuingACommand() = runTest {
         val state = mfaRequiredState(
-            methods = listOf(NativeAuthV2AuthMethod("sms-1", "sms", "+1***4567"))
+            methods = listOf(NativeAuthV2AuthMethod("voice-1", "voice", "+1***4567"))
         )
 
         val result = state.selectAuthMethod(state.authMethods.single())
 
         assertTrue(result is MFARequestChallengeErrorV2)
         val error = result as MFARequestChallengeErrorV2
-        // Distinguishable from an unspecified server error: this increment supports email only.
         assertTrue(error.isNotImplemented())
         assertFalse(error.isAuthMethodBlocked())
         assertFalse(error.isBrowserRequired())
