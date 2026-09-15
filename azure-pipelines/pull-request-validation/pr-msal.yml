@@ -80,7 +80,7 @@ stages:
           jdkVersion: 1.17
       - task: Gradle@2
         displayName: Run Native Auth SSPR E2E Tests
-        condition: and(succeeded(), not(contains(variables['prLabels'], 'skip-native-auth-e2e-tests')))
+        condition: and(succeeded(), not(contains(variables['prLabels'], '"name":"skip-native-auth-e2e-tests"')))
         timeoutInMinutes: 30
         inputs:
           # Enable additional scenarios in follow-up PRs after observing SSPR stability.
