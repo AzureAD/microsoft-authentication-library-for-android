@@ -36,11 +36,14 @@ stages:
   - stage: build_and_test
     displayName: Build and Test
     jobs:
+    - template: azure-pipelines/templates/steps/fetch-pr-labels.yml@common
     - job: build_test
       displayName: PR Branch Testing
+      dependsOn: getLabelsJob
       cancelTimeoutInMinutes: 1
       variables:
         Codeql.Enabled: true
+        prLabels: $[ dependencies.getLabelsJob.outputs['fetchPrCILabel.prLabels'] ]
       steps:
       - checkout: self
         clean: true
@@ -75,32 +78,9 @@ stages:
           tasks: msal:jacocoTestReport  -PcodeCoverageEnabled=true -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PmockApiUrl=$(MOCK_API_URL) -PnativeAuthConfigString=$(NATIVE_AUTH_CONFIG_STRING)
           javaHomeSelection: $(BuildParameters.javaHomeSelection)
           jdkVersion: 1.17
-      - task: PowerShell@2
-        displayName: Test Native Auth skip-label gate
-        inputs:
-          targetType: inline
-          pwsh: true
-          ignoreLASTEXITCODE: true
-          script: |
-            Import-Module Pester -MinimumVersion 5.0
-            $result = Invoke-Pester -Path 'azure-pipelines/pull-request-validation/check-native-auth-skip-label.Tests.ps1' -PassThru
-            if ($result.FailedCount -gt 0 -or $result.PassedCount -eq 0) {
-              throw 'Native Auth skip-label regression tests failed or did not execute.'
-            }
-      - task: PowerShell@2
-        displayName: Check for skip-native-auth-e2e-tests label
-        inputs:
-          targetType: filePath
-          filePath: azure-pipelines/pull-request-validation/check-native-auth-skip-label.ps1
-          workingDirectory: $(Build.SourcesDirectory)
-          pwsh: true
-          # A missing git credential is handled explicitly by warning and running SSPR.
-          ignoreLASTEXITCODE: true
       - task: Gradle@2
         displayName: Run Native Auth SSPR E2E Tests
-        # Mirrors iOS (microsoft-authentication-library-for-objc) pr-validation.yml, which guards its
-        # native auth E2E jobs with the same opt-out label and a 30 minute timeout.
-        condition: and(succeeded(), ne(variables['SKIP_NATIVE_AUTH_E2E'], 'true'))
+        condition: and(succeeded(), not(contains(variables['prLabels'], 'skip-native-auth-e2e-tests')))
         timeoutInMinutes: 30
         inputs:
           # Enable additional scenarios in follow-up PRs after observing SSPR stability.
