@@ -243,9 +243,9 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
-    fun testAttributesRequiredStateCallbackReturnsNotImplemented() {
+    fun testAttributesRequiredStateCallbackReturnsInvalidState() {
         val attributes = UserAttributes.Builder().city("city").build()
-        assertCallbackNotImplemented { future ->
+        assertCallbackInvalidState { future ->
             AttributesRequiredStateV2(continuationToken, correlationId, scenario, config).submitAttributes(
                 attributes,
                 object : AttributesRequiredStateV2.SubmitAttributesCallback {
@@ -257,9 +257,9 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
-    fun testAttributesInvalidStateCallbackReturnsNotImplemented() {
+    fun testAttributesInvalidStateCallbackReturnsInvalidState() {
         val attributes = UserAttributes.Builder().city("city").build()
-        assertCallbackNotImplemented { future ->
+        assertCallbackInvalidState { future ->
             AttributesInvalidStateV2(continuationToken, correlationId, scenario, config).submitAttributes(
                 attributes,
                 object : AttributesInvalidStateV2.SubmitAttributesCallback {

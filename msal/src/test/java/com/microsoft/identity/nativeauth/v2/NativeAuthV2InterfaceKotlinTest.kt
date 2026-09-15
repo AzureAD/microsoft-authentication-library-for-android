@@ -36,6 +36,7 @@ import com.microsoft.identity.common.java.commands.BaseCommand
 import com.microsoft.identity.common.java.commands.ICommandResult
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.controllers.CommandResult
+import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
@@ -46,9 +47,10 @@ import com.microsoft.identity.common.java.result.FinalizableResultFuture
 import com.microsoft.identity.common.java.result.ILocalAuthenticationResult
 import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResendCodeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResetPasswordSubmitCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResetPasswordStartCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInAfterResetPasswordCommand
-import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitCodeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignUpStartCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitNewPasswordCommand
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
@@ -137,10 +139,27 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun signUpV2ReturnsNotImplemented() = runTest {
+    fun signUpV2MapsCodeRequiredWithoutNetwork() = runTest {
+        val continuationState = createContinuationState()
+        enqueueResult(
+            NativeAuthV2CommandResult.CodeRequired(
+                correlationId = correlationId,
+                continuationState = continuationState,
+                codeLength = 6,
+                challengeTargetLabel = "a***@example.com",
+                challengeChannel = "email"
+            ),
+            NativeAuthV2SignUpStartCommand::class
+        )
+
         val result = application.signUpV2(NativeAuthSignUpParameters(username = username))
-        val error = assertNotImplemented(result, NativeAuthFlowScenarioV2.SIGN_UP)
-        assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, error.scenario)
+
+        assertTrue(result is NativeAuthResultV2.CodeRequired)
+        result as NativeAuthResultV2.CodeRequired
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, result.scenario)
+        assertEquals(6, result.codeLength)
+        assertEquals("a***@example.com", result.sentTo)
+        assertNull(result.nextState.continuationToken)
     }
 
     @Test
@@ -272,7 +291,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
                 subError,
                 errorCodes
             ),
-            NativeAuthV2SubmitCodeCommand::class
+            NativeAuthV2ResetPasswordSubmitCodeCommand::class
         )
         val incorrectCode = state.submitCode("123456") as SubmitCodeErrorV2
         assertTrue(incorrectCode.isInvalidCode())
@@ -281,28 +300,28 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
 
         enqueueResult(
             NativeAuthV2CommandResult.NewPasswordRequired(correlationId, createContinuationState()),
-            NativeAuthV2SubmitCodeCommand::class
+            NativeAuthV2ResetPasswordSubmitCodeCommand::class
         )
         assertTrue(state.submitCode("123456") is NativeAuthResultV2.NewPasswordRequired)
 
         enqueueResult(
             INativeAuthCommandResult.Redirect(correlationId, "browser"),
-            NativeAuthV2SubmitCodeCommand::class
+            NativeAuthV2ResetPasswordSubmitCodeCommand::class
         )
         assertTrue((state.submitCode("123456") as SubmitCodeErrorV2).isBrowserRequired())
 
         enqueueResult(
             NativeAuthV2CommandResult.NotImplemented(correlationId, "unsupported", "unsupported"),
-            NativeAuthV2SubmitCodeCommand::class
+            NativeAuthV2ResetPasswordSubmitCodeCommand::class
         )
         assertTrue((state.submitCode("123456") as NativeAuthErrorV2).isNotImplemented())
 
-        enqueueResult(apiError(), NativeAuthV2SubmitCodeCommand::class)
+        enqueueResult(apiError(), NativeAuthV2ResetPasswordSubmitCodeCommand::class)
         assertEquals(errorCodes, (state.submitCode("123456") as SubmitCodeErrorV2).errorCodes)
 
         enqueueResult(
             NativeAuthV2CommandResult.Complete(correlationId, null, null, null),
-            NativeAuthV2SubmitCodeCommand::class
+            NativeAuthV2ResetPasswordSubmitCodeCommand::class
         )
         assertTrue(state.submitCode("123456") is NativeAuthErrorV2)
 
@@ -315,7 +334,12 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
                 "sms"
             ),
             NativeAuthV2ResendCodeCommand::class
-        )
+        ) {
+            assertEquals(
+                PublicApiId.NATIVE_AUTH_V2_RESET_PASSWORD_RESEND_CODE,
+                it.publicApiId
+            )
+        }
         val resent = state.resendCode() as NativeAuthResultV2.CodeRequired
         assertEquals(8, resent.codeLength)
         assertEquals("phone", resent.sentTo)
@@ -341,7 +365,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         )
         assertTrue(state.resendCode() is NativeAuthErrorV2)
 
-        enqueueCancellation(NativeAuthV2SubmitCodeCommand::class)
+        enqueueCancellation(NativeAuthV2ResetPasswordSubmitCodeCommand::class)
         assertCancellation { state.submitCode("123456") }
         enqueueCancellation(NativeAuthV2ResendCodeCommand::class)
         assertCancellation { state.resendCode() }
@@ -379,7 +403,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         val codeState = codeRequiredState()
         enqueueResult(
             NativeAuthV2CommandResult.NewPasswordRequired(correlationId, createContinuationState()),
-            NativeAuthV2SubmitCodeCommand::class
+            NativeAuthV2ResetPasswordSubmitCodeCommand::class
         )
         val state =
             (codeState.submitCode("123456") as NativeAuthResultV2.NewPasswordRequired).nextState
@@ -461,7 +485,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         val codeState = codeRequiredState()
         enqueueResult(
             NativeAuthV2CommandResult.NewPasswordRequired(correlationId, createContinuationState()),
-            NativeAuthV2SubmitCodeCommand::class
+            NativeAuthV2ResetPasswordSubmitCodeCommand::class
         )
         val state =
             (codeState.submitCode("123456") as NativeAuthResultV2.NewPasswordRequired).nextState
@@ -481,7 +505,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         val codeState = codeRequiredState()
         enqueueResult(
             NativeAuthV2CommandResult.NewPasswordRequired(correlationId, createContinuationState()),
-            NativeAuthV2SubmitCodeCommand::class
+            NativeAuthV2ResetPasswordSubmitCodeCommand::class
         )
         val state =
             (codeState.submitCode("123456") as NativeAuthResultV2.NewPasswordRequired).nextState
@@ -571,7 +595,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         assertCommandWaitCancellation(NativeAuthV2ResetPasswordStartCommand::class) {
             application.resetPasswordV2(NativeAuthResetPasswordParameters(username))
         }
-        assertCommandWaitCancellation(NativeAuthV2SubmitCodeCommand::class) {
+        assertCommandWaitCancellation(NativeAuthV2ResetPasswordSubmitCodeCommand::class) {
             codeState.submitCode("123456")
         }
         assertCommandWaitCancellation(NativeAuthV2ResendCodeCommand::class) {
@@ -643,8 +667,8 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         assertInvalidState(PasswordRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitPassword("password".toCharArray()))
         assertNotImplemented(NewPasswordRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitNewPassword("password".toCharArray()))
         assertNotImplemented(SignInAfterResetPasswordStateV2("continuation-token", "correlation-id", scenario, config).signIn())
-        assertNotImplemented(AttributesRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitAttributes(attributes))
-        assertNotImplemented(AttributesInvalidStateV2("continuation-token", "correlation-id", scenario, config).submitAttributes(attributes))
+        assertInvalidState(AttributesRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitAttributes(attributes))
+        assertInvalidState(AttributesInvalidStateV2("continuation-token", "correlation-id", scenario, config).submitAttributes(attributes))
         assertInvalidState(MFARequiredStateV2("continuation-token", "correlation-id", scenario, config).selectAuthMethod(authMethod))
         assertInvalidState(MFAVerificationRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitChallenge("challenge"))
         assertInvalidState(MFAVerificationRequiredStateV2("continuation-token", "correlation-id", scenario, config).resendChallenge())
@@ -718,7 +742,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         val codeState = codeRequiredState()
         enqueueResult(
             NativeAuthV2CommandResult.NewPasswordRequired(correlationId, createContinuationState()),
-            NativeAuthV2SubmitCodeCommand::class
+            NativeAuthV2ResetPasswordSubmitCodeCommand::class
         )
         val passwordState =
             (codeState.submitCode("123456") as NativeAuthResultV2.NewPasswordRequired).nextState
@@ -813,7 +837,8 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
 
     private fun enqueueResult(
         result: INativeAuthCommandResult,
-        commandClass: KClass<out BaseCommand<*>>
+        commandClass: KClass<out BaseCommand<*>>,
+        onCommand: (BaseCommand<*>) -> Unit = {}
     ) {
         val future = FinalizableResultFuture<CommandResult<Any>>()
         future.setResult(
@@ -827,7 +852,10 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             CommandDispatcher.submitSilentReturningFuture(
                 match { commandClass.java.isInstance(it) }
             )
-        } returns future
+        } answers {
+            onCommand(firstArg())
+            future
+        }
     }
 
     private fun createContinuationState(): NativeAuthV2ContinuationState =
