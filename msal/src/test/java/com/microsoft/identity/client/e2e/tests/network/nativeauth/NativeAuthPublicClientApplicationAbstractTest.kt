@@ -161,7 +161,7 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
     fun <T> retryOperation(
         maxRetries: Int = MAX_THROTTLE_RETRIES,
         authFlow: () -> T
-    ) = NativeAuthTestRetry.retryOperation(maxRetries, authFlow)
+    ) = NativeAuthTestRetry.retryOperation(maxRetries, authFlow = authFlow)
 
     private fun readConfigFile(filePath: String): String {
         val sb = StringBuilder()

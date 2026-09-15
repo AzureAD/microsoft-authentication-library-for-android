@@ -69,15 +69,49 @@ class NativeAuthTestRetryTest {
     fun retryOperationPreservesThrottleFailureWhenRetriesAreExhausted() {
         val expected = AssertionError("AADSTS701014: Cannot generate more one time passcodes")
         var attempts = 0
+        val delays = mutableListOf<Long>()
 
         val actual = assertThrows(AssertionError::class.java) {
-            retryOperation(maxRetries = 0) {
+            retryOperation(sleeper = { delays.add(it) }) {
                 attempts++
                 throw expected
             }
         }
 
         assertSame(expected, actual.cause)
-        assertEquals(1, attempts)
+        assertEquals(4, attempts)
+        assertEquals(listOf(5_000L, 10_000L, 20_000L), delays)
+    }
+
+    @Test
+    fun retryOperationStopsAfterRecoveryFromThrottle() {
+        var attempts = 0
+        val delays = mutableListOf<Long>()
+
+        retryOperation(sleeper = { delays.add(it) }) {
+            attempts++
+            if (attempts == 1) {
+                throw AssertionError("AADSTS701014: Cannot generate more one time passcodes")
+            }
+        }
+
+        assertEquals(2, attempts)
+        assertEquals(listOf(5_000L), delays)
+    }
+
+    @Test
+    fun retryOperationCapsBackoffAtTwentySeconds() {
+        var attempts = 0
+        val delays = mutableListOf<Long>()
+
+        assertThrows(AssertionError::class.java) {
+            retryOperation(maxRetries = 4, sleeper = { delays.add(it) }) {
+                attempts++
+                throw AssertionError("AADSTS701014: Cannot generate more one time passcodes")
+            }
+        }
+
+        assertEquals(5, attempts)
+        assertEquals(listOf(5_000L, 10_000L, 20_000L, 20_000L), delays)
     }
 }

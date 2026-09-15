@@ -34,8 +34,10 @@ internal object NativeAuthTestRetry {
     private const val RETRY_BASE_DELAY_MILLIS = 5_000L
     private const val MAX_RETRY_DELAY_MILLIS = 20_000L
 
+    /** Retries OTP throttling; [sleeper] receives milliseconds and can record delays in unit tests. */
     fun <T> retryOperation(
         maxRetries: Int = MAX_THROTTLE_RETRIES,
+        sleeper: (Long) -> Unit = { Thread.sleep(it) },
         authFlow: () -> T
     ) {
         var retryCount = 0
@@ -48,18 +50,23 @@ internal object NativeAuthTestRetry {
                 if (!NativeAuthEmailOTPErrorClassifier.isThrottleError(e)) {
                     throw e
                 }
-                retryOrFail(e, retryCount++, maxRetries)
+                retryOrFail(e, retryCount++, maxRetries, sleeper)
             }
         }
     }
 
-    private fun retryOrFail(error: Throwable, retryCount: Int, maxRetries: Int) {
+    private fun retryOrFail(
+        error: Throwable,
+        retryCount: Int,
+        maxRetries: Int,
+        sleeper: (Long) -> Unit
+    ) {
         if (retryCount >= maxRetries) {
             throw AssertionError(error.message).apply { initCause(error) }
         }
 
         // Avoid repeatedly requesting OTPs while the Native Auth test tenant is throttling them.
-        Thread.sleep(
+        sleeper(
             minOf(RETRY_BASE_DELAY_MILLIS * (1L shl retryCount), MAX_RETRY_DELAY_MILLIS)
         )
     }
