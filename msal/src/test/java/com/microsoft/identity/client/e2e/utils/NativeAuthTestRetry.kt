@@ -23,7 +23,8 @@
 package com.microsoft.identity.client.e2e.utils
 
 /**
- * OTP-throttle retry policy, independent of the Android E2E test fixture and its shared auth state.
+ * Retry policy for transient Native Auth E2E failures, independent of the Android E2E test fixture
+ * and its shared auth state.
  */
 internal object NativeAuthTestRetry {
     /**
@@ -34,7 +35,7 @@ internal object NativeAuthTestRetry {
     private const val RETRY_BASE_DELAY_MILLIS = 5_000L
     private const val MAX_RETRY_DELAY_MILLIS = 20_000L
 
-    /** Retries OTP throttling; [sleeper] receives milliseconds and can record delays in unit tests. */
+    /** Retries eligible failures; [sleeper] receives milliseconds and can record delays in tests. */
     fun <T> retryOperation(
         maxRetries: Int = MAX_THROTTLE_RETRIES,
         sleeper: (Long) -> Unit = { Thread.sleep(it) },
@@ -50,6 +51,8 @@ internal object NativeAuthTestRetry {
                 if (!NativeAuthEmailOTPErrorClassifier.isThrottleError(e)) {
                     throw e
                 }
+                retryOrFail(e, retryCount++, maxRetries, sleeper)
+            } catch (e: Exception) {
                 retryOrFail(e, retryCount++, maxRetries, sleeper)
             }
         }

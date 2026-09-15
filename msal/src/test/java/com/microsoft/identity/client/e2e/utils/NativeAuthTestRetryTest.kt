@@ -34,19 +34,37 @@ import org.junit.Test
 class NativeAuthTestRetryTest {
 
     @Test
-    fun retryOperationDoesNotRetryNonThrottleExceptions() {
-        val expected = IllegalStateException("Non-throttle failure")
+    fun retryOperationRetriesExceptionsAndRecovers() {
         var attempts = 0
+        val delays = mutableListOf<Long>()
 
-        val actual = assertThrows(IllegalStateException::class.java) {
-            retryOperation(maxRetries = 1) {
+        retryOperation(maxRetries = 2, sleeper = { delays.add(it) }) {
+            attempts++
+            if (attempts < 2) {
+                throw IllegalStateException("Transient Mail.tm failure")
+            }
+        }
+
+        assertEquals(2, attempts)
+        assertEquals(listOf(5_000L), delays)
+    }
+
+    @Test
+    fun retryOperationRetriesExceptionsUntilExhausted() {
+        val expected = IllegalStateException("Persistent Mail.tm failure")
+        var attempts = 0
+        val delays = mutableListOf<Long>()
+
+        val actual = assertThrows(AssertionError::class.java) {
+            retryOperation(maxRetries = 1, sleeper = { delays.add(it) }) {
                 attempts++
                 throw expected
             }
         }
 
-        assertSame(expected, actual)
-        assertEquals(1, attempts)
+        assertSame(expected, actual.cause)
+        assertEquals(2, attempts)
+        assertEquals(listOf(5_000L), delays)
     }
 
     @Test
