@@ -718,7 +718,8 @@ class NativeAuthPublicClientApplication(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = NativeAuthFlowScenarioV2.SIGN_IN,
-                            errorCodes = result.errorCodes
+                            errorCodes = result.errorCodes,
+                            subError = result.subError
                         )
                     }
                     is NativeAuthV2CommandResult.UserNotFound -> {
