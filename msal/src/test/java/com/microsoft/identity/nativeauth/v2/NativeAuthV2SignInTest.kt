@@ -225,6 +225,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         assertTrue(result.isInvalidCredentials())
         assertFalse(result.isUserNotFound())
         assertEquals(errorCodes, result.errorCodes)
+        assertEquals("invalidUserNameOrPassword", result.subError)
         assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.scenario)
         // A recoverable-looking error must not hand back a state to continue from.
         assertNull((result as NativeAuthResultV2).let { (it as? NativeAuthResultV2.PasswordRequired)?.nextState })

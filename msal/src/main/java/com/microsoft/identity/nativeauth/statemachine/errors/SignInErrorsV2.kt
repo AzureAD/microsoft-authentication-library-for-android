@@ -36,6 +36,7 @@ import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
  * @param correlationId a unique identifier for the request that can help in diagnostics.
  * @param scenario identifies which part of the Native Auth V2 surface produced this error.
  * @param errorCodes a list of specific error codes returned by the authentication server.
+ * @param subError the sub error returned by the authentication server.
  * @param exception an internal unexpected exception that happened.
  */
 class SignInErrorV2(
@@ -45,6 +46,7 @@ class SignInErrorV2(
     correlationId: String,
     scenario: NativeAuthFlowScenarioV2,
     errorCodes: List<Int>? = null,
+    val subError: String? = null,
     exception: Exception? = null
 ) : NativeAuthErrorV2(errorType, error, errorMessage, correlationId, scenario, errorCodes, exception) {
 
