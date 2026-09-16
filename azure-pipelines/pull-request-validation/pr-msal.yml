@@ -78,6 +78,9 @@ stages:
           tasks: msal:jacocoTestReport  -PcodeCoverageEnabled=true -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PmockApiUrl=$(MOCK_API_URL) -PnativeAuthConfigString=$(NATIVE_AUTH_CONFIG_STRING)
           javaHomeSelection: $(BuildParameters.javaHomeSelection)
           jdkVersion: 1.17
+      - template: azure-pipelines/templates/steps/collect-changed-files.yml@common
+        parameters:
+          outputDir: $(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport
       - task: Gradle@2
         displayName: Run Native Auth SSPR E2E Tests
         condition: and(succeeded(), not(contains(variables['prLabels'], '"name":"skip-native-auth-e2e-tests"')))
@@ -92,7 +95,7 @@ stages:
           testRunTitle: Native Auth SSPR E2E Tests (PR Branch)
         env:
           EMAIL_PROVIDER_PASSWORD: $(EMAIL_PROVIDER_PASSWORD)
-      - publish: $(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+      - publish: $(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport
         artifact: jacocoReport
         displayName: 'Publish JaCoCo Report Artifact (PR Branch)'
       - script: tree "$(Build.SourcesDirectory)\msal" /F /A
