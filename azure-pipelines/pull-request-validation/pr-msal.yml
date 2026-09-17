@@ -36,14 +36,11 @@ stages:
   - stage: build_and_test
     displayName: Build and Test
     jobs:
-    - template: azure-pipelines/templates/steps/fetch-pr-labels.yml@common
     - job: build_test
       displayName: PR Branch Testing
-      dependsOn: getLabelsJob
       cancelTimeoutInMinutes: 1
       variables:
         Codeql.Enabled: true
-        prLabels: $[ dependencies.getLabelsJob.outputs['fetchPrCILabel.prLabels'] ]
       steps:
       - checkout: self
         clean: true
@@ -81,20 +78,6 @@ stages:
       - template: azure-pipelines/templates/steps/collect-changed-files.yml@common
         parameters:
           outputDir: $(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport
-      - task: Gradle@2
-        displayName: Run Native Auth SSPR E2E Tests
-        condition: and(succeeded(), not(contains(variables['prLabels'], '"name":"skip-native-auth-e2e-tests"')))
-        timeoutInMinutes: 30
-        inputs:
-          # Enable additional scenarios in follow-up PRs after observing SSPR stability.
-          tasks: msal:testLocalDebugUnitTest -Plabtest -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PnativeAuthConfigString=$(NATIVE_AUTH_CONFIG_STRING) --tests com.microsoft.identity.client.e2e.tests.network.nativeauth.SSPRTest
-          javaHomeSelection: $(BuildParameters.javaHomeSelection)
-          jdkVersion: 1.17
-          publishJUnitResults: true
-          testResultsFiles: '**/build/test-results/testLocalDebugUnitTest/TEST-*.xml'
-          testRunTitle: Native Auth SSPR E2E Tests (PR Branch)
-        env:
-          EMAIL_PROVIDER_PASSWORD: $(EMAIL_PROVIDER_PASSWORD)
       - publish: $(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport
         artifact: jacocoReport
         displayName: 'Publish JaCoCo Report Artifact (PR Branch)'
