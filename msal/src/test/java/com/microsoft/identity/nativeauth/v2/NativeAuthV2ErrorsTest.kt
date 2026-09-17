@@ -65,11 +65,18 @@ class NativeAuthV2ErrorsTest {
         assertTrue(
             SignInErrorV2(errorType = "invalid_username", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isInvalidUsername()
         )
-        val error = SignInErrorV2(errorType = "other", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN)
+        val error = SignInErrorV2(
+            errorType = "other",
+            errorMessage = errorMessage,
+            correlationId = correlationId,
+            scenario = NativeAuthFlowScenarioV2.UNKNOWN,
+            subError = "sub"
+        )
         assertFalse(error.isUserNotFound())
         assertFalse(error.isInvalidCredentials())
         assertFalse(error.isInvalidUsername())
         assertEquals(NativeAuthFlowScenarioV2.UNKNOWN, error.scenario)
+        assertEquals("sub", error.subError)
     }
 
     @Test
@@ -227,7 +234,7 @@ class NativeAuthV2ErrorsTest {
         val scenario = NativeAuthFlowScenarioV2.SIGN_IN
 
         val allErrors = listOf<NativeAuthErrorV2>(
-            SignInErrorV2("type", error, errorMessage, correlationId, scenario, errorCodes, exception),
+            SignInErrorV2("type", error, errorMessage, correlationId, scenario, errorCodes, "sub", exception),
             SubmitPasswordErrorV2("type", error, errorMessage, correlationId, scenario, errorCodes, exception),
             SignUpErrorV2("type", error, errorMessage, correlationId, scenario, errorCodes, exception),
             SubmitAttributesErrorV2("type", error, errorMessage, correlationId, scenario, errorCodes, exception),

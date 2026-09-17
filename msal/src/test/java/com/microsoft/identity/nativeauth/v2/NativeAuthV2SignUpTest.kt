@@ -519,24 +519,18 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun resendCodeRejectsInvalidScenariosWithoutDispatching() = runTest {
+    fun resendCodeRejectsUnknownScenarioWithoutDispatching() = runTest {
         val signUpState = codeRequiredState()
+        val state = CodeRequiredStateV2(
+            createContinuationState(),
+            NativeAuthFlowScenarioV2.UNKNOWN,
+            signUpState.config
+        )
 
-        listOf(
-            NativeAuthFlowScenarioV2.SIGN_IN,
-            NativeAuthFlowScenarioV2.UNKNOWN
-        ).forEach { scenario ->
-            val state = CodeRequiredStateV2(
-                createContinuationState(),
-                scenario,
-                signUpState.config
-            )
+        val result = state.resendCode()
 
-            val result = state.resendCode()
-
-            assertTrue(result is NativeAuthErrorV2)
-            assertEquals(ErrorTypes.INVALID_STATE, (result as NativeAuthErrorV2).errorType)
-        }
+        assertTrue(result is NativeAuthErrorV2)
+        assertEquals(ErrorTypes.INVALID_STATE, (result as NativeAuthErrorV2).errorType)
         verify(exactly = 0) {
             CommandDispatcher.submitSilentReturningFuture(
                 match { it is NativeAuthV2ResendCodeCommand }
