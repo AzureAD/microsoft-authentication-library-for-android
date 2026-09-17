@@ -769,6 +769,20 @@ class NativeAuthPublicClientApplication(
                             exception = result.exception
                         )
                     }
+                    else -> {
+                        Logger.warnWithObject(
+                            TAG,
+                            result.correlationId,
+                            "V2 signIn received unsupported result: ",
+                            result
+                        )
+                        SignInErrorV2(
+                            errorType = ErrorTypes.INVALID_STATE,
+                            errorMessage = "V2 sign-in returned an unsupported result.",
+                            correlationId = result.correlationId,
+                            scenario = NativeAuthFlowScenarioV2.SIGN_IN
+                        )
+                    }
                 }
             } catch (e: CancellationException) {
                 throw e

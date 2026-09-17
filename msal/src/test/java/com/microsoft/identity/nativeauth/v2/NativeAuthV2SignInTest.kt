@@ -47,6 +47,7 @@ import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeA
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInV2StartCommandParameters
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SignInStartCommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2AuthMethod
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationStateTestFactory
@@ -260,6 +261,19 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         val result = application.signInV2(signInParameters()) as SignInErrorV2
 
         assertTrue(result.isBrowserRequired())
+    }
+
+    @Test
+    fun signInV2MapsUnsupportedStartResultToInvalidState() = runTest {
+        val unsupportedResult = mockk<NativeAuthV2SignInStartCommandResult>()
+        every { unsupportedResult.correlationId } returns correlationId
+        enqueueResult(unsupportedResult, NativeAuthV2SignInStartCommand::class)
+
+        val result = application.signInV2(signInParameters()) as SignInErrorV2
+
+        assertEquals(ErrorTypes.INVALID_STATE, result.errorType)
+        assertEquals(correlationId, result.correlationId)
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.scenario)
     }
 
     @Test
