@@ -76,6 +76,7 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
 
     // WebApps UI resource IDs
     private static final String INPUT_SENDER_ORIGIN = BROKER_HOST_PKG + ":id/input_sender_origin";
+    private static final String INPUT_REDIRECT_URI = BROKER_HOST_PKG + ":id/input_redirect_uri";
     private static final String INPUT_HOME_ACCOUNT_ID = BROKER_HOST_PKG + ":id/input_home_account_id";
     private static final String INPUT_PROMPT = BROKER_HOST_PKG + ":id/input_prompt";
     private static final String INPUT_LOGIN_HINT = BROKER_HOST_PKG + ":id/input_login_hint";
@@ -227,8 +228,9 @@ public class TestCase3571739 extends AbstractMsalBrokerTest {
         // Scroll down to make the form fields visible
         new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().resourceId(INPUT_LOGIN_HINT));
 
-        // Set sender origin for MSAL JS
+        // MSAL JS requires the redirect URI and sender URI to have the same origin.
         UiAutomatorUtils.handleInput(INPUT_SENDER_ORIGIN, GRAY_WAVE);
+        UiAutomatorUtils.handleInput(INPUT_REDIRECT_URI, GRAY_WAVE);
 
         // Fill the WebApps GetToken form for a silent MSAL JS request. This is the request that used
         // to fail with UiRequired after a lookup-mode establishing request: the per-clientId MSAL
