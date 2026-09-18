@@ -67,6 +67,7 @@ import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFAChal
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFASubmitChallengeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2ResendCodeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SelectMFAMethodCommandParameters;
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SelectResetPasswordMethodCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SignInAfterResetPasswordCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SignInAfterSignUpCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitAttributesCommandParameters;
@@ -1663,6 +1664,52 @@ public class CommandParametersAdapter {
                         .build();
 
         return commandParameters;
+    }
+
+    /**
+     * Creates command parameters for selecting a V2 reset-password first-factor method.
+     *
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param methodId server-issued ID of the authentication method the app selected
+     * @param continuationState opaque continuation state from the reset-password start response
+     * @return Command parameter object
+     */
+    public static NativeAuthV2SelectResetPasswordMethodCommandParameters createNativeAuthV2SelectResetPasswordMethodCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final String methodId,
+            @NonNull final NativeAuthV2ContinuationState continuationState) throws ClientException {
+
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+        final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
+                AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
+                null
+        );
+
+        return NativeAuthV2SelectResetPasswordMethodCommandParameters.builder()
+                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                .applicationName(configuration.getAppContext().getPackageName())
+                .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                .clientId(configuration.getClientId())
+                .isSharedDevice(configuration.getIsSharedDevice())
+                .redirectUri(configuration.getRedirectUri())
+                .oAuth2TokenCache(tokenCache)
+                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                .sdkType(SdkType.MSAL)
+                .sdkVersion(PublicClientApplication.getSdkVersion())
+                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                .authority(authority)
+                .authenticationScheme(authenticationScheme)
+                .challengeType(configuration.getChallengeTypes())
+                .requestInterceptor(configuration.getRequestInterceptor())
+                .capabilities(configuration.getCapabilities())
+                .methodId(methodId)
+                .continuationState(continuationState)
+                .scopes(continuationState.scopesForTokenRequest())
+                .claimsRequestJson(continuationState.claimsRequestJsonForTokenRequest())
+                .correlationId(continuationState.getCorrelationId())
+                .build();
     }
 
     /**

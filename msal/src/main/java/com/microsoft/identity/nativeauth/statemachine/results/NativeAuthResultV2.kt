@@ -36,6 +36,7 @@ import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordMethodRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterResetPasswordStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthRegistrationRequiredStateV2
@@ -79,6 +80,23 @@ interface NativeAuthResultV2 : Result {
         val sentTo: String,
         val channel: String
     ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2
+
+    /**
+     * ResetPasswordMethodRequired Result, which indicates that password reset can continue with
+     * more than one verification method and the user must select one before a code is sent.
+     *
+     * @param nextState the current state with follow-on methods.
+     */
+    class ResetPasswordMethodRequired(
+        override val nextState: ResetPasswordMethodRequiredStateV2,
+        override val scenario: NativeAuthFlowScenarioV2
+    ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2 {
+        /**
+         * The reset-password verification methods available to the user.
+         */
+        val authMethods: List<AuthMethod>
+            get() = nextState.authMethods
+    }
 
     /**
      * PasswordRequired Result, which indicates a password is required from the user to continue.
