@@ -61,9 +61,9 @@ import java.util.Collections
  *
  * No challenge is sent until the app selects a method explicitly. [authMethods] is exactly the set
  * the server offered for this step; selecting anything else fails without issuing a request. This
- * increment supports email one-time codes only, so any other channel returns a not-implemented
- * error ([com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2.isNotImplemented])
- * rather than following the wrong link.
+ * state supports email and SMS one-time codes; any other channel returns a not-implemented error
+ * ([com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2.isNotImplemented])
+ * rather than following an unsupported method.
  */
 class MFARequiredStateV2 internal constructor(
     continuationToken: String?,
@@ -162,13 +162,18 @@ class MFARequiredStateV2 internal constructor(
                 scenario = scenario
             )
 
-        if (!offeredMethod.challengeChannel.equals(NativeAuthConstants.ChallengeChannel.EMAIL, ignoreCase = true)) {
-            // Reported as not-implemented rather than a bare error so the app can tell "this SDK
-            // increment only supports email one-time codes" apart from an unspecified server error,
-            // which is what an untyped error would be indistinguishable from.
+        if (!offeredMethod.challengeChannel.equals(
+                NativeAuthConstants.ChallengeChannel.EMAIL,
+                ignoreCase = true
+            ) &&
+            !offeredMethod.challengeChannel.equals(
+                NativeAuthConstants.ChallengeChannel.SMS,
+                ignoreCase = true
+            )
+        ) {
             return MFARequestChallengeErrorV2(
                 errorType = ErrorTypes.NOT_IMPLEMENTED,
-                errorMessage = "Only email authentication methods are supported for multi-factor authentication.",
+                errorMessage = "Only email and SMS authentication methods are supported for multi-factor authentication.",
                 correlationId = correlationId,
                 scenario = scenario
             )
