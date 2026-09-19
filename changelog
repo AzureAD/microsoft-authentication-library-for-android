@@ -6,6 +6,7 @@ vNext
 Version 8.6.0-RC1
 ----------
 - [PATCH] Update common @24.8.0-RC1
+- [MINOR] Native Auth V2: Sign-up Fixes AB#3729066 (#2565)
 
 Version 8.5.0
 ----------
