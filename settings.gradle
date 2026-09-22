@@ -2,6 +2,7 @@ pluginManagement {
     repositories {
         // Keep only the ADO feed enabled for product builds. Public repositories are blocked
         // by network isolation. For a local build without feed access, temporarily uncomment:
+        // mavenCentral()
         // google()
         // gradlePluginPortal()
         maven {
