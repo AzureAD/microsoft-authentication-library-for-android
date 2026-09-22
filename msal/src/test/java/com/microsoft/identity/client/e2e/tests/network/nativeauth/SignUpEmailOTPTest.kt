@@ -53,7 +53,6 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Sign up with email + OTP. Verify email address using email OTP and sign up.
      * (hero scenario 1, use case 2.1.1)
      */
-    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testSuccess() {
         config = getConfig(defaultConfigType)
@@ -61,8 +60,9 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddressLocally()
+                val user = tempEmailApi.createRandomEmailAddress()
                 val param = NativeAuthSignUpParameters(username = user)
+                tempEmailApi.markCheckpoint(user)
                 val signUpResult = application.signUp(param)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
@@ -77,7 +77,6 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Sign up with email + OTP. Resend email OTP.
      * (hero scenario 1, use case 2.1.5)
      */
-    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testResendCode() {
         config = getConfig(defaultConfigType)
@@ -85,16 +84,20 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddressLocally()
+                val user = tempEmailApi.createRandomEmailAddress()
                 val param = NativeAuthSignUpParameters(username = user)
+                tempEmailApi.markCheckpoint(user)
                 val signUpResult = application.signUp(param)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
                 val otp1 = tempEmailApi.retrieveCodeFromInbox(user)
                 val codeRequiredState = (signUpResult as SignUpResult.CodeRequired).nextState
+                tempEmailApi.markCheckpoint(user)
                 val resendCodeResult = codeRequiredState.resendCode()
                 assertResult<SignUpResendCodeResult.Success>(resendCodeResult)
                 val otp2 = tempEmailApi.retrieveCodeFromInbox(user)
                 Assert.assertNotEquals(otp1, otp2)
+                val submitCodeResult = (resendCodeResult as SignUpResendCodeResult.Success).nextState.submitCode(otp2)
+                assertResult<SignUpResult.Complete>(submitCodeResult)
             }
         }
     }
@@ -175,7 +178,6 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Sign up with email + OTP. Developer can opt to get AT and/or ID token (aka sign in after signup).
      * (use case 2.1.9)
      */
-    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testSignInAfterSignUp() {
         config = getConfig(defaultConfigType)
@@ -183,8 +185,9 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddressLocally()
+                val user = tempEmailApi.createRandomEmailAddress()
                 val param = NativeAuthSignUpParameters(username = user)
+                tempEmailApi.markCheckpoint(user)
                 val signUpResult = application.signUp(param)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
@@ -200,14 +203,13 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Sign up with email + OTP. Server requires password authentication, which is not supported by the developer (aka redirect flow).
      * (use case 2.1.10)
      */
-    @Ignore("Generate random email failure.")
     @Test
     fun testErrorRedirect() {
         config = getConfig(ConfigType.SIGN_UP_PASSWORD)
         application = setupPCA(config, listOf("oob"), defaultCapabilities)
 
         runBlocking {
-            val user = tempEmailApi.generateRandomEmailAddressLocally()
+            val user = tempEmailApi.generateRandomUnregisteredEmailAddress()
             val param = NativeAuthSignUpParameters(username = user)
             val signUpResult = application.signUp(param)
             Assert.assertTrue(signUpResult is SignUpError)
@@ -219,16 +221,16 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Sign up with email + OTP. Server requires password authentication, which is supported by the developer.
      * (hero scenario 11, use case 2.1.11)
      */
-    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testPasswordRequired() {
         config = getConfig(ConfigType.SIGN_UP_PASSWORD)
-        application = setupPCA(config, defaultChallengeTypes, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddressLocally()
+                val user = tempEmailApi.createRandomEmailAddress()
                 val param = NativeAuthSignUpParameters(username = user)
+                tempEmailApi.markCheckpoint(user)
                 val signUpResult = application.signUp(param)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
