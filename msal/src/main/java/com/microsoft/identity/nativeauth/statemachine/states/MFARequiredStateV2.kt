@@ -232,6 +232,15 @@ class MFARequiredStateV2 internal constructor(
                             exception = result.exception
                         )
                     }
+                    else -> {
+                        Logger.warnWithObject(TAG, result.correlationId, "V2 selectAuthMethod received unsupported result: ", result)
+                        MFARequestChallengeErrorV2(
+                            errorType = ErrorTypes.INVALID_STATE,
+                            errorMessage = "V2 select authentication method returned an unsupported result.",
+                            correlationId = result.correlationId,
+                            scenario = scenario
+                        )
+                    }
                 }
             } catch (e: CancellationException) {
                 throw e

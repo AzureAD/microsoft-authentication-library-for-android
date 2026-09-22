@@ -47,7 +47,12 @@ import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeA
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInV2StartCommandParameters
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2ResendCodeCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SelectMFAMethodCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SignInStartCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SignInSubmitCodeCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SubmitMFAChallengeCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SubmitPasswordCommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2AuthMethod
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationStateTestFactory
@@ -89,6 +94,7 @@ import io.mockk.unmockkStatic
 import io.mockk.verify
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -274,6 +280,60 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         assertEquals(ErrorTypes.INVALID_STATE, result.errorType)
         assertEquals(correlationId, result.correlationId)
         assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.scenario)
+    }
+
+    @Test
+    fun signInV2StateMappingsRejectUnsupportedCommonResultsAsInvalidState() = runBlocking {
+        val codeState = codeRequiredState()
+        enqueueResult(
+            unsupportedResult<NativeAuthV2SignInSubmitCodeCommandResult>(),
+            NativeAuthV2SignInSubmitCodeCommand::class
+        )
+        val submitCodeResult = codeState.submitCode("123456") as SubmitCodeErrorV2
+        assertEquals(
+            submitCodeResult.exception?.stackTraceToString(),
+            ErrorTypes.INVALID_STATE,
+            submitCodeResult.errorType
+        )
+
+        val passwordState = passwordRequiredState()
+        enqueueResult(
+            unsupportedResult<NativeAuthV2SubmitPasswordCommandResult>(),
+            NativeAuthV2SubmitPasswordCommand::class
+        )
+        assertEquals(
+            ErrorTypes.INVALID_STATE,
+            (passwordState.submitPassword("Password!".toCharArray()) as SubmitPasswordErrorV2).errorType
+        )
+
+        val mfaState = mfaRequiredState()
+        enqueueResult(
+            unsupportedResult<NativeAuthV2SelectMFAMethodCommandResult>(),
+            NativeAuthV2SelectMFAMethodCommand::class
+        )
+        assertEquals(
+            ErrorTypes.INVALID_STATE,
+            (mfaState.selectAuthMethod(mfaState.authMethods.single()) as MFARequestChallengeErrorV2).errorType
+        )
+
+        val verificationState = mfaVerificationState(mfaState)
+        enqueueResult(
+            unsupportedResult<NativeAuthV2SubmitMFAChallengeCommandResult>(),
+            NativeAuthV2SubmitMFAChallengeCommand::class
+        )
+        assertEquals(
+            ErrorTypes.INVALID_STATE,
+            (verificationState.submitChallenge("123456") as MFASubmitChallengeErrorV2).errorType
+        )
+
+        enqueueResult(
+            unsupportedResult<NativeAuthV2ResendCodeCommandResult>(),
+            NativeAuthV2ResendCodeCommand::class
+        )
+        assertEquals(
+            ErrorTypes.INVALID_STATE,
+            (verificationState.resendChallenge() as NativeAuthErrorV2).errorType
+        )
     }
 
     @Test
@@ -1170,6 +1230,14 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             throw CancellationException("cancelled")
         }
     }
+
+    private inline fun <reified T : INativeAuthCommandResult> unsupportedResult(): T =
+        mockk<T>().also {
+            every { it.correlationId } returns correlationId
+            every { it.toString() } returns "UnsupportedCommonResult"
+            every { it.toUnsanitizedString() } returns "UnsupportedCommonResult"
+            every { it.containsPii() } returns false
+        }
 
     private fun createContinuationState(
         correlationId: String = NativeAuthV2SignInTest.correlationId
