@@ -261,6 +261,15 @@ internal suspend fun submitAttributesInternal(
                         exception = result.exception
                     )
                 }
+                else -> {
+                    Logger.warnWithObject(TAG, result.correlationId, "V2 submitAttributes received unsupported result: ", result)
+                    SubmitAttributesErrorV2(
+                        errorType = ErrorTypes.INVALID_STATE,
+                        errorMessage = "V2 submit attributes returned an unsupported result.",
+                        correlationId = result.correlationId,
+                        scenario = scenario
+                    )
+                }
             }
         } catch (e: CancellationException) {
             throw e
