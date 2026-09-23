@@ -201,6 +201,15 @@ class SignInAfterResetPasswordStateV2 internal constructor(
                             exception = result.exception
                         )
                     }
+                    else -> {
+                        Logger.warnWithObject(TAG, result.correlationId, "V2 signInAfterResetPassword received unsupported result: ", result)
+                        NativeAuthErrorV2(
+                            errorType = ErrorTypes.INVALID_STATE,
+                            errorMessage = "V2 sign-in after reset password returned an unsupported result.",
+                            correlationId = result.correlationId,
+                            scenario = scenario
+                        )
+                    }
                 }
             } catch (e: CancellationException) {
                 throw e

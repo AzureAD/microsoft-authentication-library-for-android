@@ -198,6 +198,15 @@ class MFAVerificationRequiredStateV2 internal constructor(
                             exception = result.exception
                         )
                     }
+                    else -> {
+                        Logger.warnWithObject(TAG, result.correlationId, "V2 submitChallenge received unsupported result: ", result)
+                        MFASubmitChallengeErrorV2(
+                            errorType = ErrorTypes.INVALID_STATE,
+                            errorMessage = "V2 submit MFA challenge returned an unsupported result.",
+                            correlationId = result.correlationId,
+                            scenario = scenario
+                        )
+                    }
                 }
             } catch (e: CancellationException) {
                 throw e
@@ -302,6 +311,15 @@ class MFAVerificationRequiredStateV2 internal constructor(
                             scenario = scenario,
                             errorCodes = result.errorCodes,
                             exception = result.exception
+                        )
+                    }
+                    else -> {
+                        Logger.warnWithObject(TAG, result.correlationId, "V2 resendChallenge received unsupported result: ", result)
+                        NativeAuthErrorV2(
+                            errorType = ErrorTypes.INVALID_STATE,
+                            errorMessage = "V2 resend MFA challenge returned an unsupported result.",
+                            correlationId = result.correlationId,
+                            scenario = scenario
                         )
                     }
                 }
