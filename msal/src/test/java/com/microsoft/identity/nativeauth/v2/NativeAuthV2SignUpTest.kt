@@ -43,6 +43,10 @@ import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpV2StartCommandParameters
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SignInAfterSignUpCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SignUpStartCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SignUpSubmitCodeCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SubmitAttributesCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignUpCommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationStateTestFactory
@@ -83,6 +87,7 @@ import io.mockk.unmockkStatic
 import io.mockk.verify
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -301,6 +306,58 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
 
         assertTrue(result is NativeAuthErrorV2)
         assertTrue((result as NativeAuthErrorV2).isNotImplemented())
+    }
+
+    @Test
+    fun signUpV2MappingsRejectUnsupportedCommonResultsAsInvalidState() = runBlocking {
+        enqueueResult(
+            unsupportedResult<NativeAuthV2SignUpStartCommandResult>(),
+            NativeAuthV2SignUpStartCommand::class
+        )
+        assertEquals(
+            ErrorTypes.INVALID_STATE,
+            (application.signUpV2(signUpParameters()) as SignUpErrorV2).errorType
+        )
+
+        val codeState = codeRequiredState()
+        enqueueResult(
+            unsupportedResult<NativeAuthV2SignUpSubmitCodeCommandResult>(),
+            NativeAuthV2SignUpSubmitCodeCommand::class
+        )
+        assertEquals(
+            ErrorTypes.INVALID_STATE,
+            (codeState.submitCode("123456") as SubmitCodeErrorV2).errorType
+        )
+
+        val attributesState = attributesRequiredState()
+        enqueueResult(
+            unsupportedResult<NativeAuthV2SubmitAttributesCommandResult>(),
+            NativeAuthV2SubmitAttributesCommand::class
+        )
+        assertEquals(
+            ErrorTypes.INVALID_STATE,
+            (attributesState.submitAttributes(UserAttributes.Builder().build()) as SubmitAttributesErrorV2).errorType
+        )
+
+        val passwordState = signUpPasswordRequiredState()
+        enqueueResult(
+            unsupportedResult<NativeAuthV2SubmitAttributesCommandResult>(),
+            NativeAuthV2SubmitAttributesCommand::class
+        )
+        assertEquals(
+            ErrorTypes.INVALID_STATE,
+            (passwordState.submitPassword("Password!".toCharArray()) as SubmitPasswordErrorV2).errorType
+        )
+
+        val signInState = signInAfterSignUpState()
+        enqueueResult(
+            unsupportedResult<NativeAuthV2SignInAfterSignUpCommandResult>(),
+            NativeAuthV2SignInAfterSignUpCommand::class
+        )
+        assertEquals(
+            ErrorTypes.INVALID_STATE,
+            (signInState.signIn() as NativeAuthErrorV2).errorType
+        )
     }
 
     @Test
@@ -889,6 +946,14 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
             throw CancellationException("cancelled")
         }
     }
+
+    private inline fun <reified T : INativeAuthCommandResult> unsupportedResult(): T =
+        mockk<T>().also {
+            every { it.correlationId } returns correlationId
+            every { it.toString() } returns "UnsupportedCommonResult"
+            every { it.toUnsanitizedString() } returns "UnsupportedCommonResult"
+            every { it.containsPii() } returns false
+        }
 
     private fun assertPasswordCleared(password: CharArray) {
         password.forEach { assertEquals('\u0000', it) }
