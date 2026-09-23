@@ -257,6 +257,62 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
+    fun resetPasswordMethodSelectionRejectsUnsupportedChannel() = runTest {
+        val method = AuthMethod("voice-1", "oob", "+X XXX XXX 34", "voice")
+        val state = ResetPasswordMethodRequiredStateV2(
+            continuationState = createContinuationState(),
+            authMethods = listOf(method),
+            config = NativeAuthPublicClientApplicationConfiguration()
+        )
+
+        val result = state.selectAuthMethod(method)
+
+        assertTrue(result is NativeAuthErrorV2)
+        assertTrue((result as NativeAuthErrorV2).isNotImplemented())
+    }
+
+    @Test
+    fun resetPasswordMethodSelectionMapsErrors() = runTest {
+        val method = AuthMethod("sms-1", "sms", "+X XXX XXX 34", "sms")
+        val state = ResetPasswordMethodRequiredStateV2(
+            continuationState = createContinuationState(),
+            authMethods = listOf(method),
+            config = application.configuration as NativeAuthPublicClientApplicationConfiguration
+        )
+
+        enqueueResult(
+            NativeAuthV2CommandResult.NotImplemented(
+                correlationId,
+                "not_implemented",
+                "unsupported"
+            ),
+            NativeAuthV2SelectResetPasswordMethodCommand::class
+        )
+        assertTrue((state.selectAuthMethod(method) as NativeAuthErrorV2).isNotImplemented())
+
+        enqueueResult(
+            INativeAuthCommandResult.Redirect(correlationId, "browser"),
+            NativeAuthV2SelectResetPasswordMethodCommand::class
+        )
+        assertTrue((state.selectAuthMethod(method) as ResetPasswordErrorV2).isBrowserRequired())
+
+        enqueueResult(apiError(), NativeAuthV2SelectResetPasswordMethodCommand::class)
+        assertEquals(
+            errorCodes,
+            (state.selectAuthMethod(method) as ResetPasswordErrorV2).errorCodes
+        )
+
+        every {
+            CommandDispatcher.submitSilentReturningFuture(
+                match { NativeAuthV2SelectResetPasswordMethodCommand::class.java.isInstance(it) }
+            )
+        } throws IllegalStateException("dispatcher unavailable")
+        val clientError = state.selectAuthMethod(method) as ResetPasswordErrorV2
+        assertEquals(ErrorTypes.CLIENT_EXCEPTION, clientError.errorType)
+        assertTrue(clientError.exception is IllegalStateException)
+    }
+
+    @Test
     fun resetPasswordV2MappingsRejectUnsupportedCommonResultsAsInvalidState() = runBlocking {
         enqueueResult(
             NativeAuthV2CommandResult.ResetPasswordMethodRequired(
