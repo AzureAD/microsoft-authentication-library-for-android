@@ -972,6 +972,20 @@ class NativeAuthPublicClientApplication(
                             exception = result.exception
                         )
                     }
+                    else -> {
+                        Logger.warnWithObject(
+                            TAG,
+                            result.correlationId,
+                            "V2 signUp received unsupported result: ",
+                            result
+                        )
+                        SignUpErrorV2(
+                            errorType = ErrorTypes.INVALID_STATE,
+                            errorMessage = "V2 sign-up returned an unsupported result.",
+                            correlationId = result.correlationId,
+                            scenario = NativeAuthFlowScenarioV2.SIGN_UP
+                        )
+                    }
                 }
             } catch (e: CancellationException) {
                 throw e
@@ -1143,6 +1157,20 @@ class NativeAuthPublicClientApplication(
                             scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
                             errorCodes = result.errorCodes,
                             exception = result.exception
+                        )
+                    }
+                    else -> {
+                        Logger.warnWithObject(
+                            TAG,
+                            result.correlationId,
+                            "V2 resetPassword received unsupported result: ",
+                            result
+                        )
+                        ResetPasswordErrorV2(
+                            errorType = ErrorTypes.INVALID_STATE,
+                            errorMessage = "V2 reset password returned an unsupported result.",
+                            correlationId = result.correlationId,
+                            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD
                         )
                     }
                 }

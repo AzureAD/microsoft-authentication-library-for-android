@@ -210,6 +210,20 @@ class ResetPasswordMethodRequiredStateV2 internal constructor(
                         errorCodes = result.errorCodes,
                         exception = result.exception
                     )
+                    else -> {
+                        Logger.warnWithObject(
+                            TAG,
+                            result.correlationId,
+                            "V2 selectResetPasswordMethod received unsupported result: ",
+                            result
+                        )
+                        ResetPasswordErrorV2(
+                            errorType = ErrorTypes.INVALID_STATE,
+                            errorMessage = "V2 reset password method selection returned an unsupported result.",
+                            correlationId = result.correlationId,
+                            scenario = scenario
+                        )
+                    }
                 }
             } catch (e: CancellationException) {
                 throw e

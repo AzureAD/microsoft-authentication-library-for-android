@@ -225,6 +225,15 @@ class PasswordRequiredStateV2 internal constructor(
                             exception = result.exception
                         )
                     }
+                    else -> {
+                        Logger.warnWithObject(TAG, result.correlationId, "V2 submitPassword received unsupported result: ", result)
+                        SubmitPasswordErrorV2(
+                            errorType = ErrorTypes.INVALID_STATE,
+                            errorMessage = "V2 submit password returned an unsupported result.",
+                            correlationId = result.correlationId,
+                            scenario = scenario
+                        )
+                    }
                 }
             } catch (e: CancellationException) {
                 throw e
@@ -362,6 +371,15 @@ class PasswordRequiredStateV2 internal constructor(
                     scenario = scenario,
                     errorCodes = result.errorCodes,
                     exception = result.exception
+                )
+            }
+            else -> {
+                Logger.warnWithObject(TAG, result.correlationId, "V2 submitPassword attributes received unsupported result: ", result)
+                SubmitPasswordErrorV2(
+                    errorType = ErrorTypes.INVALID_STATE,
+                    errorMessage = "V2 submit sign-up password returned an unsupported result.",
+                    correlationId = result.correlationId,
+                    scenario = scenario
                 )
             }
         }
