@@ -210,6 +210,15 @@ class SignInAfterSignUpStateV2 internal constructor(
                             scenario = scenario
                         )
                     }
+                    else -> {
+                        Logger.warnWithObject(TAG, result.correlationId, "V2 signInAfterSignUp received unsupported result: ", result)
+                        NativeAuthErrorV2(
+                            errorType = ErrorTypes.INVALID_STATE,
+                            errorMessage = "V2 sign-in after sign-up returned an unsupported result.",
+                            correlationId = result.correlationId,
+                            scenario = scenario
+                        )
+                    }
                 }
             } catch (e: CancellationException) {
                 throw e
