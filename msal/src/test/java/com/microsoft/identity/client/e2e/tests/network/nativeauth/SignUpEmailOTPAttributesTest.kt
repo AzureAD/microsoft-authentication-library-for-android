@@ -59,7 +59,7 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
      */
     @Test
     fun testSuccessAttributesFirst() {
-        retryOperation {
+        retryOperation(maxRetries = 1) {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.createRandomEmailAddress()
                 val attributes = UserAttributes.Builder().country("Ireland").city("Dublin").build()
@@ -85,7 +85,7 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
      */
     @Test
     fun testSuccessAttributesLastSameScreen() {
-        retryOperation {
+        retryOperation(maxRetries = 1) {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.createRandomEmailAddress()
                 val param = NativeAuthSignUpParameters(username = user)
@@ -116,7 +116,7 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
      */
     @Test
     fun testSuccessAttributesLastMultipleScreens() {
-        retryOperation {
+        retryOperation(maxRetries = 1) {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.createRandomEmailAddress()
                 val param = NativeAuthSignUpParameters(username = user)

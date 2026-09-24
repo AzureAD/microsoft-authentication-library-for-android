@@ -58,7 +58,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
         config = getConfig(defaultConfigType)
         application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
-        retryOperation {
+        retryOperation(maxRetries = 1) {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.createRandomEmailAddress()
                 val param = NativeAuthSignUpParameters(username = user)
@@ -82,7 +82,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
         config = getConfig(defaultConfigType)
         application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
-        retryOperation {
+        retryOperation(maxRetries = 1) {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.createRandomEmailAddress()
                 val param = NativeAuthSignUpParameters(username = user)
@@ -183,7 +183,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
         config = getConfig(defaultConfigType)
         application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
-        retryOperation {
+        retryOperation(maxRetries = 1) {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.createRandomEmailAddress()
                 val param = NativeAuthSignUpParameters(username = user)
@@ -226,7 +226,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
         config = getConfig(ConfigType.SIGN_UP_PASSWORD)
         application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
-        retryOperation {
+        retryOperation(maxRetries = 1) {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.createRandomEmailAddress()
                 val param = NativeAuthSignUpParameters(username = user)
