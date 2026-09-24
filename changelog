@@ -6,6 +6,8 @@ vNext
 Version 0.0.1988-RC1
 ----------
 - [PATCH] Update common @0.0.1988-RC1
+- [MINOR] Use NewAndroid for Gradle plugin and dependency resolution, Fixes AB#3762579 (#2591)
+- [MINOR] Native Auth V2: Sign-up Fixes AB#3729066 (#2565)
 
 Version 8.5.0
 ----------
