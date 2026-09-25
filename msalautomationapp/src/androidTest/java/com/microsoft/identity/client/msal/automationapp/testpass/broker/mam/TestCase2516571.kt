@@ -187,7 +187,7 @@ class TestCase2516571 : AbstractMsalUiTest(){
             }
 
             ThreadUtils.sleepSafely(
-                TimeUnit.SECONDS.toMillis(1),
+                TimeUnit.SECONDS.toMillis(1).toInt(),
                 "waiting for automatic time",
                 "interrupted while waiting for automatic time"
             )
