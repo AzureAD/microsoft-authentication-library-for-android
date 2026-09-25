@@ -32,6 +32,7 @@ import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthent
 import com.microsoft.identity.client.ui.automation.installer.LocalApkInstaller
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
+import com.microsoft.identity.client.ui.automation.utils.AdbShellUtils
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils
 import com.microsoft.identity.common.java.util.ThreadUtils
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
@@ -39,6 +40,7 @@ import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assert
 import org.junit.Assume
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 
 // Using TrueMAM account will require a broker, and will require CP instead of Authenticator
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2516571
@@ -139,6 +141,15 @@ class TestCase2516571 : AbstractMsalUiTest(){
         outlook.launch()
         outlook.forceStop()
         outlook.launch()
+        Assert.assertTrue(
+            "SIGN IN Button not present after expiring the access token",
+            outlook.isSignInSnackBarPresent()
+        )
+
+        // Keep the token-expiration trigger, but restore network time before contacting MAM.
+        // MAM service calls can fail when the device remains one day ahead.
+        restoreAutomaticTime(System.currentTimeMillis())
+
         val secondOutlookPromptHandler = FirstPartyAppPromptHandlerParameters.builder()
             .broker(null)
             .prompt(PromptParameter.SELECT_ACCOUNT)
@@ -161,6 +172,28 @@ class TestCase2516571 : AbstractMsalUiTest(){
 
         Assert.assertFalse("SIGN IN Button still present", outlook.isSignInSnackBarPresent)
         outlook.confirmAccount(username)
+    }
+
+    private fun restoreAutomaticTime(forwardedTimeMillis: Long) {
+        AdbShellUtils.enableAutomaticTimeZone()
+
+        val timeoutNanos = TimeUnit.SECONDS.toNanos(30)
+        val clockResetThresholdMillis = TimeUnit.HOURS.toMillis(12)
+        val deadlineNanos = System.nanoTime() + timeoutNanos
+
+        while (System.nanoTime() < deadlineNanos) {
+            if (forwardedTimeMillis - System.currentTimeMillis() >= clockResetThresholdMillis) {
+                return
+            }
+
+            ThreadUtils.sleepSafely(
+                TimeUnit.SECONDS.toMillis(1),
+                "waiting for automatic time",
+                "interrupted while waiting for automatic time"
+            )
+        }
+
+        Assert.fail("Device time did not return to network time before Outlook reauthentication")
     }
 
     override fun getScopes(): Array<String> {
