@@ -27,6 +27,7 @@ import com.microsoft.identity.client.e2e.utils.assertResult as assertResultType
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.UserAttributes
 import com.microsoft.identity.nativeauth.parameters.NativeAuthGetAccessTokenParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
@@ -40,6 +41,28 @@ import java.util.UUID
 
 abstract class SignUpV2EmailAbstractTest : NativeAuthPublicClientApplicationAbstractTest() {
     protected val tempEmailApi = TemporaryEmailService()
+
+    protected companion object {
+        const val VALID_CITY = "Dublin"
+        const val VALID_COUNTRY = "Ireland"
+    }
+
+    protected fun cityCountryAttributes(): UserAttributes =
+        UserAttributes.Builder()
+            .city(VALID_CITY)
+            .country(VALID_COUNTRY)
+            .build()
+
+    protected fun assertCityCountryAttributesRequired(
+        result: NativeAuthResultV2.AttributesRequired
+    ) {
+        assertEquals(2, result.requiredAttributes.size)
+        assertEquals(
+            setOf("city", "country"),
+            result.requiredAttributes.map { it.attributeName }.toSet()
+        )
+        assertTrue(result.requiredAttributes.all { it.required == true })
+    }
 
     protected inline fun <reified ExpectedType> assertResult(actual: Any) {
         assertResultType<ExpectedType>(actual)
@@ -70,12 +93,12 @@ abstract class SignUpV2EmailAbstractTest : NativeAuthPublicClientApplicationAbst
     protected suspend fun startSignUp(
         application: INativeAuthPublicClientApplication,
         email: String,
-        password: CharArray? = null
+        password: CharArray? = null,
+        attributes: UserAttributes? = null
     ): NativeAuthResultV2.CodeRequired {
         val parameters = NativeAuthSignUpParameters(username = email)
-        if (password != null) {
-            parameters.password = password
-        }
+        parameters.password = password
+        parameters.attributes = attributes
 
         val result = application.signUpV2(parameters)
         assertResult<NativeAuthResultV2.CodeRequired>(result)

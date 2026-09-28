@@ -46,6 +46,7 @@ class SignUpV2EmailPasswordTest : SignUpV2EmailAbstractTest() {
 
     companion object {
         private const val EMAIL_PASSWORD_CLIENT_ID = "456cf138-cb77-48e6-8a82-74f869d77e74"
+        private const val PASSWORD_ATTRIBUTES_CLIENT_ID = "dad09d10-2f54-4f88-88ff-768b7485983d"
     }
 
     private fun createApplication(
@@ -191,6 +192,72 @@ class SignUpV2EmailPasswordTest : SignUpV2EmailAbstractTest() {
                     submitPasswordResult as NativeAuthResultV2.SignInAfterSignUpRequired
                 )
                 assertAccountAndTokens(complete, email)
+            }
+        }
+    }
+
+    @Test
+    fun iosParity_passwordAttributesSuppliedUpfront() {
+        val application = createApplication(
+            ConfigType.SIGN_UP_PASSWORD_ATTRIBUTES,
+            PASSWORD_ATTRIBUTES_CLIENT_ID
+        )
+
+        retryOperation(maxRetries = 1) {
+            runBlocking {
+                val email = tempEmailApi.createRandomEmailAddress()
+                tempEmailApi.markCheckpoint(email)
+                val password = newValidPassword()
+                try {
+                    val codeRequired = startSignUp(
+                        application,
+                        email,
+                        password,
+                        cityCountryAttributes()
+                    )
+                    val otp = tempEmailApi.retrieveCodeFromInbox(email)
+                    val submitResult = codeRequired.nextState.submitCode(otp)
+                    assertResult<NativeAuthResultV2.SignInAfterSignUpRequired>(submitResult)
+                    val signInRequired =
+                        submitResult as NativeAuthResultV2.SignInAfterSignUpRequired
+                    val complete = completeSignInAfterSignUp(signInRequired)
+                    assertAccountAndTokens(complete, email)
+                } finally {
+                    password.fill('\u0000')
+                }
+            }
+        }
+    }
+
+    @Test
+    fun iosParity_passwordAttributesSubmittedAfterVerification() {
+        val application = createApplication(
+            ConfigType.SIGN_UP_PASSWORD_ATTRIBUTES,
+            PASSWORD_ATTRIBUTES_CLIENT_ID
+        )
+
+        retryOperation(maxRetries = 1) {
+            runBlocking {
+                val email = tempEmailApi.createRandomEmailAddress()
+                tempEmailApi.markCheckpoint(email)
+                val password = newValidPassword()
+                try {
+                    val codeRequired = startSignUp(application, email, password)
+                    val otp = tempEmailApi.retrieveCodeFromInbox(email)
+                    val codeResult = codeRequired.nextState.submitCode(otp)
+                    assertResult<NativeAuthResultV2.AttributesRequired>(codeResult)
+                    val required = codeResult as NativeAuthResultV2.AttributesRequired
+                    assertCityCountryAttributesRequired(required)
+                    val attributeResult =
+                        required.nextState.submitAttributes(cityCountryAttributes())
+                    assertResult<NativeAuthResultV2.SignInAfterSignUpRequired>(attributeResult)
+                    val signInRequired =
+                        attributeResult as NativeAuthResultV2.SignInAfterSignUpRequired
+                    val complete = completeSignInAfterSignUp(signInRequired)
+                    assertAccountAndTokens(complete, email)
+                } finally {
+                    password.fill('\u0000')
+                }
             }
         }
     }

@@ -46,6 +46,7 @@ class SignUpV2EmailOTPTest : SignUpV2EmailAbstractTest() {
 
     companion object {
         private const val EMAIL_OTP_CLIENT_ID = "eb5a6da5-79fc-4d81-8d45-0ee1e8d4bd16"
+        private const val OTP_ATTRIBUTES_CLIENT_ID = "6a092e9d-3f70-4ea1-bf38-8a642d004271"
     }
 
     private fun createApplication(
@@ -240,6 +241,61 @@ class SignUpV2EmailOTPTest : SignUpV2EmailAbstractTest() {
 
                 val getAccountResult = application.getCurrentAccount()
                 assertResult<GetAccountResult.NoAccountFound>(getAccountResult)
+            }
+        }
+    }
+
+    @Test
+    fun iosParity_otpAttributesSuppliedUpfront() {
+        val application = createApplication(
+            ConfigType.SIGN_UP_OTP_ATTRIBUTES,
+            OTP_ATTRIBUTES_CLIENT_ID
+        )
+
+        retryOperation(maxRetries = 1) {
+            runBlocking {
+                val email = tempEmailApi.createRandomEmailAddress()
+                tempEmailApi.markCheckpoint(email)
+                val codeRequired = startSignUp(
+                    application,
+                    email,
+                    attributes = cityCountryAttributes()
+                )
+                val otp = tempEmailApi.retrieveCodeFromInbox(email)
+                val submitResult = codeRequired.nextState.submitCode(otp)
+                assertResult<NativeAuthResultV2.SignInAfterSignUpRequired>(submitResult)
+                val signInRequired =
+                    submitResult as NativeAuthResultV2.SignInAfterSignUpRequired
+                val complete = completeSignInAfterSignUp(signInRequired)
+                assertAccountAndTokens(complete, email)
+            }
+        }
+    }
+
+    @Test
+    fun iosParity_otpAttributesSubmittedAfterVerification() {
+        val application = createApplication(
+            ConfigType.SIGN_UP_OTP_ATTRIBUTES,
+            OTP_ATTRIBUTES_CLIENT_ID
+        )
+
+        retryOperation(maxRetries = 1) {
+            runBlocking {
+                val email = tempEmailApi.createRandomEmailAddress()
+                tempEmailApi.markCheckpoint(email)
+                val codeRequired = startSignUp(application, email)
+                val otp = tempEmailApi.retrieveCodeFromInbox(email)
+                val codeResult = codeRequired.nextState.submitCode(otp)
+                assertResult<NativeAuthResultV2.AttributesRequired>(codeResult)
+                val required = codeResult as NativeAuthResultV2.AttributesRequired
+                assertCityCountryAttributesRequired(required)
+                val attributeResult =
+                    required.nextState.submitAttributes(cityCountryAttributes())
+                assertResult<NativeAuthResultV2.SignInAfterSignUpRequired>(attributeResult)
+                val signInRequired =
+                    attributeResult as NativeAuthResultV2.SignInAfterSignUpRequired
+                val complete = completeSignInAfterSignUp(signInRequired)
+                assertAccountAndTokens(complete, email)
             }
         }
     }
