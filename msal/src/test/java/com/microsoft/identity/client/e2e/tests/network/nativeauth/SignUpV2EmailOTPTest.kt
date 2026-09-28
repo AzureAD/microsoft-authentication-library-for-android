@@ -24,88 +24,34 @@ package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
 import com.microsoft.identity.client.e2e.utils.NativeAuthRequestRecorder
 import com.microsoft.identity.client.e2e.utils.NativeAuthEndpointCategory
-import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
-import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
-import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
-import com.microsoft.identity.nativeauth.parameters.NativeAuthGetAccessTokenParameters
-import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
-import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeErrorV2
-import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotSame
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
  * End-to-end coverage for Native Auth V2 sign-up with an email one-time code.
  */
-class SignUpV2EmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
+class SignUpV2EmailOTPTest : SignUpV2EmailAbstractTest() {
 
-    private val tempEmailApi = TemporaryEmailService()
     private lateinit var application: INativeAuthPublicClientApplication
-    private lateinit var config: NativeAuthTestConfig.Config
-
-    private val challengeTypes = listOf("password", "oob")
-    private val capabilities = listOf("mfa_required", "registration_required")
 
     companion object {
         private const val EMAIL_OTP_CLIENT_ID = "eb5a6da5-79fc-4d81-8d45-0ee1e8d4bd16"
     }
 
-    override fun setup() {
-        super.setup()
-        config = getConfig(ConfigType.SIGN_UP_OTP)
-        assertEquals(EMAIL_OTP_CLIENT_ID, config.clientId)
-    }
-
     private fun createApplication(
         recorder: NativeAuthRequestRecorder? = null
     ): INativeAuthPublicClientApplication =
-        setupPCA(config, challengeTypes, capabilities, recorder)
-
-    private suspend fun startSignUp(email: String): NativeAuthResultV2.CodeRequired {
-        val result = application.signUpV2(NativeAuthSignUpParameters(username = email))
-        assertResult<NativeAuthResultV2.CodeRequired>(result)
-        val codeRequired = result as NativeAuthResultV2.CodeRequired
-        assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, codeRequired.scenario)
-        assertEquals("email", codeRequired.channel.lowercase())
-        assertTrue(codeRequired.codeLength > 0)
-        return codeRequired
-    }
-
-    private suspend fun completeSignInAfterSignUp(
-        result: NativeAuthResultV2.SignInAfterSignUpRequired
-    ): NativeAuthResultV2.Complete {
-        val complete = result.nextState.signIn()
-        assertResult<NativeAuthResultV2.Complete>(complete)
-        return complete as NativeAuthResultV2.Complete
-    }
-
-    private suspend fun assertAccountAndTokens(
-        result: NativeAuthResultV2.Complete,
-        email: String
-    ) {
-        val accountState = result.resultValue
-        val account = accountState.getAccount()
-        assertNotNull(account)
-        assertTrue(account.username.equals(email, ignoreCase = true))
-        assertFalse(accountState.getIdToken().isNullOrBlank())
-
-        val tokenResult = accountState.getAccessToken(NativeAuthGetAccessTokenParameters())
-        assertResult<GetAccessTokenResult.Complete>(tokenResult)
-        val authenticationResult = (tokenResult as GetAccessTokenResult.Complete).resultValue
-        assertFalse(authenticationResult.accessToken.isNullOrBlank())
-        assertNotNull(authenticationResult.account)
-    }
+        createApplication(ConfigType.SIGN_UP_OTP, EMAIL_OTP_CLIENT_ID, recorder)
 
     @Test
     fun hero1a_signUpEmailOtpAndSignInAfterSignUp() {
@@ -117,7 +63,7 @@ class SignUpV2EmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
                 val email = tempEmailApi.createRandomEmailAddress()
                 tempEmailApi.markCheckpoint(email)
 
-                val codeRequired = startSignUp(email)
+                val codeRequired = startSignUp(application, email)
                 val otp = tempEmailApi.retrieveCodeFromInbox(email)
                 val submitResult = codeRequired.nextState.submitCode(otp)
 
@@ -147,14 +93,14 @@ class SignUpV2EmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
                 val email = tempEmailApi.createRandomEmailAddress()
                 tempEmailApi.markCheckpoint(email)
 
-                val codeRequired = startSignUp(email)
+                val codeRequired = startSignUp(application, email)
                 val originalState = codeRequired.nextState
                 val validOtp = tempEmailApi.retrieveCodeFromInbox(email)
 
                 val invalidResult = originalState.submitCode(INCORRECT_CODE)
+                assertSignUpScenario(invalidResult)
                 assertTrue(invalidResult is SubmitCodeErrorV2)
                 assertTrue((invalidResult as SubmitCodeErrorV2).isInvalidCode())
-                assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, invalidResult.scenario)
 
                 val validResult = originalState.submitCode(validOtp)
                 assertResult<NativeAuthResultV2.SignInAfterSignUpRequired>(validResult)
@@ -175,7 +121,7 @@ class SignUpV2EmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
                 val email = tempEmailApi.createRandomEmailAddress()
                 tempEmailApi.markCheckpoint(email)
 
-                val firstResult = startSignUp(email)
+                val firstResult = startSignUp(application, email)
                 val firstState = firstResult.nextState
                 val firstOtp = tempEmailApi.retrieveCodeFromInbox(email)
 
@@ -208,7 +154,7 @@ class SignUpV2EmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
                 val email = tempEmailApi.createRandomEmailAddress()
                 tempEmailApi.markCheckpoint(email)
 
-                val firstResult = startSignUp(email)
+                val firstResult = startSignUp(application, email)
                 val firstState = firstResult.nextState
                 val firstOtp = tempEmailApi.retrieveCodeFromInbox(email)
 
@@ -240,7 +186,7 @@ class SignUpV2EmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
                 val email = tempEmailApi.createRandomEmailAddress()
                 tempEmailApi.markCheckpoint(email)
 
-                val firstResult = startSignUp(email)
+                val firstResult = startSignUp(application, email)
                 val firstState = firstResult.nextState
                 val firstOtp = tempEmailApi.retrieveCodeFromInbox(email)
 
@@ -254,6 +200,7 @@ class SignUpV2EmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
                 assertNotEquals(firstOtp, secondOtp)
 
                 val invalidResult = secondState.submitCode(INCORRECT_CODE)
+                assertSignUpScenario(invalidResult)
                 assertTrue(invalidResult is SubmitCodeErrorV2)
                 assertTrue((invalidResult as SubmitCodeErrorV2).isInvalidCode())
 
@@ -277,7 +224,7 @@ class SignUpV2EmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
                 val email = tempEmailApi.createRandomEmailAddress()
                 tempEmailApi.markCheckpoint(email)
 
-                val codeRequired = startSignUp(email)
+                val codeRequired = startSignUp(application, email)
                 val otp = tempEmailApi.retrieveCodeFromInbox(email)
                 val beforeSubmitSnapshotSize = recorder.snapshot().size
 
