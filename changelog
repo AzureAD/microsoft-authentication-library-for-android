@@ -6,6 +6,10 @@ vNext
 - [MINOR] Bump Kotlin to 2.0.21 with languageVersion/apiVersion pinned to 1.9 (#2561)
 - [MINOR] Added v2 private preview interfaces
 
+Version 8.5.1-RC1
+----------
+- [PATCH] Update common @24.7.1-RC1
+
 Version 8.4.2
 ----------
 - [PATCH] Update common @24.6.0
