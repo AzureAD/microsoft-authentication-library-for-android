@@ -261,4 +261,34 @@ class SignUpV2EmailPasswordTest : SignUpV2EmailAbstractTest() {
             }
         }
     }
+
+    @Test
+    fun iosParity_suppliedPasswordResendWithReturnedState() {
+        application = createApplication()
+        retryOperation(maxRetries = 1) {
+            runBlocking {
+                val email = tempEmailApi.createRandomEmailAddress()
+                tempEmailApi.markCheckpoint(email)
+                val password = newValidPassword()
+                try {
+                    val initial = startSignUp(application, email, password)
+                    val firstCode = tempEmailApi.retrieveCodeFromInbox(email)
+                    tempEmailApi.markCheckpoint(email)
+                    val resent = initial.nextState.resendCode()
+                    assertResult<NativeAuthResultV2.CodeRequired>(resent)
+                    val secondCode = tempEmailApi.retrieveCodeFromInbox(email)
+                    assertNotEquals(firstCode, secondCode)
+                    val state = (resent as NativeAuthResultV2.CodeRequired).nextState
+                    val completed = state.submitCode(secondCode)
+                    assertResult<NativeAuthResultV2.SignInAfterSignUpRequired>(completed)
+                    val signedIn = completeSignInAfterSignUp(
+                        completed as NativeAuthResultV2.SignInAfterSignUpRequired
+                    )
+                    assertAccountAndTokens(signedIn, email)
+                } finally {
+                    password.fill('\u0000')
+                }
+            }
+        }
+    }
 }
