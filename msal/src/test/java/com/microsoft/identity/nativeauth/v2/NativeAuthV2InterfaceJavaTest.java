@@ -42,6 +42,7 @@ import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters;
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2;
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2;
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorV2;
+import com.microsoft.identity.nativeauth.statemachine.errors.SignUpErrorV2;
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2;
 import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredStateV2;
 import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterResetPasswordStateV2;
@@ -102,10 +103,15 @@ public class NativeAuthV2InterfaceJavaTest extends PublicClientApplicationAbstra
     }
 
     @Test
-    public void signUpV2ReturnsNotImplemented() throws ExecutionException, InterruptedException, TimeoutException {
+    public void signUpV2RejectsBlankUsername() throws ExecutionException, InterruptedException, TimeoutException {
+        // A blank username is rejected before any command is dispatched, so this exercises the
+        // Java callback surface of the now-implemented signUpV2 without needing a service.
         final ResultFuture<NativeAuthResultV2> future = new ResultFuture<>();
-        application.signUpV2(new NativeAuthSignUpParameters(username), newCallback(future));
-        assertNotImplemented(future.get(30, TimeUnit.SECONDS), NativeAuthFlowScenarioV2.SIGN_UP);
+        application.signUpV2(new NativeAuthSignUpParameters(" "), newCallback(future));
+        final NativeAuthResultV2 result = future.get(30, TimeUnit.SECONDS);
+        assertTrue(result instanceof SignUpErrorV2);
+        assertTrue(((SignUpErrorV2) result).isInvalidUsername());
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, result.getScenario());
     }
 
     @Test

@@ -23,6 +23,7 @@
 package com.microsoft.identity.nativeauth
 
 import com.microsoft.identity.common.java.nativeauth.providers.responses.UserAttributeApiResult
+import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2RequiredAttribute
 import com.microsoft.identity.common.java.nativeauth.util.ILoggable
 
 /**
@@ -65,5 +66,27 @@ internal fun UserAttributeApiResult.toRequiredUserAttribute(): RequiredUserAttri
         type = this.type,
         required = this.required,
         options = this.options?.toListOfRequiredUserAttributeOptions()
+    )
+}
+
+/**
+ * Converts a list of [NativeAuthV2RequiredAttribute] received as part of the V2 sign-up flow to a
+ * list of [RequiredUserAttribute] object.
+ */
+internal fun List<NativeAuthV2RequiredAttribute>.toListOfRequiredUserAttributeV2(): List<RequiredUserAttribute> {
+    return this.map { it.toRequiredUserAttributeV2() }
+}
+
+/**
+ * Converts a [NativeAuthV2RequiredAttribute] received as part of the V2 sign-up flow to a
+ * [RequiredUserAttribute] object. The V2 protocol does not surface attribute options, so
+ * [RequiredUserAttribute.options] is always null.
+ */
+internal fun NativeAuthV2RequiredAttribute.toRequiredUserAttributeV2(): RequiredUserAttribute {
+    return RequiredUserAttribute(
+        attributeName = this.name,
+        type = this.type,
+        required = this.required,
+        options = null
     )
 }
