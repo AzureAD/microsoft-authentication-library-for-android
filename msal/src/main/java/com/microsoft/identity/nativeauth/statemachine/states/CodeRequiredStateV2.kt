@@ -192,6 +192,7 @@ class CodeRequiredStateV2 internal constructor(
             is NativeAuthV2CommandResult.IncorrectCode,
             is INativeAuthCommandResult.Redirect,
             is INativeAuthCommandResult.APIError -> mapSubmitCodeError(result)
+            else -> unsupportedSubmitCodeResult(result)
         }
     }
 
@@ -246,6 +247,7 @@ class CodeRequiredStateV2 internal constructor(
             is NativeAuthV2CommandResult.NotImplemented,
             is INativeAuthCommandResult.Redirect,
             is INativeAuthCommandResult.APIError -> mapSubmitCodeError(result)
+            else -> unsupportedSubmitCodeResult(result)
         }
     }
 
@@ -280,7 +282,18 @@ class CodeRequiredStateV2 internal constructor(
             is NativeAuthV2CommandResult.NotImplemented,
             is INativeAuthCommandResult.Redirect,
             is INativeAuthCommandResult.APIError -> mapSubmitCodeError(result)
+            else -> unsupportedSubmitCodeResult(result)
         }
+    }
+
+    private fun unsupportedSubmitCodeResult(result: INativeAuthCommandResult): NativeAuthResultV2 {
+        Logger.warnWithObject(TAG, result.correlationId, "V2 submitCode received unsupported result: ", result)
+        return SubmitCodeErrorV2(
+            errorType = ErrorTypes.INVALID_STATE,
+            errorMessage = "V2 submit code returned an unsupported result.",
+            correlationId = result.correlationId,
+            scenario = scenario
+        )
     }
 
     private fun mapSubmitCodeError(result: INativeAuthCommandResult): NativeAuthResultV2 =
@@ -420,6 +433,15 @@ class CodeRequiredStateV2 internal constructor(
                             scenario = scenario,
                             errorCodes = result.errorCodes,
                             exception = result.exception
+                        )
+                    }
+                    else -> {
+                        Logger.warnWithObject(TAG, result.correlationId, "V2 resendCode received unsupported result: ", result)
+                        NativeAuthErrorV2(
+                            errorType = ErrorTypes.INVALID_STATE,
+                            errorMessage = "V2 resend code returned an unsupported result.",
+                            correlationId = result.correlationId,
+                            scenario = scenario
                         )
                     }
                 }

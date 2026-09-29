@@ -41,6 +41,11 @@ import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2ResendCodeCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2ResetPasswordStartCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2ResetPasswordSubmitCodeCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SignInAfterResetPasswordCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SubmitNewPasswordCommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationStateTestFactory
 import com.microsoft.identity.common.java.result.FinalizableResultFuture
@@ -185,6 +190,62 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         assertEquals("email", result.channel)
         assertNull(result.nextState.continuationToken)
         assertEquals(correlationId, result.nextState.correlationId)
+    }
+
+    @Test
+    fun resetPasswordV2MappingsRejectUnsupportedCommonResultsAsInvalidState() = runBlocking {
+        enqueueResult(
+            unsupportedResult<NativeAuthV2ResetPasswordStartCommandResult>(),
+            NativeAuthV2ResetPasswordStartCommand::class
+        )
+        assertEquals(
+            ErrorTypes.INVALID_STATE,
+            (application.resetPasswordV2(NativeAuthResetPasswordParameters(username)) as ResetPasswordErrorV2).errorType
+        )
+
+        val codeState = codeRequiredState()
+        enqueueResult(
+            unsupportedResult<NativeAuthV2ResetPasswordSubmitCodeCommandResult>(),
+            NativeAuthV2ResetPasswordSubmitCodeCommand::class
+        )
+        assertEquals(
+            ErrorTypes.INVALID_STATE,
+            (codeState.submitCode("123456") as SubmitCodeErrorV2).errorType
+        )
+
+        enqueueResult(
+            unsupportedResult<NativeAuthV2ResendCodeCommandResult>(),
+            NativeAuthV2ResendCodeCommand::class
+        )
+        assertEquals(
+            ErrorTypes.INVALID_STATE,
+            (codeState.resendCode() as NativeAuthErrorV2).errorType
+        )
+
+        enqueueResult(
+            NativeAuthV2CommandResult.NewPasswordRequired(correlationId, createContinuationState()),
+            NativeAuthV2ResetPasswordSubmitCodeCommand::class
+        )
+        val passwordState =
+            (codeState.submitCode("123456") as NativeAuthResultV2.NewPasswordRequired).nextState
+        enqueueResult(
+            unsupportedResult<NativeAuthV2SubmitNewPasswordCommandResult>(),
+            NativeAuthV2SubmitNewPasswordCommand::class
+        )
+        assertEquals(
+            ErrorTypes.INVALID_STATE,
+            (passwordState.submitNewPassword("Password!".toCharArray()) as SubmitNewPasswordErrorV2).errorType
+        )
+
+        val signInState = signInAfterResetState()
+        enqueueResult(
+            unsupportedResult<NativeAuthV2SignInAfterResetPasswordCommandResult>(),
+            NativeAuthV2SignInAfterResetPasswordCommand::class
+        )
+        assertEquals(
+            ErrorTypes.INVALID_STATE,
+            (signInState.signIn() as NativeAuthErrorV2).errorType
+        )
     }
 
     @Test
@@ -805,6 +866,14 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             )
         } throws CancellationException("cancelled")
     }
+
+    private inline fun <reified T : INativeAuthCommandResult> unsupportedResult(): T =
+        mockk<T>().also {
+            every { it.correlationId } returns correlationId
+            every { it.toString() } returns "UnsupportedCommonResult"
+            every { it.toUnsanitizedString() } returns "UnsupportedCommonResult"
+            every { it.containsPii() } returns false
+        }
 
     private suspend fun assertCommandWaitCancellation(
         commandClass: KClass<out BaseCommand<*>>,
