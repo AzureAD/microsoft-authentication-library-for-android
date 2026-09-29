@@ -675,6 +675,19 @@ class NativeAuthPublicClientApplication(
                             )
                         }
                     }
+                    is NativeAuthV2CommandResult.CodeRequired -> {
+                        NativeAuthResultV2.CodeRequired(
+                            nextState = CodeRequiredStateV2(
+                                continuationState = result.continuationState,
+                                scenario = NativeAuthFlowScenarioV2.SIGN_IN,
+                                config = nativeAuthConfig
+                            ),
+                            scenario = NativeAuthFlowScenarioV2.SIGN_IN,
+                            codeLength = result.codeLength,
+                            sentTo = result.challengeTargetLabel,
+                            channel = result.challengeChannel
+                        )
+                    }
                     is NativeAuthV2CommandResult.PasswordRequired -> {
                         NativeAuthResultV2.PasswordRequired(
                             nextState = PasswordRequiredStateV2(
@@ -704,7 +717,8 @@ class NativeAuthPublicClientApplication(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = NativeAuthFlowScenarioV2.SIGN_IN,
-                            errorCodes = result.errorCodes
+                            errorCodes = result.errorCodes,
+                            subError = result.subError
                         )
                     }
                     is NativeAuthV2CommandResult.UserNotFound -> {
