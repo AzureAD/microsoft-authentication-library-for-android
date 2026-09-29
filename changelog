@@ -9,6 +9,15 @@ vNext
 Version 8.5.1-RC1
 ----------
 - [PATCH] Update common @24.7.1-RC1
+- [MINOR] [8.5.1 hotfix] Native Auth V2 SMS password reset (backport #2579), Fixes AB#3754595 (#2610)
+- [MINOR] [8.5.1 hotfix] Native Auth V2 SMS MFA (backport #2578), Fixes AB#3754593 (#2608)
+- [MINOR] [8.5.1 hotfix] Native Auth V2 email OTP first-factor sign-in (backport #2577), Fixes AB#3754588 (#2607)
+- [MINOR] [8.5.1 hotfix] Native Auth V2 sign-up (backport #2565), Fixes AB#3729066 (#2605)
+- [PATCH] Implement Native Auth V2 sign-in with password and email OTP MFA, Fixes AB#3729067 (#2571)
+- [PATCH] Temporarily support current and incoming common4j continuation-state constructors in MSAL tests, Fixes AB#3749428 (#2567)
+- [PATCH] MSAL automation: add com.msft.authentication.testapp to <queries>, Fixes AB#3734780 (#2560)
+- [PATCH] Implement Native Auth V2 SSPR flow, Fixes AB#3693580 (#2558)
+- [PATCH] Native Auth V2 SDK interface for Android Fixes AB#3693579 (#2547)
 
 Version 8.4.2
 ----------
