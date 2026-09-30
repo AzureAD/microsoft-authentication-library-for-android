@@ -23,8 +23,9 @@
 package com.microsoft.identity.nativeauth.utils
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertFalse
@@ -35,6 +36,7 @@ import org.junit.Test
  * Unit tests for [launchOwningPasswordSnapshot], covering both the normal-completion cleanup path
  * and the safety-net path where the launched job is cancelled before its body ever runs.
  */
+@ExperimentalCoroutinesApi
 class CoroutineExtensionsTest {
 
     @Test
@@ -54,21 +56,21 @@ class CoroutineExtensionsTest {
     }
 
     @Test
-    fun launchOwningPasswordSnapshotClearsTheSnapshotWhenTheJobIsCancelledBeforeItsBodyEverRuns() {
+    fun launchOwningPasswordSnapshotClearsTheSnapshotWhenTheJobIsCancelledBeforeItsBodyEverRuns() = runTest {
         val snapshot = "Password123!".toCharArray()
         val parentJob = Job()
         // Cancelling the parent job up-front means any coroutine subsequently launched as its
         // child is cancelled before it ever gets a chance to run.
         parentJob.cancel()
-        val scope = CoroutineScope(parentJob)
+        val scope = CoroutineScope(parentJob + StandardTestDispatcher(testScheduler))
         var bodyRan = false
 
         val job = scope.launchOwningPasswordSnapshot(snapshot) {
             bodyRan = true
         }
-        // The job is cancelled up-front, but completion (and therefore the invokeOnCompletion
-        // handler that clears the snapshot) can still finish asynchronously; wait for it.
-        runBlocking { job.join() }
+        // Drain cancellation and its completion handler deterministically; joining a job on
+        // another dispatcher can return before the handler finishes clearing the snapshot.
+        testScheduler.runCurrent()
 
         assertTrue(job.isCancelled)
         assertFalse("The job body must not have run", bodyRan)

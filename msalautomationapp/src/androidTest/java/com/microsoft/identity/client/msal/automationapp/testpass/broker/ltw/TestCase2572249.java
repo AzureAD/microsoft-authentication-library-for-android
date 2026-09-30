@@ -68,8 +68,8 @@ public class TestCase2572249 extends AbstractMsalBrokerTest {
         );
     }
 
-    @Ignore("Excluded from weekly automation")
     @Test
+    @Ignore("Excluded from weekly automation")
     public void test_2572249_LTW_SSOAfterLTWUninstallIfAuthenticatorPresent() throws Throwable {
         if (BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("EnableBrokerDiscoveryV2Protocol:true")) {
             // No longer applicable with V2 protocol.
