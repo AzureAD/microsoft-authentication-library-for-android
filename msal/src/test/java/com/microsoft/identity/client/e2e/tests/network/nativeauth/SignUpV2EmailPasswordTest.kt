@@ -32,7 +32,6 @@ import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -170,7 +169,7 @@ class SignUpV2EmailPasswordTest : SignUpV2EmailAbstractTest() {
                 assertNotSame(firstState, secondState)
 
                 val secondOtp = tempEmailApi.retrieveCodeFromInbox(email)
-                assertNotEquals(firstOtp, secondOtp)
+                assertTrue("Resend should return a different OTP", firstOtp != secondOtp)
 
                 val invalidResult = secondState.submitCode(INCORRECT_CODE)
                 assertSignUpScenario(invalidResult)
@@ -277,7 +276,7 @@ class SignUpV2EmailPasswordTest : SignUpV2EmailAbstractTest() {
                     val resent = initial.nextState.resendCode()
                     assertResult<NativeAuthResultV2.CodeRequired>(resent)
                     val secondCode = tempEmailApi.retrieveCodeFromInbox(email)
-                    assertNotEquals(firstCode, secondCode)
+                    assertTrue("Resend should return a different OTP", firstCode != secondCode)
                     val state = (resent as NativeAuthResultV2.CodeRequired).nextState
                     val completed = state.submitCode(secondCode)
                     assertResult<NativeAuthResultV2.SignInAfterSignUpRequired>(completed)

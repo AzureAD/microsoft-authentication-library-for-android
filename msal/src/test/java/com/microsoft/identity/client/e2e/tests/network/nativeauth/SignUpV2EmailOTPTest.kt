@@ -32,7 +32,6 @@ import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -134,7 +133,7 @@ class SignUpV2EmailOTPTest : SignUpV2EmailAbstractTest() {
                 assertNotSame(firstState, secondState)
 
                 val secondOtp = tempEmailApi.retrieveCodeFromInbox(email)
-                assertNotEquals(firstOtp, secondOtp)
+                assertTrue("Resend should return a different OTP", firstOtp != secondOtp)
 
                 val submitResult = secondState.submitCode(secondOtp)
                 assertResult<NativeAuthResultV2.SignInAfterSignUpRequired>(submitResult)
@@ -166,7 +165,7 @@ class SignUpV2EmailOTPTest : SignUpV2EmailAbstractTest() {
                 assertNotSame(firstState, secondState)
 
                 val secondOtp = tempEmailApi.retrieveCodeFromInbox(email)
-                assertNotEquals(firstOtp, secondOtp)
+                assertTrue("Resend should return a different OTP", firstOtp != secondOtp)
 
                 val submitResult = firstState.submitCode(firstOtp)
                 assertResult<NativeAuthResultV2.SignInAfterSignUpRequired>(submitResult)
@@ -198,7 +197,7 @@ class SignUpV2EmailOTPTest : SignUpV2EmailAbstractTest() {
                 assertNotSame(firstState, secondState)
 
                 val secondOtp = tempEmailApi.retrieveCodeFromInbox(email)
-                assertNotEquals(firstOtp, secondOtp)
+                assertTrue("Resend should return a different OTP", firstOtp != secondOtp)
 
                 val invalidResult = secondState.submitCode(INCORRECT_CODE)
                 assertSignUpScenario(invalidResult)
