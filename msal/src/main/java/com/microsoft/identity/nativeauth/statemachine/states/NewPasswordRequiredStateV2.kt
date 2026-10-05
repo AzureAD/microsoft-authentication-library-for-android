@@ -59,12 +59,11 @@ import kotlinx.coroutines.withContext
  * State that requires the user to submit a new password.
  */
 class NewPasswordRequiredStateV2 internal constructor(
-    continuationToken: String?,
     correlationId: String,
     scenario: NativeAuthFlowScenarioV2,
     config: NativeAuthPublicClientApplicationConfiguration,
     continuationState: NativeAuthV2ContinuationState? = null
-) : NativeAuthBaseStateV2(continuationToken, correlationId, scenario, config, continuationState) {
+) : NativeAuthBaseStateV2(correlationId, scenario, config, continuationState) {
     private val TAG: String = NewPasswordRequiredStateV2::class.java.simpleName
 
     internal constructor(
@@ -72,7 +71,6 @@ class NewPasswordRequiredStateV2 internal constructor(
         scenario: NativeAuthFlowScenarioV2,
         config: NativeAuthPublicClientApplicationConfiguration
     ) : this(
-        continuationToken = null,
         correlationId = continuationState.correlationId,
         scenario = scenario,
         config = config,
@@ -80,7 +78,6 @@ class NewPasswordRequiredStateV2 internal constructor(
     )
 
     private constructor(parcel: Parcel) : this(
-        continuationToken = parcel.readString(),
         correlationId = parcel.readString() ?: "UNSET",
         scenario = NativeAuthFlowScenarioV2.valueOf(parcel.readString() ?: NativeAuthFlowScenarioV2.UNKNOWN.name),
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration,

@@ -26,9 +26,16 @@ package com.microsoft.identity.nativeauth.statemachine.states
 interface State
 
 /**
- * BaseState is the base class for various states in the Native Auth state machine.
+ * Common metadata for Native Auth states, independent of the continuation protocol.
+ */
+abstract class NativeAuthState internal constructor() {
+    internal abstract val correlationId: String
+}
+
+/**
+ * Base class for V1 Native Auth states carrying a raw continuation token.
  */
 abstract class BaseState(
     internal open val continuationToken: String?,
-    internal open val correlationId: String
-)
+    internal override val correlationId: String
+) : NativeAuthState()
