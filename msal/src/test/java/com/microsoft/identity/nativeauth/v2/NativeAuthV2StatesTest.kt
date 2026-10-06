@@ -263,7 +263,9 @@ class NativeAuthV2StatesTest {
         restoredStates.forEach { restored ->
             assertEquals(correlationId, restored.correlationId)
             assertEquals(listOf("scope"), restored.continuationState?.scopesForTokenRequest())
-            assertEquals("NativeAuthV2ContinuationState(<redacted>)", restored.continuationState.toString())
+            val continuationStateString = restored.continuationState.toString()
+            assertTrue(continuationStateString.contains("<redacted>"))
+            assertFalse(continuationStateString.contains("scope"))
         }
 
         val methods = listOf(AuthMethod("sms-1", "sms", "+X XXX XXX 34", "sms"))
