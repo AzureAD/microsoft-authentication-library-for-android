@@ -24,7 +24,9 @@ package com.microsoft.identity.nativeauth
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.microsoft.identity.common.java.nativeauth.providers.NativeAuthConstants
 import com.microsoft.identity.common.java.nativeauth.providers.responses.signin.AuthenticationMethodApiResult
+import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2AuthMethod
 import com.microsoft.identity.common.java.nativeauth.util.ILoggable
 
 /**
@@ -82,6 +84,32 @@ data class AuthMethod(
  */
 internal fun List<AuthenticationMethodApiResult>.toListOfAuthMethods(): List<AuthMethod> {
     return this.map { it.toAuthMethod() }
+}
+
+/**
+ * Converts a list of Native Auth V2 server methods to a list of [AuthMethod] objects.
+ */
+@JvmName("toListOfAuthMethodsV2")
+internal fun List<NativeAuthV2AuthMethod>.toListOfV2AuthMethods(): List<AuthMethod> {
+    return this.map { it.toAuthMethod() }
+}
+
+/**
+ * Converts a Native Auth V2 server method to an [AuthMethod] object.
+ *
+ * The V2 HAL model carries a single normalized method `type`, so it maps to
+ * [AuthMethod.challengeChannel]. [AuthMethod.challengeType] reports `oob` for an email method,
+ * which is always delivered as an out-of-band one-time code and matches the value V1 reports for
+ * the same method; any other type is passed through unchanged rather than guessed at.
+ */
+internal fun NativeAuthV2AuthMethod.toAuthMethod(): AuthMethod {
+    val isEmail = this.type.equals(NativeAuthConstants.ChallengeChannel.EMAIL, ignoreCase = true)
+    return AuthMethod(
+        id = this.id,
+        challengeType = if (isEmail) NativeAuthConstants.ChallengeType.OOB else this.type,
+        loginHint = this.hint,
+        challengeChannel = this.type
+    )
 }
 
 /**

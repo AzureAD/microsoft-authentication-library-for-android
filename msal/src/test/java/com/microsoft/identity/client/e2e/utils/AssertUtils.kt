@@ -23,15 +23,34 @@
 package com.microsoft.identity.client.e2e.utils
 
 import com.microsoft.identity.nativeauth.statemachine.errors.Error
-import org.junit.Assert
+
+/**
+ * An [AssertionError] that additionally carries the structured Native Auth [Error] that caused the
+ * assertion to fail, so callers (e.g. the throttle-aware retry loop in
+ * `NativeAuthPublicClientApplicationAbstractTest`) can classify the failure from typed data such as
+ * [Error.errorCodes] instead of re-parsing the formatted assertion message.
+ *
+ * It remains an [AssertionError] subclass so JUnit continues to report it as a test failure exactly
+ * as `Assert.fail` did.
+ *
+ * Note: [Error] here is [com.microsoft.identity.nativeauth.statemachine.errors.Error], not
+ * [kotlin.Error].
+ *
+ * @param message the assertion message, unchanged from the previous `Assert.fail` message format.
+ * @param nativeAuthError the Native Auth error that failed the assertion, or null if the actual
+ * value was not a Native Auth [Error].
+ */
+class NativeAuthAssertionError(message: String, val nativeAuthError: Error?) : AssertionError(message)
+
 inline fun <reified ExpectedType> assertResult(actual: Any) {
     val condition = actual is ExpectedType
     if (!condition) {
-        val assertMessage: String = if (actual is Error) {
-            "Type comparison failed. Expected: ${ExpectedType::class.java}, actual: ${actual.javaClass}. Error: ${actual.error} - ${actual.errorMessage}"
+        val nativeAuthError: Error? = actual as? Error
+        val assertMessage: String = if (nativeAuthError != null) {
+            "Type comparison failed. Expected: ${ExpectedType::class.java}, actual: ${actual.javaClass}. Error: ${nativeAuthError.error} - ${nativeAuthError.errorMessage}"
         } else {
             "Type comparison failed. Expected: ${ExpectedType::class.java}, actual: ${actual.javaClass}"
         }
-        Assert.fail(assertMessage)
+        throw NativeAuthAssertionError(assertMessage, nativeAuthError)
     }
 }

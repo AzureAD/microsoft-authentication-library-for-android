@@ -1,20 +1,20 @@
 pluginManagement {
-     // Note: Since our plugin references the android plugin we need to include google() here.
-     repositories {
-         // If you don't have access to the package feed uncomment these repositories
-         //  mavenCentral()
-         google()
-         gradlePluginPortal()
-         maven {
-             name "vsts-maven-new-android"
-             url "https://identitydivision.pkgs.visualstudio.com/_packaging/NewAndroid/maven/v1"
-             credentials {
-                 username System.getenv("ENV_VSTS_MVN_CRED_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_CRED_USERNAME") : settings.ext.find("vstsUsername")
-                 password System.getenv("ENV_VSTS_MVN_CRED_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_CRED_ACCESSTOKEN") : settings.ext.find("vstsMavenAccessToken")
-             }
-         }
-     }
- }
+    repositories {
+        // Keep only the ADO feed enabled for product builds. Public repositories are blocked
+        // by network isolation. For a local build without feed access, temporarily uncomment:
+        // mavenCentral()
+        // google()
+        // gradlePluginPortal()
+        maven {
+            name "vsts-maven-new-android"
+            url "https://identitydivision.pkgs.visualstudio.com/_packaging/NewAndroid/maven/v1"
+            credentials {
+                username System.getenv("ENV_VSTS_MVN_CRED_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_CRED_USERNAME") : settings.ext.find("vstsUsername")
+                password System.getenv("ENV_VSTS_MVN_CRED_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_CRED_ACCESSTOKEN") : settings.ext.find("vstsMavenAccessToken")
+            }
+        }
+    }
+}
 include ':msal', ':common', ':keyvault', ':labapi', ':testutils', ':pop-benchmarker',
         ':package-inspector', ':msalautomationapp', ':uiautomationutilities', ':common4j',
         ':LabApiUtilities'

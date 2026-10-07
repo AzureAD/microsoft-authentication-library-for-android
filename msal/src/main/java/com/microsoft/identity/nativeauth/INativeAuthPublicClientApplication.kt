@@ -198,8 +198,8 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      * Warning: This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      *
      * @param parameters parameters used for the signIn operation.
-     * @return [NativeAuthResultV2] see the detailed possible return states under the object.
-     * @throws [MsalException] if an account is already signed in.
+     * @return a [NativeAuthResultV2] terminal result, action-required state, or error result.
+     * Account conflicts are returned as an error result rather than thrown.
      */
     suspend fun signInV2(parameters: NativeAuthSignInParameters): NativeAuthResultV2
 
@@ -209,8 +209,10 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      * Warning: This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      *
      * @param parameters parameters used for the signIn operation.
-     * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.NativeAuthV2Callback] to receive the result.
-     * @throws [MsalException] if an account is already signed in.
+     * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.NativeAuthV2Callback]
+     * invoked on a background thread. Terminal results, action-required states, and error results,
+     * including account conflicts, are delivered through
+     * [com.microsoft.identity.nativeauth.statemachine.states.Callback.onResult].
      */
     fun signInV2(parameters: NativeAuthSignInParameters, callback: NativeAuthPublicClientApplication.NativeAuthV2Callback)
 

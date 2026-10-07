@@ -31,14 +31,19 @@ import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitCodeCommandParameters
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2ResendCodeCommandResult
-import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SubmitCodeCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2ResetPasswordSubmitCodeCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SignInSubmitCodeCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SignUpSubmitCodeCommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResendCodeCommand
-import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitCodeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResetPasswordSubmitCodeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInSubmitCodeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignUpSubmitCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.controllers.v2.NativeAuthV2FlowController
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
@@ -47,6 +52,8 @@ import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeErrorV2
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
+import com.microsoft.identity.nativeauth.toListOfRequiredUserAttributeV2
+import com.microsoft.identity.nativeauth.toListOfV2AuthMethods
 import com.microsoft.identity.nativeauth.utils.getCancellable
 import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
@@ -54,6 +61,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.coroutineContext
 
 /**
  * State that requires the user to submit a verification code.
@@ -120,6 +128,9 @@ class CodeRequiredStateV2 internal constructor(
                 scenario = scenario
             )
         }
+        if (scenario == NativeAuthFlowScenarioV2.UNKNOWN) {
+            return invalidState()
+        }
         return withContext(Dispatchers.IO) {
             try {
                 val parameters = CommandParametersAdapter.createNativeAuthV2SubmitCodeCommandParameters(
@@ -128,63 +139,11 @@ class CodeRequiredStateV2 internal constructor(
                     code,
                     state
                 )
-                val command = NativeAuthV2SubmitCodeCommand(
-                    parameters,
-                    NativeAuthV2FlowController(),
-                    PublicApiId.NATIVE_AUTH_V2_RESET_PASSWORD_SUBMIT_CODE
-                )
-                ensureActive()
-                val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
-                ensureActive()
-                when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitCodeCommandResult>()) {
-                    is NativeAuthV2CommandResult.NewPasswordRequired -> {
-                        NativeAuthResultV2.NewPasswordRequired(
-                            nextState = NewPasswordRequiredStateV2(result.continuationState, scenario, config),
-                            scenario = scenario
-                        )
-                    }
-                    is NativeAuthV2CommandResult.Complete -> {
-                        mapCompleteResult(result)
-                    }
-                    is NativeAuthV2CommandResult.IncorrectCode -> {
-                        SubmitCodeErrorV2(
-                            errorType = ErrorTypes.INVALID_CODE,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario,
-                            errorCodes = result.errorCodes,
-                            subError = result.subError
-                        )
-                    }
-                    is NativeAuthV2CommandResult.NotImplemented -> {
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.NOT_IMPLEMENTED,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario
-                        )
-                    }
-                    is INativeAuthCommandResult.Redirect -> {
-                        SubmitCodeErrorV2(
-                            errorType = ErrorTypes.BROWSER_REQUIRED,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario
-                        )
-                    }
-                    is INativeAuthCommandResult.APIError -> {
-                        SubmitCodeErrorV2(
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario,
-                            errorCodes = result.errorCodes,
-                            exception = result.exception
-                        )
-                    }
+                when (scenario) {
+                    NativeAuthFlowScenarioV2.SIGN_IN -> submitSignInCode(parameters)
+                    NativeAuthFlowScenarioV2.SIGN_UP -> submitSignUpCode(parameters)
+                    NativeAuthFlowScenarioV2.RESET_PASSWORD -> submitResetPasswordCode(parameters)
+                    NativeAuthFlowScenarioV2.UNKNOWN -> invalidState()
                 }
             } catch (e: CancellationException) {
                 throw e
@@ -200,6 +159,194 @@ class CodeRequiredStateV2 internal constructor(
             }
         }
     }
+
+    private suspend fun submitSignInCode(
+        parameters: NativeAuthV2SubmitCodeCommandParameters
+    ): NativeAuthResultV2 {
+        val command = NativeAuthV2SignInSubmitCodeCommand(
+            parameters,
+            NativeAuthV2FlowController(),
+            PublicApiId.NATIVE_AUTH_V2_SIGN_IN_SUBMIT_CODE
+        )
+        coroutineContext.ensureActive()
+        val rawCommandResult =
+            CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
+        coroutineContext.ensureActive()
+        return when (
+            val result =
+                rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SignInSubmitCodeCommandResult>()
+        ) {
+            is NativeAuthV2CommandResult.Complete -> mapCompleteResult(result)
+            is NativeAuthV2CommandResult.MFARequired -> {
+                val authMethods = result.authMethods.toListOfV2AuthMethods()
+                NativeAuthResultV2.MFARequired(
+                    nextState = MFARequiredStateV2(
+                        continuationState = result.continuationState,
+                        authMethods = authMethods,
+                        scenario = scenario,
+                        config = config
+                    ),
+                    scenario = scenario
+                )
+            }
+            is NativeAuthV2CommandResult.IncorrectCode,
+            is INativeAuthCommandResult.Redirect,
+            is INativeAuthCommandResult.APIError -> mapSubmitCodeError(result)
+            else -> unsupportedSubmitCodeResult(result)
+        }
+    }
+
+    private suspend fun submitSignUpCode(
+        parameters: NativeAuthV2SubmitCodeCommandParameters
+    ): NativeAuthResultV2 {
+        val command = NativeAuthV2SignUpSubmitCodeCommand(
+            parameters,
+            NativeAuthV2FlowController(),
+            PublicApiId.NATIVE_AUTH_V2_SIGN_UP_SUBMIT_CODE
+        )
+        coroutineContext.ensureActive()
+        val rawCommandResult =
+            CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
+        coroutineContext.ensureActive()
+        return when (
+            val result =
+                rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SignUpSubmitCodeCommandResult>()
+        ) {
+            is NativeAuthV2CommandResult.AttributesRequired -> {
+                NativeAuthResultV2.AttributesRequired(
+                    nextState = AttributesRequiredStateV2(
+                        result.continuationState,
+                        scenario,
+                        config
+                    ),
+                    scenario = scenario,
+                    requiredAttributes = result.requiredAttributes.toListOfRequiredUserAttributeV2()
+                )
+            }
+            is NativeAuthV2CommandResult.PasswordRequired -> {
+                NativeAuthResultV2.PasswordRequired(
+                    nextState = PasswordRequiredStateV2(
+                        result.continuationState,
+                        scenario,
+                        config
+                    ),
+                    scenario = scenario
+                )
+            }
+            is NativeAuthV2CommandResult.SignInAfterSignUpRequired -> {
+                NativeAuthResultV2.SignInAfterSignUpRequired(
+                    nextState = SignInAfterSignUpStateV2(
+                        result.continuationState,
+                        scenario,
+                        config
+                    ),
+                    scenario = scenario
+                )
+            }
+            is NativeAuthV2CommandResult.IncorrectCode,
+            is NativeAuthV2CommandResult.NotImplemented,
+            is INativeAuthCommandResult.Redirect,
+            is INativeAuthCommandResult.APIError -> mapSubmitCodeError(result)
+            else -> unsupportedSubmitCodeResult(result)
+        }
+    }
+
+    private suspend fun submitResetPasswordCode(
+        parameters: NativeAuthV2SubmitCodeCommandParameters
+    ): NativeAuthResultV2 {
+        val command = NativeAuthV2ResetPasswordSubmitCodeCommand(
+            parameters,
+            NativeAuthV2FlowController(),
+            PublicApiId.NATIVE_AUTH_V2_RESET_PASSWORD_SUBMIT_CODE
+        )
+        coroutineContext.ensureActive()
+        val rawCommandResult =
+            CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
+        coroutineContext.ensureActive()
+        return when (
+            val result =
+                rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2ResetPasswordSubmitCodeCommandResult>()
+        ) {
+            is NativeAuthV2CommandResult.NewPasswordRequired -> {
+                NativeAuthResultV2.NewPasswordRequired(
+                    nextState = NewPasswordRequiredStateV2(
+                        result.continuationState,
+                        scenario,
+                        config
+                    ),
+                    scenario = scenario
+                )
+            }
+            is NativeAuthV2CommandResult.Complete -> mapCompleteResult(result)
+            is NativeAuthV2CommandResult.IncorrectCode,
+            is NativeAuthV2CommandResult.NotImplemented,
+            is INativeAuthCommandResult.Redirect,
+            is INativeAuthCommandResult.APIError -> mapSubmitCodeError(result)
+            else -> unsupportedSubmitCodeResult(result)
+        }
+    }
+
+    private fun unsupportedSubmitCodeResult(result: INativeAuthCommandResult): NativeAuthResultV2 {
+        Logger.warnWithObject(TAG, result.correlationId, "V2 submitCode received unsupported result: ", result)
+        return SubmitCodeErrorV2(
+            errorType = ErrorTypes.INVALID_STATE,
+            errorMessage = "V2 submit code returned an unsupported result.",
+            correlationId = result.correlationId,
+            scenario = scenario
+        )
+    }
+
+    private fun mapSubmitCodeError(result: INativeAuthCommandResult): NativeAuthResultV2 =
+        when (result) {
+            is NativeAuthV2CommandResult.IncorrectCode -> {
+                SubmitCodeErrorV2(
+                    errorType = ErrorTypes.INVALID_CODE,
+                    error = result.error,
+                    errorMessage = result.errorDescription,
+                    correlationId = result.correlationId,
+                    scenario = scenario,
+                    errorCodes = result.errorCodes,
+                    subError = result.subError
+                )
+            }
+            is NativeAuthV2CommandResult.NotImplemented -> {
+                NativeAuthErrorV2(
+                    errorType = ErrorTypes.NOT_IMPLEMENTED,
+                    error = result.error,
+                    errorMessage = result.errorDescription,
+                    correlationId = result.correlationId,
+                    scenario = scenario
+                )
+            }
+            is INativeAuthCommandResult.Redirect -> {
+                SubmitCodeErrorV2(
+                    errorType = ErrorTypes.BROWSER_REQUIRED,
+                    error = result.error,
+                    errorMessage = result.errorDescription,
+                    correlationId = result.correlationId,
+                    scenario = scenario
+                )
+            }
+            is INativeAuthCommandResult.APIError -> {
+                SubmitCodeErrorV2(
+                    error = result.error,
+                    errorMessage = result.errorDescription,
+                    correlationId = result.correlationId,
+                    scenario = scenario,
+                    errorCodes = result.errorCodes,
+                    exception = result.exception
+                )
+            }
+            else -> {
+                Logger.warn(TAG, result.correlationId, "Unexpected submit-code result.")
+                SubmitCodeErrorV2(
+                    errorType = ErrorTypes.CLIENT_EXCEPTION,
+                    errorMessage = "Unexpected submit-code result.",
+                    correlationId = result.correlationId,
+                    scenario = scenario
+                )
+            }
+        }
 
     interface ResendCodeCallback : Callback<NativeAuthResultV2>
 
@@ -226,6 +373,12 @@ class CodeRequiredStateV2 internal constructor(
             methodName = "${TAG}.resendCode()"
         )
         val state = continuationState ?: return invalidState()
+        val publicApiId = when (scenario) {
+            NativeAuthFlowScenarioV2.SIGN_UP -> PublicApiId.NATIVE_AUTH_V2_SIGN_UP_RESEND_CODE
+            NativeAuthFlowScenarioV2.RESET_PASSWORD -> PublicApiId.NATIVE_AUTH_V2_RESET_PASSWORD_RESEND_CODE
+            NativeAuthFlowScenarioV2.SIGN_IN -> PublicApiId.NATIVE_AUTH_V2_SIGN_IN_RESEND_CODE
+            NativeAuthFlowScenarioV2.UNKNOWN -> return invalidState()
+        }
         return withContext(Dispatchers.IO) {
             try {
                 val parameters = CommandParametersAdapter.createNativeAuthV2ResendCodeCommandParameters(
@@ -236,7 +389,7 @@ class CodeRequiredStateV2 internal constructor(
                 val command = NativeAuthV2ResendCodeCommand(
                     parameters,
                     NativeAuthV2FlowController(),
-                    PublicApiId.NATIVE_AUTH_V2_RESET_PASSWORD_RESEND_CODE
+                    publicApiId
                 )
                 ensureActive()
                 val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
@@ -280,6 +433,15 @@ class CodeRequiredStateV2 internal constructor(
                             scenario = scenario,
                             errorCodes = result.errorCodes,
                             exception = result.exception
+                        )
+                    }
+                    else -> {
+                        Logger.warnWithObject(TAG, result.correlationId, "V2 resendCode received unsupported result: ", result)
+                        NativeAuthErrorV2(
+                            errorType = ErrorTypes.INVALID_STATE,
+                            errorMessage = "V2 resend code returned an unsupported result.",
+                            correlationId = result.correlationId,
+                            scenario = scenario
                         )
                     }
                 }

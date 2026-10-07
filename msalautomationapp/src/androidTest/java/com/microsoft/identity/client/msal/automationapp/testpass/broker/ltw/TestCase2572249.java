@@ -39,6 +39,7 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -68,6 +69,7 @@ public class TestCase2572249 extends AbstractMsalBrokerTest {
     }
 
     @Test
+    @Ignore("Excluded from weekly automation")
     public void test_2572249_LTW_SSOAfterLTWUninstallIfAuthenticatorPresent() throws Throwable {
         if (BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("EnableBrokerDiscoveryV2Protocol:true")) {
             // No longer applicable with V2 protocol.

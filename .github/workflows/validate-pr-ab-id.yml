@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.labels.*.name, 'skip AB ID validation')"
     steps:
-      - uses: danhellem/github-actions-pr-is-linked-to-work-item@main
+      - uses: danhellem/github-actions-pr-is-linked-to-work-item@32045b01bc94b783381cca6b2caa59275cb10dfe # main
         
   # Get AB#ID
   get_ab_id:
@@ -36,8 +36,13 @@ jobs:
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: |
-          result=$(echo "$PR_BODY" | grep -oP '(?<=#)\d+')
-          echo "id=${result}" >> "$GITHUB_OUTPUT"
+          # Sanitize PR body by removing backticks before parsing (aligns behavior with the Common repository workflow)
+          clean=$(printf "%s" "$PR_BODY" | tr -d '`')
+
+          # Extract AB ID (AB#1234567) - take the first match if multiple exist
+          result=$(printf "%s" "$clean" | grep -oP '(?<=AB#)\d+' | head -n 1)
+
+          echo "id=$result" >> "$GITHUB_OUTPUT"
 
   # Get Pull request ID
   get_pr_id:

@@ -20,7 +20,6 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-
 package com.microsoft.identity.nativeauth.statemachine.states
 
 import android.os.Parcel
@@ -33,19 +32,19 @@ import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
-import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SelectMFAMethodCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SelectResetPasswordMethodCommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.NativeAuthConstants
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
-import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SelectMFAMethodCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SelectResetPasswordMethodCommand
 import com.microsoft.identity.common.nativeauth.internal.controllers.v2.NativeAuthV2FlowController
 import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
-import com.microsoft.identity.nativeauth.statemachine.errors.MFARequestChallengeErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
+import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.utils.getCancellable
 import com.microsoft.identity.nativeauth.utils.serializable
@@ -57,38 +56,29 @@ import kotlinx.coroutines.withContext
 import java.util.Collections
 
 /**
- * State that requires the user to select an authentication method for multi-factor authentication.
+ * State that requires the user to select an email or SMS verification method for password reset.
  *
- * No challenge is sent until the app selects a method explicitly. [authMethods] is exactly the set
- * the server offered for this step; selecting anything else fails without issuing a request. This
- * state supports email and SMS one-time codes; any other channel returns a not-implemented error
- * ([com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2.isNotImplemented])
- * rather than following an unsupported method.
+ * No challenge is sent until the app explicitly selects one of [authMethods].
  */
-class MFARequiredStateV2 internal constructor(
+class ResetPasswordMethodRequiredStateV2 internal constructor(
     continuationToken: String?,
     correlationId: String,
     scenario: NativeAuthFlowScenarioV2,
     config: NativeAuthPublicClientApplicationConfiguration,
     continuationState: NativeAuthV2ContinuationState? = null,
-
-    /**
-     * The authentication methods the server offered for this multi-factor step.
-     */
     authMethods: List<AuthMethod> = emptyList()
 ) : NativeAuthBaseStateV2(continuationToken, correlationId, scenario, config, continuationState) {
-    private val TAG: String = MFARequiredStateV2::class.java.simpleName
+    private val TAG: String = ResetPasswordMethodRequiredStateV2::class.java.simpleName
     val authMethods: List<AuthMethod> = Collections.unmodifiableList(ArrayList(authMethods))
 
     internal constructor(
         continuationState: NativeAuthV2ContinuationState,
         authMethods: List<AuthMethod>,
-        scenario: NativeAuthFlowScenarioV2,
         config: NativeAuthPublicClientApplicationConfiguration
     ) : this(
         continuationToken = null,
         correlationId = continuationState.correlationId,
-        scenario = scenario,
+        scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
         config = config,
         continuationState = continuationState,
         authMethods = authMethods
@@ -97,17 +87,15 @@ class MFARequiredStateV2 internal constructor(
     private constructor(parcel: Parcel) : this(
         continuationToken = parcel.readString(),
         correlationId = parcel.readString() ?: "UNSET",
-        scenario = NativeAuthFlowScenarioV2.valueOf(parcel.readString() ?: NativeAuthFlowScenarioV2.UNKNOWN.name),
-        config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration,
+        scenario = NativeAuthFlowScenarioV2.valueOf(
+            parcel.readString() ?: NativeAuthFlowScenarioV2.UNKNOWN.name
+        ),
+        config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>()
+            as NativeAuthPublicClientApplicationConfiguration,
         continuationState = parcel.serializable<NativeAuthV2ContinuationState>(),
         authMethods = parcel.createTypedArrayList(AuthMethod.CREATOR) ?: emptyList()
     )
 
-    /**
-     * Writes the base fields first, then this state's own [authMethods], so the read order in the
-     * `Parcel` constructor above stays symmetric. The base fields themselves are still written
-     * only by the base implementation.
-     */
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         super.writeToParcel(parcel, flags)
         parcel.writeTypedList(authMethods)
@@ -116,22 +104,17 @@ class MFARequiredStateV2 internal constructor(
     interface SelectAuthMethodCallback : Callback<NativeAuthResultV2>
 
     /**
-     * Requests a challenge on the selected authentication method; callback variant.
-     *
-     * @param method one of the methods listed in [authMethods].
-     * @param verificationContact unused by this flow; the server already knows the contact bound to
-     * [method]. Retained for signature compatibility with the wider Native Auth V2 surface.
-     * @param callback [SelectAuthMethodCallback] to receive the result.
+     * Sends a verification code using the selected method; callback variant.
      */
-    fun selectAuthMethod(method: AuthMethod, verificationContact: String? = null, callback: SelectAuthMethodCallback) {
+    fun selectAuthMethod(method: AuthMethod, callback: SelectAuthMethodCallback) {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.selectAuthMethod(method: AuthMethod, verificationContact: String?, callback: SelectAuthMethodCallback)"
+            methodName = "${TAG}.selectAuthMethod(method: AuthMethod, callback: SelectAuthMethodCallback)"
         )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
-                callback.onResult(selectAuthMethod(method, verificationContact))
+                callback.onResult(selectAuthMethod(method))
             } catch (e: MsalException) {
                 Logger.error(TAG, "Exception thrown in selectAuthMethod", e)
                 callback.onError(e)
@@ -140,22 +123,17 @@ class MFARequiredStateV2 internal constructor(
     }
 
     /**
-     * Requests a challenge on the selected authentication method; Kotlin coroutines variant.
-     *
-     * @param method one of the methods listed in [authMethods].
-     * @param verificationContact unused by this flow; see the callback variant.
-     * @return [NativeAuthResultV2] see detailed possible return state under the object.
+     * Sends a verification code using the selected method; Kotlin coroutines variant.
      */
-    suspend fun selectAuthMethod(method: AuthMethod, verificationContact: String? = null): NativeAuthResultV2 {
+    suspend fun selectAuthMethod(method: AuthMethod): NativeAuthResultV2 {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.selectAuthMethod(method: AuthMethod, verificationContact: String?)"
+            methodName = "${TAG}.selectAuthMethod(method: AuthMethod)"
         )
         val state = continuationState ?: return invalidState()
-
         val offeredMethod = authMethods.firstOrNull { it.id == method.id }
-            ?: return MFARequestChallengeErrorV2(
+            ?: return ResetPasswordErrorV2(
                 errorType = ErrorTypes.INVALID_STATE,
                 errorMessage = "The selected authentication method is not one of the methods the server offered.",
                 correlationId = correlationId,
@@ -171,9 +149,9 @@ class MFARequiredStateV2 internal constructor(
                 ignoreCase = true
             )
         ) {
-            return MFARequestChallengeErrorV2(
+            return NativeAuthErrorV2(
                 errorType = ErrorTypes.NOT_IMPLEMENTED,
-                errorMessage = "Only email and SMS authentication methods are supported for multi-factor authentication.",
+                errorMessage = "Only email and SMS authentication methods are supported for password reset.",
                 correlationId = correlationId,
                 scenario = scenario
             )
@@ -181,67 +159,67 @@ class MFARequiredStateV2 internal constructor(
 
         return withContext(Dispatchers.IO) {
             try {
-                val parameters = CommandParametersAdapter.createNativeAuthV2SelectMFAMethodCommandParameters(
-                    config,
-                    config.oAuth2TokenCache,
-                    offeredMethod.id,
-                    state
-                )
-                val command = NativeAuthV2SelectMFAMethodCommand(
+                val parameters =
+                    CommandParametersAdapter.createNativeAuthV2SelectResetPasswordMethodCommandParameters(
+                        config,
+                        config.oAuth2TokenCache,
+                        offeredMethod.id,
+                        state
+                    )
+                val command = NativeAuthV2SelectResetPasswordMethodCommand(
                     parameters,
                     NativeAuthV2FlowController(),
-                    PublicApiId.NATIVE_AUTH_V2_SIGN_IN_SELECT_MFA_METHOD
+                    PublicApiId.NATIVE_AUTH_V2_RESET_PASSWORD_SELECT_METHOD
                 )
                 ensureActive()
-                val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
+                val rawCommandResult =
+                    CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
                 ensureActive()
-                when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SelectMFAMethodCommandResult>()) {
-                    is NativeAuthV2CommandResult.MFAVerificationRequired -> {
-                        NativeAuthResultV2.MFAVerificationRequired(
-                            nextState = MFAVerificationRequiredStateV2(
-                                continuationState = result.continuationState,
-                                scenario = scenario,
-                                config = config
-                            ),
+                when (val result =
+                    rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SelectResetPasswordMethodCommandResult>()) {
+                    is NativeAuthV2CommandResult.CodeRequired -> NativeAuthResultV2.CodeRequired(
+                        nextState = CodeRequiredStateV2(
+                            continuationState = result.continuationState,
                             scenario = scenario,
-                            codeLength = result.codeLength,
-                            sentTo = result.challengeTargetLabel,
-                            channel = result.challengeChannel
-                        )
-                    }
-                    is NativeAuthV2CommandResult.NotImplemented -> {
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.NOT_IMPLEMENTED,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario
-                        )
-                    }
-                    is INativeAuthCommandResult.Redirect -> {
-                        MFARequestChallengeErrorV2(
-                            errorType = ErrorTypes.BROWSER_REQUIRED,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario
-                        )
-                    }
-                    is INativeAuthCommandResult.APIError -> {
-                        MFARequestChallengeErrorV2(
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario,
-                            errorCodes = result.errorCodes,
-                            exception = result.exception
-                        )
-                    }
+                            config = config
+                        ),
+                        scenario = scenario,
+                        codeLength = result.codeLength,
+                        sentTo = result.challengeTargetLabel,
+                        channel = result.challengeChannel
+                    )
+                    is NativeAuthV2CommandResult.NotImplemented -> NativeAuthErrorV2(
+                        errorType = ErrorTypes.NOT_IMPLEMENTED,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId,
+                        scenario = scenario
+                    )
+                    is INativeAuthCommandResult.Redirect -> ResetPasswordErrorV2(
+                        errorType = ErrorTypes.BROWSER_REQUIRED,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId,
+                        scenario = scenario
+                    )
+                    is INativeAuthCommandResult.APIError -> ResetPasswordErrorV2(
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId,
+                        scenario = scenario,
+                        errorCodes = result.errorCodes,
+                        exception = result.exception
+                    )
                     else -> {
-                        Logger.warnWithObject(TAG, result.correlationId, "V2 selectAuthMethod received unsupported result: ", result)
-                        MFARequestChallengeErrorV2(
+                        Logger.warnWithObject(
+                            TAG,
+                            result.correlationId,
+                            "V2 selectResetPasswordMethod received unsupported result: ",
+                            result
+                        )
+                        ResetPasswordErrorV2(
                             errorType = ErrorTypes.INVALID_STATE,
-                            errorMessage = "V2 select authentication method returned an unsupported result.",
+                            errorMessage = "V2 reset password method selection returned an unsupported result.",
                             correlationId = result.correlationId,
                             scenario = scenario
                         )
@@ -251,7 +229,7 @@ class MFARequiredStateV2 internal constructor(
                 throw e
             } catch (e: Exception) {
                 Logger.error(TAG, correlationId, "Exception thrown in selectAuthMethod", e)
-                MFARequestChallengeErrorV2(
+                ResetPasswordErrorV2(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in selectAuthMethod.",
                     correlationId = correlationId,
@@ -262,9 +240,11 @@ class MFARequiredStateV2 internal constructor(
         }
     }
 
-    companion object CREATOR : Parcelable.Creator<MFARequiredStateV2> {
-        override fun createFromParcel(parcel: Parcel): MFARequiredStateV2 = MFARequiredStateV2(parcel)
+    companion object CREATOR : Parcelable.Creator<ResetPasswordMethodRequiredStateV2> {
+        override fun createFromParcel(parcel: Parcel): ResetPasswordMethodRequiredStateV2 =
+            ResetPasswordMethodRequiredStateV2(parcel)
 
-        override fun newArray(size: Int): Array<MFARequiredStateV2?> = arrayOfNulls(size)
+        override fun newArray(size: Int): Array<ResetPasswordMethodRequiredStateV2?> =
+            arrayOfNulls(size)
     }
 }

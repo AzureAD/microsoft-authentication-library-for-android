@@ -36,6 +36,7 @@ import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordMethodRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthRegistrationRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthVerificationRequiredStateV2
 import io.mockk.mockk
@@ -112,7 +113,7 @@ class NativeAuthV2ResultsTest {
 
     @Test
     fun testAttributesRequiredExposesExpectedValues() {
-        val requiredAttributes = listOf(RequiredUserAttribute("city", "string", true, null))
+        val requiredAttributes = mutableListOf(RequiredUserAttribute("city", "string", true, null))
         val result = NativeAuthResultV2.AttributesRequired(
             nextState = AttributesRequiredStateV2(continuationToken, correlationId, scenario, config),
             scenario = scenario,
@@ -120,11 +121,20 @@ class NativeAuthV2ResultsTest {
         )
         assertEquals(requiredAttributes, result.requiredAttributes)
         assertEquals(scenario, result.scenario)
+
+        requiredAttributes.clear()
+        assertEquals(1, result.requiredAttributes.size)
+        try {
+            (result.requiredAttributes as MutableList<RequiredUserAttribute>).clear()
+            org.junit.Assert.fail("Expected requiredAttributes to be unmodifiable")
+        } catch (_: UnsupportedOperationException) {
+            // Expected.
+        }
     }
 
     @Test
     fun testAttributesInvalidExposesExpectedValues() {
-        val invalidAttributes = listOf("city")
+        val invalidAttributes = mutableListOf("city")
         val result = NativeAuthResultV2.AttributesInvalid(
             nextState = AttributesInvalidStateV2(continuationToken, correlationId, scenario, config),
             scenario = scenario,
@@ -132,18 +142,71 @@ class NativeAuthV2ResultsTest {
         )
         assertEquals(invalidAttributes, result.invalidAttributes)
         assertEquals(scenario, result.scenario)
+
+        invalidAttributes.clear()
+        assertEquals(1, result.invalidAttributes.size)
+        try {
+            (result.invalidAttributes as MutableList<String>).clear()
+            org.junit.Assert.fail("Expected invalidAttributes to be unmodifiable")
+        } catch (_: UnsupportedOperationException) {
+            // Expected.
+        }
     }
 
     @Test
     fun testMFARequiredExposesExpectedValues() {
-        val authMethods = listOf(AuthMethod("id", "oob", "user@email.com", "email"))
-        val result = NativeAuthResultV2.MFARequired(
-            nextState = MFARequiredStateV2(continuationToken, correlationId, scenario, config),
-            scenario = scenario,
+        val authMethods = mutableListOf(AuthMethod("id", "oob", "user@email.com", "email"))
+        val nextState = MFARequiredStateV2(
+            continuationToken,
+            correlationId,
+            scenario,
+            config,
             authMethods = authMethods
         )
+        val result = NativeAuthResultV2.MFARequired(
+            nextState = nextState,
+            scenario = scenario
+        )
         assertEquals(authMethods, result.authMethods)
+        assertSame(nextState.authMethods, result.authMethods)
         assertEquals(scenario, result.scenario)
+
+        authMethods.clear()
+        assertEquals(1, result.authMethods.size)
+        try {
+            (result.authMethods as MutableList<AuthMethod>).clear()
+            org.junit.Assert.fail("Expected authMethods to be unmodifiable")
+        } catch (_: UnsupportedOperationException) {
+            // Expected.
+        }
+    }
+
+    @Test
+    fun testResetPasswordMethodRequiredExposesImmutableMethods() {
+        val authMethods =
+            mutableListOf(AuthMethod("sms-1", "sms", "+X XXX XXX 34", "sms"))
+        val nextState = ResetPasswordMethodRequiredStateV2(
+            continuationToken,
+            correlationId,
+            NativeAuthFlowScenarioV2.RESET_PASSWORD,
+            config,
+            authMethods = authMethods
+        )
+        val result = NativeAuthResultV2.ResetPasswordMethodRequired(
+            nextState = nextState,
+            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD
+        )
+
+        assertSame(nextState.authMethods, result.authMethods)
+        assertEquals("sms-1", result.authMethods.single().id)
+        authMethods.clear()
+        assertEquals(1, result.authMethods.size)
+        try {
+            (result.authMethods as MutableList<AuthMethod>).clear()
+            org.junit.Assert.fail("Expected authMethods to be unmodifiable")
+        } catch (_: UnsupportedOperationException) {
+            // Expected.
+        }
     }
 
     @Test

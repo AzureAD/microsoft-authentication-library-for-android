@@ -75,7 +75,10 @@ stages:
           tasks: msal:jacocoTestReport  -PcodeCoverageEnabled=true -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PmockApiUrl=$(MOCK_API_URL) -PnativeAuthConfigString=$(NATIVE_AUTH_CONFIG_STRING)
           javaHomeSelection: $(BuildParameters.javaHomeSelection)
           jdkVersion: 1.17
-      - publish: $(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+      - template: azure-pipelines/templates/steps/collect-changed-files.yml@common
+        parameters:
+          outputDir: $(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport
+      - publish: $(Build.SourcesDirectory)/msal/build/reports/jacoco/jacocoTestReport
         artifact: jacocoReport
         displayName: 'Publish JaCoCo Report Artifact (PR Branch)'
       - script: tree "$(Build.SourcesDirectory)\msal" /F /A

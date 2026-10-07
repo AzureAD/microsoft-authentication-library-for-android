@@ -24,8 +24,12 @@
 package com.microsoft.identity.nativeauth.utils
 
 import com.microsoft.identity.common.java.result.FinalizableResultFuture
+import com.microsoft.identity.common.java.util.StringUtil
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
 
 internal suspend fun <T> FinalizableResultFuture<T>.getCancellable(): T {
@@ -35,4 +39,25 @@ internal suspend fun <T> FinalizableResultFuture<T>.getCancellable(): T {
         cancelSignal()
         throw exception
     }
+}
+
+/**
+ * Launches [block] in this [CoroutineScope], guaranteeing that [passwordSnapshot] is cleared once
+ * the launched job completes -- including when the job is cancelled before [block] ever starts
+ * running (for example, because this scope was already cancelled at the time of the call).
+ *
+ * [passwordSnapshot] is always cleared by this function when the job completes (via
+ * [Job.invokeOnCompletion]). [block] may clear it earlier once it has consumed the password to
+ * minimize the in-memory lifetime; clearing it again on completion is safe because
+ * [StringUtil.overwriteWithNull] is idempotent and null-tolerant.
+ */
+internal fun CoroutineScope.launchOwningPasswordSnapshot(
+    passwordSnapshot: CharArray?,
+    block: suspend CoroutineScope.() -> Unit
+): Job {
+    val job = launch(block = block)
+    job.invokeOnCompletion {
+        StringUtil.overwriteWithNull(passwordSnapshot)
+    }
+    return job
 }

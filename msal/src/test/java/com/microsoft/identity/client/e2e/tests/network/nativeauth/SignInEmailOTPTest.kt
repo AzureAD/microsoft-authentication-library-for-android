@@ -53,7 +53,6 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Use valid email and OTP to get token and sign in.
      * (hero scenario 6, use case 2.2.1)
      */
-    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testSuccess() {
         config = getConfig(defaultConfigType)
@@ -63,6 +62,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
             runBlocking {
                 val user = config.email
                 val param = NativeAuthSignInParameters(username = user)
+                tempEmailApi.markCheckpoint(user)
                 val signInResult = application.signIn(param)
                 assertResult<SignInResult.CodeRequired>(signInResult)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
@@ -73,7 +73,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
     }
 
     /**
-     * Use invalid email address to receive a "user not found" error.
+     * Use an unregistered email address to receive a "user not found" error.
      * (use case 2.2.2)
      */
     @Test
@@ -83,7 +83,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         retryOperation {
             runBlocking {
-                val username = tempEmailApi.generateRandomEmailAddressLocally()
+                val username = tempEmailApi.generateRandomUnregisteredEmailAddress()
                 val param = NativeAuthSignInParameters(username = username)
                 val signInResult = application.signIn(param)
                 Assert.assertTrue(signInResult is SignInError)
@@ -136,7 +136,6 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Resend email OTP.
      * (use case 2.2.5)
      */
-    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testResendCode() {
         config = getConfig(defaultConfigType)
@@ -146,18 +145,20 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
             runBlocking {
                 val user = config.email
                 val param = NativeAuthSignInParameters(username = user)
+                tempEmailApi.markCheckpoint(user)
                 val signInResult = application.signIn(param)
                 assertResult<SignInResult.CodeRequired>(signInResult)
 
                 val otp1 = tempEmailApi.retrieveCodeFromInbox(user)
                 val codeRequiredState = (signInResult as SignInResult.CodeRequired).nextState
+                tempEmailApi.markCheckpoint(user)
                 val resendCodeResult = codeRequiredState.resendCode()
                 assertResult<SignInResendCodeResult.Success>(resendCodeResult)
 
                 val otp2 = tempEmailApi.retrieveCodeFromInbox(user)
                 Assert.assertNotEquals(otp1, otp2)
 
-                val submitCodeResult = signInResult.nextState.submitCode(otp2)
+                val submitCodeResult = (resendCodeResult as SignInResendCodeResult.Success).nextState.submitCode(otp2)
                 assertResult<SignInResult.Complete>(submitCodeResult)
             }
         }

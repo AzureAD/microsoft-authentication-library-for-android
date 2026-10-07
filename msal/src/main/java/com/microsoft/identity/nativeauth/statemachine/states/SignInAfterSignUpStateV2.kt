@@ -33,10 +33,10 @@ import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
-import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SignInAfterResetPasswordCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SignInAfterSignUpCommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
-import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInAfterResetPasswordCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInAfterSignUpCommand
 import com.microsoft.identity.common.nativeauth.internal.controllers.v2.NativeAuthV2FlowController
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
@@ -54,16 +54,16 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * State reached once a password reset has completed server-side.
+ * State reached once a sign-up has completed server-side.
  */
-class SignInAfterResetPasswordStateV2 internal constructor(
+class SignInAfterSignUpStateV2 internal constructor(
     continuationToken: String?,
     correlationId: String,
     scenario: NativeAuthFlowScenarioV2,
     config: NativeAuthPublicClientApplicationConfiguration,
     continuationState: NativeAuthV2ContinuationState? = null
 ) : NativeAuthBaseStateV2(continuationToken, correlationId, scenario, config, continuationState) {
-    private val TAG: String = SignInAfterResetPasswordStateV2::class.java.simpleName
+    private val TAG: String = SignInAfterSignUpStateV2::class.java.simpleName
 
     internal constructor(
         continuationState: NativeAuthV2ContinuationState,
@@ -88,7 +88,7 @@ class SignInAfterResetPasswordStateV2 internal constructor(
     interface SignInCallback : Callback<NativeAuthResultV2>
 
     /**
-     * Explicit app-invoked sign-in step following a completed password reset flow.
+     * Explicit app-invoked sign-in step following a completed sign-up flow.
      */
     fun signIn(callback: SignInCallback) {
         LogSession.logMethodCall(
@@ -107,10 +107,10 @@ class SignInAfterResetPasswordStateV2 internal constructor(
     }
 
     /**
-     * Explicit app-invoked sign-in step following a completed password reset flow, callback variant.
+     * Explicit app-invoked sign-in step following a completed sign-up flow, callback variant.
      *
-     * @param parameters parameters used for the sign-in-after-reset-password operation. Scopes and
-     * claims supplied here take precedence over any supplied at the start of the reset flow.
+     * @param parameters parameters used for the sign-in-after-sign-up operation. Scopes and
+     * claims supplied here take precedence over any supplied at the start of the sign-up flow.
      * @param callback [SignInCallback] to receive the result on.
      */
     @JvmName("signInWithParameters")
@@ -131,7 +131,7 @@ class SignInAfterResetPasswordStateV2 internal constructor(
     }
 
     /**
-     * Explicit app-invoked sign-in step following a completed password reset flow.
+     * Explicit app-invoked sign-in step following a completed sign-up flow.
      */
     suspend fun signIn(): NativeAuthResultV2 {
         LogSession.logMethodCall(
@@ -143,11 +143,11 @@ class SignInAfterResetPasswordStateV2 internal constructor(
     }
 
     /**
-     * Explicit app-invoked sign-in step following a completed password reset flow, Kotlin coroutines
+     * Explicit app-invoked sign-in step following a completed sign-up flow, Kotlin coroutines
      * variant.
      *
-     * @param parameters parameters used for the sign-in-after-reset-password operation. Scopes and
-     * claims supplied here take precedence over any supplied at the start of the reset flow.
+     * @param parameters parameters used for the sign-in-after-sign-up operation. Scopes and
+     * claims supplied here take precedence over any supplied at the start of the sign-up flow.
      */
     @JvmName("signInWithParameters")
     suspend fun signIn(parameters: NativeAuthSignInContinuationParameters): NativeAuthResultV2 {
@@ -160,25 +160,25 @@ class SignInAfterResetPasswordStateV2 internal constructor(
     }
 
     private suspend fun internalSignIn(signInParameters: NativeAuthSignInContinuationParameters?): NativeAuthResultV2 {
-        val state = continuationState ?: return notImplemented()
+        val state = continuationState ?: return invalidState()
         return withContext(Dispatchers.IO) {
             try {
-                val parameters = CommandParametersAdapter.createNativeAuthV2SignInAfterResetPasswordCommandParameters(
+                val parameters = CommandParametersAdapter.createNativeAuthV2SignInAfterSignUpCommandParameters(
                     config,
                     config.oAuth2TokenCache,
                     state,
                     signInParameters?.scopes,
                     signInParameters?.claimsRequest
                 )
-                val command = NativeAuthV2SignInAfterResetPasswordCommand(
+                val command = NativeAuthV2SignInAfterSignUpCommand(
                     parameters,
                     NativeAuthV2FlowController(),
-                    PublicApiId.NATIVE_AUTH_V2_SIGN_IN_AFTER_RESET_PASSWORD
+                    PublicApiId.NATIVE_AUTH_V2_SIGN_IN_AFTER_SIGN_UP
                 )
                 ensureActive()
                 val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
                 ensureActive()
-                when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SignInAfterResetPasswordCommandResult>()) {
+                when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SignInAfterSignUpCommandResult>()) {
                     is NativeAuthV2CommandResult.Complete -> {
                         mapCompleteResult(result)
                     }
@@ -201,11 +201,20 @@ class SignInAfterResetPasswordStateV2 internal constructor(
                             exception = result.exception
                         )
                     }
+                    is NativeAuthV2CommandResult.NotImplemented -> {
+                        NativeAuthErrorV2(
+                            errorType = ErrorTypes.NOT_IMPLEMENTED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario
+                        )
+                    }
                     else -> {
-                        Logger.warnWithObject(TAG, result.correlationId, "V2 signInAfterResetPassword received unsupported result: ", result)
+                        Logger.warnWithObject(TAG, result.correlationId, "V2 signInAfterSignUp received unsupported result: ", result)
                         NativeAuthErrorV2(
                             errorType = ErrorTypes.INVALID_STATE,
-                            errorMessage = "V2 sign-in after reset password returned an unsupported result.",
+                            errorMessage = "V2 sign-in after sign-up returned an unsupported result.",
                             correlationId = result.correlationId,
                             scenario = scenario
                         )
@@ -226,9 +235,9 @@ class SignInAfterResetPasswordStateV2 internal constructor(
         }
     }
 
-    companion object CREATOR : Parcelable.Creator<SignInAfterResetPasswordStateV2> {
-        override fun createFromParcel(parcel: Parcel): SignInAfterResetPasswordStateV2 = SignInAfterResetPasswordStateV2(parcel)
+    companion object CREATOR : Parcelable.Creator<SignInAfterSignUpStateV2> {
+        override fun createFromParcel(parcel: Parcel): SignInAfterSignUpStateV2 = SignInAfterSignUpStateV2(parcel)
 
-        override fun newArray(size: Int): Array<SignInAfterResetPasswordStateV2?> = arrayOfNulls(size)
+        override fun newArray(size: Int): Array<SignInAfterSignUpStateV2?> = arrayOfNulls(size)
     }
 }

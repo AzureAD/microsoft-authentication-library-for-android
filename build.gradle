@@ -6,9 +6,10 @@ buildscript {
     apply from: rootProject.file("gradle/versions.gradle")
 
     repositories {
-        // If you don't have access to the package feed uncomment these repositories
+        // Keep only the ADO feed enabled for product builds. For a local build without feed
+        // access, temporarily uncomment the public repositories below.
         // mavenCentral()
-        google()
+        // google()
         maven {
             // msazure and aria are consumed via upstream sources of the NewAndroid feed.
             name "vsts-maven-new-android"
@@ -28,10 +29,11 @@ buildscript {
 
 allprojects {
     repositories {
-        // If you don't have access to the package feed uncomment these repositories
+        // Keep only the ADO feed enabled for product builds. For a local build without feed
+        // access, temporarily uncomment the public or local repositories below.
         // mavenCentral()
-        google()
-        mavenLocal()
+        // google()
+        // mavenLocal()
         maven {
             name "vsts-maven-new-android"
             url "https://identitydivision.pkgs.visualstudio.com/_packaging/NewAndroid/maven/v1"

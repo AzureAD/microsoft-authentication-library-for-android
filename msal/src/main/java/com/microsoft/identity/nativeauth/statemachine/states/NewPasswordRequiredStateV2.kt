@@ -214,6 +214,15 @@ class NewPasswordRequiredStateV2 internal constructor(
                             exception = result.exception
                         )
                     }
+                    else -> {
+                        Logger.warnWithObject(TAG, result.correlationId, "V2 submitNewPassword received unsupported result: ", result)
+                        SubmitNewPasswordErrorV2(
+                            errorType = ErrorTypes.INVALID_STATE,
+                            errorMessage = "V2 submit new password returned an unsupported result.",
+                            correlationId = result.correlationId,
+                            scenario = scenario
+                        )
+                    }
                 }
             } catch (e: CancellationException) {
                 throw e
