@@ -46,11 +46,11 @@ import com.microsoft.identity.nativeauth.utils.serializable
  * @property continuationState Opaque DTO carrying mid-flow state; null in legacy/test paths and for states that don't drive a server call.
  */
 abstract class NativeAuthBaseStateV2 internal constructor(
-    override val correlationId: String,
+    internal val correlationId: String,
     internal val scenario: NativeAuthFlowScenarioV2,
     internal val config: NativeAuthPublicClientApplicationConfiguration,
     internal val continuationState: NativeAuthV2ContinuationState? = null
-) : NativeAuthState(), State, Parcelable {
+) : State, Parcelable {
 
     private val TAG: String = NativeAuthBaseStateV2::class.java.simpleName
 

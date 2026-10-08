@@ -89,6 +89,12 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
+    fun v1AndV2BaseStatesHaveNoSharedSuperclass() {
+        assertEquals(Any::class.java, BaseState::class.java.superclass)
+        assertEquals(Any::class.java, NativeAuthBaseStateV2::class.java.superclass)
+    }
+
+    @Test
     fun v2ParcelStartsWithCorrelationIdRatherThanARawTokenPlaceholder() {
         val state = CodeRequiredStateV2(
             createContinuationState(),
