@@ -38,15 +38,13 @@ import kotlinx.coroutines.launch
  * State that requires the user to submit a strong authentication challenge.
  */
 class StrongAuthVerificationRequiredStateV2 internal constructor(
-    continuationToken: String,
     correlationId: String,
     scenario: NativeAuthFlowScenarioV2,
     config: NativeAuthPublicClientApplicationConfiguration
-) : NativeAuthBaseStateV2(continuationToken, correlationId, scenario, config) {
+) : NativeAuthBaseStateV2(correlationId, scenario, config) {
     private val TAG: String = StrongAuthVerificationRequiredStateV2::class.java.simpleName
 
     private constructor(parcel: Parcel) : this(
-        continuationToken = parcel.readString() ?: "",
         correlationId = parcel.readString() ?: "UNSET",
         scenario = NativeAuthFlowScenarioV2.valueOf(parcel.readString() ?: NativeAuthFlowScenarioV2.UNKNOWN.name),
         // Also drains the continuationState field written by the base class, so the read order
