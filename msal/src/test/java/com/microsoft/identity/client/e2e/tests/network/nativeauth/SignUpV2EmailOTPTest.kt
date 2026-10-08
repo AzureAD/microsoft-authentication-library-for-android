@@ -26,6 +26,8 @@ import com.microsoft.identity.client.e2e.utils.NativeAuthRequestRecorder
 import com.microsoft.identity.client.e2e.utils.NativeAuthEndpointCategory
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
+import com.microsoft.identity.nativeauth.statemachine.errors.SignUpErrorV2
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeErrorV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
@@ -34,6 +36,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Test
 
 /**
@@ -45,6 +48,7 @@ class SignUpV2EmailOTPTest : SignUpV2EmailAbstractTest() {
 
     companion object {
         private const val EMAIL_OTP_CLIENT_ID = "eb5a6da5-79fc-4d81-8d45-0ee1e8d4bd16"
+        private const val EMAIL_PASSWORD_CLIENT_ID = "456cf138-cb77-48e6-8a82-74f869d77e74"
         private const val OTP_ATTRIBUTES_CLIENT_ID = "6a092e9d-3f70-4ea1-bf38-8a642d004271"
     }
 
@@ -297,5 +301,66 @@ class SignUpV2EmailOTPTest : SignUpV2EmailAbstractTest() {
                 assertAccountAndTokens(complete, email)
             }
         }
+    }
+
+    @Ignore(
+        "Expected V2 behavior is user-already-exists; disabled because a known server bug " +
+            "currently returns code-required."
+    )
+    @Test
+    fun v1Parity_existingOtpAccountIsRejected() {
+        application = createApplication()
+
+        retryOperation(maxRetries = 1) {
+            runBlocking {
+                val email = createAccount(application)
+                val result = application.signUpV2(NativeAuthSignUpParameters(email))
+
+                assertResult<SignUpErrorV2>(result)
+                assertTrue((result as SignUpErrorV2).isUserAlreadyExists())
+            }
+        }
+    }
+
+    @Ignore(
+        "Expected V2 behavior is user-already-exists; disabled because a known server bug " +
+            "currently returns code-required."
+    )
+    @Test
+    fun v1Parity_existingPasswordAccountIsRejected() {
+        application = createApplication()
+        val passwordApplication = createApplication(
+            ConfigType.SIGN_UP_PASSWORD,
+            EMAIL_PASSWORD_CLIENT_ID
+        )
+
+        retryOperation(maxRetries = 1) {
+            runBlocking {
+                val password = newValidPassword()
+                val email = try {
+                    createAccount(passwordApplication, password)
+                } finally {
+                    password.fill('\u0000')
+                }
+                val result = application.signUpV2(NativeAuthSignUpParameters(email))
+
+                assertResult<SignUpErrorV2>(result)
+                assertTrue((result as SignUpErrorV2).isUserAlreadyExists())
+            }
+        }
+    }
+
+    private suspend fun createAccount(
+        application: INativeAuthPublicClientApplication,
+        password: CharArray? = null
+    ): String {
+        val email = tempEmailApi.createRandomEmailAddress()
+        tempEmailApi.markCheckpoint(email)
+        val codeRequired = startSignUp(application, email, password)
+        val completed = codeRequired.nextState.submitCode(
+            tempEmailApi.retrieveCodeFromInbox(email)
+        )
+        assertResult<NativeAuthResultV2.SignInAfterSignUpRequired>(completed)
+        return email
     }
 }

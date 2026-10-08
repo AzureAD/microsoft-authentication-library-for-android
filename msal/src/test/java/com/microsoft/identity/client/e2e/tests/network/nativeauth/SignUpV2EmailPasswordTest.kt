@@ -26,6 +26,8 @@ import com.microsoft.identity.client.e2e.utils.NativeAuthEndpointCategory
 import com.microsoft.identity.client.e2e.utils.NativeAuthRequestRecorder
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
+import com.microsoft.identity.nativeauth.statemachine.errors.SignUpErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeErrorV2
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
@@ -34,6 +36,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Test
 
 /**
@@ -284,6 +287,38 @@ class SignUpV2EmailPasswordTest : SignUpV2EmailAbstractTest() {
                         completed as NativeAuthResultV2.SignInAfterSignUpRequired
                     )
                     assertAccountAndTokens(signedIn, email)
+                } finally {
+                    password.fill('\u0000')
+                }
+            }
+        }
+    }
+
+    @Ignore(
+        "Expected V2 behavior is user-already-exists; disabled because a known server bug " +
+            "currently returns code-required."
+    )
+    @Test
+    fun v1Parity_existingPasswordAccountIsRejected() {
+        application = createApplication()
+
+        retryOperation(maxRetries = 1) {
+            runBlocking {
+                val email = tempEmailApi.createRandomEmailAddress()
+                tempEmailApi.markCheckpoint(email)
+                val password = newValidPassword()
+                try {
+                    val codeRequired = startSignUp(application, email, password)
+                    val completed = codeRequired.nextState.submitCode(
+                        tempEmailApi.retrieveCodeFromInbox(email)
+                    )
+                    assertResult<NativeAuthResultV2.SignInAfterSignUpRequired>(completed)
+
+                    val duplicateParameters = NativeAuthSignUpParameters(email)
+                    duplicateParameters.password = password
+                    val duplicate = application.signUpV2(duplicateParameters)
+                    assertResult<SignUpErrorV2>(duplicate)
+                    assertTrue((duplicate as SignUpErrorV2).isUserAlreadyExists())
                 } finally {
                     password.fill('\u0000')
                 }
