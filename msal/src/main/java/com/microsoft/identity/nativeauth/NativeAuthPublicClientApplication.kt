@@ -810,7 +810,9 @@ class NativeAuthPublicClientApplication(
         val parametersSnapshot = NativeAuthSignInParameters(parameters.username).also {
             it.password = parameters.password?.copyOf()
             it.scopes = parameters.scopes?.toList()
-            it.claimsRequest = parameters.claimsRequest
+            it.claimsRequest = parameters.claimsRequest?.let { claims ->
+                ClaimsRequest.getClaimsRequestFromJsonString(ClaimsRequest.getJsonStringFromClaimsRequest(claims))
+            }
         }
         pcaScope.launchOwningPasswordSnapshot(parametersSnapshot.password) {
             try {
@@ -854,7 +856,9 @@ class NativeAuthPublicClientApplication(
                     nativeAuthConfig.oAuth2TokenCache,
                     parameters.username,
                     passwordCopy,
-                    parameters.attributes?.toMap()
+                    parameters.attributes?.toMap(),
+                    parameters.scopes?.toList(),
+                    parameters.claimsRequest
                 )
                 correlationId = cmdParams.correlationId ?: correlationId
 
@@ -1016,6 +1020,10 @@ class NativeAuthPublicClientApplication(
         )
         val parametersSnapshot = NativeAuthSignUpParameters(parameters.username).also {
             it.password = parameters.password?.copyOf()
+            it.scopes = parameters.scopes?.toList()
+            it.claimsRequest = parameters.claimsRequest?.let { claims ->
+                ClaimsRequest.getClaimsRequestFromJsonString(ClaimsRequest.getJsonStringFromClaimsRequest(claims))
+            }
             it.attributes = parameters.attributes?.let { attributes ->
                 UserAttributes(attributes.toMap())
             }
@@ -1056,7 +1064,9 @@ class NativeAuthPublicClientApplication(
                 val cmdParams = CommandParametersAdapter.createResetPasswordV2StartCommandParameters(
                     nativeAuthConfig,
                     nativeAuthConfig.oAuth2TokenCache,
-                    parameters.username
+                    parameters.username,
+                    parameters.scopes?.toList(),
+                    parameters.claimsRequest
                 )
                 correlationId = cmdParams.correlationId ?: correlationId
 
@@ -1201,9 +1211,15 @@ class NativeAuthPublicClientApplication(
             correlationId = null,
             methodName = "${TAG}.resetPasswordV2(parameters: NativeAuthResetPasswordParameters, callback: NativeAuthV2Callback)"
         )
+        val parametersSnapshot = NativeAuthResetPasswordParameters(parameters.username).also {
+            it.scopes = parameters.scopes?.toList()
+            it.claimsRequest = parameters.claimsRequest?.let { claims ->
+                ClaimsRequest.getClaimsRequestFromJsonString(ClaimsRequest.getJsonStringFromClaimsRequest(claims))
+            }
+        }
         pcaScope.launch {
             try {
-                callback.onResult(resetPasswordV2(parameters))
+                callback.onResult(resetPasswordV2(parametersSnapshot))
             } catch (e: MsalException) {
                 Logger.error(TAG, "Exception thrown in resetPasswordV2", e)
                 callback.onError(e)
