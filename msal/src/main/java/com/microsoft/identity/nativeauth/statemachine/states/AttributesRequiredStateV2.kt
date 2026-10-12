@@ -46,8 +46,6 @@ import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpErrorTypes
-import com.microsoft.identity.nativeauth.statemachine.errors.SignUpErrorV2
-import com.microsoft.identity.nativeauth.statemachine.errors.SubmitAttributesErrorV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.toListOfRequiredUserAttributeV2
 import com.microsoft.identity.nativeauth.toMap
@@ -202,7 +200,8 @@ internal suspend fun submitAttributesInternal(
                     NativeAuthResultV2.AttributesInvalid(
                         nextState = AttributesInvalidStateV2(result.continuationState, scenario, config),
                         scenario = scenario,
-                        invalidAttributes = result.invalidAttributes
+                        invalidAttributes = result.invalidAttributes,
+                        error = NativeAuthErrorV2.fromAttributeError(result, scenario)
                     )
                 }
                 is NativeAuthV2CommandResult.SignInAfterSignUpRequired -> {
@@ -212,17 +211,19 @@ internal suspend fun submitAttributesInternal(
                     )
                 }
                 is NativeAuthV2CommandResult.UserAlreadyExists -> {
-                    SignUpErrorV2(
+                    NativeAuthErrorV2(
                         errorType = SignUpErrorTypes.USER_ALREADY_EXISTS,
                         error = result.error,
                         errorMessage = result.errorDescription,
                         correlationId = result.correlationId,
                         scenario = scenario,
-                        errorCodes = result.errorCodes
+                        errorCodes = result.errorCodes,
+                        subError = result.subError,
+                        attributeValidationDetails = result.attributeValidationDetails
                     )
                 }
                 is SignUpCommandResult.InvalidAttributes -> {
-                    SubmitAttributesErrorV2(
+                    NativeAuthErrorV2(
                         errorType = SignUpErrorTypes.INVALID_ATTRIBUTES,
                         error = result.error,
                         errorMessage = result.errorDescription,
@@ -240,7 +241,7 @@ internal suspend fun submitAttributesInternal(
                     )
                 }
                 is INativeAuthCommandResult.Redirect -> {
-                    SubmitAttributesErrorV2(
+                    NativeAuthErrorV2(
                         errorType = ErrorTypes.BROWSER_REQUIRED,
                         error = result.error,
                         errorMessage = result.errorDescription,
@@ -249,18 +250,20 @@ internal suspend fun submitAttributesInternal(
                     )
                 }
                 is INativeAuthCommandResult.APIError -> {
-                    SubmitAttributesErrorV2(
+                    NativeAuthErrorV2(
                         error = result.error,
                         errorMessage = result.errorDescription,
                         correlationId = result.correlationId,
                         scenario = scenario,
                         errorCodes = result.errorCodes,
-                        exception = result.exception
+                        exception = result.exception,
+                        subError = result.subError,
+                        attributeValidationDetails = result.attributeValidationDetails
                     )
                 }
                 else -> {
                     Logger.warnWithObject(TAG, result.correlationId, "V2 submitAttributes received unsupported result: ", result)
-                    SubmitAttributesErrorV2(
+                    NativeAuthErrorV2(
                         errorType = ErrorTypes.INVALID_STATE,
                         errorMessage = "V2 submit attributes returned an unsupported result.",
                         correlationId = result.correlationId,
@@ -272,7 +275,7 @@ internal suspend fun submitAttributesInternal(
             throw e
         } catch (e: Exception) {
             Logger.error(TAG, correlationId, "Exception thrown in submitAttributes", e)
-            SubmitAttributesErrorV2(
+            NativeAuthErrorV2(
                 errorType = ErrorTypes.CLIENT_EXCEPTION,
                 errorMessage = "MSAL client exception occurred in submitAttributes.",
                 correlationId = correlationId,

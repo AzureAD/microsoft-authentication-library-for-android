@@ -195,7 +195,9 @@ class SignInAfterSignUpStateV2 internal constructor(
                             correlationId = result.correlationId,
                             scenario = scenario,
                             errorCodes = result.errorCodes,
-                            exception = result.exception
+                            exception = result.exception,
+                            subError = result.subError,
+                            attributeValidationDetails = result.attributeValidationDetails
                         )
                     }
                     is NativeAuthV2CommandResult.NotImplemented -> {

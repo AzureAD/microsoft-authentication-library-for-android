@@ -49,7 +49,6 @@ import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
-import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeErrorV2
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.toListOfRequiredUserAttributeV2
@@ -118,7 +117,7 @@ class CodeRequiredStateV2 internal constructor(
         )
         val state = continuationState ?: return invalidState()
         if (code.isEmpty()) {
-            return SubmitCodeErrorV2(
+            return NativeAuthErrorV2(
                 errorType = ErrorTypes.INVALID_CODE,
                 errorMessage = "Code cannot be empty.",
                 correlationId = correlationId,
@@ -146,7 +145,7 @@ class CodeRequiredStateV2 internal constructor(
                 throw e
             } catch (e: Exception) {
                 Logger.error(TAG, correlationId, "Exception thrown in submitCode", e)
-                SubmitCodeErrorV2(
+                NativeAuthErrorV2(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in submitCode.",
                     correlationId = correlationId,
@@ -285,7 +284,7 @@ class CodeRequiredStateV2 internal constructor(
 
     private fun unsupportedSubmitCodeResult(result: INativeAuthCommandResult): NativeAuthResultV2 {
         Logger.warnWithObject(TAG, result.correlationId, "V2 submitCode received unsupported result: ", result)
-        return SubmitCodeErrorV2(
+        return NativeAuthErrorV2(
             errorType = ErrorTypes.INVALID_STATE,
             errorMessage = "V2 submit code returned an unsupported result.",
             correlationId = result.correlationId,
@@ -296,7 +295,7 @@ class CodeRequiredStateV2 internal constructor(
     private fun mapSubmitCodeError(result: INativeAuthCommandResult): NativeAuthResultV2 =
         when (result) {
             is NativeAuthV2CommandResult.IncorrectCode -> {
-                SubmitCodeErrorV2(
+                NativeAuthErrorV2(
                     errorType = ErrorTypes.INVALID_CODE,
                     error = result.error,
                     errorMessage = result.errorDescription,
@@ -316,7 +315,7 @@ class CodeRequiredStateV2 internal constructor(
                 )
             }
             is INativeAuthCommandResult.Redirect -> {
-                SubmitCodeErrorV2(
+                NativeAuthErrorV2(
                     errorType = ErrorTypes.BROWSER_REQUIRED,
                     error = result.error,
                     errorMessage = result.errorDescription,
@@ -325,18 +324,20 @@ class CodeRequiredStateV2 internal constructor(
                 )
             }
             is INativeAuthCommandResult.APIError -> {
-                SubmitCodeErrorV2(
+                NativeAuthErrorV2(
                     error = result.error,
                     errorMessage = result.errorDescription,
                     correlationId = result.correlationId,
                     scenario = scenario,
                     errorCodes = result.errorCodes,
-                    exception = result.exception
+                    exception = result.exception,
+                    subError = result.subError,
+                    attributeValidationDetails = result.attributeValidationDetails
                 )
             }
             else -> {
                 Logger.warn(TAG, result.correlationId, "Unexpected submit-code result.")
-                SubmitCodeErrorV2(
+                NativeAuthErrorV2(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "Unexpected submit-code result.",
                     correlationId = result.correlationId,
@@ -429,7 +430,9 @@ class CodeRequiredStateV2 internal constructor(
                             correlationId = result.correlationId,
                             scenario = scenario,
                             errorCodes = result.errorCodes,
-                            exception = result.exception
+                            exception = result.exception,
+                            subError = result.subError,
+                            attributeValidationDetails = result.attributeValidationDetails
                         )
                     }
                     else -> {

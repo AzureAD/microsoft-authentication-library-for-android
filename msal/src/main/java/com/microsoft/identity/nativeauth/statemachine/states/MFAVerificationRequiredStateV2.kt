@@ -44,7 +44,6 @@ import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
-import com.microsoft.identity.nativeauth.statemachine.errors.MFASubmitChallengeErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.utils.getCancellable
@@ -58,8 +57,8 @@ import kotlinx.coroutines.withContext
 /**
  * State that requires the user to submit a multi-factor authentication challenge.
  *
- * A wrong code is a recoverable [MFASubmitChallengeErrorV2] with
- * [MFASubmitChallengeErrorV2.isInvalidChallenge]; the caller retries on this same state instance or
+ * A wrong code is a recoverable [NativeAuthErrorV2] with
+ * [NativeAuthErrorV2.isInvalidChallenge]; the caller retries on this same state instance or
  * requests a fresh challenge through [resendChallenge]. Successful resends return a fresh
  * [NativeAuthResultV2.MFAVerificationRequired] whose state carries the latest opaque continuation
  * required for subsequent submit/resend calls. No error result carries a next state.
@@ -129,7 +128,7 @@ class MFAVerificationRequiredStateV2 internal constructor(
         )
         val state = continuationState ?: return invalidState()
         if (challenge.isEmpty()) {
-            return MFASubmitChallengeErrorV2(
+            return NativeAuthErrorV2(
                 errorType = ErrorTypes.INVALID_CODE,
                 errorMessage = "Challenge cannot be empty.",
                 correlationId = correlationId,
@@ -157,7 +156,7 @@ class MFAVerificationRequiredStateV2 internal constructor(
                         mapCompleteResult(result)
                     }
                     is NativeAuthV2CommandResult.IncorrectCode -> {
-                        MFASubmitChallengeErrorV2(
+                        NativeAuthErrorV2(
                             errorType = ErrorTypes.INVALID_CODE,
                             error = result.error,
                             errorMessage = result.errorDescription,
@@ -177,7 +176,7 @@ class MFAVerificationRequiredStateV2 internal constructor(
                         )
                     }
                     is INativeAuthCommandResult.Redirect -> {
-                        MFASubmitChallengeErrorV2(
+                        NativeAuthErrorV2(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
                             error = result.error,
                             errorMessage = result.errorDescription,
@@ -186,18 +185,20 @@ class MFAVerificationRequiredStateV2 internal constructor(
                         )
                     }
                     is INativeAuthCommandResult.APIError -> {
-                        MFASubmitChallengeErrorV2(
+                        NativeAuthErrorV2(
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = scenario,
                             errorCodes = result.errorCodes,
-                            exception = result.exception
+                            exception = result.exception,
+                            subError = result.subError,
+                            attributeValidationDetails = result.attributeValidationDetails
                         )
                     }
                     else -> {
                         Logger.warnWithObject(TAG, result.correlationId, "V2 submitChallenge received unsupported result: ", result)
-                        MFASubmitChallengeErrorV2(
+                        NativeAuthErrorV2(
                             errorType = ErrorTypes.INVALID_STATE,
                             errorMessage = "V2 submit MFA challenge returned an unsupported result.",
                             correlationId = result.correlationId,
@@ -209,7 +210,7 @@ class MFAVerificationRequiredStateV2 internal constructor(
                 throw e
             } catch (e: Exception) {
                 Logger.error(TAG, correlationId, "Exception thrown in submitChallenge", e)
-                MFASubmitChallengeErrorV2(
+                NativeAuthErrorV2(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in submitChallenge.",
                     correlationId = correlationId,
@@ -307,7 +308,9 @@ class MFAVerificationRequiredStateV2 internal constructor(
                             correlationId = result.correlationId,
                             scenario = scenario,
                             errorCodes = result.errorCodes,
-                            exception = result.exception
+                            exception = result.exception,
+                            subError = result.subError,
+                            attributeValidationDetails = result.attributeValidationDetails
                         )
                     }
                     else -> {
