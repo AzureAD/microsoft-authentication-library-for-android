@@ -23,6 +23,8 @@
 
 package com.microsoft.identity.nativeauth.parameters
 
+import com.microsoft.identity.client.claims.ClaimsRequest
+
 /**
  * Encapsulates the parameters passed to the resetPassword methods of NativeAuthPublicClientApplication.
  *
@@ -30,4 +32,10 @@ package com.microsoft.identity.nativeauth.parameters
  */
 class NativeAuthResetPasswordParameters(
     val username: String
-)
+) {
+    /** V2-only requested scopes. Null or empty uses default OIDC scopes; ignored by V1. */
+    var scopes: List<String>? = null
+
+    /** V2-only claims sent at authorize-challenge entry; ignored by V1. */
+    var claimsRequest: ClaimsRequest? = null
+}

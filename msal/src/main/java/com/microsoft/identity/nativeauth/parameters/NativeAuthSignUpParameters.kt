@@ -24,6 +24,7 @@
 package com.microsoft.identity.nativeauth.parameters
 
 import com.microsoft.identity.nativeauth.UserAttributes
+import com.microsoft.identity.client.claims.ClaimsRequest
 
 /**
  * Encapsulates the parameters passed to the signUp methods of NativeAuthPublicClientApplication
@@ -47,4 +48,10 @@ class NativeAuthSignUpParameters(
      * Supply them through the dedicated [username] and [password] properties instead.
      */
     var attributes: UserAttributes? = null
+
+    /** V2-only requested scopes. Null or empty uses default OIDC scopes; ignored by V1. */
+    var scopes: List<String>? = null
+
+    /** V2-only claims sent at authorize-challenge entry; ignored by V1. */
+    var claimsRequest: ClaimsRequest? = null
 }

@@ -374,17 +374,25 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     @Test
     fun signInV2CallbackSnapshotsThePasswordSynchronouslyBeforeLaunch() = runTest {
         var capturedPassword: CharArray? = null
+        var capturedScopes: List<String>? = null
+        var capturedClaims: String? = null
         enqueueResult(
             NativeAuthV2CommandResult.PasswordRequired(correlationId, createContinuationState()),
             NativeAuthV2SignInStartCommand::class
         ) { command ->
-            capturedPassword = (command.parameters as SignInV2StartCommandParameters).password?.copyOf()
+            val commandParameters = command.parameters as SignInV2StartCommandParameters
+            capturedPassword = commandParameters.password?.copyOf()
+            capturedScopes = commandParameters.scopes
+            capturedClaims = commandParameters.claimsRequestJson
         }
 
         val callerPassword = "Password123!".toCharArray()
         val future = ResultFuture<NativeAuthResultV2>()
+        val scopes = mutableListOf("User.Read")
+        val claims = com.microsoft.identity.client.claims.ClaimsRequest().also { it.requestClaimInIdToken("auth_time", null) }
+        val expectedClaims = com.microsoft.identity.client.claims.ClaimsRequest.getJsonStringFromClaimsRequest(claims)
         application.signInV2(
-            signInParameters(password = callerPassword),
+            signInParameters(password = callerPassword, scopes = scopes).also { it.claimsRequest = claims },
             object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
                 override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
                 override fun onError(exception: BaseException) = future.setException(exception)
@@ -395,10 +403,14 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         // the coroutine body, as opposed to synchronously before launch), this mutation could race
         // with -- and change -- what actually gets submitted to Common.
         callerPassword.fill('X')
+        scopes.clear()
+        claims.requestClaimInIdToken("changed", null)
 
         future.get(10, TimeUnit.SECONDS)
 
         assertEquals("Password123!", String(capturedPassword!!))
+        assertEquals(listOf("User.Read"), capturedScopes)
+        assertEquals(expectedClaims, capturedClaims)
     }
 
     @Test
@@ -977,13 +989,22 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun submitChallengeRejectsAnEmptyCodeWithoutIssuingACommand() = runTest {
+    fun submitChallengeSendsEmptyAndShortCodesToServiceAndRemainsRetryable() = runTest {
         val verificationState = mfaVerificationState(mfaRequiredState())
 
-        val result = verificationState.submitChallenge("") as NativeAuthErrorV2
-
-        assertTrue(result.isInvalidChallenge())
-        assertEquals(ErrorTypes.INVALID_CODE, result.errorType)
+        listOf("", "1").forEach { code ->
+            var submittedCode: String? = null
+            enqueueResult(
+                NativeAuthV2CommandResult.IncorrectCode(correlationId, "invalidGrant", "invalid", "invalidOneTimeCode"),
+                NativeAuthV2SubmitMFAChallengeCommand::class
+            ) { command ->
+                submittedCode = (command.parameters as com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitMFAChallengeCommandParameters).code
+            }
+            val result = verificationState.submitChallenge(code) as NativeAuthErrorV2
+            assertTrue(result.isInvalidChallenge())
+            assertTrue(result.isInvalidCode())
+            assertEquals(code, submittedCode)
+        }
     }
 
     @Test

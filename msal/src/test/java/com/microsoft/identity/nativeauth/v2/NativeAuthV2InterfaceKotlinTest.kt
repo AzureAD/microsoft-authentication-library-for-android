@@ -127,6 +127,106 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     private lateinit var application: INativeAuthPublicClientApplication
     private val username = "user@email.com"
 
+    @Test
+    fun allV2EntriesPropagateNullableScopesAndTypedClaimsThroughAdapters() = runTest {
+        val claims = com.microsoft.identity.client.claims.ClaimsRequest().also {
+            it.requestClaimInIdToken("auth_time", null)
+        }
+        val expectedClaims = com.microsoft.identity.client.claims.ClaimsRequest.getJsonStringFromClaimsRequest(claims)
+        listOf<List<String>?>(null, emptyList(), listOf("User.Read")).forEach { scopes ->
+            var captured: com.microsoft.identity.common.java.nativeauth.commands.parameters.BaseSignInTokenCommandParameters? = null
+            fun capture(command: BaseCommand<*>) {
+                captured = command.parameters as com.microsoft.identity.common.java.nativeauth.commands.parameters.BaseSignInTokenCommandParameters
+            }
+            fun assertCaptured() {
+                assertTrue(captured != null)
+                assertEquals(scopes, captured?.scopes)
+                assertEquals(expectedClaims, captured?.claimsRequestJson)
+                captured = null
+            }
+            val result = INativeAuthCommandResult.APIError("test_stop", "test stop", correlationId = correlationId)
+            enqueueResult(result, com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInStartCommand::class, ::capture)
+            application.signInV2(NativeAuthSignInParameters(username).also {
+                it.scopes = scopes
+                it.claimsRequest = claims
+            })
+            assertCaptured()
+            enqueueResult(result, NativeAuthV2SignUpStartCommand::class, ::capture)
+            application.signUpV2(NativeAuthSignUpParameters(username).also {
+                it.scopes = scopes
+                it.claimsRequest = claims
+            })
+            assertCaptured()
+            enqueueResult(result, NativeAuthV2ResetPasswordStartCommand::class, ::capture)
+            application.resetPasswordV2(NativeAuthResetPasswordParameters(username).also {
+                it.scopes = scopes
+                it.claimsRequest = claims
+            })
+            assertCaptured()
+        }
+    }
+
+    @Test
+    fun sharedEntryScopesAndClaimsDoNotChangeV1CommandInputsOrErrors() = runTest {
+        val claims = com.microsoft.identity.client.claims.ClaimsRequest().also { it.requestClaimInIdToken("auth_time", null) }
+        var signUpInputs: com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpStartCommandParameters? = null
+        var resetInputs: com.microsoft.identity.common.java.nativeauth.commands.parameters.ResetPasswordStartCommandParameters? = null
+        val result = INativeAuthCommandResult.APIError("test_stop", "test stop", correlationId = correlationId)
+        enqueueResult(result, com.microsoft.identity.common.nativeauth.internal.commands.SignUpStartCommand::class) {
+            signUpInputs = it.parameters as com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpStartCommandParameters
+        }
+        enqueueResult(result, com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordStartCommand::class) {
+            resetInputs = it.parameters as com.microsoft.identity.common.java.nativeauth.commands.parameters.ResetPasswordStartCommandParameters
+        }
+        val signUp = application.signUp(NativeAuthSignUpParameters(username).also {
+            it.scopes = listOf("V2.Only")
+            it.claimsRequest = claims
+        })
+        val reset = application.resetPassword(NativeAuthResetPasswordParameters(username).also {
+            it.scopes = listOf("V2.Only")
+            it.claimsRequest = claims
+        })
+        assertTrue(signUp is com.microsoft.identity.nativeauth.statemachine.errors.SignUpError)
+        assertTrue(reset is com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError)
+        assertEquals(username, signUpInputs?.username)
+        assertEquals(null, signUpInputs?.userAttributes)
+        assertEquals(null, signUpInputs?.password)
+        assertEquals(username, resetInputs?.username)
+        assertEquals("test_stop", (reset as com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError).error)
+    }
+
+    @Test
+    fun resetPasswordCallbackSnapshotsScopesAndMutableClaimsBeforeLaunch() = runTest {
+        val scopes = mutableListOf("User.Read")
+        val claims = com.microsoft.identity.client.claims.ClaimsRequest().also {
+            it.requestClaimInIdToken("auth_time", null)
+        }
+        val expectedClaims = com.microsoft.identity.client.claims.ClaimsRequest.getJsonStringFromClaimsRequest(claims)
+        var captured: com.microsoft.identity.common.java.nativeauth.commands.parameters.BaseSignInTokenCommandParameters? = null
+        enqueueResult(
+            INativeAuthCommandResult.APIError("test_stop", "test stop", correlationId = correlationId),
+            NativeAuthV2ResetPasswordStartCommand::class
+        ) { command ->
+            captured = command.parameters as com.microsoft.identity.common.java.nativeauth.commands.parameters.BaseSignInTokenCommandParameters
+        }
+        val parameters = NativeAuthResetPasswordParameters(username).also {
+            it.scopes = scopes
+            it.claimsRequest = claims
+        }
+        val future = ResultFuture<NativeAuthResultV2>()
+        application.resetPasswordV2(parameters, object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
+            override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
+            override fun onError(exception: BaseException) = future.setException(exception)
+        })
+        scopes.clear()
+        claims.requestClaimInIdToken("changed", null)
+        parameters.claimsRequest = null
+        assertTrue(future.get(30, TimeUnit.SECONDS) is NativeAuthErrorV2)
+        assertTrue(captured != null)
+        assertEquals(listOf("User.Read"), captured?.scopes)
+        assertEquals(expectedClaims, captured?.claimsRequestJson)
+    }
+
     override fun getConfigFilePath() = "src/test/res/raw/native_auth_native_only_test_config.json"
 
     @Before
@@ -573,12 +673,21 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun submitCodeRejectsEmptyInputWithRetryableInvalidCodeError() = runTest {
+    fun submitCodeSendsEmptyAndShortInputToServiceAndRemainsRetryable() = runTest {
         val state = codeRequiredState()
 
-        val error = state.submitCode("") as NativeAuthErrorV2
-
-        assertTrue(error.isInvalidCode())
+        listOf("", "1").forEach { code ->
+            var submittedCode: String? = null
+            enqueueResult(
+                NativeAuthV2CommandResult.IncorrectCode(correlationId, "invalidGrant", "invalid", "invalidOneTimeCode"),
+                NativeAuthV2ResetPasswordSubmitCodeCommand::class
+            ) { command ->
+                submittedCode = (command.parameters as com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitCodeCommandParameters).code
+            }
+            val error = state.submitCode(code) as NativeAuthErrorV2
+            assertTrue(error.isInvalidCode())
+            assertEquals(code, submittedCode)
+        }
     }
 
     @Test
