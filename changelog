@@ -6,9 +6,9 @@ vNext
 - [MINOR] Bump Kotlin to 2.0.21 with languageVersion/apiVersion pinned to 1.9 (#2561)
 - [MINOR] Added v2 private preview interfaces
 
-Version 8.5.1-RC1
+Version 8.5.1-RC2
 ----------
-- [PATCH] Update common @24.7.1-RC1
+- [PATCH] Update common @24.7.1-RC2
 - [MINOR] [8.5.1 hotfix] Native Auth V2 SMS password reset (backport #2579), Fixes AB#3754595 (#2610)
 - [MINOR] [8.5.1 hotfix] Native Auth V2 SMS MFA (backport #2578), Fixes AB#3754593 (#2608)
 - [MINOR] [8.5.1 hotfix] Native Auth V2 email OTP first-factor sign-in (backport #2577), Fixes AB#3754588 (#2607)
