@@ -625,7 +625,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
 
         assertTrue(result is NativeAuthErrorV2)
         result as NativeAuthErrorV2
-        assertTrue(result.isInvalidInput())
+        assertTrue(result.isInvalidCredentials())
         assertFalse(result.isInvalidPassword())
         assertEquals(errorCodes, result.errorCodes)
     }
@@ -636,7 +636,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
 
         val result = state.submitPassword(CharArray(0)) as NativeAuthErrorV2
 
-        assertTrue(result.isInvalidCredentials())
+        assertTrue(result.isInvalidInput())
         assertFalse(result.isInvalidPassword())
     }
 
