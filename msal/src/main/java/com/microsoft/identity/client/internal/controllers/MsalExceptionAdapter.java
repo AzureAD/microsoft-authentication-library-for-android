@@ -65,8 +65,8 @@ public class MsalExceptionAdapter {
         if (e instanceof ArgumentException) {
             final ArgumentException argumentException = ((ArgumentException) e);
             return new MsalArgumentException(
-                    argumentException.getArgumentName(),
                     argumentException.getOperationName(),
+                    argumentException.getArgumentName(),
                     argumentException.getMessage(),
                     argumentException
             );
