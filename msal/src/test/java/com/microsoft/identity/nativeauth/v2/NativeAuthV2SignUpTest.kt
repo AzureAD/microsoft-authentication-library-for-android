@@ -185,6 +185,8 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
                 correlationId, createContinuationState(), listOf("city"),
                 "invalidRequest", "attribute validation", listOf(1002027),
                 subError = "attributeValidationError",
+                traceId = "attribute-trace",
+                timestamp = "attribute-time",
                 attributeValidationDetails = listOf(mapOf("code" to "attributeRequired", "attributeIds" to listOf("city")))
             ),
             NativeAuthV2SignUpStartCommand::class
@@ -196,6 +198,8 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         assertFalse(error.isInvalidPassword())
         assertEquals("attributeValidationError", error.subError)
         assertEquals(listOf(1002027), error.errorCodes)
+        assertEquals("attribute-trace", error.traceId)
+        assertEquals("attribute-time", error.timestamp)
         assertEquals(listOf("city"), result.invalidAttributes)
     }
 
@@ -205,7 +209,8 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         enqueueResult(
             INativeAuthCommandResult.APIError(
                 "futureError", "service diagnostic", correlationId = correlationId,
-                errorCodes = listOf(1234), exception = exception, subError = "futureSubError"
+                errorCodes = listOf(1234), exception = exception, subError = "futureSubError",
+                traceId = "service-trace", timestamp = "service-time"
             ),
             NativeAuthV2SignUpStartCommand::class
         )
@@ -216,6 +221,8 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         assertEquals("futureSubError", error.subError)
         assertEquals(listOf(1234), error.errorCodes)
         assertEquals(exception, error.exception)
+        assertEquals("service-trace", error.traceId)
+        assertEquals("service-time", error.timestamp)
     }
 
     @Test
@@ -320,13 +327,19 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     @Test
     fun signUpV2MapsBrowserRequiredToSignUpError() = runTest {
         enqueueResult(
-            INativeAuthCommandResult.Redirect(correlationId, "browser"),
+            INativeAuthCommandResult.Redirect(
+                correlationId, "browser", errorCodes = listOf(123),
+                traceId = "browser-trace", timestamp = "browser-time"
+            ),
             NativeAuthV2SignUpStartCommand::class
         )
 
         val result = application.signUpV2(signUpParameters()) as NativeAuthErrorV2
 
         assertTrue(result.isBrowserRequired())
+        assertEquals(listOf(123), result.errorCodes)
+        assertEquals("browser-trace", result.traceId)
+        assertEquals("browser-time", result.timestamp)
     }
 
     @Test
@@ -580,7 +593,9 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
                 "invalid_grant",
                 "AADSTS50181: invalid code.",
                 "invalidOneTimeCode",
-                listOf(50181)
+                listOf(50181),
+                traceId = "code-trace",
+                timestamp = "code-time"
             ),
             NativeAuthV2SignUpSubmitCodeCommand::class
         )
@@ -588,6 +603,9 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         val result = state.submitCode("000000") as NativeAuthErrorV2
 
         assertTrue(result.isInvalidCode())
+        assertEquals(listOf(50181), result.errorCodes)
+        assertEquals("code-trace", result.traceId)
+        assertEquals("code-time", result.timestamp)
     }
 
     @Test
