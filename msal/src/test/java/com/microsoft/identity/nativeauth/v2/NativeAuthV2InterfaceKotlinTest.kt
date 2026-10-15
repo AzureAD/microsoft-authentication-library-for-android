@@ -23,6 +23,8 @@
 package com.microsoft.identity.nativeauth.v2
 
 import android.content.Context
+import android.os.Bundle
+import android.os.Parcel
 import androidx.test.core.app.ApplicationProvider
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.AuthenticationResultAdapter
@@ -79,6 +81,7 @@ import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredS
 import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.NativeAuthBaseStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordMethodRequiredStateV2
@@ -106,7 +109,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertSame
-import org.junit.Assert.assertNull
 import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
@@ -169,7 +171,6 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, result.scenario)
         assertEquals(6, result.codeLength)
         assertEquals("a***@example.com", result.sentTo)
-        assertNull(result.nextState.continuationToken)
     }
 
     @Test
@@ -193,7 +194,6 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         assertEquals(6, result.codeLength)
         assertEquals("a***@example.com", result.sentTo)
         assertEquals("email", result.channel)
-        assertNull(result.nextState.continuationToken)
         assertEquals(correlationId, result.nextState.correlationId)
     }
 
@@ -587,7 +587,6 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     @Test
     fun codeOperationsWithoutContinuationStateReturnInvalidState() = runTest {
         val state = CodeRequiredStateV2(
-            null,
             correlationId,
             NativeAuthFlowScenarioV2.RESET_PASSWORD,
             NativeAuthPublicClientApplicationConfiguration()
@@ -752,7 +751,6 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         // Null-continuation fallback returns before any command parameters are created.
         val notImplementedPassword = "Password!".toCharArray()
         val notImplemented = NewPasswordRequiredStateV2(
-            "continuation-token",
             correlationId,
             NativeAuthFlowScenarioV2.RESET_PASSWORD,
             NativeAuthPublicClientApplicationConfiguration()
@@ -890,34 +888,32 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         val attributes = com.microsoft.identity.nativeauth.UserAttributes.Builder().city("city").build()
         val authMethod = com.microsoft.identity.nativeauth.AuthMethod("id", "oob", null, "email")
 
-        val codeRequired = CodeRequiredStateV2("continuation-token", "correlation-id", scenario, config)
+        val codeRequired = CodeRequiredStateV2("correlation-id", scenario, config)
         assertInvalidState(codeRequired.submitCode("1234"))
         assertInvalidState(codeRequired.resendCode())
 
-        assertInvalidState(PasswordRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitPassword("password".toCharArray()))
-        assertNotImplemented(NewPasswordRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitNewPassword("password".toCharArray()))
-        assertNotImplemented(SignInAfterResetPasswordStateV2("continuation-token", "correlation-id", scenario, config).signIn())
-        assertInvalidState(AttributesRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitAttributes(attributes))
-        assertInvalidState(AttributesInvalidStateV2("continuation-token", "correlation-id", scenario, config).submitAttributes(attributes))
-        assertInvalidState(MFARequiredStateV2("continuation-token", "correlation-id", scenario, config).selectAuthMethod(authMethod))
+        assertInvalidState(PasswordRequiredStateV2("correlation-id", scenario, config).submitPassword("password".toCharArray()))
+        assertNotImplemented(NewPasswordRequiredStateV2("correlation-id", scenario, config).submitNewPassword("password".toCharArray()))
+        assertNotImplemented(SignInAfterResetPasswordStateV2("correlation-id", scenario, config).signIn())
+        assertInvalidState(AttributesRequiredStateV2("correlation-id", scenario, config).submitAttributes(attributes))
+        assertInvalidState(AttributesInvalidStateV2("correlation-id", scenario, config).submitAttributes(attributes))
+        assertInvalidState(MFARequiredStateV2("correlation-id", scenario, config).selectAuthMethod(authMethod))
         assertInvalidState(
             ResetPasswordMethodRequiredStateV2(
-                "continuation-token",
                 "correlation-id",
                 NativeAuthFlowScenarioV2.RESET_PASSWORD,
                 config
             ).selectAuthMethod(authMethod)
         )
-        assertInvalidState(MFAVerificationRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitChallenge("challenge"))
-        assertInvalidState(MFAVerificationRequiredStateV2("continuation-token", "correlation-id", scenario, config).resendChallenge())
-        assertNotImplemented(StrongAuthRegistrationRequiredStateV2("continuation-token", "correlation-id", scenario, config).selectAuthMethod(authMethod))
-        assertNotImplemented(StrongAuthVerificationRequiredStateV2("continuation-token", "correlation-id", scenario, config).submitChallenge("challenge"))
+        assertInvalidState(MFAVerificationRequiredStateV2("correlation-id", scenario, config).submitChallenge("challenge"))
+        assertInvalidState(MFAVerificationRequiredStateV2("correlation-id", scenario, config).resendChallenge())
+        assertNotImplemented(StrongAuthRegistrationRequiredStateV2("correlation-id", scenario, config).selectAuthMethod(authMethod))
+        assertNotImplemented(StrongAuthVerificationRequiredStateV2("correlation-id", scenario, config).submitChallenge("challenge"))
     }
 
     @Test
     fun signInAfterResetPasswordRequiredIsResult() {
         val state = SignInAfterResetPasswordStateV2(
-            continuationToken = "continuation-token",
             correlationId = "correlation-id",
             scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
             config = NativeAuthPublicClientApplicationConfiguration()
@@ -974,6 +970,71 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         )
         return (application.resetPasswordV2(NativeAuthResetPasswordParameters(username)) as
             NativeAuthResultV2.CodeRequired).nextState
+    }
+
+    @Test
+    fun resetPasswordContinuesAfterRestoringStatesAndReinitializingConfiguration() = runTest {
+        val codeState = restoreSavedStateAndReinitializeConfiguration(codeRequiredState())
+        enqueueResult(
+            NativeAuthV2CommandResult.NewPasswordRequired(correlationId, createContinuationState()),
+            NativeAuthV2ResetPasswordSubmitCodeCommand::class
+        )
+        val passwordState = restoreSavedStateAndReinitializeConfiguration(
+            (codeState.submitCode("123456") as NativeAuthResultV2.NewPasswordRequired).nextState
+        )
+        enqueueResult(
+            NativeAuthV2CommandResult.SignInAfterResetPasswordRequired(
+                correlationId,
+                createContinuationState()
+            ),
+            NativeAuthV2SubmitNewPasswordCommand::class
+        )
+        val signInState = restoreSavedStateAndReinitializeConfiguration(
+            (passwordState.submitNewPassword("Password!".toCharArray()) as
+                NativeAuthResultV2.SignInAfterResetPasswordRequired).nextState
+        )
+        val localResult = mockk<ILocalAuthenticationResult>()
+        val authenticationResult = mockk<IAuthenticationResult>()
+        every { authenticationResult.account } returns mockk<IAccount>()
+        mockkStatic(AuthenticationResultAdapter::class)
+        try {
+            every { AuthenticationResultAdapter.adapt(localResult) } returns authenticationResult
+            enqueueResult(
+                NativeAuthV2CommandResult.Complete(correlationId, localResult, null, null),
+                NativeAuthV2SignInAfterResetPasswordCommand::class
+            )
+            val result = signInState.signIn() as NativeAuthResultV2.Complete
+            assertEquals(correlationId, result.resultValue.correlationId)
+            assertEquals(NativeAuthFlowScenarioV2.RESET_PASSWORD, result.scenario)
+        } finally {
+            unmockkStatic(AuthenticationResultAdapter::class)
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private inline fun <reified T : NativeAuthBaseStateV2> restoreSavedStateAndReinitializeConfiguration(state: T): T {
+        val parcel = Parcel.obtain()
+        val restoredParcel = Parcel.obtain()
+        try {
+            val savedState = Bundle().apply { putParcelable("state", state) }
+            savedState.writeToParcel(parcel, 0)
+            val bytes = parcel.marshall()
+            restoredParcel.unmarshall(bytes, 0, bytes.size)
+            restoredParcel.setDataPosition(0)
+            val restoredState = Bundle.CREATOR.createFromParcel(restoredParcel).apply {
+                classLoader = T::class.java.classLoader
+            }
+            val restored = requireNotNull(restoredState.getParcelable<T>("state"))
+            // The existing configuration serialization excludes superclass fields, Context, and
+            // the token cache. Reinitialize those separately; the opaque continuation stays restored.
+            restored.config.mergeConfiguration(state.config)
+            restored.config.appContext = state.config.appContext
+            restored.config.oAuth2TokenCache = state.config.oAuth2TokenCache
+            return restored
+        } finally {
+            parcel.recycle()
+            restoredParcel.recycle()
+        }
     }
 
     private suspend fun signInAfterResetState(): SignInAfterResetPasswordStateV2 {

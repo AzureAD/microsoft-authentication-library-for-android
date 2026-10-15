@@ -66,7 +66,6 @@ import java.util.Collections
  * rather than following an unsupported method.
  */
 class MFARequiredStateV2 internal constructor(
-    continuationToken: String?,
     correlationId: String,
     scenario: NativeAuthFlowScenarioV2,
     config: NativeAuthPublicClientApplicationConfiguration,
@@ -76,7 +75,7 @@ class MFARequiredStateV2 internal constructor(
      * The authentication methods the server offered for this multi-factor step.
      */
     authMethods: List<AuthMethod> = emptyList()
-) : NativeAuthBaseStateV2(continuationToken, correlationId, scenario, config, continuationState) {
+) : NativeAuthBaseStateV2(correlationId, scenario, config, continuationState) {
     private val TAG: String = MFARequiredStateV2::class.java.simpleName
     val authMethods: List<AuthMethod> = Collections.unmodifiableList(ArrayList(authMethods))
 
@@ -86,7 +85,6 @@ class MFARequiredStateV2 internal constructor(
         scenario: NativeAuthFlowScenarioV2,
         config: NativeAuthPublicClientApplicationConfiguration
     ) : this(
-        continuationToken = null,
         correlationId = continuationState.correlationId,
         scenario = scenario,
         config = config,
@@ -95,7 +93,6 @@ class MFARequiredStateV2 internal constructor(
     )
 
     private constructor(parcel: Parcel) : this(
-        continuationToken = parcel.readString(),
         correlationId = parcel.readString() ?: "UNSET",
         scenario = NativeAuthFlowScenarioV2.valueOf(parcel.readString() ?: NativeAuthFlowScenarioV2.UNKNOWN.name),
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration,

@@ -54,7 +54,6 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class NativeAuthV2ResultsTest {
 
-    private val continuationToken = "continuation-token"
     private val correlationId = "correlation-id"
     private val scenario = NativeAuthFlowScenarioV2.SIGN_IN
     private val config = NativeAuthPublicClientApplicationConfiguration()
@@ -81,7 +80,7 @@ class NativeAuthV2ResultsTest {
     @Test
     fun testCodeRequiredExposesExpectedValues() {
         val result = NativeAuthResultV2.CodeRequired(
-            nextState = CodeRequiredStateV2(continuationToken, correlationId, scenario, config),
+            nextState = CodeRequiredStateV2(correlationId, scenario, config),
             scenario = scenario,
             codeLength = 6,
             sentTo = "user@email.com",
@@ -96,7 +95,7 @@ class NativeAuthV2ResultsTest {
     @Test
     fun testPasswordRequiredExposesExpectedValues() {
         val result = NativeAuthResultV2.PasswordRequired(
-            nextState = PasswordRequiredStateV2(continuationToken, correlationId, scenario, config),
+            nextState = PasswordRequiredStateV2(correlationId, scenario, config),
             scenario = scenario
         )
         assertEquals(scenario, result.scenario)
@@ -105,7 +104,7 @@ class NativeAuthV2ResultsTest {
     @Test
     fun testNewPasswordRequiredExposesExpectedValues() {
         val result = NativeAuthResultV2.NewPasswordRequired(
-            nextState = NewPasswordRequiredStateV2(continuationToken, correlationId, scenario, config),
+            nextState = NewPasswordRequiredStateV2(correlationId, scenario, config),
             scenario = scenario
         )
         assertEquals(scenario, result.scenario)
@@ -115,7 +114,7 @@ class NativeAuthV2ResultsTest {
     fun testAttributesRequiredExposesExpectedValues() {
         val requiredAttributes = mutableListOf(RequiredUserAttribute("city", "string", true, null))
         val result = NativeAuthResultV2.AttributesRequired(
-            nextState = AttributesRequiredStateV2(continuationToken, correlationId, scenario, config),
+            nextState = AttributesRequiredStateV2(correlationId, scenario, config),
             scenario = scenario,
             requiredAttributes = requiredAttributes
         )
@@ -136,7 +135,7 @@ class NativeAuthV2ResultsTest {
     fun testAttributesInvalidExposesExpectedValues() {
         val invalidAttributes = mutableListOf("city")
         val result = NativeAuthResultV2.AttributesInvalid(
-            nextState = AttributesInvalidStateV2(continuationToken, correlationId, scenario, config),
+            nextState = AttributesInvalidStateV2(correlationId, scenario, config),
             scenario = scenario,
             invalidAttributes = invalidAttributes
         )
@@ -157,7 +156,6 @@ class NativeAuthV2ResultsTest {
     fun testMFARequiredExposesExpectedValues() {
         val authMethods = mutableListOf(AuthMethod("id", "oob", "user@email.com", "email"))
         val nextState = MFARequiredStateV2(
-            continuationToken,
             correlationId,
             scenario,
             config,
@@ -186,7 +184,6 @@ class NativeAuthV2ResultsTest {
         val authMethods =
             mutableListOf(AuthMethod("sms-1", "sms", "+X XXX XXX 34", "sms"))
         val nextState = ResetPasswordMethodRequiredStateV2(
-            continuationToken,
             correlationId,
             NativeAuthFlowScenarioV2.RESET_PASSWORD,
             config,
@@ -212,7 +209,7 @@ class NativeAuthV2ResultsTest {
     @Test
     fun testMFAVerificationRequiredExposesExpectedValues() {
         val result = NativeAuthResultV2.MFAVerificationRequired(
-            nextState = MFAVerificationRequiredStateV2(continuationToken, correlationId, scenario, config),
+            nextState = MFAVerificationRequiredStateV2(correlationId, scenario, config),
             scenario = scenario,
             codeLength = 8,
             sentTo = "user@email.com",
@@ -228,7 +225,7 @@ class NativeAuthV2ResultsTest {
     fun testStrongAuthRegistrationRequiredExposesExpectedValues() {
         val authMethods = listOf(AuthMethod("id", "oob", "user@email.com", "email"))
         val result = NativeAuthResultV2.StrongAuthRegistrationRequired(
-            nextState = StrongAuthRegistrationRequiredStateV2(continuationToken, correlationId, scenario, config),
+            nextState = StrongAuthRegistrationRequiredStateV2(correlationId, scenario, config),
             scenario = scenario,
             authMethods = authMethods
         )
@@ -239,7 +236,7 @@ class NativeAuthV2ResultsTest {
     @Test
     fun testStrongAuthVerificationRequiredExposesExpectedValues() {
         val result = NativeAuthResultV2.StrongAuthVerificationRequired(
-            nextState = StrongAuthVerificationRequiredStateV2(continuationToken, correlationId, scenario, config),
+            nextState = StrongAuthVerificationRequiredStateV2(correlationId, scenario, config),
             scenario = scenario,
             codeLength = 4,
             sentTo = "user@email.com",

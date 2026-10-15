@@ -41,12 +41,11 @@ import kotlinx.coroutines.launch
  * State that requires the user to correct previously rejected account attributes.
  */
 class AttributesInvalidStateV2 internal constructor(
-    continuationToken: String?,
     correlationId: String,
     scenario: NativeAuthFlowScenarioV2,
     config: NativeAuthPublicClientApplicationConfiguration,
     continuationState: NativeAuthV2ContinuationState? = null
-) : NativeAuthBaseStateV2(continuationToken, correlationId, scenario, config, continuationState) {
+) : NativeAuthBaseStateV2(correlationId, scenario, config, continuationState) {
     private val TAG: String = AttributesInvalidStateV2::class.java.simpleName
 
     internal constructor(
@@ -54,7 +53,6 @@ class AttributesInvalidStateV2 internal constructor(
         scenario: NativeAuthFlowScenarioV2,
         config: NativeAuthPublicClientApplicationConfiguration
     ) : this(
-        continuationToken = null,
         correlationId = continuationState.correlationId,
         scenario = scenario,
         config = config,
@@ -62,7 +60,6 @@ class AttributesInvalidStateV2 internal constructor(
     )
 
     private constructor(parcel: Parcel) : this(
-        continuationToken = parcel.readString(),
         correlationId = parcel.readString() ?: "UNSET",
         scenario = NativeAuthFlowScenarioV2.valueOf(parcel.readString() ?: NativeAuthFlowScenarioV2.UNKNOWN.name),
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration,

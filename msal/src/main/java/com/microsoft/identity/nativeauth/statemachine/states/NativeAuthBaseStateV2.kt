@@ -40,20 +40,17 @@ import com.microsoft.identity.nativeauth.utils.serializable
  * Base class for the Native Auth V2 states. Each concrete state exposes only the methods that are
  * valid at that point in the flow.
  *
- * @property continuationToken Legacy placeholder used only by states that do not yet carry the
- * opaque V2 continuation state. Implemented V2 states keep this null.
  * @property correlationId Correlation ID taken from the previous API response and passed to the next request.
  * @property scenario Identifies which part of the Native Auth V2 surface this state belongs to.
  * @property config Configuration used by Native Auth.
  * @property continuationState Opaque DTO carrying mid-flow state; null in legacy/test paths and for states that don't drive a server call.
  */
 abstract class NativeAuthBaseStateV2 internal constructor(
-    override val continuationToken: String?,
-    override val correlationId: String,
+    internal val correlationId: String,
     internal val scenario: NativeAuthFlowScenarioV2,
     internal val config: NativeAuthPublicClientApplicationConfiguration,
     internal val continuationState: NativeAuthV2ContinuationState? = null
-) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
+) : State, Parcelable {
 
     private val TAG: String = NativeAuthBaseStateV2::class.java.simpleName
 
@@ -97,14 +94,12 @@ abstract class NativeAuthBaseStateV2 internal constructor(
     }
 
     /**
-     * Subclasses must not override this method to append base fields; each subclass's `Parcel`
-     * constructor is required
-     * to read the fields in exactly this order - continuationToken, correlationId, scenario, config,
-     * continuationState - otherwise the reads desynchronise from the writes. Subclasses that never
-     * carry a continuation state should read config via [readConfigAndSkipContinuationState].
+     * Writes correlationId, scenario, config, then continuationState. Each subclass's `Parcel`
+     * constructor must read the same order. Subclasses with additional fields must call this
+     * implementation before writing them. Subclasses that never carry a continuation state
+     * should read config via [readConfigAndSkipContinuationState].
      */
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeString(continuationToken)
         parcel.writeString(correlationId)
         parcel.writeString(scenario.name)
         parcel.writeSerializable(config)

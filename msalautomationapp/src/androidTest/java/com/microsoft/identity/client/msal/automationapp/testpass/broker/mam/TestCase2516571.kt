@@ -46,10 +46,22 @@ class TestCase2516571 : AbstractMsalUiTest(){
 
     @Test
     fun test_2516571_MAM_BrokerRequired() {
-        Assume.assumeFalse( "Only run this test if there are local flights",
-                BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.isEmpty()
-        );
-        
+        runMamBrokerRequiredFlow(shouldRemoveWpjRegistration = false)
+    }
+
+    @Test
+    fun test_2516571_MAM_BrokerRequiredAfterWpjRemoval() {
+        Assume.assumeTrue(
+            "StopReturningAadRtBackToCallingApp flight is not enabled, test will be skipped",
+            BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains(
+                "StopReturningAadRtBackToCallingApp:true"
+            )
+        )
+
+        runMamBrokerRequiredFlow(shouldRemoveWpjRegistration = true)
+    }
+
+    private fun runMamBrokerRequiredFlow(shouldRemoveWpjRegistration: Boolean) {
         // Fetch credentials
         val username: String = mLabAccount.username
         val password: String = mLabAccount.password
@@ -127,6 +139,10 @@ class TestCase2516571 : AbstractMsalUiTest(){
         outlook.onAccountAdded()
         companyPortal.handleAppProtectionPolicy()
         outlook.confirmAccount(username)
+
+        if (!shouldRemoveWpjRegistration) {
+            return
+        }
 
         val brokerHost = BrokerHost()
         brokerHost.install()

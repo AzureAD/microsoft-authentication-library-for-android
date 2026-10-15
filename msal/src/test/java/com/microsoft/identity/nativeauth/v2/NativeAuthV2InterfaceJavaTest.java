@@ -117,7 +117,6 @@ public class NativeAuthV2InterfaceJavaTest extends PublicClientApplicationAbstra
     @Test
     public void signInAfterResetPasswordReturnsNotImplemented() throws ExecutionException, InterruptedException, TimeoutException {
         final SignInAfterResetPasswordStateV2 state = new SignInAfterResetPasswordStateV2(
-                "continuation-token",
                 "correlation-id",
                 NativeAuthFlowScenarioV2.RESET_PASSWORD,
                 new NativeAuthPublicClientApplicationConfiguration(),
@@ -142,7 +141,6 @@ public class NativeAuthV2InterfaceJavaTest extends PublicClientApplicationAbstra
     @Test
     public void mfaVerificationRequiredResendChallengeReturnsInvalidState() throws ExecutionException, InterruptedException, TimeoutException {
         final MFAVerificationRequiredStateV2 state = new MFAVerificationRequiredStateV2(
-                "continuation-token",
                 "correlation-id",
                 NativeAuthFlowScenarioV2.SIGN_IN,
                 new NativeAuthPublicClientApplicationConfiguration(),

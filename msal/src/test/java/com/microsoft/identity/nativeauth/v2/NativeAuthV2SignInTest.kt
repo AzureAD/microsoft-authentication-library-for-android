@@ -195,7 +195,6 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         assertEquals(8, result.codeLength)
         assertEquals("u***@contoso.com", result.sentTo)
         assertEquals("email", result.channel)
-        assertNull(result.nextState.continuationToken)
         assertEquals(correlationId, result.nextState.correlationId)
     }
 
@@ -1150,7 +1149,6 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         val restoredVerification = parcelRoundTrip(verificationState, MFAVerificationRequiredStateV2.CREATOR)
 
         listOf(restoredPassword, restoredMfa, restoredVerification).forEach { restored ->
-            assertNull(restored.continuationToken)
             assertEquals(correlationId, restored.correlationId)
             assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, restored.scenario)
             assertEquals(listOf("scope"), restored.continuationState?.scopesForTokenRequest())
@@ -1244,12 +1242,16 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         creator: android.os.Parcelable.Creator<T>
     ): T {
         val parcel = Parcel.obtain()
+        val restoredParcel = Parcel.obtain()
         try {
             state.writeToParcel(parcel, 0)
-            parcel.setDataPosition(0)
-            return creator.createFromParcel(parcel)
+            val bytes = parcel.marshall()
+            restoredParcel.unmarshall(bytes, 0, bytes.size)
+            restoredParcel.setDataPosition(0)
+            return creator.createFromParcel(restoredParcel)
         } finally {
             parcel.recycle()
+            restoredParcel.recycle()
         }
     }
 

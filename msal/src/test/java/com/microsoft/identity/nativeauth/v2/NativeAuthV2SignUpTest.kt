@@ -92,7 +92,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -203,7 +202,6 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, result.scenario)
         assertEquals(6, result.codeLength)
         assertEquals("u***@contoso.com", result.sentTo)
-        assertNull(result.nextState.continuationToken)
     }
 
     @Test
