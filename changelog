@@ -3,9 +3,9 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 vNext
 ----------
 
-Version 8.6.0-RC1
+Version 8.6.0-RC2
 ----------
-- [PATCH] Update common @25.0.0-RC1
+- [PATCH] Update common @25.0.0-RC2
 - [PATCH] Fix MsalArgumentException field mapping, Fixes AB#3751475 (#2621)
 - [MINOR] Fixes AB#3761147 Split MAM broker-required test by flight behavior Fixes AB#3761147 (#2613)
 - [MINOR] Fixes AB#3761142 Correct LTW test annotation order (#2603)
