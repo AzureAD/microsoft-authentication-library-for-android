@@ -44,7 +44,6 @@ import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfig
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorTypes
-import com.microsoft.identity.nativeauth.statemachine.errors.SubmitNewPasswordErrorV2
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.utils.getCancellable
@@ -130,7 +129,7 @@ class NewPasswordRequiredStateV2 internal constructor(
     private suspend fun submitNewPasswordInternal(password: CharArray): NativeAuthResultV2 {
         val state = continuationState ?: return notImplemented()
         if (password.isEmpty()) {
-            return SubmitNewPasswordErrorV2(
+            return NativeAuthErrorV2(
                 errorType = ErrorTypes.INVALID_PASSWORD,
                 errorMessage = "Password cannot be empty.",
                 correlationId = correlationId,
@@ -164,18 +163,20 @@ class NewPasswordRequiredStateV2 internal constructor(
                         )
                     }
                     is NativeAuthV2CommandResult.PasswordNotAccepted -> {
-                        SubmitNewPasswordErrorV2(
+                        NativeAuthErrorV2(
                             errorType = ErrorTypes.INVALID_PASSWORD,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = scenario,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes,
                             subError = result.subError
                         )
                     }
                     is NativeAuthV2CommandResult.PasswordResetFailed -> {
-                        SubmitNewPasswordErrorV2(
+                        NativeAuthErrorV2(
                             errorType = ResetPasswordErrorTypes.PASSWORD_RESET_FAILED,
                             error = result.error,
                             errorMessage = result.errorDescription,
@@ -193,8 +194,11 @@ class NewPasswordRequiredStateV2 internal constructor(
                         )
                     }
                     is INativeAuthCommandResult.Redirect -> {
-                        SubmitNewPasswordErrorV2(
+                        NativeAuthErrorV2(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
+                            errorCodes = result.errorCodes,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
@@ -202,18 +206,22 @@ class NewPasswordRequiredStateV2 internal constructor(
                         )
                     }
                     is INativeAuthCommandResult.APIError -> {
-                        SubmitNewPasswordErrorV2(
+                        NativeAuthErrorV2(
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = scenario,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes,
-                            exception = result.exception
+                            exception = result.exception,
+                            subError = result.subError,
+                            attributeValidationDetails = result.attributeValidationDetails
                         )
                     }
                     else -> {
                         Logger.warnWithObject(TAG, result.correlationId, "V2 submitNewPassword received unsupported result: ", result)
-                        SubmitNewPasswordErrorV2(
+                        NativeAuthErrorV2(
                             errorType = ErrorTypes.INVALID_STATE,
                             errorMessage = "V2 submit new password returned an unsupported result.",
                             correlationId = result.correlationId,
@@ -225,7 +233,7 @@ class NewPasswordRequiredStateV2 internal constructor(
                 throw e
             } catch (e: Exception) {
                 Logger.error(TAG, correlationId, "Exception thrown in submitNewPassword", e)
-                SubmitNewPasswordErrorV2(
+                NativeAuthErrorV2(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in submitNewPassword.",
                     correlationId = correlationId,

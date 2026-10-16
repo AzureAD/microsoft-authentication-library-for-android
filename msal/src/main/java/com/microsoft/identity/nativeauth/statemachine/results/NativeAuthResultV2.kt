@@ -164,10 +164,12 @@ interface NativeAuthResultV2 : Result {
      * @param nextState the current state with follow-on methods.
      * @param invalidAttributes the names of the attributes that were rejected by the server.
      */
-    class AttributesInvalid(
+    class AttributesInvalid @JvmOverloads constructor(
         override val nextState: AttributesInvalidStateV2,
         override val scenario: NativeAuthFlowScenarioV2,
-        invalidAttributes: List<String>
+        invalidAttributes: List<String>,
+        /** Shared error diagnostics and classifiers, while retaining the retry state. */
+        val error: com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2? = null
     ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2 {
         val invalidAttributes: List<String> = Collections.unmodifiableList(ArrayList(invalidAttributes))
     }
