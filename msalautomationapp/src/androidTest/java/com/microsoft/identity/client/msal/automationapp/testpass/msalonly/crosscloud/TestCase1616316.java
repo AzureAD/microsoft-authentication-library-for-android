@@ -114,7 +114,12 @@ public class TestCase1616316 extends AbstractGuestAccountMsalUiTest {
         final MsalAuthResult acquireTokenSilentlyHomeCloudResult = msalSdk.acquireTokenSilent(acquireTokenHomeCloudAuthParams, TokenRequestTimeout.SHORT);
         MsalArgumentException exception = (MsalArgumentException) acquireTokenSilentlyHomeCloudResult.getException();
         Assert.assertNotNull("Verify Exception is returned", exception);
-        Assert.assertEquals("Verify Exception operation name", "authority", exception.getOperationName());
+        Assert.assertEquals("Verify Exception operation name",
+                MsalArgumentException.ACQUIRE_TOKEN_SILENT_OPERATION_NAME,
+                exception.getOperationName());
+        Assert.assertEquals("Verify Exception argument name",
+                "authority",
+                exception.getArgumentName());
 
         // Acquire token interactively from home cloud
         final MsalAuthResult acquireTokenHomeCloudResult = msalSdk.acquireTokenInteractive(acquireTokenHomeCloudAuthParams, homeCloudInteractionHandler, TokenRequestTimeout.SHORT);
