@@ -71,9 +71,6 @@ import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
-import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorV2
-import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeErrorV2
-import com.microsoft.identity.nativeauth.statemachine.errors.SubmitNewPasswordErrorV2
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesInvalidStateV2
@@ -252,8 +249,8 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             AuthMethod("sms-1", "sms", "+X XXX XXX 34", "sms")
         )
 
-        assertTrue(result is ResetPasswordErrorV2)
-        assertEquals(ErrorTypes.INVALID_STATE, (result as ResetPasswordErrorV2).errorType)
+        assertTrue(result is NativeAuthErrorV2)
+        assertEquals(ErrorTypes.INVALID_STATE, (result as NativeAuthErrorV2).errorType)
     }
 
     @Test
@@ -294,12 +291,12 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             INativeAuthCommandResult.Redirect(correlationId, "browser"),
             NativeAuthV2SelectResetPasswordMethodCommand::class
         )
-        assertTrue((state.selectAuthMethod(method) as ResetPasswordErrorV2).isBrowserRequired())
+        assertTrue((state.selectAuthMethod(method) as NativeAuthErrorV2).isBrowserRequired())
 
         enqueueResult(apiError(), NativeAuthV2SelectResetPasswordMethodCommand::class)
         assertEquals(
             errorCodes,
-            (state.selectAuthMethod(method) as ResetPasswordErrorV2).errorCodes
+            (state.selectAuthMethod(method) as NativeAuthErrorV2).errorCodes
         )
 
         every {
@@ -307,7 +304,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
                 match { NativeAuthV2SelectResetPasswordMethodCommand::class.java.isInstance(it) }
             )
         } throws IllegalStateException("dispatcher unavailable")
-        val clientError = state.selectAuthMethod(method) as ResetPasswordErrorV2
+        val clientError = state.selectAuthMethod(method) as NativeAuthErrorV2
         assertEquals(ErrorTypes.CLIENT_EXCEPTION, clientError.errorType)
         assertTrue(clientError.exception is IllegalStateException)
     }
@@ -334,7 +331,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         )
         assertEquals(
             ErrorTypes.INVALID_STATE,
-            (methodRequired.nextState.selectAuthMethod(methodRequired.authMethods.first()) as ResetPasswordErrorV2).errorType
+            (methodRequired.nextState.selectAuthMethod(methodRequired.authMethods.first()) as NativeAuthErrorV2).errorType
         )
 
         enqueueResult(
@@ -343,7 +340,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         )
         assertEquals(
             ErrorTypes.INVALID_STATE,
-            (application.resetPasswordV2(NativeAuthResetPasswordParameters(username)) as ResetPasswordErrorV2).errorType
+            (application.resetPasswordV2(NativeAuthResetPasswordParameters(username)) as NativeAuthErrorV2).errorType
         )
 
         val codeState = codeRequiredState()
@@ -353,7 +350,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         )
         assertEquals(
             ErrorTypes.INVALID_STATE,
-            (codeState.submitCode("123456") as SubmitCodeErrorV2).errorType
+            (codeState.submitCode("123456") as NativeAuthErrorV2).errorType
         )
 
         enqueueResult(
@@ -377,7 +374,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         )
         assertEquals(
             ErrorTypes.INVALID_STATE,
-            (passwordState.submitNewPassword("Password!".toCharArray()) as SubmitNewPasswordErrorV2).errorType
+            (passwordState.submitNewPassword("Password!".toCharArray()) as NativeAuthErrorV2).errorType
         )
 
         val signInState = signInAfterResetState()
@@ -403,8 +400,8 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2ResetPasswordStartCommand::class
         )
         val userNotFound = application.resetPasswordV2(NativeAuthResetPasswordParameters(username))
-        assertTrue(userNotFound is ResetPasswordErrorV2)
-        assertEquals(errorCodes, (userNotFound as ResetPasswordErrorV2).errorCodes)
+        assertTrue(userNotFound is NativeAuthErrorV2)
+        assertEquals(errorCodes, (userNotFound as NativeAuthErrorV2).errorCodes)
 
         enqueueResult(
             INativeAuthCommandResult.APIError(
@@ -416,7 +413,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2ResetPasswordStartCommand::class
         )
         val apiError = application.resetPasswordV2(NativeAuthResetPasswordParameters(username))
-        assertEquals(errorCodes, (apiError as ResetPasswordErrorV2).errorCodes)
+        assertEquals(errorCodes, (apiError as NativeAuthErrorV2).errorCodes)
 
         enqueueCancellation(NativeAuthV2ResetPasswordStartCommand::class)
         assertCancellation {
@@ -431,7 +428,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         try {
             val error = application.resetPasswordV2(
                 NativeAuthResetPasswordParameters(username = " ")
-            ) as ResetPasswordErrorV2
+            ) as NativeAuthErrorV2
 
             assertTrue(error.isInvalidUsername())
             assertEquals(correlationId, error.correlationId)
@@ -451,8 +448,8 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             // matches the V1 flows, whose guard sits inside the try/catch that converts it to an
             // error result.
             val suspendResult = application.resetPasswordV2(NativeAuthResetPasswordParameters(username))
-            assertTrue(suspendResult is ResetPasswordErrorV2)
-            assertEquals(ErrorTypes.CLIENT_EXCEPTION, (suspendResult as ResetPasswordErrorV2).errorType)
+            assertTrue(suspendResult is NativeAuthErrorV2)
+            assertEquals(ErrorTypes.CLIENT_EXCEPTION, (suspendResult as NativeAuthErrorV2).errorType)
             val suspendCause = suspendResult.exception
             assertTrue(suspendCause is MsalClientException)
             assertEquals("An account is already signed in.", suspendCause?.message)
@@ -473,8 +470,8 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
                 }
             )
             val result = callbackResult.get(10, TimeUnit.SECONDS)
-            assertTrue(result is ResetPasswordErrorV2)
-            assertEquals(ErrorTypes.CLIENT_EXCEPTION, (result as ResetPasswordErrorV2).errorType)
+            assertTrue(result is NativeAuthErrorV2)
+            assertEquals(ErrorTypes.CLIENT_EXCEPTION, (result as NativeAuthErrorV2).errorType)
             val callbackCause = result.exception
             assertTrue(callbackCause is MsalClientException)
             assertEquals("An account is already signed in.", callbackCause?.message)
@@ -497,7 +494,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             ),
             NativeAuthV2ResetPasswordSubmitCodeCommand::class
         )
-        val incorrectCode = state.submitCode("123456") as SubmitCodeErrorV2
+        val incorrectCode = state.submitCode("123456") as NativeAuthErrorV2
         assertTrue(incorrectCode.isInvalidCode())
         assertEquals(errorCodes, incorrectCode.errorCodes)
         assertEquals(subError, incorrectCode.subError)
@@ -512,7 +509,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             INativeAuthCommandResult.Redirect(correlationId, "browser"),
             NativeAuthV2ResetPasswordSubmitCodeCommand::class
         )
-        assertTrue((state.submitCode("123456") as SubmitCodeErrorV2).isBrowserRequired())
+        assertTrue((state.submitCode("123456") as NativeAuthErrorV2).isBrowserRequired())
 
         enqueueResult(
             NativeAuthV2CommandResult.NotImplemented(correlationId, "unsupported", "unsupported"),
@@ -521,7 +518,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         assertTrue((state.submitCode("123456") as NativeAuthErrorV2).isNotImplemented())
 
         enqueueResult(apiError(), NativeAuthV2ResetPasswordSubmitCodeCommand::class)
-        assertEquals(errorCodes, (state.submitCode("123456") as SubmitCodeErrorV2).errorCodes)
+        assertEquals(errorCodes, (state.submitCode("123456") as NativeAuthErrorV2).errorCodes)
 
         enqueueResult(
             NativeAuthV2CommandResult.Complete(correlationId, null, null, null),
@@ -579,7 +576,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     fun submitCodeRejectsEmptyInputWithRetryableInvalidCodeError() = runTest {
         val state = codeRequiredState()
 
-        val error = state.submitCode("") as SubmitCodeErrorV2
+        val error = state.submitCode("") as NativeAuthErrorV2
 
         assertTrue(error.isInvalidCode())
     }
@@ -639,7 +636,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             ),
             NativeAuthV2SubmitNewPasswordCommand::class
         )
-        val rejected = state.submitNewPassword("Password!".toCharArray()) as SubmitNewPasswordErrorV2
+        val rejected = state.submitNewPassword("Password!".toCharArray()) as NativeAuthErrorV2
         assertTrue(rejected.isInvalidPassword())
         assertEquals(errorCodes, rejected.errorCodes)
         assertEquals(subError, rejected.subError)
@@ -649,7 +646,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2SubmitNewPasswordCommand::class
         )
         assertTrue(
-            (state.submitNewPassword("Password!".toCharArray()) as SubmitNewPasswordErrorV2)
+            (state.submitNewPassword("Password!".toCharArray()) as NativeAuthErrorV2)
                 .isPasswordResetFailed()
         )
 
@@ -668,7 +665,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         enqueueResult(apiError(), NativeAuthV2SubmitNewPasswordCommand::class)
         assertEquals(
             errorCodes,
-            (state.submitNewPassword("Password!".toCharArray()) as SubmitNewPasswordErrorV2).errorCodes
+            (state.submitNewPassword("Password!".toCharArray()) as NativeAuthErrorV2).errorCodes
         )
 
         enqueueResult(
@@ -676,7 +673,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2SubmitNewPasswordCommand::class
         )
         assertTrue(
-            (state.submitNewPassword("Password!".toCharArray()) as SubmitNewPasswordErrorV2)
+            (state.submitNewPassword("Password!".toCharArray()) as NativeAuthErrorV2)
                 .isBrowserRequired()
         )
 
@@ -711,7 +708,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         val state =
             (codeState.submitCode("123456") as NativeAuthResultV2.NewPasswordRequired).nextState
 
-        val error = state.submitNewPassword(charArrayOf()) as SubmitNewPasswordErrorV2
+        val error = state.submitNewPassword(charArrayOf()) as NativeAuthErrorV2
 
         assertTrue(error.isInvalidPassword())
     }
@@ -738,7 +735,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             )
         } throws IllegalStateException("dispatcher unavailable")
         val dispatchFailurePassword = "Password!".toCharArray()
-        val error = state.submitNewPassword(dispatchFailurePassword) as SubmitNewPasswordErrorV2
+        val error = state.submitNewPassword(dispatchFailurePassword) as NativeAuthErrorV2
         assertEquals(ErrorTypes.CLIENT_EXCEPTION, error.errorType)
         assertPasswordCleared(dispatchFailurePassword)
 

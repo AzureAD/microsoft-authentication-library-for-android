@@ -72,12 +72,7 @@ import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfig
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
-import com.microsoft.identity.nativeauth.statemachine.errors.MFARequestChallengeErrorV2
-import com.microsoft.identity.nativeauth.statemachine.errors.MFASubmitChallengeErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
-import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorV2
-import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeErrorV2
-import com.microsoft.identity.nativeauth.statemachine.errors.SubmitPasswordErrorV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.statemachine.states.Callback
 import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
@@ -101,6 +96,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
@@ -164,8 +160,8 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         every { DiagnosticContext.INSTANCE.threadCorrelationId } returns correlationId
         try {
             val result = application.signInV2(signInParameters(username = " "))
-            assertTrue(result is SignInErrorV2)
-            val error = result as SignInErrorV2
+            assertTrue(result is NativeAuthErrorV2)
+            val error = result as NativeAuthErrorV2
             assertTrue(error.isInvalidUsername())
             assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, error.scenario)
             assertEquals(correlationId, error.correlationId)
@@ -219,19 +215,23 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
                 "invalid_grant",
                 "AADSTS50126: invalid username or password.",
                 "invalidUserNameOrPassword",
-                errorCodes
+                errorCodes,
+                traceId = "password-trace",
+                timestamp = "password-time"
             ),
             NativeAuthV2SignInStartCommand::class
         )
 
         val result = application.signInV2(signInParameters(password = "WrongPassword!".toCharArray()))
 
-        assertTrue(result is SignInErrorV2)
-        result as SignInErrorV2
+        assertTrue(result is NativeAuthErrorV2)
+        result as NativeAuthErrorV2
         assertTrue(result.isInvalidCredentials())
         assertFalse(result.isUserNotFound())
         assertEquals(errorCodes, result.errorCodes)
         assertEquals("invalidUserNameOrPassword", result.subError)
+        assertEquals("password-trace", result.traceId)
+        assertEquals("password-time", result.timestamp)
         assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.scenario)
         // A recoverable-looking error must not hand back a state to continue from.
         assertNull((result as NativeAuthResultV2).let { (it as? NativeAuthResultV2.PasswordRequired)?.nextState })
@@ -249,7 +249,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2SignInStartCommand::class
         )
 
-        val result = application.signInV2(signInParameters()) as SignInErrorV2
+        val result = application.signInV2(signInParameters()) as NativeAuthErrorV2
 
         assertTrue(result.isUserNotFound())
         assertFalse(result.isInvalidCredentials())
@@ -263,7 +263,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2SignInStartCommand::class
         )
 
-        val result = application.signInV2(signInParameters()) as SignInErrorV2
+        val result = application.signInV2(signInParameters()) as NativeAuthErrorV2
 
         assertTrue(result.isBrowserRequired())
     }
@@ -274,7 +274,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         every { unsupportedResult.correlationId } returns correlationId
         enqueueResult(unsupportedResult, NativeAuthV2SignInStartCommand::class)
 
-        val result = application.signInV2(signInParameters()) as SignInErrorV2
+        val result = application.signInV2(signInParameters()) as NativeAuthErrorV2
 
         assertEquals(ErrorTypes.INVALID_STATE, result.errorType)
         assertEquals(correlationId, result.correlationId)
@@ -288,7 +288,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             unsupportedResult<NativeAuthV2SignInSubmitCodeCommandResult>(),
             NativeAuthV2SignInSubmitCodeCommand::class
         )
-        val submitCodeResult = codeState.submitCode("123456") as SubmitCodeErrorV2
+        val submitCodeResult = codeState.submitCode("123456") as NativeAuthErrorV2
         assertEquals(
             submitCodeResult.exception?.stackTraceToString(),
             ErrorTypes.INVALID_STATE,
@@ -302,7 +302,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         )
         assertEquals(
             ErrorTypes.INVALID_STATE,
-            (passwordState.submitPassword("Password!".toCharArray()) as SubmitPasswordErrorV2).errorType
+            (passwordState.submitPassword("Password!".toCharArray()) as NativeAuthErrorV2).errorType
         )
 
         val mfaState = mfaRequiredState()
@@ -312,7 +312,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         )
         assertEquals(
             ErrorTypes.INVALID_STATE,
-            (mfaState.selectAuthMethod(mfaState.authMethods.single()) as MFARequestChallengeErrorV2).errorType
+            (mfaState.selectAuthMethod(mfaState.authMethods.single()) as NativeAuthErrorV2).errorType
         )
 
         val verificationState = mfaVerificationState(mfaState)
@@ -322,7 +322,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         )
         assertEquals(
             ErrorTypes.INVALID_STATE,
-            (verificationState.submitChallenge("123456") as MFASubmitChallengeErrorV2).errorType
+            (verificationState.submitChallenge("123456") as NativeAuthErrorV2).errorType
         )
 
         enqueueResult(
@@ -428,8 +428,8 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             // Android V1 behaviour is preserved: V2 rejects sign-in while an account is signed in,
             // and does not implement the iOS repeated/switch-account behaviour.
             val suspendResult = application.signInV2(signInParameters())
-            assertTrue(suspendResult is SignInErrorV2)
-            assertEquals(ErrorTypes.CLIENT_EXCEPTION, (suspendResult as SignInErrorV2).errorType)
+            assertTrue(suspendResult is NativeAuthErrorV2)
+            assertEquals(ErrorTypes.CLIENT_EXCEPTION, (suspendResult as NativeAuthErrorV2).errorType)
             val cause = suspendResult.exception
             assertTrue(cause is MsalClientException)
             assertEquals("An account is already signed in.", cause?.message)
@@ -444,8 +444,8 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
                 }
             )
             val delivered = callbackResult.get(10, TimeUnit.SECONDS)
-            assertTrue(delivered is SignInErrorV2)
-            assertEquals(ErrorTypes.CLIENT_EXCEPTION, (delivered as SignInErrorV2).errorType)
+            assertTrue(delivered is NativeAuthErrorV2)
+            assertEquals(ErrorTypes.CLIENT_EXCEPTION, (delivered as NativeAuthErrorV2).errorType)
         } finally {
             unmockkObject(NativeAuthPublicClientApplication.Companion)
         }
@@ -496,7 +496,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2SignInSubmitCodeCommand::class
         )
 
-        val result = state.submitCode("00000000") as SubmitCodeErrorV2
+        val result = state.submitCode("00000000") as NativeAuthErrorV2
 
         assertTrue(result.isInvalidCode())
         assertEquals("invalidOneTimeCode", result.subError)
@@ -613,7 +613,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     // -----------------------------------------------------------------------------------------
 
     @Test
-    fun submitPasswordWithWrongPasswordIsInvalidPasswordNotInvalidCredentials() = runTest {
+    fun submitPasswordWithWrongPasswordIsInvalidCredentialsNotPasswordPolicy() = runTest {
         val state = passwordRequiredState()
         enqueueResult(
             NativeAuthV2CommandResult.IncorrectPassword(
@@ -621,26 +621,32 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
                 "invalid_grant",
                 "AADSTS50126: invalid username or password.",
                 "invalidUserNameOrPassword",
-                errorCodes
+                errorCodes,
+                traceId = "password-trace",
+                timestamp = "password-time"
             ),
             NativeAuthV2SubmitPasswordCommand::class
         )
 
         val result = state.submitPassword("WrongPassword!".toCharArray())
 
-        assertTrue(result is SubmitPasswordErrorV2)
-        result as SubmitPasswordErrorV2
-        assertTrue(result.isInvalidPassword())
+        assertTrue(result is NativeAuthErrorV2)
+        result as NativeAuthErrorV2
+        assertTrue(result.isInvalidCredentials())
+        assertFalse(result.isInvalidPassword())
         assertEquals(errorCodes, result.errorCodes)
+        assertEquals("password-trace", result.traceId)
+        assertEquals("password-time", result.timestamp)
     }
 
     @Test
     fun submitPasswordRejectsAnEmptyPasswordWithoutIssuingACommand() = runTest {
         val state = passwordRequiredState()
 
-        val result = state.submitPassword(CharArray(0)) as SubmitPasswordErrorV2
+        val result = state.submitPassword(CharArray(0)) as NativeAuthErrorV2
 
-        assertTrue(result.isInvalidPassword())
+        assertTrue(result.isInvalidInput())
+        assertFalse(result.isInvalidPassword())
     }
 
     @Test
@@ -731,13 +737,13 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             INativeAuthCommandResult.Redirect(correlationId, "browser"),
             NativeAuthV2SubmitPasswordCommand::class
         )
-        assertTrue((state.submitPassword("Password123!".toCharArray()) as SubmitPasswordErrorV2).isBrowserRequired())
+        assertTrue((state.submitPassword("Password123!".toCharArray()) as NativeAuthErrorV2).isBrowserRequired())
 
         enqueueResult(
             INativeAuthCommandResult.APIError("api_error", "API failed", correlationId = correlationId, errorCodes = errorCodes),
             NativeAuthV2SubmitPasswordCommand::class
         )
-        val apiError = state.submitPassword("Password123!".toCharArray()) as SubmitPasswordErrorV2
+        val apiError = state.submitPassword("Password123!".toCharArray()) as NativeAuthErrorV2
         assertEquals(errorCodes, apiError.errorCodes)
         assertFalse(apiError.isInvalidPassword())
     }
@@ -766,7 +772,8 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         )
 
         val result = future.get(30, TimeUnit.SECONDS)
-        assertTrue((result as SubmitPasswordErrorV2).isInvalidPassword())
+        assertTrue((result as NativeAuthErrorV2).isInvalidCredentials())
+        assertFalse(result.isInvalidPassword())
     }
 
     // -----------------------------------------------------------------------------------------
@@ -871,8 +878,8 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             com.microsoft.identity.nativeauth.AuthMethod("not-offered", "oob", null, "email")
         )
 
-        assertTrue(result is MFARequestChallengeErrorV2)
-        assertEquals(ErrorTypes.INVALID_STATE, (result as MFARequestChallengeErrorV2).errorType)
+        assertTrue(result is NativeAuthErrorV2)
+        assertEquals(ErrorTypes.INVALID_STATE, (result as NativeAuthErrorV2).errorType)
     }
 
     @Test
@@ -883,8 +890,8 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
 
         val result = state.selectAuthMethod(state.authMethods.single())
 
-        assertTrue(result is MFARequestChallengeErrorV2)
-        val error = result as MFARequestChallengeErrorV2
+        assertTrue(result is NativeAuthErrorV2)
+        val error = result as NativeAuthErrorV2
         assertTrue(error.isNotImplemented())
         assertFalse(error.isAuthMethodBlocked())
         assertFalse(error.isBrowserRequired())
@@ -903,7 +910,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2SelectMFAMethodCommand::class
         )
 
-        val result = state.selectAuthMethod(state.authMethods.single()) as MFARequestChallengeErrorV2
+        val result = state.selectAuthMethod(state.authMethods.single()) as NativeAuthErrorV2
 
         assertFalse(result.isAuthMethodBlocked())
         assertEquals("accessDenied", result.error)
@@ -926,7 +933,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             ),
             NativeAuthV2SubmitMFAChallengeCommand::class
         )
-        val wrongCode = verificationState.submitChallenge("000000") as MFASubmitChallengeErrorV2
+        val wrongCode = verificationState.submitChallenge("000000") as NativeAuthErrorV2
         assertTrue(wrongCode.isInvalidChallenge())
         assertEquals("invalidOneTimeCode", wrongCode.subError)
 
@@ -975,14 +982,14 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             ),
             NativeAuthV2SubmitMFAChallengeCommand::class
         )
-        assertTrue((verificationState.submitChallenge("111111") as MFASubmitChallengeErrorV2).isInvalidChallenge())
+        assertTrue((verificationState.submitChallenge("111111") as NativeAuthErrorV2).isInvalidChallenge())
     }
 
     @Test
     fun submitChallengeRejectsAnEmptyCodeWithoutIssuingACommand() = runTest {
         val verificationState = mfaVerificationState(mfaRequiredState())
 
-        val result = verificationState.submitChallenge("") as MFASubmitChallengeErrorV2
+        val result = verificationState.submitChallenge("") as NativeAuthErrorV2
 
         assertTrue(result.isInvalidChallenge())
         assertEquals(ErrorTypes.INVALID_CODE, result.errorType)
@@ -996,7 +1003,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             INativeAuthCommandResult.Redirect(correlationId, "browser"),
             NativeAuthV2SubmitMFAChallengeCommand::class
         )
-        assertTrue((verificationState.submitChallenge("123456") as MFASubmitChallengeErrorV2).isBrowserRequired())
+        assertTrue((verificationState.submitChallenge("123456") as NativeAuthErrorV2).isBrowserRequired())
 
         enqueueResult(
             NativeAuthV2CommandResult.NotImplemented(correlationId, "not_implemented", "nope"),
@@ -1066,7 +1073,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             }
         )
 
-        assertTrue((future.get(30, TimeUnit.SECONDS) as MFASubmitChallengeErrorV2).isInvalidChallenge())
+        assertTrue((future.get(30, TimeUnit.SECONDS) as NativeAuthErrorV2).isInvalidChallenge())
     }
 
     @Test
@@ -1164,8 +1171,177 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         val staleSelection = restoredMfa.selectAuthMethod(
             com.microsoft.identity.nativeauth.AuthMethod("not-offered", "oob", null, "email")
         )
-        assertTrue(staleSelection is MFARequestChallengeErrorV2)
-        assertEquals(ErrorTypes.INVALID_STATE, (staleSelection as MFARequestChallengeErrorV2).errorType)
+        assertTrue(staleSelection is NativeAuthErrorV2)
+        assertEquals(ErrorTypes.INVALID_STATE, (staleSelection as NativeAuthErrorV2).errorType)
+    }
+
+    @Test
+    fun submitPasswordMapsNotImplemented() = runTest {
+        val state = passwordRequiredState()
+        enqueueResult(
+            NativeAuthV2CommandResult.NotImplemented(correlationId, "unsupported", "Password is unavailable."),
+            NativeAuthV2SubmitPasswordCommand::class
+        )
+
+        val result = state.submitPassword("Password123!".toCharArray()) as NativeAuthErrorV2
+
+        assertTrue(result.isNotImplemented())
+        assertEquals("unsupported", result.error)
+        assertEquals("Password is unavailable.", result.errorMessage)
+        assertEquals(correlationId, result.correlationId)
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.scenario)
+    }
+
+    @Test
+    fun selectAuthMethodMapsNotImplemented() = runTest {
+        val state = mfaRequiredState()
+        enqueueResult(
+            NativeAuthV2CommandResult.NotImplemented(correlationId, "unsupported", "MFA is unavailable."),
+            NativeAuthV2SelectMFAMethodCommand::class
+        )
+
+        val result = state.selectAuthMethod(state.authMethods.single()) as NativeAuthErrorV2
+
+        assertTrue(result.isNotImplemented())
+        assertEquals("unsupported", result.error)
+        assertEquals("MFA is unavailable.", result.errorMessage)
+        assertEquals(correlationId, result.correlationId)
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.scenario)
+    }
+
+    @Test
+    fun selectAuthMethodPreservesBrowserRedirectDiagnostics() = runTest {
+        val state = mfaRequiredState()
+        enqueueResult(
+            INativeAuthCommandResult.Redirect(
+                correlationId = correlationId,
+                redirectReason = "browser",
+                traceId = "mfa-trace",
+                timestamp = "mfa-time",
+                errorCodes = errorCodes
+            ),
+            NativeAuthV2SelectMFAMethodCommand::class
+        )
+
+        val result = state.selectAuthMethod(state.authMethods.single()) as NativeAuthErrorV2
+
+        assertTrue(result.isBrowserRequired())
+        assertEquals("mfa-trace", result.traceId)
+        assertEquals("mfa-time", result.timestamp)
+        assertEquals(errorCodes, result.errorCodes)
+        assertEquals(correlationId, result.correlationId)
+    }
+
+    @Test
+    fun signInStatesPreserveAllApiErrorDiagnostics() = runTest {
+        val passwordState = passwordRequiredState()
+        val mfaState = mfaRequiredState()
+        val verificationState = mfaVerificationState(mfaState)
+        val failure = IllegalStateException("service failure")
+        val details = listOf(mapOf("name" to "email", "reason" to "invalid"))
+        val apiError = INativeAuthCommandResult.APIError(
+            error = "service_error",
+            errorDescription = "Verification failed.",
+            correlationId = correlationId,
+            traceId = "service-trace",
+            timestamp = "service-time",
+            errorCodes = errorCodes,
+            subError = "verification_failed",
+            attributeValidationDetails = details,
+            exception = failure
+        )
+        enqueueResult(apiError, NativeAuthV2SubmitPasswordCommand::class)
+        enqueueResult(apiError, NativeAuthV2SelectMFAMethodCommand::class)
+        enqueueResult(apiError, NativeAuthV2SubmitMFAChallengeCommand::class)
+
+        val results = listOf(
+            passwordState.submitPassword("Password123!".toCharArray()),
+            mfaState.selectAuthMethod(mfaState.authMethods.single()),
+            verificationState.submitChallenge("123456")
+        )
+
+        results.forEach { result ->
+            assertTrue(result is NativeAuthErrorV2)
+            result as NativeAuthErrorV2
+            assertEquals("service_error", result.error)
+            assertEquals("Verification failed.", result.errorMessage)
+            assertEquals(correlationId, result.correlationId)
+            assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.scenario)
+            assertEquals("service-trace", result.traceId)
+            assertEquals("service-time", result.timestamp)
+            assertEquals(errorCodes, result.errorCodes)
+            assertEquals("verification_failed", result.subError)
+            assertEquals(details, result.attributeValidationDetails)
+            assertSame(failure, result.exception)
+        }
+    }
+
+    @Test
+    fun submitPasswordMapsClientExceptionAndClearsOwnedBuffer() = runTest {
+        val state = passwordRequiredState()
+        val password = "Password123!".toCharArray()
+        val failure = IllegalStateException("dispatcher failed")
+        lateinit var ownedPassword: CharArray
+        every {
+            CommandDispatcher.submitSilentReturningFuture(ofType<NativeAuthV2SubmitPasswordCommand>())
+        } answers {
+            ownedPassword = (firstArg<NativeAuthV2SubmitPasswordCommand>().parameters as NativeAuthV2SubmitPasswordCommandParameters).password
+            throw failure
+        }
+
+        val result = state.submitPassword(password) as NativeAuthErrorV2
+
+        assertEquals(ErrorTypes.CLIENT_EXCEPTION, result.errorType)
+        assertSame(failure, result.exception)
+        assertEquals(correlationId, result.correlationId)
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.scenario)
+        assertPasswordCleared(ownedPassword)
+        assertEquals("Password123!", String(password))
+    }
+
+    @Test
+    fun selectAuthMethodMapsClientException() = runTest {
+        val state = mfaRequiredState()
+        val failure = IllegalStateException("dispatcher failed")
+        every {
+            CommandDispatcher.submitSilentReturningFuture(ofType<NativeAuthV2SelectMFAMethodCommand>())
+        } throws failure
+
+        val result = state.selectAuthMethod(state.authMethods.single()) as NativeAuthErrorV2
+
+        assertEquals(ErrorTypes.CLIENT_EXCEPTION, result.errorType)
+        assertSame(failure, result.exception)
+        assertEquals(correlationId, result.correlationId)
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.scenario)
+    }
+
+    @Test
+    fun submitChallengeMapsClientException() = runTest {
+        val state = mfaVerificationState(mfaRequiredState())
+        val failure = IllegalStateException("dispatcher failed")
+        every {
+            CommandDispatcher.submitSilentReturningFuture(ofType<NativeAuthV2SubmitMFAChallengeCommand>())
+        } throws failure
+
+        val result = state.submitChallenge("123456") as NativeAuthErrorV2
+
+        assertEquals(ErrorTypes.CLIENT_EXCEPTION, result.errorType)
+        assertSame(failure, result.exception)
+        assertEquals(correlationId, result.correlationId)
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.scenario)
+    }
+
+    @Test
+    fun selectAuthMethodPropagatesCancellation() = runTest {
+        val state = mfaRequiredState()
+        enqueueCancellation(NativeAuthV2SelectMFAMethodCommand::class)
+
+        try {
+            state.selectAuthMethod(state.authMethods.single())
+            fail("Expected CancellationException")
+        } catch (_: CancellationException) {
+            // Cancellation must not be converted to an authentication error.
+        }
     }
 
     // -----------------------------------------------------------------------------------------

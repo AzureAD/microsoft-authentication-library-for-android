@@ -48,8 +48,6 @@ import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpErrorTypes
-import com.microsoft.identity.nativeauth.statemachine.errors.SignUpErrorV2
-import com.microsoft.identity.nativeauth.statemachine.errors.SubmitPasswordErrorV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.toListOfRequiredUserAttributeV2
 import com.microsoft.identity.nativeauth.toListOfV2AuthMethods
@@ -65,10 +63,10 @@ import kotlinx.coroutines.withContext
 /**
  * State that requires the user to submit a password.
  *
- * A password rejected here is a [SubmitPasswordErrorV2] with
- * [SubmitPasswordErrorV2.isInvalidPassword], not an invalid-credentials error: the account itself
- * was already accepted at the sign-in entry point and only the deferred password was wrong. The
- * caller retries on this same state instance; no error result carries a next state.
+ * A rejected sign-in password is a [NativeAuthErrorV2] classified by
+ * [NativeAuthErrorV2.isInvalidCredentials]; a rejected new sign-up password is classified by
+ * [NativeAuthErrorV2.isInvalidPassword]. The caller retries on this same state instance;
+ * no error result carries a next state.
  */
 class PasswordRequiredStateV2 internal constructor(
     correlationId: String,
@@ -137,8 +135,8 @@ class PasswordRequiredStateV2 internal constructor(
         )
         val state = continuationState ?: return invalidState()
         if (password.isEmpty()) {
-            return SubmitPasswordErrorV2(
-                errorType = ErrorTypes.INVALID_PASSWORD,
+            return NativeAuthErrorV2(
+                errorType = if (scenario == NativeAuthFlowScenarioV2.SIGN_UP) ErrorTypes.INVALID_PASSWORD else ErrorTypes.INVALID_INPUT,
                 errorMessage = "Password cannot be empty.",
                 correlationId = correlationId,
                 scenario = scenario
@@ -185,13 +183,16 @@ class PasswordRequiredStateV2 internal constructor(
                         )
                     }
                     is NativeAuthV2CommandResult.IncorrectPassword -> {
-                        SubmitPasswordErrorV2(
-                            errorType = ErrorTypes.INVALID_PASSWORD,
+                        NativeAuthErrorV2(
+                            errorType = com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorTypes.INVALID_CREDENTIALS,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = scenario,
-                            errorCodes = result.errorCodes
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
+                            errorCodes = result.errorCodes,
+                            subError = result.subError
                         )
                     }
                     is NativeAuthV2CommandResult.NotImplemented -> {
@@ -204,8 +205,11 @@ class PasswordRequiredStateV2 internal constructor(
                         )
                     }
                     is INativeAuthCommandResult.Redirect -> {
-                        SubmitPasswordErrorV2(
+                        NativeAuthErrorV2(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
+                            errorCodes = result.errorCodes,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
@@ -213,18 +217,22 @@ class PasswordRequiredStateV2 internal constructor(
                         )
                     }
                     is INativeAuthCommandResult.APIError -> {
-                        SubmitPasswordErrorV2(
+                        NativeAuthErrorV2(
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = scenario,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes,
-                            exception = result.exception
+                            exception = result.exception,
+                            subError = result.subError,
+                            attributeValidationDetails = result.attributeValidationDetails
                         )
                     }
                     else -> {
                         Logger.warnWithObject(TAG, result.correlationId, "V2 submitPassword received unsupported result: ", result)
-                        SubmitPasswordErrorV2(
+                        NativeAuthErrorV2(
                             errorType = ErrorTypes.INVALID_STATE,
                             errorMessage = "V2 submit password returned an unsupported result.",
                             correlationId = result.correlationId,
@@ -236,7 +244,7 @@ class PasswordRequiredStateV2 internal constructor(
                 throw e
             } catch (e: Exception) {
                 Logger.error(TAG, correlationId, "Exception thrown in submitPassword", e)
-                SubmitPasswordErrorV2(
+                NativeAuthErrorV2(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in submitPassword.",
                     correlationId = correlationId,
@@ -252,8 +260,8 @@ class PasswordRequiredStateV2 internal constructor(
     /**
      * Submits the deferred password during a V2 sign-up flow through the submit-attributes
      * endpoint (sign-up carries the password as the `password` attribute). A password rejected by
-     * the server's policy is surfaced as a [SubmitPasswordErrorV2] with
-     * [SubmitPasswordErrorV2.isInvalidPassword] so the caller can retry on this same state.
+     * the server's policy is surfaced as a [NativeAuthErrorV2] with
+     * [NativeAuthErrorV2.isInvalidPassword] so the caller can retry on this same state.
      */
     private suspend fun submitSignUpPassword(
         state: NativeAuthV2ContinuationState,
@@ -307,34 +315,43 @@ class PasswordRequiredStateV2 internal constructor(
                 val onlyPasswordIsInvalid = result.invalidAttributes.isNotEmpty() &&
                     result.invalidAttributes.all { it.equals("password", ignoreCase = true) }
                 if (onlyPasswordIsInvalid) {
-                    SubmitPasswordErrorV2(
-                        errorType = ErrorTypes.INVALID_PASSWORD,
+                    NativeAuthErrorV2(
+                        errorType = if (result.attributeValidationDetails == null) ErrorTypes.INVALID_PASSWORD else SignUpErrorTypes.INVALID_ATTRIBUTES,
                         error = result.error,
                         errorMessage = result.errorDescription,
                         correlationId = result.correlationId,
                         scenario = scenario,
-                        errorCodes = result.errorCodes
+                        traceId = result.traceId,
+                        timestamp = result.timestamp,
+                        errorCodes = result.errorCodes,
+                        subError = result.subError,
+                        attributeValidationDetails = result.attributeValidationDetails
                     )
                 } else {
                     NativeAuthResultV2.AttributesInvalid(
                         nextState = AttributesInvalidStateV2(result.continuationState, scenario, config),
                         scenario = scenario,
-                        invalidAttributes = result.invalidAttributes
+                        invalidAttributes = result.invalidAttributes,
+                        error = NativeAuthErrorV2.fromAttributeError(result, scenario)
                     )
                 }
             }
             is NativeAuthV2CommandResult.UserAlreadyExists -> {
-                SignUpErrorV2(
+                NativeAuthErrorV2(
                     errorType = SignUpErrorTypes.USER_ALREADY_EXISTS,
                     error = result.error,
                     errorMessage = result.errorDescription,
                     correlationId = result.correlationId,
                     scenario = scenario,
-                    errorCodes = result.errorCodes
+                    traceId = result.traceId,
+                    timestamp = result.timestamp,
+                    errorCodes = result.errorCodes,
+                    subError = result.subError,
+                    attributeValidationDetails = result.attributeValidationDetails
                 )
             }
             is SignUpCommandResult.InvalidAttributes -> {
-                SubmitPasswordErrorV2(
+                NativeAuthErrorV2(
                     errorType = SignUpErrorTypes.INVALID_ATTRIBUTES,
                     error = result.error,
                     errorMessage = result.errorDescription,
@@ -352,8 +369,11 @@ class PasswordRequiredStateV2 internal constructor(
                 )
             }
             is INativeAuthCommandResult.Redirect -> {
-                SubmitPasswordErrorV2(
+                NativeAuthErrorV2(
                     errorType = ErrorTypes.BROWSER_REQUIRED,
+                    traceId = result.traceId,
+                    timestamp = result.timestamp,
+                    errorCodes = result.errorCodes,
                     error = result.error,
                     errorMessage = result.errorDescription,
                     correlationId = result.correlationId,
@@ -361,18 +381,22 @@ class PasswordRequiredStateV2 internal constructor(
                 )
             }
             is INativeAuthCommandResult.APIError -> {
-                SubmitPasswordErrorV2(
+                NativeAuthErrorV2(
                     error = result.error,
                     errorMessage = result.errorDescription,
                     correlationId = result.correlationId,
                     scenario = scenario,
+                    traceId = result.traceId,
+                    timestamp = result.timestamp,
                     errorCodes = result.errorCodes,
-                    exception = result.exception
+                    exception = result.exception,
+                    subError = result.subError,
+                    attributeValidationDetails = result.attributeValidationDetails
                 )
             }
             else -> {
                 Logger.warnWithObject(TAG, result.correlationId, "V2 submitPassword attributes received unsupported result: ", result)
-                SubmitPasswordErrorV2(
+                NativeAuthErrorV2(
                     errorType = ErrorTypes.INVALID_STATE,
                     errorMessage = "V2 submit sign-up password returned an unsupported result.",
                     correlationId = result.correlationId,

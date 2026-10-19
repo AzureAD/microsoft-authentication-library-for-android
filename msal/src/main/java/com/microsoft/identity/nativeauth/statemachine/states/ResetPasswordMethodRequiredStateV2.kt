@@ -44,7 +44,6 @@ import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfig
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
-import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.utils.getCancellable
 import com.microsoft.identity.nativeauth.utils.serializable
@@ -130,7 +129,7 @@ class ResetPasswordMethodRequiredStateV2 internal constructor(
         )
         val state = continuationState ?: return invalidState()
         val offeredMethod = authMethods.firstOrNull { it.id == method.id }
-            ?: return ResetPasswordErrorV2(
+            ?: return NativeAuthErrorV2(
                 errorType = ErrorTypes.INVALID_STATE,
                 errorMessage = "The selected authentication method is not one of the methods the server offered.",
                 correlationId = correlationId,
@@ -192,20 +191,27 @@ class ResetPasswordMethodRequiredStateV2 internal constructor(
                         correlationId = result.correlationId,
                         scenario = scenario
                     )
-                    is INativeAuthCommandResult.Redirect -> ResetPasswordErrorV2(
+                    is INativeAuthCommandResult.Redirect -> NativeAuthErrorV2(
                         errorType = ErrorTypes.BROWSER_REQUIRED,
+                        traceId = result.traceId,
+                        timestamp = result.timestamp,
+                        errorCodes = result.errorCodes,
                         error = result.error,
                         errorMessage = result.errorDescription,
                         correlationId = result.correlationId,
                         scenario = scenario
                     )
-                    is INativeAuthCommandResult.APIError -> ResetPasswordErrorV2(
+                    is INativeAuthCommandResult.APIError -> NativeAuthErrorV2(
                         error = result.error,
                         errorMessage = result.errorDescription,
                         correlationId = result.correlationId,
                         scenario = scenario,
+                        traceId = result.traceId,
+                        timestamp = result.timestamp,
                         errorCodes = result.errorCodes,
-                        exception = result.exception
+                        exception = result.exception,
+                        subError = result.subError,
+                        attributeValidationDetails = result.attributeValidationDetails
                     )
                     else -> {
                         Logger.warnWithObject(
@@ -214,7 +220,7 @@ class ResetPasswordMethodRequiredStateV2 internal constructor(
                             "V2 selectResetPasswordMethod received unsupported result: ",
                             result
                         )
-                        ResetPasswordErrorV2(
+                        NativeAuthErrorV2(
                             errorType = ErrorTypes.INVALID_STATE,
                             errorMessage = "V2 reset password method selection returned an unsupported result.",
                             correlationId = result.correlationId,
@@ -226,7 +232,7 @@ class ResetPasswordMethodRequiredStateV2 internal constructor(
                 throw e
             } catch (e: Exception) {
                 Logger.error(TAG, correlationId, "Exception thrown in selectAuthMethod", e)
-                ResetPasswordErrorV2(
+                NativeAuthErrorV2(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in selectAuthMethod.",
                     correlationId = correlationId,

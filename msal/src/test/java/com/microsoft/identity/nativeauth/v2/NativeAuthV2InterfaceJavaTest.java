@@ -41,8 +41,6 @@ import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters;
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters;
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2;
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2;
-import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorV2;
-import com.microsoft.identity.nativeauth.statemachine.errors.SignUpErrorV2;
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2;
 import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredStateV2;
 import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterResetPasswordStateV2;
@@ -97,8 +95,8 @@ public class NativeAuthV2InterfaceJavaTest extends PublicClientApplicationAbstra
         final ResultFuture<NativeAuthResultV2> future = new ResultFuture<>();
         application.signInV2(new NativeAuthSignInParameters(" "), newCallback(future));
         final NativeAuthResultV2 result = future.get(30, TimeUnit.SECONDS);
-        assertTrue(result instanceof SignInErrorV2);
-        assertTrue(((SignInErrorV2) result).isInvalidUsername());
+        assertTrue(result instanceof NativeAuthErrorV2);
+        assertTrue(((NativeAuthErrorV2) result).isInvalidUsername());
         assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.getScenario());
     }
 
@@ -109,8 +107,8 @@ public class NativeAuthV2InterfaceJavaTest extends PublicClientApplicationAbstra
         final ResultFuture<NativeAuthResultV2> future = new ResultFuture<>();
         application.signUpV2(new NativeAuthSignUpParameters(" "), newCallback(future));
         final NativeAuthResultV2 result = future.get(30, TimeUnit.SECONDS);
-        assertTrue(result instanceof SignUpErrorV2);
-        assertTrue(((SignUpErrorV2) result).isInvalidUsername());
+        assertTrue(result instanceof NativeAuthErrorV2);
+        assertTrue(((NativeAuthErrorV2) result).isInvalidUsername());
         assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, result.getScenario());
     }
 
