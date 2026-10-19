@@ -109,7 +109,12 @@ public class TestCase1616315 extends AbstractGuestAccountMsalUiTest {
         final MsalAuthResult acquireTokenSilentlyCrossCloudResult = msalSdk.acquireTokenSilent(acquireTokenCrossCloudAuthParams, TokenRequestTimeout.SHORT);
         MsalArgumentException exception = (MsalArgumentException) acquireTokenSilentlyCrossCloudResult.getException();
         Assert.assertNotNull("Verify Exception is returned", exception);
-        Assert.assertEquals("Verify Exception operation name", "authority", exception.getOperationName());
+        Assert.assertEquals("Verify Exception operation name",
+                MsalArgumentException.ACQUIRE_TOKEN_SILENT_OPERATION_NAME,
+                exception.getOperationName());
+        Assert.assertEquals("Verify Exception argument name",
+                "authority",
+                exception.getArgumentName());
 
         mBrowser.clear();
         // Acquire token interactively from cross/foreign cloud
