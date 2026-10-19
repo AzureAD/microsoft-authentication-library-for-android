@@ -715,6 +715,8 @@ class NativeAuthPublicClientApplication(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = NativeAuthFlowScenarioV2.SIGN_IN,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes,
                             subError = result.subError
                         )
@@ -726,6 +728,8 @@ class NativeAuthPublicClientApplication(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = NativeAuthFlowScenarioV2.SIGN_IN,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes
                         )
                     }
@@ -736,6 +740,8 @@ class NativeAuthPublicClientApplication(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = NativeAuthFlowScenarioV2.SIGN_IN,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes
                         )
                     }
@@ -751,6 +757,9 @@ class NativeAuthPublicClientApplication(
                     is INativeAuthCommandResult.Redirect -> {
                         NativeAuthErrorV2(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
+                            errorCodes = result.errorCodes,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
@@ -763,6 +772,8 @@ class NativeAuthPublicClientApplication(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = NativeAuthFlowScenarioV2.SIGN_IN,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes,
                             exception = result.exception,
                             subError = result.subError,
@@ -926,6 +937,8 @@ class NativeAuthPublicClientApplication(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = NativeAuthFlowScenarioV2.SIGN_UP,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes,
                             subError = result.subError,
                             attributeValidationDetails = result.attributeValidationDetails
@@ -947,6 +960,8 @@ class NativeAuthPublicClientApplication(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = NativeAuthFlowScenarioV2.SIGN_UP,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes
                         )
                     }
@@ -962,6 +977,9 @@ class NativeAuthPublicClientApplication(
                     is INativeAuthCommandResult.Redirect -> {
                         NativeAuthErrorV2(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
+                            errorCodes = result.errorCodes,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
@@ -974,6 +992,8 @@ class NativeAuthPublicClientApplication(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = NativeAuthFlowScenarioV2.SIGN_UP,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes,
                             exception = result.exception,
                             subError = result.subError,
@@ -1132,6 +1152,8 @@ class NativeAuthPublicClientApplication(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes
                         )
                     }
@@ -1142,6 +1164,8 @@ class NativeAuthPublicClientApplication(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes
                         )
                     }
@@ -1157,6 +1181,9 @@ class NativeAuthPublicClientApplication(
                     is INativeAuthCommandResult.Redirect -> {
                         NativeAuthErrorV2(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
+                            errorCodes = result.errorCodes,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
@@ -1169,6 +1196,8 @@ class NativeAuthPublicClientApplication(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes,
                             exception = result.exception,
                             subError = result.subError,

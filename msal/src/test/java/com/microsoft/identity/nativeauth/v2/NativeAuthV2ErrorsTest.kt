@@ -28,6 +28,7 @@ import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -44,6 +45,16 @@ class NativeAuthV2ErrorsTest {
     private val errorMessage = "error message"
 
     @Test
+    fun unifiedError_localErrorsHaveNoServiceDiagnostics() {
+        val error = NativeAuthErrorV2(
+            errorMessage = errorMessage, correlationId = correlationId,
+            scenario = NativeAuthFlowScenarioV2.SIGN_IN
+        )
+        assertNull(error.traceId)
+        assertNull(error.timestamp)
+    }
+
+    @Test
     fun unifiedError_credentialsAreNotPasswordPolicyViolations() {
         val error = NativeAuthErrorV2(
             error = "invalidGrant", subError = "invalidUserNameOrPassword",
@@ -52,6 +63,27 @@ class NativeAuthV2ErrorsTest {
         )
         assertTrue(error.isInvalidCredentials())
         assertFalse(error.isInvalidPassword())
+        assertFalse(error.isGeneralError())
+    }
+
+    @Test
+    fun unifiedError_passwordPolicyDetailsAreIndependentOfCredentialClassification() {
+        val error = NativeAuthErrorV2(
+            error = "invalidGrant",
+            subError = "invalidUserNameOrPassword",
+            errorMessage = errorMessage,
+            correlationId = correlationId,
+            scenario = NativeAuthFlowScenarioV2.SIGN_IN,
+            attributeValidationDetails = listOf(
+                mapOf(
+                    "code" to "passwordPolicyViolation",
+                    "attributeIds" to listOf("password")
+                )
+            )
+        )
+
+        assertTrue(error.isInvalidCredentials())
+        assertTrue(error.isInvalidPassword())
         assertFalse(error.isGeneralError())
     }
 
