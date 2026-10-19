@@ -192,6 +192,8 @@ class MFARequiredStateV2 internal constructor(
                 val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
                 ensureActive()
                 when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SelectMFAMethodCommandResult>()) {
+                    is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
+                        result.toRegistrationResult(scenario, config)
                     is NativeAuthV2CommandResult.MFAVerificationRequired -> {
                         NativeAuthResultV2.MFAVerificationRequired(
                             nextState = MFAVerificationRequiredStateV2(

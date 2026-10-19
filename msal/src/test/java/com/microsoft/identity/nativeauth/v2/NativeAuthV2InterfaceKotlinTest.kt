@@ -1013,8 +1013,8 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         )
         assertInvalidState(MFAVerificationRequiredStateV2("correlation-id", scenario, config).submitChallenge("challenge"))
         assertInvalidState(MFAVerificationRequiredStateV2("correlation-id", scenario, config).resendChallenge())
-        assertNotImplemented(StrongAuthRegistrationRequiredStateV2("correlation-id", scenario, config).selectAuthMethod(authMethod))
-        assertNotImplemented(StrongAuthVerificationRequiredStateV2("correlation-id", scenario, config).submitChallenge("challenge"))
+        assertInvalidState(StrongAuthRegistrationRequiredStateV2("correlation-id", scenario, config).selectAuthMethod(authMethod))
+        assertInvalidState(StrongAuthVerificationRequiredStateV2("correlation-id", scenario, config).submitChallenge("challenge"))
     }
 
     @Test

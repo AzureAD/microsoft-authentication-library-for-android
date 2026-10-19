@@ -164,6 +164,8 @@ class CodeRequiredStateV2 internal constructor(
             val result =
                 rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SignInSubmitCodeCommandResult>()
         ) {
+            is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
+                result.toRegistrationResult(scenario, config)
             is NativeAuthV2CommandResult.Complete -> mapCompleteResult(result)
             is NativeAuthV2CommandResult.MFARequired -> {
                 val authMethods = result.authMethods.toListOfV2AuthMethods()
@@ -200,6 +202,8 @@ class CodeRequiredStateV2 internal constructor(
             val result =
                 rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SignUpSubmitCodeCommandResult>()
         ) {
+            is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
+                result.toRegistrationResult(scenario, config)
             is NativeAuthV2CommandResult.AttributesRequired -> {
                 NativeAuthResultV2.AttributesRequired(
                     nextState = AttributesRequiredStateV2(
@@ -255,6 +259,8 @@ class CodeRequiredStateV2 internal constructor(
             val result =
                 rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2ResetPasswordSubmitCodeCommandResult>()
         ) {
+            is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
+                result.toRegistrationResult(scenario, config)
             is NativeAuthV2CommandResult.NewPasswordRequired -> {
                 NativeAuthResultV2.NewPasswordRequired(
                     nextState = NewPasswordRequiredStateV2(
@@ -385,6 +391,8 @@ class CodeRequiredStateV2 internal constructor(
                 val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
                 ensureActive()
                 when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2ResendCodeCommandResult>()) {
+                    is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
+                        result.toRegistrationResult(scenario, config)
                     is NativeAuthV2CommandResult.CodeRequired -> {
                         NativeAuthResultV2.CodeRequired(
                             nextState = CodeRequiredStateV2(result.continuationState, scenario, config),

@@ -23,6 +23,8 @@
 
 package com.microsoft.identity.nativeauth
 
+import com.microsoft.identity.nativeauth.statemachine.states.toRegistrationResult
+
 import android.content.Context
 import com.microsoft.identity.client.AccountAdapter
 import com.microsoft.identity.client.AuthenticationResultAdapter
@@ -653,6 +655,8 @@ class NativeAuthPublicClientApplication(
                 ensureActive()
 
                 when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SignInStartCommandResult>()) {
+                    is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
+                        result.toRegistrationResult(NativeAuthFlowScenarioV2.SIGN_IN, nativeAuthConfig)
                     is NativeAuthV2CommandResult.Complete -> {
                         val localAuthResult = result.authenticationResult
                         if (localAuthResult != null) {
@@ -873,6 +877,8 @@ class NativeAuthPublicClientApplication(
                 ensureActive()
 
                 when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SignUpStartCommandResult>()) {
+                    is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
+                        result.toRegistrationResult(NativeAuthFlowScenarioV2.SIGN_UP, nativeAuthConfig)
                     is NativeAuthV2CommandResult.CodeRequired -> {
                         NativeAuthResultV2.CodeRequired(
                             nextState = CodeRequiredStateV2(
@@ -1081,6 +1087,8 @@ class NativeAuthPublicClientApplication(
                 ensureActive()
 
                 when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2ResetPasswordStartCommandResult>()) {
+                    is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
+                        result.toRegistrationResult(NativeAuthFlowScenarioV2.RESET_PASSWORD, nativeAuthConfig)
                     is NativeAuthV2CommandResult.CodeRequired -> {
                         NativeAuthResultV2.CodeRequired(
                             nextState = CodeRequiredStateV2(

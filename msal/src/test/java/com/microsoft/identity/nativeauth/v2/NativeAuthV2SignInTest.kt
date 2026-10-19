@@ -66,6 +66,39 @@ import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2Si
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInStartCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitMFAChallengeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitPasswordCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2EnrollCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ActivateCommand
+import com.microsoft.identity.common.nativeauth.internal.controllers.v2.NativeAuthV2FlowController
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2EnrollCommandParameters
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2ActivateCommandParameters
+import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthRegistrationRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthVerificationRequiredStateV2
+import io.mockk.mockkConstructor
+import io.mockk.unmockkConstructor
+import io.mockk.slot
+import io.mockk.spyk
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import java.util.concurrent.CountDownLatch
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResetPasswordStartCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SelectResetPasswordMethodCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResetPasswordSubmitCodeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitNewPasswordCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignUpStartCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignUpSubmitCodeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitAttributesCommand
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitAttributesCommandParameters
+import com.microsoft.identity.nativeauth.AuthMethod
+import com.microsoft.identity.nativeauth.UserAttributes
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters
+import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordMethodRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.AttributesInvalidStateV2
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
@@ -95,6 +128,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotSame
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -111,6 +145,7 @@ import kotlin.time.Duration.Companion.seconds
 /**
  * Parity coverage for Native Auth V2 sign-in: email one-time-code or password first factor,
  * followed by the existing MFA flow when required.
+ * Strong-auth enrollment interruptions also cover their shared sign-up and reset continuations.
  *
  * Every scenario is driven through mocked Common command results, so the whole public surface is
  * exercised without a service. The live end-to-end equivalents are gated separately on a
@@ -152,6 +187,427 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     // -----------------------------------------------------------------------------------------
     // Password first factor
     // -----------------------------------------------------------------------------------------
+
+    @Test
+    fun signInV2MapsStrongAuthRegistrationWithOfferedMethods() = runTest {
+        val state = createContinuationState()
+        enqueueResult(
+            NativeAuthV2CommandResult.StrongAuthRegistrationRequired(
+                correlationId, state,
+                listOf(NativeAuthV2AuthMethod("sms-1", "sms", null))
+            ),
+            NativeAuthV2SignInStartCommand::class
+        )
+
+        val result = application.signInV2(signInParameters()) as NativeAuthResultV2.StrongAuthRegistrationRequired
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.scenario)
+        assertEquals("sms-1", result.authMethods.single().id)
+        assertEquals("sms", result.authMethods.single().challengeChannel)
+        assertEquals(state, result.nextState.continuationState)
+    }
+
+    @Test
+    fun enrollmentUsesRealCommandAndOfferedChannelAfterParcel() = runTest(timeout = 60.seconds) {
+        mockkConstructor(NativeAuthV2FlowController::class)
+        try {
+            val captured = slot<NativeAuthV2EnrollCommandParameters>()
+            val next = createContinuationState("enrolled-correlation")
+            val commonResult = NativeAuthV2CommandResult.StrongAuthVerificationRequired(
+                next.correlationId, next, 7, "***1234"
+            )
+            every { anyConstructed<NativeAuthV2FlowController>().enroll(capture(captured)) } returns commonResult
+            enqueueResult(commonResult, NativeAuthV2EnrollCommand::class) { command ->
+                assertEquals(PublicApiId.NATIVE_AUTH_JIT_CHALLENGE_AUTH_METHOD, command.publicApiId)
+                assertEquals(commonResult, command.execute())
+            }
+            val registration = strongAuthRegistration()
+            val restored = parcelRoundTrip(registration.nextState, StrongAuthRegistrationRequiredStateV2.CREATOR)
+            assertEquals(registration.authMethods.single().id, restored.authMethods.single().id)
+            assertEquals(registration.authMethods.single().challengeChannel, restored.authMethods.single().challengeChannel)
+            assertEquals(correlationId, restored.continuationState?.correlationId)
+            // Existing Native Auth serialization omits the inherited PCA configuration/runtime.
+            restored.config.mergeConfiguration(registration.nextState.config)
+            restored.config.appContext = registration.nextState.config.appContext
+            restored.config.oAuth2TokenCache = registration.nextState.config.oAuth2TokenCache
+            // The caller cannot change the offered channel by copying the selected method.
+            val selected = registration.authMethods.single().copy(challengeChannel = "email")
+            val raw = restored.selectAuthMethod(selected, "+1 555 1234")
+            assertTrue("Enrollment failed: ${(raw as? NativeAuthErrorV2)?.exception}", raw is NativeAuthResultV2.StrongAuthVerificationRequired)
+            val result = raw as NativeAuthResultV2.StrongAuthVerificationRequired
+            assertEquals("sms", result.channel)
+            assertEquals(7, result.codeLength)
+            assertEquals("***1234", result.sentTo)
+            assertEquals(next, result.nextState.continuationState)
+            assertEquals("sms-1", captured.captured.methodId)
+            assertEquals("+1 555 1234", captured.captured.contact)
+            assertEquals(correlationId, captured.captured.continuationState.correlationId)
+            assertEquals(correlationId, captured.captured.tokenParameters.correlationId)
+            assertEquals(restored.config.clientId, captured.captured.tokenParameters.clientId)
+        } finally {
+            unmockkConstructor(NativeAuthV2FlowController::class)
+        }
+    }
+
+    @Test
+    fun enrollmentRejectsBlankContactAndUnofferedMethodWithoutCommand() = runTest {
+        val registration = strongAuthRegistration()
+        for (contact in listOf(null, "", "  ")) {
+            val error = registration.nextState.selectAuthMethod(registration.authMethods.single(), contact) as NativeAuthErrorV2
+            assertTrue(error.isInvalidInput())
+        }
+        val error = registration.nextState.selectAuthMethod(
+            registration.authMethods.single().copy(id = "not-offered"), "user@example.com"
+        ) as NativeAuthErrorV2
+        assertTrue(error.isInvalidInput())
+        verify(exactly = 0) {
+            CommandDispatcher.submitSilentReturningFuture(match { it is NativeAuthV2EnrollCommand })
+        }
+    }
+
+    @Test
+    fun activationUsesRealCommandAndDoesNotValidateOtpFormatAfterParcel() = runTest(timeout = 60.seconds) {
+        mockkConstructor(NativeAuthV2FlowController::class)
+        try {
+            val captured = slot<NativeAuthV2ActivateCommandParameters>()
+            val incorrect = NativeAuthV2CommandResult.IncorrectCode(correlationId, "invalidGrant", "Invalid code", "invalidOneTimeCode")
+            every { anyConstructed<NativeAuthV2FlowController>().activate(capture(captured)) } returns incorrect
+            val state = strongAuthVerification()
+            val restored = parcelRoundTrip(state, StrongAuthVerificationRequiredStateV2.CREATOR)
+            assertEquals("sms", restored.selectedChannel)
+            restored.config.mergeConfiguration(state.config)
+            restored.config.appContext = state.config.appContext
+            restored.config.oAuth2TokenCache = state.config.oAuth2TokenCache
+            enqueueResult(incorrect, NativeAuthV2ActivateCommand::class) { command ->
+                assertEquals(PublicApiId.NATIVE_AUTH_JIT_SUBMIT_CHALLENGE, command.publicApiId)
+                assertEquals(incorrect, command.execute())
+            }
+            val error = restored.submitChallenge(" not-a-numeric-code ") as NativeAuthErrorV2
+            assertTrue("Activation failed: ${error.exception}", error.isInvalidChallenge())
+            assertEquals(" not-a-numeric-code ", captured.captured.code)
+            assertEquals(restored.continuationState, captured.captured.continuationState)
+            enqueueResult(
+                NativeAuthV2CommandResult.MFARequired(correlationId, createContinuationState(), emptyList()),
+                NativeAuthV2ActivateCommand::class
+            )
+            assertTrue(restored.submitChallenge("retry") is NativeAuthResultV2.MFARequired)
+        } finally {
+            unmockkConstructor(NativeAuthV2FlowController::class)
+        }
+    }
+
+    @Test
+    fun activationMapsEveryOriginatingFlowSuccessor() = runTest {
+        val original = strongAuthVerification()
+        val state = createContinuationState("next-correlation")
+        val successors = listOf(
+            NativeAuthV2CommandResult.MFARequired(correlationId, state, emptyList()) to NativeAuthResultV2.MFARequired::class,
+            NativeAuthV2CommandResult.NewPasswordRequired(correlationId, state) to NativeAuthResultV2.NewPasswordRequired::class,
+            NativeAuthV2CommandResult.SignInAfterResetPasswordRequired(correlationId, state) to NativeAuthResultV2.SignInAfterResetPasswordRequired::class,
+            NativeAuthV2CommandResult.SignInAfterSignUpRequired(correlationId, state) to NativeAuthResultV2.SignInAfterSignUpRequired::class,
+            NativeAuthV2CommandResult.PasswordRequired(correlationId, state) to NativeAuthResultV2.PasswordRequired::class,
+            NativeAuthV2CommandResult.AttributesRequired(correlationId, state, emptyList()) to NativeAuthResultV2.AttributesRequired::class,
+            NativeAuthV2CommandResult.AttributesInvalid(correlationId, state, listOf("city"), "invalidRequest", "Invalid city") to NativeAuthResultV2.AttributesInvalid::class,
+            NativeAuthV2CommandResult.CodeRequired(correlationId, state, 8, "***", "email") to NativeAuthResultV2.CodeRequired::class,
+            NativeAuthV2CommandResult.StrongAuthRegistrationRequired(correlationId, state, emptyList()) to NativeAuthResultV2.StrongAuthRegistrationRequired::class
+        )
+        for (scenario in listOf(NativeAuthFlowScenarioV2.SIGN_IN, NativeAuthFlowScenarioV2.SIGN_UP, NativeAuthFlowScenarioV2.RESET_PASSWORD)) {
+            val verification = StrongAuthVerificationRequiredStateV2(
+                correlationId, scenario, original.config, original.continuationState, "sms"
+            )
+            for ((common, expected) in successors) {
+                enqueueResult(common, NativeAuthV2ActivateCommand::class)
+                val result = verification.submitChallenge("otp")
+                assertTrue("Expected $expected but got ${result.javaClass}", expected.java.isInstance(result))
+                assertEquals(scenario, result.scenario)
+                val next = (result as com.microsoft.identity.nativeauth.statemachine.results.Result.SuccessResult).nextState as
+                    com.microsoft.identity.nativeauth.statemachine.states.NativeAuthBaseStateV2
+                assertSame(state, next.continuationState)
+                assertEquals(scenario, next.scenario)
+            }
+        }
+    }
+
+    @Test
+    fun activationMapsTypedErrorsAndRetainsRedactedDiagnostics() = runTest {
+        val state = strongAuthVerification()
+        val cases = listOf(
+            NativeAuthV2CommandResult.UserAlreadyExists(correlationId, "invalidRequest", "Account exists", listOf(42), "userAlreadyExists") to "exists",
+            NativeAuthV2CommandResult.PasswordResetFailed(correlationId, "invalidRequest", "Reset failed") to "reset",
+            NativeAuthV2CommandResult.IncorrectCode(correlationId, "invalidGrant", "Invalid OTP", "invalidOneTimeCode", listOf(7)) to "code",
+            INativeAuthCommandResult.Redirect(correlationId, "Use browser") to "browser",
+            INativeAuthCommandResult.APIError(
+                correlationId = correlationId, error = "invalidRequest", errorDescription = "Service error"
+            ) to "api"
+        )
+        for ((common, kind) in cases) {
+            enqueueResult(common, NativeAuthV2ActivateCommand::class)
+            val error = state.submitChallenge("sensitive-otp") as NativeAuthErrorV2
+            assertEquals(correlationId, error.correlationId)
+            when (kind) {
+                "exists" -> assertTrue(error.isUserAlreadyExists())
+                "reset" -> assertTrue(error.isPasswordResetFailed())
+                "code" -> assertTrue(error.isInvalidChallenge())
+                "browser" -> assertTrue(error.isBrowserRequired())
+                "api" -> assertEquals("invalidRequest", error.error)
+            }
+            assertFalse(error.toString().contains("sensitive-otp"))
+        }
+    }
+
+    @Test
+    fun strongAuthCommandsPropagateCancellation() = runTest {
+        val registration = strongAuthRegistration()
+        enqueueCancellation(NativeAuthV2EnrollCommand::class)
+        try {
+            registration.nextState.selectAuthMethod(registration.authMethods.single(), "user@example.com")
+            fail("Expected cancellation")
+        } catch (_: CancellationException) { }
+        val state = strongAuthVerification()
+        enqueueCancellation(NativeAuthV2ActivateCommand::class)
+        try {
+            state.submitChallenge("otp")
+            fail("Expected cancellation")
+        } catch (_: CancellationException) { }
+    }
+
+    @Test
+    fun registrationInterruptsEveryAffectedEntryAndContinuationOperation() = runTest {
+        val config = strongAuthRegistration().nextState.config
+        val state = createContinuationState()
+        val method = AuthMethod("email-1", "oob", null, "email")
+        val attributes = UserAttributes.Builder().city("Redmond").build()
+        suspend fun check(
+            scenario: NativeAuthFlowScenarioV2,
+            commandClass: KClass<out BaseCommand<*>>,
+            operation: suspend () -> NativeAuthResultV2
+        ) {
+            enqueueResult(
+                NativeAuthV2CommandResult.StrongAuthRegistrationRequired(
+                    correlationId, state, listOf(NativeAuthV2AuthMethod("sms-1", "sms", null))
+                ), commandClass
+            )
+            val result = operation()
+            assertTrue("$commandClass returned ${result.javaClass}", result is NativeAuthResultV2.StrongAuthRegistrationRequired)
+            result as NativeAuthResultV2.StrongAuthRegistrationRequired
+            assertEquals(scenario, result.scenario)
+            assertEquals(scenario, result.nextState.scenario)
+            assertSame(state, result.nextState.continuationState)
+            assertEquals("sms-1", result.authMethods.single().id)
+        }
+        check(NativeAuthFlowScenarioV2.SIGN_IN, NativeAuthV2SignInStartCommand::class) {
+            application.signInV2(signInParameters())
+        }
+        check(NativeAuthFlowScenarioV2.SIGN_UP, NativeAuthV2SignUpStartCommand::class) {
+            application.signUpV2(NativeAuthSignUpParameters(username))
+        }
+        check(NativeAuthFlowScenarioV2.RESET_PASSWORD, NativeAuthV2ResetPasswordStartCommand::class) {
+            application.resetPasswordV2(NativeAuthResetPasswordParameters(username))
+        }
+        for (scenario in listOf(NativeAuthFlowScenarioV2.SIGN_IN, NativeAuthFlowScenarioV2.SIGN_UP, NativeAuthFlowScenarioV2.RESET_PASSWORD)) {
+            val code = CodeRequiredStateV2(state, scenario, config)
+            val commandClass = when (scenario) {
+                NativeAuthFlowScenarioV2.SIGN_UP -> NativeAuthV2SignUpSubmitCodeCommand::class
+                NativeAuthFlowScenarioV2.RESET_PASSWORD -> NativeAuthV2ResetPasswordSubmitCodeCommand::class
+                else -> NativeAuthV2SignInSubmitCodeCommand::class
+            }
+            check(scenario, commandClass) { code.submitCode("otp") }
+            check(scenario, NativeAuthV2ResendCodeCommand::class) { code.resendCode() }
+        }
+        check(NativeAuthFlowScenarioV2.RESET_PASSWORD, NativeAuthV2SelectResetPasswordMethodCommand::class) {
+            ResetPasswordMethodRequiredStateV2(state, listOf(method), config).selectAuthMethod(method)
+        }
+        // Common also returns this result from password-update polling through the same command.
+        check(NativeAuthFlowScenarioV2.RESET_PASSWORD, NativeAuthV2SubmitNewPasswordCommand::class) {
+            NewPasswordRequiredStateV2(state, NativeAuthFlowScenarioV2.RESET_PASSWORD, config).submitNewPassword("Password123!".toCharArray())
+        }
+        check(NativeAuthFlowScenarioV2.SIGN_IN, NativeAuthV2SubmitPasswordCommand::class) {
+            PasswordRequiredStateV2(state, NativeAuthFlowScenarioV2.SIGN_IN, config).submitPassword("Password123!".toCharArray())
+        }
+        check(NativeAuthFlowScenarioV2.SIGN_UP, NativeAuthV2SubmitAttributesCommand::class) {
+            PasswordRequiredStateV2(state, NativeAuthFlowScenarioV2.SIGN_UP, config).submitPassword("Password123!".toCharArray())
+        }
+        check(NativeAuthFlowScenarioV2.SIGN_UP, NativeAuthV2SubmitAttributesCommand::class) {
+            AttributesRequiredStateV2(state, NativeAuthFlowScenarioV2.SIGN_UP, config).submitAttributes(attributes)
+        }
+        check(NativeAuthFlowScenarioV2.SIGN_UP, NativeAuthV2SubmitAttributesCommand::class) {
+            AttributesInvalidStateV2(state, NativeAuthFlowScenarioV2.SIGN_UP, config).submitAttributes(attributes)
+        }
+        check(NativeAuthFlowScenarioV2.SIGN_IN, NativeAuthV2SelectMFAMethodCommand::class) {
+            MFARequiredStateV2(state, listOf(method), NativeAuthFlowScenarioV2.SIGN_IN, config).selectAuthMethod(method)
+        }
+        val mfa = MFAVerificationRequiredStateV2(state, NativeAuthFlowScenarioV2.SIGN_IN, config)
+        check(NativeAuthFlowScenarioV2.SIGN_IN, NativeAuthV2SubmitMFAChallengeCommand::class) { mfa.submitChallenge("otp") }
+        check(NativeAuthFlowScenarioV2.SIGN_IN, NativeAuthV2ResendCodeCommand::class) { mfa.resendChallenge() }
+    }
+
+    @Test
+    fun activationResumesSignUpPasswordRecollectionThroughSubmitAttributes() = runTest {
+        val config = strongAuthRegistration().nextState.config
+        val commonState = NativeAuthV2ContinuationStateTestFactory.create(
+            correlationId = correlationId, entryRelation = NativeAuthV2LinkRelation.SIGN_UP,
+            scenario = NativeAuthV2FlowScenario.SIGN_UP
+        )
+        val state = StrongAuthVerificationRequiredStateV2(
+            correlationId, NativeAuthFlowScenarioV2.SIGN_UP, config, commonState, "email"
+        )
+        enqueueResult(NativeAuthV2CommandResult.PasswordRequired(correlationId, commonState), NativeAuthV2ActivateCommand::class)
+        val password = state.submitChallenge("otp") as NativeAuthResultV2.PasswordRequired
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, password.scenario)
+        var submittedPassword: String? = null
+        enqueueResult(
+            NativeAuthV2CommandResult.SignInAfterSignUpRequired(correlationId, commonState),
+            NativeAuthV2SubmitAttributesCommand::class
+        ) { command ->
+            val parameters = command.parameters as NativeAuthV2SubmitAttributesCommandParameters
+            submittedPassword = parameters.password?.let { String(it) }
+            assertSame(commonState, parameters.continuationState)
+        }
+        val callerPassword = "Password123!".toCharArray()
+        val next = password.nextState.submitPassword(callerPassword)
+        assertTrue(next is NativeAuthResultV2.SignInAfterSignUpRequired)
+        assertEquals("Password123!", submittedPassword)
+        assertEquals("Password123!", String(callerPassword))
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, next.scenario)
+    }
+
+    @Test
+    fun strongAuthCallbacksReturnSameSuccessStatesAsSuspendApis() = runTest {
+        val registration = strongAuthRegistration()
+        enqueueResult(
+            NativeAuthV2CommandResult.StrongAuthVerificationRequired(correlationId, createContinuationState(), 6, "***"),
+            NativeAuthV2EnrollCommand::class
+        )
+        val enrolled = ResultFuture<NativeAuthResultV2>()
+        registration.nextState.selectAuthMethod(registration.authMethods.single(), "user@example.com",
+            object : StrongAuthRegistrationRequiredStateV2.SelectAuthMethodCallback {
+                override fun onResult(result: NativeAuthResultV2) = enrolled.setResult(result)
+                override fun onError(exception: BaseException) = enrolled.setException(exception)
+            }
+        )
+        val verification = enrolled.get(10, TimeUnit.SECONDS) as NativeAuthResultV2.StrongAuthVerificationRequired
+        assertEquals("sms", verification.channel)
+        enqueueResult(
+            NativeAuthV2CommandResult.MFARequired(correlationId, createContinuationState(), emptyList()),
+            NativeAuthV2ActivateCommand::class
+        )
+        val activated = ResultFuture<NativeAuthResultV2>()
+        verification.nextState.submitChallenge("otp", object : StrongAuthVerificationRequiredStateV2.SubmitChallengeCallback {
+            override fun onResult(result: NativeAuthResultV2) = activated.setResult(result)
+            override fun onError(exception: BaseException) = activated.setException(exception)
+        })
+        assertTrue(activated.get(10, TimeUnit.SECONDS) is NativeAuthResultV2.MFARequired)
+    }
+
+    @Test
+    fun activationMapsInlineCompletionAndRejectsMissingAuthenticationResult() = runTest {
+        val state = strongAuthVerification()
+        val localResult = mockk<ILocalAuthenticationResult>()
+        val authenticationResult = mockk<IAuthenticationResult>()
+        every { authenticationResult.account } returns mockk<IAccount>()
+        mockkStatic(AuthenticationResultAdapter::class)
+        try {
+            every { AuthenticationResultAdapter.adapt(localResult) } returns authenticationResult
+            enqueueResult(
+                NativeAuthV2CommandResult.Complete(correlationId, localResult, null, null),
+                NativeAuthV2ActivateCommand::class
+            )
+            val result = state.submitChallenge("otp") as NativeAuthResultV2.Complete
+            assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.scenario)
+            assertEquals(correlationId, result.resultValue.correlationId)
+            enqueueResult(
+                NativeAuthV2CommandResult.Complete(correlationId, null, null, null),
+                NativeAuthV2ActivateCommand::class
+            )
+            assertTrue(state.submitChallenge("otp") is NativeAuthErrorV2)
+        } finally {
+            unmockkStatic(AuthenticationResultAdapter::class)
+        }
+    }
+
+    @Test
+    fun strongAuthClientExceptionsHaveFixedRedactedMessages() = runTest {
+        val registration = strongAuthRegistration()
+        val verification = strongAuthVerification()
+        every {
+            CommandDispatcher.submitSilentReturningFuture(match { it is NativeAuthV2EnrollCommand || it is NativeAuthV2ActivateCommand })
+        } throws IllegalStateException("sensitive-contact-and-otp")
+        val errors = listOf(
+            registration.nextState.selectAuthMethod(registration.authMethods.single(), "sensitive-contact"),
+            verification.submitChallenge("sensitive-otp")
+        )
+        errors.forEach {
+            val error = it as NativeAuthErrorV2
+            assertEquals(ErrorTypes.CLIENT_EXCEPTION, error.errorType)
+            assertFalse(error.errorMessage.orEmpty().contains("sensitive"))
+            assertFalse(error.toString().contains("sensitive"))
+            assertTrue(error.exception is IllegalStateException)
+        }
+    }
+
+    @Test
+    fun strongAuthCallbacksCancelPendingFuturesWithoutDeliveringResults() = runTest(timeout = 60.seconds) {
+        val registration = strongAuthRegistration()
+        val verification = strongAuthVerification()
+        val enrollCallback = mockk<StrongAuthRegistrationRequiredStateV2.SelectAuthMethodCallback>(relaxed = true)
+        val activateCallback = mockk<StrongAuthVerificationRequiredStateV2.SubmitChallengeCallback>(relaxed = true)
+        mockkObject(NativeAuthPublicClientApplication.Companion)
+        try {
+            for (enrolling in listOf(true, false)) {
+                val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+                val waiting = CountDownLatch(1)
+                val future = spyk(FinalizableResultFuture<CommandResult<Any>>())
+                every { NativeAuthPublicClientApplication.pcaScope } returns scope
+                every { future.get() } answers {
+                    waiting.countDown()
+                    callOriginal()
+                }
+                every {
+                    CommandDispatcher.submitSilentReturningFuture(match {
+                        if (enrolling) it is NativeAuthV2EnrollCommand else it is NativeAuthV2ActivateCommand
+                    })
+                } returns future
+                try {
+                    if (enrolling) {
+                        registration.nextState.selectAuthMethod(
+                            registration.authMethods.single(), "user@example.com", enrollCallback
+                        )
+                    } else {
+                        verification.submitChallenge("otp", activateCallback)
+                    }
+                    assertTrue(waiting.await(10, TimeUnit.SECONDS))
+                } finally {
+                    scope.cancel()
+                    scope.coroutineContext[Job]?.join()
+                }
+                verify(exactly = 1) { future.cancelSignal() }
+            }
+            verify(exactly = 0) { enrollCallback.onResult(any()) }
+            verify(exactly = 0) { enrollCallback.onError(any()) }
+            verify(exactly = 0) { activateCallback.onResult(any()) }
+            verify(exactly = 0) { activateCallback.onError(any()) }
+        } finally {
+            unmockkObject(NativeAuthPublicClientApplication.Companion)
+        }
+    }
+
+    private suspend fun strongAuthRegistration(): NativeAuthResultV2.StrongAuthRegistrationRequired {
+        enqueueResult(
+            NativeAuthV2CommandResult.StrongAuthRegistrationRequired(
+                correlationId, createContinuationState(), listOf(NativeAuthV2AuthMethod("sms-1", "sms", null))
+            ), NativeAuthV2SignInStartCommand::class
+        )
+        return application.signInV2(signInParameters()) as NativeAuthResultV2.StrongAuthRegistrationRequired
+    }
+
+    private suspend fun strongAuthVerification(): StrongAuthVerificationRequiredStateV2 {
+        val registration = strongAuthRegistration()
+        enqueueResult(
+            NativeAuthV2CommandResult.StrongAuthVerificationRequired(correlationId, createContinuationState(), 6, "***"),
+            NativeAuthV2EnrollCommand::class
+        )
+        return (registration.nextState.selectAuthMethod(registration.authMethods.single(), "user@example.com") as
+            NativeAuthResultV2.StrongAuthVerificationRequired).nextState
+    }
 
     @Test
     fun signInV2RejectsBlankUsernameWithoutIssuingACommand() = runTest {

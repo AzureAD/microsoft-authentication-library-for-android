@@ -65,7 +65,7 @@ import java.util.concurrent.TimeUnit
 
 /**
  * Unit tests for the Native Auth V2 states, covering Parcelable serialization and the
- * callback-based method overloads (which currently return the "not implemented" error).
+ * callback-based method overloads and their missing-continuation errors.
  */
 @RunWith(RobolectricTestRunner::class)
 class NativeAuthV2StatesTest {
@@ -461,9 +461,9 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
-    fun testStrongAuthRegistrationRequiredStateCallbackReturnsNotImplemented() {
+    fun testStrongAuthRegistrationRequiredStateCallbackReturnsInvalidState() {
         val authMethod = AuthMethod("id", "oob", null, "email")
-        assertCallbackNotImplemented { future ->
+        assertCallbackInvalidState { future ->
             StrongAuthRegistrationRequiredStateV2(correlationId, scenario, config).selectAuthMethod(
                 authMethod,
                 callback = object : StrongAuthRegistrationRequiredStateV2.SelectAuthMethodCallback {
@@ -475,8 +475,8 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
-    fun testStrongAuthVerificationRequiredStateCallbackReturnsNotImplemented() {
-        assertCallbackNotImplemented { future ->
+    fun testStrongAuthVerificationRequiredStateCallbackReturnsInvalidState() {
+        assertCallbackInvalidState { future ->
             StrongAuthVerificationRequiredStateV2(correlationId, scenario, config).submitChallenge(
                 "challenge",
                 object : StrongAuthVerificationRequiredStateV2.SubmitChallengeCallback {

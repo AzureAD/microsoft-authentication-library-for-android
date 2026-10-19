@@ -153,6 +153,8 @@ class NewPasswordRequiredStateV2 internal constructor(
                 val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
                 ensureActive()
                 when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitNewPasswordCommandResult>()) {
+                    is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
+                        result.toRegistrationResult(scenario, config)
                     is NativeAuthV2CommandResult.Complete -> {
                         mapCompleteResult(result)
                     }
