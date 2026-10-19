@@ -41,6 +41,7 @@ import com.microsoft.identity.common.java.controllers.CommandResult
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.logging.DiagnosticContext
+import com.microsoft.identity.common.java.logging.RequestContext
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2ResendCodeCommandResult
@@ -95,6 +96,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.withContext
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
@@ -523,17 +525,23 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
 
     @Test
     fun resetPasswordV2UsesDiagnosticCorrelationIdForBlankUsername() = runTest {
-        mockkObject(DiagnosticContext.INSTANCE)
-        every { DiagnosticContext.INSTANCE.threadCorrelationId } returns correlationId
-        try {
-            val error = application.resetPasswordV2(
-                NativeAuthResetPasswordParameters(username = " ")
-            ) as NativeAuthErrorV2
+        withContext(Dispatchers.IO) {
+            val previousContext = DiagnosticContext.INSTANCE.requestContext
+            val requestContext = RequestContext().apply {
+                put(DiagnosticContext.CORRELATION_ID, correlationId)
+            }
+            // Seed the real thread-local on the IO thread used by the nested reset operation.
+            DiagnosticContext.INSTANCE.setRequestContext(requestContext)
+            try {
+                val error = application.resetPasswordV2(
+                    NativeAuthResetPasswordParameters(username = " ")
+                ) as NativeAuthErrorV2
 
-            assertTrue(error.isInvalidUsername())
-            assertEquals(correlationId, error.correlationId)
-        } finally {
-            unmockkObject(DiagnosticContext.INSTANCE)
+                assertTrue(error.isInvalidUsername())
+                assertEquals(correlationId, error.correlationId)
+            } finally {
+                DiagnosticContext.INSTANCE.setRequestContext(previousContext)
+            }
         }
     }
 
