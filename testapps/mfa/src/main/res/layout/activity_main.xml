@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) Microsoft Corporation. All rights reserved.
+     Licensed under the MIT License. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/sample_title" android:textSize="24sp" android:textStyle="bold" />
+        <TextView android:id="@+id/modeLabel" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="8dp" android:textSize="18sp" android:textStyle="bold" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="8dp" android:text="@string/foreground_warning" />
+        <TextView android:id="@+id/setupStatus" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="12dp" android:accessibilityLiveRegion="polite" />
+        <TextView android:id="@+id/sdkStatus" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:accessibilityLiveRegion="polite" />
+        <TextView android:id="@+id/rotationStatus" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/rotation_warning" android:textStyle="bold" android:visibility="gone" />
+        <TextView android:id="@+id/notice" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="8dp" android:accessibilityLiveRegion="polite" />
+        <LinearLayout android:id="@+id/liveControls" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+            <Button android:id="@+id/retrySetup" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="@string/retry_setup" />
+            <TextView android:id="@+id/permissionStatus" android:layout_width="match_parent" android:layout_height="wrap_content" />
+            <Button android:id="@+id/requestPermission" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="@string/notification_permission" />
+        </LinearLayout>
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="16dp" android:text="@string/accounts_title" android:textSize="20sp" android:textStyle="bold" />
+        <TextView android:id="@+id/accounts" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/no_accounts" android:saveEnabled="false" />
+        <Button android:id="@+id/refresh" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/refresh" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="16dp" android:text="@string/add_title" android:textSize="20sp" android:textStyle="bold" />
+        <EditText android:id="@+id/qrInput" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:hint="@string/qr_hint" android:inputType="textVisiblePassword|textMultiLine"
+            android:importantForAutofill="no" android:saveEnabled="false" android:maxLength="16384" />
+        <Button android:id="@+id/registerQr" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/register_qr" />
+        <EditText android:id="@+id/codeInput" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:hint="@string/code_hint" android:inputType="textVisiblePassword"
+            android:importantForAutofill="no" android:saveEnabled="false" android:maxLength="1024" />
+        <EditText android:id="@+id/urlInput" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:hint="@string/url_hint" android:inputType="textVisiblePassword"
+            android:importantForAutofill="no" android:saveEnabled="false" android:maxLength="4096" />
+        <Button android:id="@+id/registerManual" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/register_manual" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="16dp" android:text="@string/challenge_title" android:textSize="20sp" android:textStyle="bold" />
+        <LinearLayout android:id="@+id/challenges" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:orientation="vertical" android:saveEnabled="false" />
+        <LinearLayout android:id="@+id/mockControls" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:paddingTop="16dp" android:text="@string/mock_title" android:textSize="20sp" android:textStyle="bold" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="@string/scenario_hint" />
+            <Spinner android:id="@+id/scenario" android:layout_width="match_parent"
+                android:layout_height="48dp" android:saveEnabled="false" />
+            <TextView android:id="@+id/browserNumber" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:padding="12dp" android:background="#FFF3CD" android:textSize="18sp" />
+            <Button android:id="@+id/loadQr" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="@string/load_qr" />
+            <Button android:id="@+id/loadManual" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="@string/load_manual" />
+            <Button android:id="@+id/injectValidation" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="@string/inject_validation" />
+            <Button android:id="@+id/injectChallenge" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="@string/inject_challenge" />
+            <Button android:id="@+id/resetMock" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="@string/reset_mock" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="@string/operations_title" android:textStyle="bold" />
+            <TextView android:id="@+id/operations" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:saveEnabled="false" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) Microsoft Corporation. All rights reserved.
+     Licensed under the MIT License. -->
+<resources>
+    <string name="sample_title">Experimental MFA sample</string>
+    <string name="foreground_warning">Foreground PoC only. Keep this app open during enrollment. Push/background completion is not guaranteed; refresh to recover pending sign-ins.</string>
+    <string name="retry_setup">Retry push setup</string>
+    <string name="notification_permission">Allow visible notifications</string>
+    <string name="accounts_title">Accounts and pending requests</string>
+    <string name="refresh">Refresh accounts / pull requests</string>
+    <string name="no_accounts">No registered accounts.</string>
+    <string name="add_title">Add work or school account</string>
+    <string name="qr_hint">Paste activation QR text (not a camera scanner)</string>
+    <string name="register_qr">Register QR text</string>
+    <string name="code_hint">Activation code</string>
+    <string name="url_hint">Activation URL</string>
+    <string name="register_manual">Register manual activation</string>
+    <string name="challenge_title">Pending sign-ins</string>
+    <string name="no_sessions">No pending sign-ins. Refresh after starting a sign-in externally.</string>
+    <string name="approve">Approve</string>
+    <string name="deny">Deny</string>
+    <string name="number_hint">Number shown in your browser</string>
+    <string name="number_not_required">This request does not require a number.</string>
+    <string name="mock_title">Mock controls — synthetic data only</string>
+    <string name="scenario_hint">Fixture scenario</string>
+    <string name="load_qr">Load example QR</string>
+    <string name="load_manual">Load example manual input</string>
+    <string name="inject_validation">Inject enrollment validation</string>
+    <string name="inject_challenge">Inject sign-in challenge</string>
+    <string name="reset_mock">Reset Mock state</string>
+    <string name="mock_number">Simulated browser panel — sign-in number: %1$s</string>
+    <string name="operations_title">Sanitized mock operations (latest 20)</string>
+    <string name="rotation_warning">TOKEN_CHANGE_UNSUPPORTED: Push token changed during/after enrollment. No automatic replacement or reset is performed. Coordinate server cleanup and a fresh authorized enrollment.</string>
+    <string name="setup_required">Firebase setup required: add an approved local src/live/google-services.json, rebuild Live, and retry. No mock fallback.</string>
+    <string name="notification_channel">MFA sign-in requests</string>
+    <string name="notification_title">MFA request available</string>
+    <string name="notification_text">Open the sample and refresh to review. No action is available on the lock screen.</string>
+</resources>

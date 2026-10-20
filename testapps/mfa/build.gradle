@@ -1,0 +1,76 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+buildscript {
+    if (file('src/live/google-services.json').exists()) {
+        // Preserve the repositories and credentials of the active root build.
+        repositories.addAll(rootProject.buildscript.repositories)
+        dependencies {
+            classpath 'com.google.gms:google-services:4.5.0'
+        }
+    }
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+
+if (file('src/live/google-services.json').exists()) {
+    apply plugin: 'com.google.gms.google-services'
+    // Mock has no Firebase resources or dependency, even on configured developer machines.
+    tasks.configureEach {
+        if (name.startsWith('processMock') && name.endsWith('GoogleServices')) {
+            enabled = false
+        }
+    }
+}
+
+android {
+    namespace 'com.microsoft.identity.mfa.sample'
+    compileSdk rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        minSdk rootProject.ext.minSdkVersion
+        targetSdk rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName '0.1.0-poc'
+        missingDimensionStrategy 'main', 'local'
+    }
+    flavorDimensions 'mode'
+    productFlavors {
+        mock {
+            dimension 'mode'
+            applicationId 'com.microsoft.identity.mfa.sample.mock'
+            resValue 'string', 'app_name', 'MFA PoC - Mock'
+        }
+        live {
+            dimension 'mode'
+            applicationId project.findProperty('mfaSampleApplicationId') ?: 'com.microsoft.identity.mfa.sample.live'
+            resValue 'string', 'app_name', 'MFA PoC - Live'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions { jvmTarget = '1.8' }
+    buildFeatures {
+        viewBinding true
+        buildConfig true
+    }
+}
+
+androidComponents {
+    beforeVariants(selector().withBuildType('release')) { variant ->
+        variant.enable = false
+    }
+}
+
+dependencies {
+    implementation project(':mfa')
+    implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$rootProject.ext.lifecycleKtxVersion"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$rootProject.ext.lifecycleKtxVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.ext.kotlinXCoroutinesVersion"
+    liveImplementation platform('com.google.firebase:firebase-bom:35.0.2')
+    liveImplementation 'com.google.firebase:firebase-messaging'
+}

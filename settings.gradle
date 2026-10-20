@@ -31,3 +31,4 @@ project(':LabApiUtilities').projectDir = new File('common/LabApiUtilities')
 include ':testapps:sample'
 include ':testapps:testapp'
 include ':testapps:automationapp'
+include ':mfa', ':testapps:mfa'

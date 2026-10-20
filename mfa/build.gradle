@@ -1,0 +1,53 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+}
+
+group = 'com.microsoft.identity.client'
+version = '0.1.0-poc'
+
+android {
+    namespace 'com.microsoft.identity.mfa'
+    compileSdk rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        minSdk rootProject.ext.minSdkVersion
+        targetSdk rootProject.ext.targetSdkVersion
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+        languageVersion = '1.9'
+        apiVersion = '1.9'
+    }
+    flavorDimensions 'main'
+    productFlavors {
+        local { dimension 'main' }
+        dist { dimension 'main' }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+}
+
+def commonVersion = project.findProperty('distCommonVersion') ?: '1.0.+'
+
+dependencies {
+    localImplementation project(':common')
+    distImplementation "com.microsoft.identity:common:$commonVersion"
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.ext.kotlinXCoroutinesVersion"
+    implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
+    implementation "com.squareup.okhttp3:okhttp:$rootProject.ext.okhttp3Version"
+    testImplementation "junit:junit:$rootProject.ext.junitVersion"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$rootProject.ext.kotlinXCoroutinesVersion"
+}
