@@ -34,6 +34,8 @@ import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.IAccount
 import com.microsoft.identity.client.IAuthenticationResult
+import com.microsoft.identity.client.claims.ClaimsRequest
+import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation
 import com.microsoft.identity.common.java.commands.BaseCommand
 import com.microsoft.identity.common.java.commands.ICommandResult
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
@@ -55,6 +57,7 @@ import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.Nati
 import com.microsoft.identity.common.java.result.FinalizableResultFuture
 import com.microsoft.identity.common.java.result.ILocalAuthenticationResult
 import com.microsoft.identity.common.java.util.ResultFuture
+import com.microsoft.identity.common.java.util.StringUtil
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResendCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResetPasswordSubmitCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResetPasswordStartCommand
@@ -89,6 +92,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -114,6 +118,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.File
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
@@ -225,6 +230,165 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         assertTrue(captured != null)
         assertEquals(listOf("User.Read"), captured?.scopes)
         assertEquals(expectedClaims, captured?.claimsRequestJson)
+    }
+
+    @Test
+    fun callbackSnapshotFailuresReturnClientExceptionsOnPcaScopeAndClearOwnedPasswords() {
+        val claims = ClaimsRequest().also {
+            it.requestClaimInIdToken("auth_time", RequestedClaimAdditionalInformation().also { info ->
+                info.setValues(null)
+            })
+        }
+        val clearedPasswords = CopyOnWriteArrayList<CharArray>()
+        mockkStatic(StringUtil::class)
+        mockkObject(DiagnosticContext.INSTANCE)
+        try {
+            every { DiagnosticContext.INSTANCE.threadCorrelationId } returns correlationId
+            every { StringUtil.overwriteWithNull(any()) } answers {
+                firstArg<CharArray?>()?.let { clearedPasswords.add(it) }
+                callOriginal()
+            }
+            listOf(
+                NativeAuthFlowScenarioV2.SIGN_IN,
+                NativeAuthFlowScenarioV2.SIGN_UP,
+                NativeAuthFlowScenarioV2.RESET_PASSWORD
+            ).forEach { scenario ->
+                clearedPasswords.clear()
+                val password = "Password123!".toCharArray()
+                val callerThread = Thread.currentThread()
+                val future = ResultFuture<NativeAuthResultV2>()
+                var callbackThread: Thread? = null
+                var scopeChildActive = false
+                val callback = object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
+                    override fun onResult(result: NativeAuthResultV2) {
+                        callbackThread = Thread.currentThread()
+                        scopeChildActive = NativeAuthPublicClientApplication.pcaScope
+                            .coroutineContext[Job]!!.children.any { it.isActive }
+                        future.setResult(result)
+                    }
+                    override fun onError(exception: BaseException) = future.setException(exception)
+                }
+                invokeCallbackEntry(scenario, password, claims, null, callback)
+
+                assertEquals("Password123!", String(password))
+                if (scenario == NativeAuthFlowScenarioV2.RESET_PASSWORD) {
+                    assertTrue(clearedPasswords.isEmpty())
+                } else {
+                    assertTrue(clearedPasswords.isNotEmpty())
+                }
+                clearedPasswords.forEach {
+                    assertTrue(it !== password)
+                    assertTrue(it.all { char -> char == '\u0000' })
+                }
+                val error = future.get(30, TimeUnit.SECONDS) as NativeAuthErrorV2
+                assertTrue(callbackThread !== callerThread)
+                assertTrue(scopeChildActive)
+                assertEquals(ErrorTypes.CLIENT_EXCEPTION, error.errorType)
+                assertEquals(scenario, error.scenario)
+                assertEquals(correlationId, error.correlationId)
+                assertTrue(error.exception is NullPointerException)
+                runBlocking {
+                    NativeAuthPublicClientApplication.pcaScope.coroutineContext[Job]!!
+                        .children.toList().forEach { it.join() }
+                }
+            }
+        } finally {
+            unmockkObject(DiagnosticContext.INSTANCE)
+            unmockkStatic(StringUtil::class)
+        }
+    }
+
+    @Test
+    fun callbackSnapshotCancellationIsRethrownAndClearsOnlyOwnedPasswords() {
+        val cancellation = CancellationException("snapshot cancelled")
+        val scopes = object : AbstractList<String>() {
+            override val size: Int get() = throw cancellation
+            override fun get(index: Int): String = throw cancellation
+        }
+        val clearedPasswords = mutableListOf<CharArray>()
+        mockkStatic(StringUtil::class)
+        try {
+            every { StringUtil.overwriteWithNull(any()) } answers {
+                firstArg<CharArray?>()?.let { clearedPasswords.add(it) }
+                callOriginal()
+            }
+            listOf(
+                NativeAuthFlowScenarioV2.SIGN_IN,
+                NativeAuthFlowScenarioV2.SIGN_UP,
+                NativeAuthFlowScenarioV2.RESET_PASSWORD
+            ).forEach { scenario ->
+                clearedPasswords.clear()
+                val password = "Password123!".toCharArray()
+                val callback = object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
+                    override fun onResult(result: NativeAuthResultV2) { fail("Cancellation must not deliver a result") }
+                    override fun onError(exception: BaseException) { fail("Cancellation must not deliver an error") }
+                }
+                try {
+                    invokeCallbackEntry(scenario, password, null, scopes, callback)
+                    fail("Expected CancellationException")
+                } catch (e: CancellationException) {
+                    assertSame(cancellation, e)
+                }
+                assertEquals("Password123!", String(password))
+                assertEquals(if (scenario == NativeAuthFlowScenarioV2.RESET_PASSWORD) 0 else 1, clearedPasswords.size)
+                clearedPasswords.forEach {
+                    assertTrue(it !== password)
+                    assertTrue(it.all { char -> char == '\u0000' })
+                }
+            }
+        } finally {
+            unmockkStatic(StringUtil::class)
+        }
+    }
+
+    @Test
+    fun callbackSnapshotFailuresPreserveCallbackExceptionRouting() {
+        val claims = ClaimsRequest().also {
+            it.requestClaimInIdToken("auth_time", RequestedClaimAdditionalInformation().also { info ->
+                info.setValues(null)
+            })
+        }
+        listOf(
+            NativeAuthFlowScenarioV2.SIGN_IN,
+            NativeAuthFlowScenarioV2.SIGN_UP,
+            NativeAuthFlowScenarioV2.RESET_PASSWORD
+        ).forEach { scenario ->
+            assertRoutesToOnError { future ->
+                invokeCallbackEntry(scenario, "Password123!".toCharArray(), claims, null, throwingCallback(future))
+            }
+        }
+    }
+
+    private fun invokeCallbackEntry(
+        scenario: NativeAuthFlowScenarioV2,
+        password: CharArray,
+        claims: ClaimsRequest?,
+        scopes: List<String>?,
+        callback: NativeAuthPublicClientApplication.NativeAuthV2Callback
+    ) {
+        when (scenario) {
+            NativeAuthFlowScenarioV2.SIGN_IN -> application.signInV2(
+                NativeAuthSignInParameters(username).also {
+                    it.password = password
+                    it.claimsRequest = claims
+                    it.scopes = scopes
+                }, callback
+            )
+            NativeAuthFlowScenarioV2.SIGN_UP -> application.signUpV2(
+                NativeAuthSignUpParameters(username).also {
+                    it.password = password
+                    it.claimsRequest = claims
+                    it.scopes = scopes
+                }, callback
+            )
+            NativeAuthFlowScenarioV2.RESET_PASSWORD -> application.resetPasswordV2(
+                NativeAuthResetPasswordParameters(username).also {
+                    it.claimsRequest = claims
+                    it.scopes = scopes
+                }, callback
+            )
+            else -> fail("Unexpected entry scenario: $scenario")
+        }
     }
 
     override fun getConfigFilePath() = "src/test/res/raw/native_auth_native_only_test_config.json"
