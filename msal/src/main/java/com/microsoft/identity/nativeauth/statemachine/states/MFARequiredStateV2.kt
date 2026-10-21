@@ -44,7 +44,6 @@ import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
-import com.microsoft.identity.nativeauth.statemachine.errors.MFARequestChallengeErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.utils.getCancellable
@@ -152,7 +151,7 @@ class MFARequiredStateV2 internal constructor(
         val state = continuationState ?: return invalidState()
 
         val offeredMethod = authMethods.firstOrNull { it.id == method.id }
-            ?: return MFARequestChallengeErrorV2(
+            ?: return NativeAuthErrorV2(
                 errorType = ErrorTypes.INVALID_STATE,
                 errorMessage = "The selected authentication method is not one of the methods the server offered.",
                 correlationId = correlationId,
@@ -168,7 +167,7 @@ class MFARequiredStateV2 internal constructor(
                 ignoreCase = true
             )
         ) {
-            return MFARequestChallengeErrorV2(
+            return NativeAuthErrorV2(
                 errorType = ErrorTypes.NOT_IMPLEMENTED,
                 errorMessage = "Only email and SMS authentication methods are supported for multi-factor authentication.",
                 correlationId = correlationId,
@@ -216,8 +215,11 @@ class MFARequiredStateV2 internal constructor(
                         )
                     }
                     is INativeAuthCommandResult.Redirect -> {
-                        MFARequestChallengeErrorV2(
+                        NativeAuthErrorV2(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
+                            errorCodes = result.errorCodes,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
@@ -225,18 +227,22 @@ class MFARequiredStateV2 internal constructor(
                         )
                     }
                     is INativeAuthCommandResult.APIError -> {
-                        MFARequestChallengeErrorV2(
+                        NativeAuthErrorV2(
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = scenario,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes,
-                            exception = result.exception
+                            exception = result.exception,
+                            subError = result.subError,
+                            attributeValidationDetails = result.attributeValidationDetails
                         )
                     }
                     else -> {
                         Logger.warnWithObject(TAG, result.correlationId, "V2 selectAuthMethod received unsupported result: ", result)
-                        MFARequestChallengeErrorV2(
+                        NativeAuthErrorV2(
                             errorType = ErrorTypes.INVALID_STATE,
                             errorMessage = "V2 select authentication method returned an unsupported result.",
                             correlationId = result.correlationId,
@@ -248,7 +254,7 @@ class MFARequiredStateV2 internal constructor(
                 throw e
             } catch (e: Exception) {
                 Logger.error(TAG, correlationId, "Exception thrown in selectAuthMethod", e)
-                MFARequestChallengeErrorV2(
+                NativeAuthErrorV2(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in selectAuthMethod.",
                     correlationId = correlationId,
