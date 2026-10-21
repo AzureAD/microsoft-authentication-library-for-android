@@ -5,6 +5,8 @@ package com.microsoft.identity.mfa.sample
 import android.app.Application
 import com.microsoft.identity.mfa.MfaAuthSession
 import com.microsoft.identity.mfa.MfaSdkException
+import com.microsoft.identity.mfa.poc.MfaPocDiagnostics
+import com.microsoft.identity.mfa.poc.MfaPocDiagnostics.Event
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,6 +31,7 @@ class MfaSampleApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        MfaPocDiagnostics.enable()
         environment = EnvironmentFactory.create(this)
         environment.prepareNotifications()
         retrySetup()
@@ -45,10 +48,15 @@ class MfaSampleApplication : Application() {
     }
 
     internal fun dispatchPush(payload: Map<String, String>) {
-        if (payload.isEmpty()) return
+        MfaPocDiagnostics.event(Event.PUSH_DISPATCH)
+        if (payload.isEmpty()) {
+            MfaPocDiagnostics.event(Event.PUSH_EMPTY)
+            return
+        }
         if (payload.size > 64 || payload.any { it.key.length > 128 || it.value.length > 4096 } ||
             payload.entries.sumOf { it.key.length + it.value.length } > 16384
         ) {
+            MfaPocDiagnostics.event(Event.PUSH_INVALID)
             report("INVALID_NOTIFICATION")
             return
         }
@@ -56,6 +64,7 @@ class MfaSampleApplication : Application() {
         callback {
             val received = environment.manager.handlePushNotification(snapshot)
             mergeSessions(received)
+            MfaPocDiagnostics.event(Event.PUSH_COMPLETE)
             report("PUSH_PROCESSED")
             if (received.isNotEmpty()) environment.notifyPending()
         }
@@ -79,6 +88,7 @@ class MfaSampleApplication : Application() {
     }
 
     internal fun reportFailure(error: Exception) {
+        MfaPocDiagnostics.failure(error)
         if (error is CancellationException) throw error
         // Never expose exception messages, payloads, service text, tokens or activation material.
         report(if (error is MfaSdkException) error.code.name else "SAMPLE_OPERATION_FAILED")
@@ -86,6 +96,7 @@ class MfaSampleApplication : Application() {
 
     private fun callback(block: suspend () -> Unit) {
         if (!callbackSlots.tryAcquire()) {
+            MfaPocDiagnostics.event(Event.CALLBACK_BUSY)
             report("CALLBACK_BUSY_RETRY_SETUP_OR_REFRESH")
             return
         }
@@ -95,7 +106,10 @@ class MfaSampleApplication : Application() {
                     block()
                     true
                 }
-                if (completed == null) report("CALLBACK_TIMEOUT_RETRY_SETUP_OR_REFRESH")
+                if (completed == null) {
+                    MfaPocDiagnostics.event(Event.CALLBACK_TIMEOUT)
+                    report("CALLBACK_TIMEOUT_RETRY_SETUP_OR_REFRESH")
+                }
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {

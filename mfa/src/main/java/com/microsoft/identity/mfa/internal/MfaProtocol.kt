@@ -30,7 +30,11 @@ internal object MfaEndpointPolicy {
     // Service-specific commercial DNS zones only; never trust arbitrary *.microsoft.com.
     private val zones = setOf("mobileappcommunicator.auth.microsoft.com", "phonefactor.net")
 
-    fun validate(value: String): URI {
+    fun validate(value: String): URI = validate(value, allowQuery = false)
+
+    fun service(value: String): URI = validate(value, allowQuery = true)
+
+    private fun validate(value: String, allowQuery: Boolean): URI {
         try {
             val uri = URI(value)
             val host = uri.host?.lowercase(Locale.ROOT) ?: fail(MfaErrorCode.UNTRUSTED_ENDPOINT)
@@ -38,23 +42,27 @@ internal object MfaEndpointPolicy {
             val rawPath = uri.rawPath.orEmpty()
             val path = uri.path.orEmpty()
             requireMfa(value.length <= 4096 && uri.scheme == "https" &&
-                uri.rawUserInfo == null && uri.rawFragment == null && uri.rawQuery == null &&
+                uri.rawUserInfo == null && uri.rawFragment == null && (allowQuery || uri.rawQuery == null) &&
                 uri.port in setOf(-1, 443) && !host.endsWith(".") &&
                 zones.any { host == it || host.endsWith(".$it") } &&
                 !rawPath.contains("%") && !path.contains("\\") &&
                 uri.normalize().path.orEmpty() == path, MfaErrorCode.UNTRUSTED_ENDPOINT)
             return uri
         } catch (e: MfaSdkException) {
+            MfaDiagnostics.event("endpoint.rejected ${MfaDiagnostics.endpointSummary(value)}")
             throw e
         } catch (_: Exception) {
+            MfaDiagnostics.event("endpoint.malformed ${MfaDiagnostics.endpointSummary(value)}")
             fail(MfaErrorCode.UNTRUSTED_ENDPOINT)
         }
     }
 
-    fun notification(host: String): URI {
-        requireMfa(host.isNotEmpty() && host.none { it in "/\\@:?#%" },
+    fun notification(relativeEndpoint: String): URI {
+        MfaDiagnostics.event("push.endpoint ${MfaDiagnostics.endpointSummary(relativeEndpoint)}")
+        requireMfa(relativeEndpoint.isNotEmpty() && relativeEndpoint.none { it == '\\' || it.isISOControl() },
             MfaErrorCode.UNTRUSTED_ENDPOINT)
-        return validate("https://$host/pad")
+        // Preserve service-provided path/query routing when adding the protocol suffix.
+        return service("https://$relativeEndpoint/pad")
     }
 }
 
@@ -114,8 +122,13 @@ internal class MfaXml(
     val children: List<MfaXml> = emptyList(),
     val namespace: String = ""
 ) {
-    fun child(name: String): MfaXml =
-        children.filter { it.name == name }.singleOrNull() ?: fail(MfaErrorCode.INVALID_RESPONSE)
+    fun child(name: String): MfaXml {
+        val matches = children.filter { it.name == name }
+        return matches.singleOrNull() ?: run {
+            MfaDiagnostics.xmlFieldFailure(name, matches.size)
+            fail(MfaErrorCode.INVALID_RESPONSE)
+        }
+    }
 
     fun value(name: String): String = child(name).let {
         requireMfa(it.children.isEmpty())
@@ -123,7 +136,10 @@ internal class MfaXml(
     }
 
     fun optional(name: String): String? = if (children.none { it.name == name }) null else value(name)
-    fun required(name: String): String = value(name).also { requireMfa(it.isNotBlank()) }
+    fun required(name: String): String = value(name).also {
+        if (it.isBlank()) MfaDiagnostics.xmlFieldFailure(name, 1, blank = true)
+        requireMfa(it.isNotBlank())
+    }
 
     fun encoded(): String {
         requireMfa(name.matches(Regex("[A-Za-z_][A-Za-z0-9_.:-]*")))

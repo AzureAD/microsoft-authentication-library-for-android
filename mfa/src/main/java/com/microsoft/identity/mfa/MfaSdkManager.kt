@@ -7,6 +7,8 @@ import android.content.Context
 import android.os.Build
 import com.microsoft.identity.mfa.internal.EncryptedMfaStore
 import com.microsoft.identity.mfa.internal.MfaActivationParser
+import com.microsoft.identity.mfa.internal.MfaCredentialPolicy
+import com.microsoft.identity.mfa.internal.MfaDiagnostics
 import com.microsoft.identity.mfa.internal.MfaEndpointPolicy
 import com.microsoft.identity.mfa.internal.MfaProof
 import com.microsoft.identity.mfa.internal.MfaServiceClient
@@ -40,7 +42,8 @@ class MfaSdkManager internal constructor(
     private val store: MfaStore,
     private val client: MfaServiceClient,
     private val enabled: Boolean,
-    private val validationTimeoutMillis: Long = 120_000
+    private val validationTimeoutMillis: Long = 120_000,
+    private val policyProfile: MfaPolicyProfile = MfaPolicyProfile.CONSERVATIVE
 ) {
     private val mutex = Mutex()
     private var snapshot: MfaStoredState? = null
@@ -75,6 +78,7 @@ class MfaSdkManager internal constructor(
      * Repeating identical input resumes saved validation; ambiguous service writes are never replayed.
      */
     suspend fun registerAuthMethod(input: MfaRegistrationParameters): MfaRegistrationResult {
+        MfaDiagnostics.event("enrollment.enter")
         enabled()
         val activation = MfaActivationParser.parse(input)
         val start = mutex.withLock {
@@ -84,6 +88,8 @@ class MfaSdkManager internal constructor(
             val existing = state.pending?.let(::discardMismatchedValidation)
             if (existing != state.pending) commit(state.copy(pending = existing))
             if (existing != null) {
+                MfaDiagnostics.event("enrollment.resume activation=${existing.activation != null} " +
+                    "validation=${existing.validation != null} confirming=${existing.confirming}")
                 requireMfa(existing.digest == activation.digest, MfaErrorCode.OPERATION_IN_PROGRESS)
                 requireMfa(existing.activation != null && !existing.confirming &&
                     (!existing.validationAttempt || existing.validation != null), MfaErrorCode.OUTCOME_UNKNOWN)
@@ -130,16 +136,17 @@ class MfaSdkManager internal constructor(
             val objectId = info.required("AzureObjectId")
             val signal = mutex.withLock { validationSignal ?: fail(MfaErrorCode.OPERATION_IN_PROGRESS) }
             if (withTimeoutOrNull(validationTimeoutMillis) { signal.await(); true } != true) {
+                MfaDiagnostics.event("enrollment.validationTimeout")
                 fail(MfaErrorCode.VALIDATION_TIMEOUT)
             }
             val prepared = mutex.withLock {
                 val state = load()
                 val p = pending(state, id)
                 val validated = MfaXml.parse((p.validation ?: fail(MfaErrorCode.INVALID_NOTIFICATION)).toByteArray())
-                requireMfa(validated.required("username").equals(username, ignoreCase = true))
+                requireMfa(validationMatchesUsername(validated, username))
                 val name = validated.required("accountName")
                 val dos = validated.required("dosPreventer")
-                val endpoint = MfaEndpointPolicy.validate(p.validationEndpoint
+                val endpoint = MfaEndpointPolicy.service(p.validationEndpoint
                     ?: fail(MfaErrorCode.INVALID_NOTIFICATION))
                 commit(state.copy(pending = p.copy(confirming = true)))
                 MfaStoredState.Account("", name, username, secret, tenantId, objectId,
@@ -206,12 +213,15 @@ class MfaSdkManager internal constructor(
      * Handles a host-forwarded data payload. Validation does not create a sign-in session;
      * authentication notifications must be fetched and associated with a stored registration.
      */
-    suspend fun handlePushNotification(payload: Map<String, String>): List<MfaAuthSession> {
+    suspend fun handlePushNotification(
+        payload: Map<String, String>
+    ): List<MfaAuthSession> = MfaDiagnostics.trace("push.handle") {
         enabled()
         requireMfa(payload.size <= 64 && payload.all { it.key.length <= 128 && it.value.length <= 8192 },
             MfaErrorCode.INVALID_NOTIFICATION)
         val type = payload["type"]
-        if (type !in setOf("auth", "validate")) return emptyList()
+        MfaDiagnostics.event("push.type=${if (type in setOf("auth", "validate")) type else "OTHER"}")
+        if (type !in setOf("auth", "validate")) return@trace emptyList()
         val guid = canonicalGuid(payload["guid"], MfaErrorCode.INVALID_NOTIFICATION)
         val endpoint = MfaEndpointPolicy.notification(payload["url"] ?: fail(MfaErrorCode.INVALID_NOTIFICATION))
         if (type == "auth") {
@@ -224,10 +234,10 @@ class MfaSdkManager internal constructor(
                 }
             }
             requireMfa(candidate != null, MfaErrorCode.UNTRUSTED_ENDPOINT)
-            return listOf(fetch(guid, endpoint, null, ""))
+            return@trace listOf(fetch(guid, endpoint, null, ""))
         }
         validateNotification(guid, endpoint, payload)
-        return emptyList()
+        emptyList()
     }
 
     /** Approves a manager-issued challenge using the user's entered number when required. */
@@ -238,6 +248,7 @@ class MfaSdkManager internal constructor(
     suspend fun deny(session: MfaAuthSession): MfaDecision = respond(session, false, "")
 
     private suspend fun validateNotification(guid: String, endpoint: URI, payload: Map<String, String>) {
+        MfaDiagnostics.event("validation.enter")
         val p = mutex.withLock {
             val state = load()
             val p = state.pending ?: fail(MfaErrorCode.INVALID_NOTIFICATION)
@@ -258,6 +269,7 @@ class MfaSdkManager internal constructor(
                 ))
             } catch (e: CancellationException) { throw e }
             catch (e: MfaSdkException) {
+                MfaDiagnostics.failure("validation.beforeOutcomeMapping", e)
                 if (e.code == MfaErrorCode.SERVICE_REJECTED) {
                     withContext(NonCancellable) {
                         mutex.withLock {
@@ -269,7 +281,7 @@ class MfaSdkManager internal constructor(
                 }
                 fail(MfaErrorCode.OUTCOME_UNKNOWN)
             }
-            result.required("username")
+            validationUsername(result)
             result.required("accountName")
             result.required("dosPreventer")
             withContext(NonCancellable) {
@@ -278,13 +290,14 @@ class MfaSdkManager internal constructor(
                     val current = pending(state, p.id)
                     current.activation?.let {
                         val username = MfaXml.parse(it.toByteArray()).child("activationInfo").required("Username")
-                        if (!username.equals(result.value("username"), true)) {
+                        if (!validationMatchesUsername(result, username)) {
                             commit(state.copy(pending = current.copy(validationAttempt = false)))
                             fail(MfaErrorCode.INVALID_NOTIFICATION)
                         }
                     }
                     commit(state.copy(pending = current.copy(validation = result.encoded(),
                         validationEndpoint = endpoint.toString())))
+                    MfaDiagnostics.event("validation.saved activation=${current.activation != null}")
                     if (current.activation != null) validationSignal?.complete(Unit)
                 }
             }
@@ -309,6 +322,7 @@ class MfaSdkManager internal constructor(
         } catch (e: CancellationException) {
             throw e
         } catch (e: MfaSdkException) {
+            MfaDiagnostics.failure("$operation.beforeOutcomeMapping", e)
             if (e.code == MfaErrorCode.SERVICE_REJECTED &&
                 (e.serviceCode == "Rejected" || e.serviceCode?.matches(Regex("[0-9]{1,10}")) == true)) {
                 withContext(NonCancellable) {
@@ -340,24 +354,61 @@ class MfaSdkManager internal constructor(
             listOf(client.context(guid, token, proof, true)), expected?.headers().orEmpty())
         val id = canonicalGuid(response.required("guid"), MfaErrorCode.INVALID_RESPONSE)
         requireMfa(guid.isEmpty() || guid == id)
+        val info = response.child("phoneAppInfo")
+        // Support the service's nested metadata and the original flat PoC response, never both.
+        fun field(name: String): MfaXml? {
+            val matches = (response.children + info.children).filter { it.name == name }
+            requireMfa(matches.size <= 1)
+            return matches.singleOrNull()
+        }
+        fun optional(name: String): String? = field(name)?.let {
+            requireMfa(it.children.isEmpty())
+            it.text
+        }
+        fun required(name: String): String = optional(name)?.takeIf { it.isNotBlank() }
+            ?: fail(MfaErrorCode.INVALID_RESPONSE)
+        fun emptyPolicy(name: String): Boolean = field(name)?.let {
+            it.text.isEmpty() && it.children.isEmpty()
+        } ?: true
+        val registrationId = optional("phoneAppDetailId")
+        val tenantId = required("tenantId")
+        val objectId = required("azureObjectId")
         val account = state.accounts.singleOrNull {
-            it.id == response.required("phoneAppDetailId") &&
-                it.tenantId.equals(response.required("tenantId"), true) &&
-                it.objectId.equals(response.required("azureObjectId"), true)
+            (registrationId.isNullOrBlank() || it.id == registrationId) &&
+                it.tenantId.equals(tenantId, true) && it.objectId.equals(objectId, true)
         } ?: fail(MfaErrorCode.UNKNOWN_ACCOUNT)
         requireMfa(expected == null || expected.id == account.id, MfaErrorCode.UNKNOWN_ACCOUNT)
         // A fetched challenge may update routing only after its service identity is associated.
         val updated = account.copy(endpoint = endpoint.toString(),
-            replicationScope = response.value("replicationScope"),
-            routingHint = response.optional("routingHint").orEmpty(),
-            countryCode = response.optional("countryCode").orEmpty(),
-            dosPreventer = response.required("dosPreventer"))
-        val number = response.value("firstEntropyChallenge").isNotEmpty()
-        val supported = response.child("phoneAppInfo").attributes["mode"] == "standard" &&
-            response.value("returnLocationData") == "no" && response.value("isSilent") == "no" &&
-            (response.optional("isAppLockRequired") ?: "no") == "no" &&
-            response.optional("userCredentialPolicy").isNullOrEmpty()
-        val public = MfaAuthSession(id, account.name, account.username, number)
+            replicationScope = optional("replicationScope") ?: account.replicationScope,
+            routingHint = optional("routingHint") ?: account.routingHint,
+            countryCode = optional("countryCode") ?: account.countryCode,
+            dosPreventer = optional("dosPreventer")?.takeIf { it.isNotBlank() } ?: account.dosPreventer)
+        val number = !optional("firstEntropyChallenge").isNullOrEmpty()
+        val blocked = linkedSetOf<MfaApprovalBlockReason>()
+        if (info.attributes["mode"] != "standard") blocked.add(MfaApprovalBlockReason.UNSUPPORTED_MODE)
+        val flags = mapOf(
+            "returnLocationData" to MfaApprovalBlockReason.LOCATION_REQUIRED,
+            "isSilent" to MfaApprovalBlockReason.SILENT_REQUEST,
+            "isAppLockRequired" to MfaApprovalBlockReason.APP_LOCK_REQUIRED,
+            "pinChangeRequired" to MfaApprovalBlockReason.PIN_CHANGE_REQUIRED)
+        for ((name, reason) in flags) {
+            when (optional(name)?.lowercase(java.util.Locale.ROOT)) {
+                null, "", "no", "false", "0" -> Unit
+                "yes", "true", "1" -> blocked.add(reason)
+                else -> {
+                    MfaDiagnostics.event("challenge.policyUnknownXmlFlag field=$name")
+                    blocked.add(MfaApprovalBlockReason.UNKNOWN_POLICY)
+                }
+            }
+        }
+        blocked.addAll(MfaCredentialPolicy.blockedReasons(
+            optional("userCredentialPolicy"), number, policyProfile))
+        if (!emptyPolicy("adminPolicies")) blocked.add(MfaApprovalBlockReason.ADMIN_POLICY)
+        val supported = blocked.isEmpty()
+        MfaDiagnostics.event("challenge.parsed numberMatching=$number supported=$supported")
+        MfaDiagnostics.event("challenge.approvalBlockedReasons=${blocked.joinToString(",") { it.name }}")
+        val public = MfaAuthSession(id, account.name, account.username, number, blocked)
         return mutex.withLock {
             val latest = load()
             requireMfa(id !in latest.submitted, MfaErrorCode.INVALID_SESSION)
@@ -415,13 +466,13 @@ class MfaSdkManager internal constructor(
     }
 
     private suspend fun routedEndpoint(account: MfaStoredState.Account): URI {
-        val endpoint = MfaEndpointPolicy.validate(account.endpoint)
+        val endpoint = MfaEndpointPolicy.service(account.endpoint)
         if (account.replicationScope.isEmpty()) return endpoint
         val result = client.phoneApp("PhoneAppGetEndpoints", endpoint, emptyList(), account.headers())
         result.required("version")
         val map = LinkedHashMap<String, URI>()
         for (item in result.child("endpoints").children) {
-            val target = MfaEndpointPolicy.validate(item.required("url"))
+            val target = MfaEndpointPolicy.service(item.required("url"))
             for (scope in item.required("replicationScopes").split(",")) {
                 val key = scope.trim()
                 requireMfa(key.isNotEmpty() && map.put(key, target) == null)
@@ -449,11 +500,27 @@ class MfaSdkManager internal constructor(
     private fun discardMismatchedValidation(p: MfaStoredState.Pending): MfaStoredState.Pending {
         if (p.activation == null || p.validation == null) return p
         val expected = MfaXml.parse(p.activation.toByteArray()).child("activationInfo").required("Username")
-        val actual = MfaXml.parse(p.validation.toByteArray()).required("username")
+        val validation = MfaXml.parse(p.validation.toByteArray())
         // A definitive response for another enrollment is not an ambiguous network outcome.
         // Early validation remains provisional until ActivateNew supplies the expected identity.
-        return if (expected.equals(actual, true)) p else p.copy(
+        return if (validationMatchesUsername(validation, expected)) p else p.copy(
             validation = null, validationEndpoint = null, validationAttempt = false)
+    }
+
+    private fun validationUsername(validation: MfaXml): String =
+        validation.value("username").also {
+            if (it.isBlank()) validation.required("groupKey")
+        }
+
+    private fun validationMatchesUsername(validation: MfaXml, expected: String): Boolean {
+        val actual = validationUsername(validation)
+        // Some service responses omit the username echo. Identity still comes from ActivateNew;
+        // this pending attempt's token-bound validation and ConfirmActivation must both succeed.
+        if (actual.isBlank()) {
+            MfaDiagnostics.event("validation.identity=ACTIVATION_RESPONSE")
+            return true
+        }
+        return expected.equals(actual, ignoreCase = true)
     }
 
     // These functions are called under mutex. Save the immutable next snapshot before publishing it.
@@ -477,6 +544,8 @@ class MfaSdkManager internal constructor(
             else -> MfaEnrollmentStage.IDLE
         }
         mutableStatus.value = MfaSdkStatus(stage, state.token != null, state.tokenChangeBlocked)
+        MfaDiagnostics.event("state.stage=${stage.name} pending=${state.pending != null} " +
+            "tokenReady=${state.token != null} tokenChangeBlocked=${state.tokenChangeBlocked}")
     }
 
     internal suspend fun resetPocState() {
@@ -497,16 +566,26 @@ class MfaSdkManager internal constructor(
     companion object {
         private val instances = HashMap<String, MfaSdkManager>()
 
-        /** Gets the application-scoped manager. Experimental live network access defaults to off. */
+        /**
+         * Gets the application-scoped manager. Experimental live network access defaults to off.
+         * The Authenticator policy profile requires an explicitly authorized matching host identity.
+         * The profile cannot change on an existing manager; incompatible configuration fails explicitly.
+         */
         @JvmStatic
         @JvmOverloads
-        fun create(context: Context, enableExperimentalService: Boolean = false): MfaSdkManager =
+        fun create(
+            context: Context, enableExperimentalService: Boolean = false,
+            policyProfile: MfaPolicyProfile = MfaPolicyProfile.CONSERVATIVE
+        ): MfaSdkManager =
             synchronized(instances) {
                 val app = context.applicationContext
+                policyProfile.validateHost(app.packageName)
                 val key = app.packageName + ":" + enableExperimentalService
                 instances.getOrPut(key) {
                     MfaSdkManager(EncryptedMfaStore(app, "msal-mfa-live-v1.bin"),
-                        applicationClient(app), enableExperimentalService)
+                        applicationClient(app), enableExperimentalService, policyProfile = policyProfile)
+                }.also {
+                    requireMfa(it.policyProfile == policyProfile, MfaErrorCode.INVALID_CONFIGURATION)
                 }
             }
 

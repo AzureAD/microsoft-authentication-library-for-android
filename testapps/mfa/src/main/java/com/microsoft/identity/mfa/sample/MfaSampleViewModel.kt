@@ -11,6 +11,8 @@ import com.microsoft.identity.mfa.MfaEnrollmentStage
 import com.microsoft.identity.mfa.MfaRegistrationParameters
 import com.microsoft.identity.mfa.MfaRegistrationResult
 import com.microsoft.identity.mfa.MfaSdkException
+import com.microsoft.identity.mfa.poc.MfaPocDiagnostics
+import com.microsoft.identity.mfa.poc.MfaPocDiagnostics.Event
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -58,9 +60,14 @@ class MfaSampleViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     internal fun register(input: MfaRegistrationParameters) = operation {
-        environment.manager.registerAuthMethod(input)
-        mutableAccounts.value = environment.manager.registeredAuthMethods()
-        app.report("REGISTERED")
+        MfaPocDiagnostics.event(Event.REGISTER_START)
+        try {
+            environment.manager.registerAuthMethod(input)
+            mutableAccounts.value = environment.manager.registeredAuthMethods()
+            app.report("REGISTERED")
+        } finally {
+            MfaPocDiagnostics.event(Event.REGISTER_END)
+        }
     }
 
     internal fun refresh() = operation {

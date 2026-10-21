@@ -35,19 +35,31 @@ internal class OkHttpMfaTransport : MfaTransport {
         .writeTimeout(30, TimeUnit.SECONDS).callTimeout(45, TimeUnit.SECONDS).build()
 
     override suspend fun send(request: MfaWireRequest): MfaWireResponse {
-        MfaEndpointPolicy.validate(request.endpoint.toString())
+        if ("SOAPAction" in request.headers) MfaEndpointPolicy.validate(request.endpoint.toString())
+        else MfaEndpointPolicy.service(request.endpoint.toString())
         val builder = Request.Builder().url(request.endpoint.toString())
             .post(request.body.toRequestBody("text/xml; charset=utf-8".toMediaType()))
         request.headers.forEach { (key, value) -> builder.header(key, value) }
         val call = client.newCall(builder.build())
+        val started = System.nanoTime()
+        val requestId = request.headers["client-request-id"]?.takeIf {
+            it.matches(Regex("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"))
+        } ?: "NONE"
         return suspendCancellableCoroutine { continuation ->
-            continuation.invokeOnCancellation { call.cancel() }
+            continuation.invokeOnCancellation {
+                MfaDiagnostics.event("http.cancel requestId=$requestId elapsedMs=${MfaDiagnostics.elapsed(started)}")
+                call.cancel()
+            }
             call.enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
+                    MfaDiagnostics.failure("http.transport requestId=$requestId", e)
+                    MfaDiagnostics.event("http.end requestId=$requestId elapsedMs=${MfaDiagnostics.elapsed(started)}")
                     if (continuation.isActive) continuation.resumeWithException(
                         MfaSdkException(MfaErrorCode.TRANSPORT_FAILURE))
                 }
                 override fun onResponse(call: Call, response: Response) {
+                    MfaDiagnostics.event("http.response requestId=$requestId status=${response.code} " +
+                        "elapsedMs=${MfaDiagnostics.elapsed(started)}")
                     try {
                         val result = response.use {
                             val body = it.body ?: fail(MfaErrorCode.INVALID_RESPONSE)
@@ -66,6 +78,7 @@ internal class OkHttpMfaTransport : MfaTransport {
                         }
                         if (continuation.isActive) continuation.resume(result)
                     } catch (e: Exception) {
+                        MfaDiagnostics.failure("http.read requestId=$requestId", e)
                         if (continuation.isActive) continuation.resumeWithException(
                             if (e is MfaSdkException) e else MfaSdkException(MfaErrorCode.TRANSPORT_FAILURE))
                     }
@@ -82,14 +95,17 @@ internal class MfaServiceClient(
     val osVersion: String,
     val deviceName: String
 ) {
-    suspend fun activation(operation: String, endpoint: URI, fields: List<MfaXml>): MfaXml {
+    suspend fun activation(
+        operation: String, endpoint: URI, fields: List<MfaXml>
+    ): MfaXml = MfaDiagnostics.trace(operation) {
         val method = MfaXml(operation, attributes = mapOf("xmlns" to NAMESPACE), children = fields)
         val envelope = MfaXml("soap:Envelope", attributes = mapOf("xmlns:soap" to SOAP),
             children = listOf(MfaXml("soap:Body", children = listOf(method))))
-        val response = send(endpoint, envelope, mapOf("SOAPAction" to "$NAMESPACE/$operation"))
+        val response = send(operation, endpoint, envelope, mapOf("SOAPAction" to "$NAMESPACE/$operation"))
+        MfaDiagnostics.response(operation, response)
         requireMfa(response.name == "Envelope" && response.namespace == SOAP)
         val body = response.child("Body")
-        requireMfa(body.namespace == SOAP && body.children.size == 1)
+        requireMfa(body.namespace == SOAP)
         if (body.children.any { it.name == "Fault" }) {
             throw MfaSdkException(MfaErrorCode.SERVICE_REJECTED, "SOAPFault")
         }
@@ -104,7 +120,7 @@ internal class MfaServiceClient(
             throw MfaSdkException(MfaErrorCode.SERVICE_REJECTED,
                 numeric?.takeIf { it.matches(Regex("[0-9]{1,10}")) } ?: "Rejected")
         }
-        return result
+        result
     }
 
     suspend fun phoneApp(
@@ -112,7 +128,7 @@ internal class MfaServiceClient(
         endpoint: URI,
         fields: List<MfaXml>,
         headers: Map<String, String> = emptyMap()
-    ): MfaXml {
+    ): MfaXml = MfaDiagnostics.trace(operation) {
         val tag = operation.replaceFirstChar { it.lowercaseChar() }
         val body = MfaXml("pfpMessage", attributes = mapOf("version" to "1.6"), children = listOf(
             MfaXml("header", children = listOf(MfaXml("source", children = listOf(
@@ -125,28 +141,41 @@ internal class MfaServiceClient(
                 MfaXml(if (tag.endsWith("Request")) tag else tag + "Request", children = fields)
             ))
         ))
-        val result = send(endpoint, body, headers + ("x-ms-mac-action" to operation))
+        val result = send(operation, endpoint, body, headers + ("x-ms-mac-action" to operation))
+        MfaDiagnostics.response(operation, result)
         requireMfa(result.name == "pfpMessage" && result.namespace.isEmpty())
         val response = result.child("response")
         if (response.child("status").attributes["disposition"] != "success") {
             throw MfaSdkException(MfaErrorCode.SERVICE_REJECTED, "Rejected")
         }
-        return response.child(tag.removeSuffix("Request") + "Response")
+        response.child(tag.removeSuffix("Request") + "Response")
     }
 
-    private suspend fun send(endpoint: URI, body: MfaXml, headers: Map<String, String>): MfaXml {
-        MfaEndpointPolicy.validate(endpoint.toString())
+    private suspend fun send(
+        operation: String, endpoint: URI, body: MfaXml, headers: Map<String, String>
+    ): MfaXml {
+        if ("SOAPAction" in headers) MfaEndpointPolicy.validate(endpoint.toString())
+        else MfaEndpointPolicy.service(endpoint.toString())
+        val requestId = UUID.randomUUID().toString()
         val allHeaders = mapOf(
             "Content-Type" to "text/xml; charset=utf-8",
-            "client-request-id" to UUID.randomUUID().toString(),
+            "client-request-id" to requestId,
             "AppName" to appName, "AppVersion" to appVersion
         ) + headers
         requireMfa(allHeaders.all { (key, value) ->
             key.matches(Regex("[A-Za-z0-9-]{1,128}")) && value.length <= 4096 &&
                 value.all { it in ' '..'~' }
         })
-        val response = transport.send(MfaWireRequest(endpoint, allHeaders,
-            body.encoded().toByteArray(Charsets.UTF_8)))
+        MfaDiagnostics.event("$operation.request requestId=$requestId")
+        val response = try {
+            transport.send(MfaWireRequest(endpoint, allHeaders,
+                body.encoded().toByteArray(Charsets.UTF_8)))
+        } catch (error: Exception) {
+            MfaDiagnostics.failure("$operation.request requestId=$requestId", error)
+            throw error
+        }
+        MfaDiagnostics.event("$operation.response requestId=$requestId status=${response.statusCode} " +
+            "bytes=${response.body.size}")
         if (response.statusCode != 200) throw MfaSdkException(MfaErrorCode.TRANSPORT_FAILURE, "HTTP")
         return MfaXml.parse(response.body)
     }

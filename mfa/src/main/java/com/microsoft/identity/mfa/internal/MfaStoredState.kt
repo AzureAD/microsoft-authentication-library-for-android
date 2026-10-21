@@ -63,7 +63,7 @@ internal data class MfaStoredState(
             requireMfa(listOf(it.id, it.name, it.username, it.secret, it.tenantId, it.objectId,
                 it.endpoint, it.token, it.dosPreventer).all { v -> v.isNotBlank() } &&
                 it.token == token, MfaErrorCode.STORAGE_FAILURE)
-            MfaEndpointPolicy.validate(it.endpoint)
+            MfaEndpointPolicy.service(it.endpoint)
             MfaProof.validation(it.secret, 0)
         }
         pending?.let {
@@ -73,7 +73,7 @@ internal data class MfaStoredState(
                 (!it.confirming || it.activation != null && it.validation != null),
                 MfaErrorCode.STORAGE_FAILURE)
             MfaEndpointPolicy.validate(it.endpoint)
-            it.validationEndpoint?.let(MfaEndpointPolicy::validate)
+            it.validationEndpoint?.let(MfaEndpointPolicy::service)
             it.activation?.let { xml -> MfaXml.parse(xml.toByteArray()) }
             it.validation?.let { xml -> MfaXml.parse(xml.toByteArray()) }
         }

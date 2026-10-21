@@ -48,6 +48,7 @@ dependencies {
     api "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.ext.kotlinXCoroutinesVersion"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
     implementation "com.squareup.okhttp3:okhttp:$rootProject.ext.okhttp3Version"
+    implementation "com.google.protobuf:protobuf-javalite:$rootProject.ext.protobufJavaliteVersion"
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$rootProject.ext.kotlinXCoroutinesVersion"
 }

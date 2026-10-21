@@ -90,6 +90,7 @@ ext {
     powerliftVersion = "0.14.7"
     cliktVersion = "3.4.2"
     okhttp3Version = "4.9.3"
+    protobufJavaliteVersion = "3.25.5"
 
     // TODO: adal automation test app.
     supportLibraryVersion = "27.1.+"

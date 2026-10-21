@@ -41,12 +41,45 @@ class MfaPocSmokeTest {
         }
     }
 
-    private fun manager(store: MemoryStore, transport: MfaTransport, enabled: Boolean = true) =
+    private fun manager(
+        store: MemoryStore, transport: MfaTransport, enabled: Boolean = true,
+        policyProfile: MfaPolicyProfile = MfaPolicyProfile.CONSERVATIVE
+    ) =
         MfaSdkManager(store, MfaServiceClient(transport, "example.poc", "1.0", "test", "test-device"),
-            enabled, validationTimeoutMillis = 1000)
+            enabled, validationTimeoutMillis = 1000, policyProfile = policyProfile)
 
     private val activation get() = MfaRegistrationParameters.Activation(
         FixtureMfaTransport.CODE, "https://${FixtureMfaTransport.HOST}")
+
+    private fun registeredStore() = MemoryStore().also {
+        it.state = MfaStoredState(token = FixtureMfaTransport.TOKEN, accounts = listOf(
+            MfaStoredState.Account(FixtureMfaTransport.ACCOUNT, "Example account",
+                FixtureMfaTransport.USERNAME, FixtureMfaTransport.SECRET, FixtureMfaTransport.TENANT,
+                FixtureMfaTransport.OBJECT, "https://${FixtureMfaTransport.HOST}/pad",
+                FixtureMfaTransport.TOKEN, "existing-dos", "synthetic-group")))
+    }
+
+    private fun nestedChallengeTransport(
+        fixture: FixtureMfaTransport,
+        fields: List<MfaXml>,
+        rootFields: List<MfaXml> = emptyList()
+    ) = object : MfaTransport {
+        override suspend fun send(request: MfaWireRequest): MfaWireResponse {
+            val original = fixture.send(request)
+            if (request.headers["x-ms-mac-action"] != "PhoneAppAuthentication") return original
+            val guid = MfaXml.parse(original.body).child("response")
+                .child("phoneAppAuthenticationResponse").required("guid")
+            return MfaWireResponse(200, MfaXml("pfpMessage", children = listOf(
+                MfaXml("response", children = listOf(
+                    MfaXml("status", attributes = mapOf("disposition" to "success")),
+                    MfaXml("phoneAppAuthenticationResponse", children = listOf(
+                        MfaXml("guid", guid), MfaXml("dosPreventer"),
+                        MfaXml("phoneAppInfo", attributes = mapOf("mode" to "standard"), children = fields)
+                    ) + rootFields)
+                ))
+            )).encoded().toByteArray())
+        }
+    }
 
     private suspend fun assertCode(code: MfaErrorCode, block: suspend () -> Unit) {
         try {
@@ -110,6 +143,257 @@ class MfaPocSmokeTest {
         assertCode(MfaErrorCode.TOKEN_CHANGE_UNSUPPORTED) { restored.updatePushRegistration("replacement") }
         assertTrue(restored.status.value.tokenChangeBlocked)
         assertEquals(FixtureMfaTransport.TOKEN, store.state.token)
+    }
+
+    @Test fun validationPushPreservesServicePathAndQueryThroughPersistence() = runTest {
+        val store = MemoryStore()
+        val fixture = FixtureMfaTransport()
+        val endpoint = "https://${FixtureMfaTransport.HOST}/pad?route=synthetic/pad"
+        val transport = object : MfaTransport {
+            override suspend fun send(request: MfaWireRequest): MfaWireResponse {
+                if (request.headers["x-ms-mac-action"] == "PhoneAppValidateDeviceToken") {
+                    assertEquals(endpoint, request.endpoint.toString())
+                }
+                return fixture.send(request)
+            }
+        }
+        val manager = manager(store, transport)
+        manager.updatePushRegistration(FixtureMfaTransport.TOKEN)
+        val registration = async { manager.registerAuthMethod(activation) }
+        runCurrent()
+        manager.handlePushNotification(fixture.validationPayload() +
+            ("url" to "${FixtureMfaTransport.HOST}/pad?route=synthetic"))
+        assertEquals(FixtureMfaTransport.ACCOUNT, registration.await().registrationId)
+        assertEquals(endpoint, store.state.accounts.single().endpoint)
+        store.state.validate()
+        val restored = manager(store, transport)
+        assertEquals(1, restored.registeredAuthMethods().size)
+        assertTrue(restored.pullPendingNotifications().isNotEmpty())
+    }
+
+    @Test fun notificationSuffixDoesNotRelaxActivationOrAuthorityChecks() = runTest {
+        val host = FixtureMfaTransport.HOST
+        assertEquals("https://$host/pad", MfaEndpointPolicy.notification(host).toString())
+        assertEquals("https://$host/pad?/pad",
+            MfaEndpointPolicy.notification("$host/pad?").toString())
+        for (invalid in listOf("$host.evil.invalid/pad?x=1", "evil.invalid/pad?x=1",
+            "$host@evil.invalid/pad?x=1", "user@$host/pad?x=1", "$host:80/pad?x=1",
+            "$host./pad?x=1", "$host/a/../pad?x=1", "$host/%70ad?x=1",
+            "$host/pad#fragment", "$host\\evil/pad?x=1", "https://$host/pad?x=1")) {
+            assertCode(MfaErrorCode.UNTRUSTED_ENDPOINT) { MfaEndpointPolicy.notification(invalid) }
+        }
+        assertCode(MfaErrorCode.UNTRUSTED_ENDPOINT) {
+            MfaActivationParser.parse(MfaRegistrationParameters.Activation(
+                FixtureMfaTransport.CODE, "https://$host/PfPaWs.asmx?x=1"))
+        }
+    }
+
+    @Test fun serviceExtensionsAndBlankValidationUsernameUseActivationIdentityInEitherOrder() = runTest {
+        for (early in listOf(false, true)) {
+            val store = MemoryStore()
+            val fixture = FixtureMfaTransport()
+            val gate = CompletableDeferred<Unit>()
+            if (!early) gate.complete(Unit)
+            val transport = object : MfaTransport {
+                override suspend fun send(request: MfaWireRequest): MfaWireResponse {
+                    if (request.headers["SOAPAction"]?.endsWith("/ActivateNew") == true) gate.await()
+                    val response = fixture.send(request)
+                    val xml = response.body.toString(Charsets.UTF_8)
+                    val adapted = if ("SOAPAction" in request.headers) {
+                        xml.replace("</soap:Body>",
+                            "<extension xmlns=\"urn:example:extension\"/></soap:Body>")
+                    } else if (request.headers["x-ms-mac-action"] == "PhoneAppValidateDeviceToken") {
+                        xml.replace("<username>${FixtureMfaTransport.USERNAME}</username>", "<username></username>")
+                    } else xml
+                    return MfaWireResponse(response.statusCode, adapted.toByteArray())
+                }
+            }
+            val manager = manager(store, transport)
+            manager.updatePushRegistration(FixtureMfaTransport.TOKEN)
+            val registration = async { manager.registerAuthMethod(activation) }
+            runCurrent()
+            manager.handlePushNotification(fixture.validationPayload())
+            gate.complete(Unit)
+            assertEquals(FixtureMfaTransport.ACCOUNT, registration.await().registrationId)
+            assertEquals(FixtureMfaTransport.USERNAME, store.state.accounts.single().username)
+            assertEquals(MfaEnrollmentStage.REGISTERED, manager.status.value.enrollmentStage)
+            assertEquals(1, fixture.operations.value.count { it == "ConfirmActivation" })
+        }
+    }
+
+    @Test fun soapExtensionsDoNotPermitDuplicateResponsesOrMixedFaults() = runTest {
+        for ((extra, error) in listOf(
+            "<ActivateNewResponse xmlns=\"${MfaServiceClient.NAMESPACE}\"/>" to MfaErrorCode.INVALID_RESPONSE,
+            "<soap:Fault/>" to MfaErrorCode.SERVICE_REJECTED
+        )) {
+            val fixture = FixtureMfaTransport()
+            val transport = object : MfaTransport {
+                override suspend fun send(request: MfaWireRequest): MfaWireResponse {
+                    val response = fixture.send(request)
+                    return MfaWireResponse(200, response.body.toString(Charsets.UTF_8)
+                        .replace("</soap:Body>", "$extra</soap:Body>").toByteArray())
+                }
+            }
+            val client = MfaServiceClient(transport, "example.poc", "1.0", "test", "test-device")
+            assertCode(error) {
+                client.activation("ActivateNew", MfaActivationParser.parse(activation).endpoint,
+                    listOf(MfaXml("activationParams", children = listOf(
+                        MfaXml("ActivationCode", FixtureMfaTransport.CODE),
+                        MfaXml("DeviceToken", FixtureMfaTransport.TOKEN),
+                        MfaXml("DeviceName", "test-device"), MfaXml("Version", "1.0"),
+                        MfaXml("OathCounter", "1")))))
+            }
+        }
+    }
+
+    @Test fun blankValidationUsernameWithoutGroupKeyCannotCompleteRegistration() = runTest {
+        val store = MemoryStore()
+        val fixture = FixtureMfaTransport()
+        val transport = object : MfaTransport {
+            override suspend fun send(request: MfaWireRequest): MfaWireResponse {
+                val response = fixture.send(request)
+                if (request.headers["x-ms-mac-action"] != "PhoneAppValidateDeviceToken") return response
+                return MfaWireResponse(200, response.body.toString(Charsets.UTF_8)
+                    .replace("<username>${FixtureMfaTransport.USERNAME}</username>", "<username></username>")
+                    .replace("<groupKey>synthetic-group</groupKey>", "<groupKey></groupKey>").toByteArray())
+            }
+        }
+        val manager = manager(store, transport)
+        manager.updatePushRegistration(FixtureMfaTransport.TOKEN)
+        val registration = async { manager.registerAuthMethod(activation) }
+        runCurrent()
+        assertCode(MfaErrorCode.INVALID_RESPONSE) { manager.handlePushNotification(fixture.validationPayload()) }
+        assertTrue(store.state.accounts.isEmpty())
+        assertFalse(fixture.operations.value.contains("ConfirmActivation"))
+        registration.cancelAndJoin()
+    }
+
+    @Test fun nestedChallengeWithoutRegistrationIdMatchesIdentityAndPreservesDos() = runTest {
+        val store = registeredStore()
+        val fixture = FixtureMfaTransport()
+        val transport = nestedChallengeTransport(fixture, listOf(
+            MfaXml("tenantId", FixtureMfaTransport.TENANT),
+            MfaXml("azureObjectId", FixtureMfaTransport.OBJECT),
+            MfaXml("firstEntropyChallenge", FixtureMfaTransport.EXPECTED_NUMBER),
+            MfaXml("returnLocationData", "no")
+        ))
+        val manager = manager(store, transport)
+        val challenge = manager.handlePushNotification(fixture.issue()).single()
+        assertTrue(challenge.requiresNumberMatching)
+        assertEquals(FixtureMfaTransport.USERNAME, challenge.username)
+        assertEquals("existing-dos", store.state.accounts.single().dosPreventer)
+        assertEquals(MfaDecision.APPROVED, manager.approve(challenge, FixtureMfaTransport.EXPECTED_NUMBER))
+    }
+
+    @Test fun nestedChallengeRejectsConflictingOrAmbiguousIdentity() = runTest {
+        for (case in listOf("tenant", "object", "id", "duplicateField", "duplicateAccount")) {
+            val store = registeredStore()
+            if (case == "duplicateAccount") {
+                store.state = store.state.copy(accounts = store.state.accounts +
+                    store.state.accounts.single().copy(id = "44444444-4444-4444-8444-444444444444"))
+            }
+            val fixture = FixtureMfaTransport()
+            val fields = listOf(
+                MfaXml("tenantId", if (case == "tenant") "other-tenant" else FixtureMfaTransport.TENANT),
+                MfaXml("azureObjectId", if (case == "object") "other-object" else FixtureMfaTransport.OBJECT)
+            ) + if (case == "id") listOf(MfaXml("phoneAppDetailId", "other-registration")) else emptyList()
+            val rootFields = if (case == "duplicateField")
+                listOf(MfaXml("tenantId", FixtureMfaTransport.TENANT)) else emptyList()
+            val manager = manager(store, nestedChallengeTransport(fixture, fields, rootFields))
+            assertCode(if (case == "duplicateField") MfaErrorCode.INVALID_RESPONSE else MfaErrorCode.UNKNOWN_ACCOUNT) {
+                manager.handlePushNotification(fixture.issue())
+            }
+        }
+    }
+
+    @Test fun nestedUnsupportedPoliciesCannotBeApproved() = runTest {
+        for (policy in listOf(
+            MfaXml("returnLocationData", "yes"), MfaXml("isAppLockRequired", "true"),
+            MfaXml("pinChangeRequired", "yes"), MfaXml("isSilent", "yes"),
+            MfaXml("returnLocationData", "unrecognized"),
+            MfaXml("userCredentialPolicy", "policy"), MfaXml("adminPolicies", children = listOf(MfaXml("required")))
+        )) {
+            val store = registeredStore()
+            val fixture = FixtureMfaTransport()
+            val transport = nestedChallengeTransport(fixture, listOf(
+                MfaXml("tenantId", FixtureMfaTransport.TENANT),
+                MfaXml("azureObjectId", FixtureMfaTransport.OBJECT),
+                MfaXml("firstEntropyChallenge", FixtureMfaTransport.EXPECTED_NUMBER), policy))
+            val manager = manager(store, transport)
+            val challenge = manager.handlePushNotification(fixture.issue()).single()
+            assertCode(MfaErrorCode.UNSUPPORTED_POLICY) {
+                manager.approve(challenge, FixtureMfaTransport.EXPECTED_NUMBER)
+            }
+            assertFalse(fixture.operations.value.contains("PhoneAppPinValidation"))
+            assertEquals(MfaDecision.DENIED, manager.deny(challenge))
+        }
+    }
+
+    @Test fun encodedPushPolicyAllowsNumberMatchingApproval() = runTest {
+        // Synthetic protobuf: primary and companion policies both permit number matching.
+        val policy = java.util.Base64.getUrlEncoder().encodeToString(
+            byteArrayOf(0x12, 0x04, 0x10, 0x02, 0x28, 0x02,
+                0x22, 0x04, 0x10, 0x01, 0x28, 0x02))
+        val fixture = FixtureMfaTransport()
+        val manager = manager(registeredStore(), nestedChallengeTransport(fixture, listOf(
+            MfaXml("tenantId", FixtureMfaTransport.TENANT),
+            MfaXml("azureObjectId", FixtureMfaTransport.OBJECT),
+            MfaXml("firstEntropyChallenge", FixtureMfaTransport.EXPECTED_NUMBER),
+            MfaXml("userCredentialPolicy", policy))))
+        val challenge = manager.handlePushNotification(fixture.issue()).single()
+        assertTrue(challenge.canApprove)
+        assertEquals(MfaDecision.APPROVED,
+            manager.approve(challenge, FixtureMfaTransport.EXPECTED_NUMBER))
+        assertCode(MfaErrorCode.INVALID_SESSION) { manager.deny(challenge) }
+    }
+
+    @Test fun encodedRequiredAppLockBlocksWithoutSubmissionAndAllowsDenial() = runTest {
+        val policy = java.util.Base64.getUrlEncoder().encodeToString(
+            byteArrayOf(0x12, 0x04, 0x10, 0x01, 0x30, 0x02))
+        val store = registeredStore()
+        val fixture = FixtureMfaTransport()
+        val manager = manager(store, nestedChallengeTransport(fixture, listOf(
+            MfaXml("tenantId", FixtureMfaTransport.TENANT),
+            MfaXml("azureObjectId", FixtureMfaTransport.OBJECT),
+            MfaXml("firstEntropyChallenge", FixtureMfaTransport.EXPECTED_NUMBER),
+            MfaXml("userCredentialPolicy", policy))))
+        val challenge = manager.handlePushNotification(fixture.issue()).single()
+        assertFalse(challenge.canApprove)
+        assertEquals(setOf(MfaApprovalBlockReason.APP_LOCK_REQUIRED), challenge.approvalBlockedReasons)
+        assertCode(MfaErrorCode.UNSUPPORTED_POLICY) {
+            manager.approve(challenge, FixtureMfaTransport.EXPECTED_NUMBER)
+        }
+        assertTrue(store.state.submitted.isEmpty())
+        assertFalse(fixture.operations.value.contains("PhoneAppPinValidation"))
+        assertEquals(MfaDecision.DENIED, manager.deny(challenge))
+    }
+
+    @Test fun authenticatorProfilePreservesChallengeRestrictionsAndDecisionReplayProtection() = runTest {
+        val policy = java.util.Base64.getUrlEncoder().encodeToString(
+            byteArrayOf(0x12, 0x04, 0x10, 0x02, 0x28, 0x02, 0x22, 0x02, 0x28, 0x02))
+        for (requiresLock in listOf(false, true)) {
+            val fixture = FixtureMfaTransport()
+            val manager = manager(registeredStore(), nestedChallengeTransport(fixture, listOf(
+                MfaXml("tenantId", FixtureMfaTransport.TENANT),
+                MfaXml("azureObjectId", FixtureMfaTransport.OBJECT),
+                MfaXml("firstEntropyChallenge", FixtureMfaTransport.EXPECTED_NUMBER),
+                MfaXml("isAppLockRequired", if (requiresLock) "yes" else "no"),
+                MfaXml("userCredentialPolicy", policy))), policyProfile = MfaPolicyProfile.AUTHENTICATOR)
+            val challenge = manager.handlePushNotification(fixture.issue()).single()
+            assertEquals(!requiresLock, challenge.canApprove)
+            if (requiresLock) {
+                assertEquals(setOf(MfaApprovalBlockReason.APP_LOCK_REQUIRED), challenge.approvalBlockedReasons)
+                assertCode(MfaErrorCode.UNSUPPORTED_POLICY) {
+                    manager.approve(challenge, FixtureMfaTransport.EXPECTED_NUMBER)
+                }
+                assertFalse(fixture.operations.value.contains("PhoneAppPinValidation"))
+                assertEquals(MfaDecision.DENIED, manager.deny(challenge))
+            } else {
+                assertEquals(MfaDecision.APPROVED,
+                    manager.approve(challenge, FixtureMfaTransport.EXPECTED_NUMBER))
+                assertCode(MfaErrorCode.INVALID_SESSION) { manager.deny(challenge) }
+            }
+        }
     }
 
     @Test fun cancelledWaitResumesWithoutReactivating() = runTest {

@@ -24,6 +24,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.microsoft.identity.mfa.MfaAuthSession
+import com.microsoft.identity.mfa.MfaApprovalBlockReason
 import com.microsoft.identity.mfa.MfaEnrollmentStage
 import com.microsoft.identity.mfa.MfaRegistrationParameters
 import com.microsoft.identity.mfa.sample.databinding.ActivityMainBinding
@@ -34,7 +35,7 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var model: MfaSampleViewModel
-    private val decisionButtons = mutableListOf<Button>()
+    private val decisionButtons = mutableListOf<Pair<Button, Boolean>>()
     private var lastSessions: List<MfaAuthSession>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -188,7 +189,7 @@ class MainActivity : AppCompatActivity() {
         binding.resetMock.isEnabled = available && !model.injecting.value
         binding.injectValidation.isEnabled = !model.injecting.value &&
             status.enrollmentStage == MfaEnrollmentStage.AWAITING_VALIDATION
-        decisionButtons.forEach { it.isEnabled = available }
+        decisionButtons.forEach { (button, supported) -> button.isEnabled = available && supported }
     }
 
     private fun renderSessions(sessions: List<MfaAuthSession>) {
@@ -209,11 +210,18 @@ class MainActivity : AppCompatActivity() {
                 text = "${session.accountName.take(160)}\n${session.username.take(160)}"
                 isSaveEnabled = false
             })
+            if (!session.canApprove) {
+                row.addView(TextView(this).apply {
+                    text = getString(R.string.approval_blocked,
+                        session.approvalBlockedReasons.joinToString("\n") { getString(blockReason(it)) })
+                })
+            }
             val number = EditText(this).apply {
                 setHint(R.string.number_hint)
                 inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
                 filters = arrayOf(InputFilter.LengthFilter(8))
                 isSaveEnabled = false
+                isEnabled = session.canApprove
                 if (Build.VERSION.SDK_INT >= 26) importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO
                 visibility = if (session.requiresNumberMatching) View.VISIBLE else View.GONE
             }
@@ -230,12 +238,28 @@ class MainActivity : AppCompatActivity() {
                         model.decide(session, approve, answer)
                     }
                 }
-                decisionButtons.add(button)
+                decisionButtons.add(button to (!approve || session.canApprove))
                 row.addView(button)
             }
             binding.challenges.addView(row)
         }
         updateButtons()
+    }
+
+    private fun blockReason(reason: MfaApprovalBlockReason): Int = when (reason) {
+        MfaApprovalBlockReason.UNSUPPORTED_MODE -> R.string.policy_mode
+        MfaApprovalBlockReason.MFA_DISABLED -> R.string.policy_disabled
+        MfaApprovalBlockReason.APP_LOCK_REQUIRED -> R.string.policy_app_lock
+        MfaApprovalBlockReason.APPROVAL_PIN_REQUIRED -> R.string.policy_approval_pin
+        MfaApprovalBlockReason.PIN_CHANGE_REQUIRED -> R.string.policy_pin_change
+        MfaApprovalBlockReason.APP_CONTEXT_REQUIRED -> R.string.policy_app_context
+        MfaApprovalBlockReason.LOCATION_CONTEXT_REQUIRED -> R.string.policy_location_context
+        MfaApprovalBlockReason.LOCATION_REQUIRED -> R.string.policy_location
+        MfaApprovalBlockReason.SILENT_REQUEST -> R.string.policy_silent
+        MfaApprovalBlockReason.NUMBER_MATCHING_DATA_MISSING -> R.string.policy_missing_number
+        MfaApprovalBlockReason.ADMIN_POLICY -> R.string.policy_admin
+        MfaApprovalBlockReason.UNKNOWN_POLICY -> R.string.policy_unknown
+        MfaApprovalBlockReason.MALFORMED_POLICY -> R.string.policy_malformed
     }
 
     private fun consumePushIntent(source: Intent?) {

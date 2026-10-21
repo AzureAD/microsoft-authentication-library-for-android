@@ -13,6 +13,8 @@ import android.content.pm.PackageManager
 import android.os.Build
 import com.google.firebase.FirebaseApp
 import com.microsoft.identity.mfa.MfaSdkManager
+import com.microsoft.identity.mfa.MfaPolicyProfile
+import com.microsoft.identity.mfa.poc.MfaPocDiagnostics
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
@@ -23,8 +25,10 @@ internal object EnvironmentFactory {
 }
 
 private class LiveEnvironment(private val context: Context) : SampleMfaEnvironment {
-    override val manager = MfaSdkManager.create(context, enableExperimentalService = true)
-    override val modeLabel = "LIVE — experimental service; authorized test setup only"
+    override val manager = MfaSdkManager.create(context, enableExperimentalService = true,
+        policyProfile = MfaPolicyProfile.valueOf(BuildConfig.MFA_POLICY_PROFILE))
+    override val modeLabel = "LIVE — experimental service; authorized test setup only\n" +
+        "Policy profile: ${BuildConfig.MFA_POLICY_PROFILE}"
     override val setup = MutableStateFlow(SampleSetup.STARTING)
     override val mock: MockControls? = null
     private val initialization = Mutex()
@@ -44,6 +48,7 @@ private class LiveEnvironment(private val context: Context) : SampleMfaEnvironme
             throw TokenAcquisitionFailure()
         }
         setup.value = SampleSetup.TOKEN_ACQUIRED
+        MfaPocDiagnostics.event(MfaPocDiagnostics.Event.TOKEN_ACQUIRED)
         // A real Firebase token is not proof of SAS routing or permitted enrollment.
         manager.updatePushRegistration(token)
     }

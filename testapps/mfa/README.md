@@ -84,8 +84,36 @@ number-matching request, denied a separate request, and surfaced
 `SERVICE_REJECTED` for an incorrect number. Live opened without configuration and
 showed Firebase setup required with token readiness false.
 
-Real Firebase token acquisition, SAS enrollment, push delivery, and browser-side
-decisions remain **unverified** pending an authorized Live setup.
+Follow-up testing with an authorized physical-device setup verified Firebase token
+acquisition, live enrollment/confirmation, persisted registration, and pushed
+number-matching challenge presentation. The tester also confirmed successful live
+denial and browser completion after number-matching approval. Approval used the
+explicitly selected Authenticator policy profile. This establishes interoperability
+only for the exercised authorized identity/setup, not other app identities or policies.
+
+### Approval policy limits
+
+Sessions expose `canApprove` and immutable `approvalBlockedReasons`. The sample shows
+fixed explanations beside a blocked request and disables Approve; the SDK also
+enforces the block independently of the UI. Deny remains available.
+
+The independent credential-policy reader permits recognized enabled MFA push/any
+policies, including number matching when the challenge provides the required data.
+The default `CONSERVATIVE` profile requires both primary and companion policies
+to permit the decision. An explicitly authorized Authenticator-identity experiment
+can select `AUTHENTICATOR` using the local build property
+`-PmfaSamplePolicyProfile=AUTHENTICATOR`. That profile requires the matching
+application ID and evaluates the primary policy, not requirements belonging to
+companion applications. Companion data is still structurally validated; platform
+and challenge-level requirements remain enforced. The selected profile is shown
+in the app. Profile selection and package-name matching do not grant service
+authorization or replace the requirement for an authorized package/signing setup.
+It does not implement app lock/device verification, approval PIN, required app or
+location context, location collection, silent approval, or additional admin policies.
+Unknown fields/enums, unresolved policy defaults, ambiguous/malformed input, and
+oversized policies are blocked rather than treated as permission to approve.
+Policy payloads and the expected browser number are never exposed through this API
+or diagnostic output. A supported policy is not proof the service accepted a decision.
 
 ## Mock walkthrough
 

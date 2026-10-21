@@ -14,6 +14,13 @@ buildscript {
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
+def policyProfile = project.findProperty('mfaSamplePolicyProfile') ?: 'CONSERVATIVE'
+def liveApplicationId = project.findProperty('mfaSampleApplicationId') ?: 'com.microsoft.identity.mfa.sample.live'
+if (!(policyProfile in ['CONSERVATIVE', 'AUTHENTICATOR']) ||
+        (policyProfile == 'AUTHENTICATOR' && liveApplicationId != 'com.azure.authenticator')) {
+    throw new GradleException('MFA policy profile must be CONSERVATIVE, or AUTHENTICATOR with its explicitly authorized application ID.')
+}
+
 if (file('src/live/google-services.json').exists()) {
     apply plugin: 'com.google.gms.google-services'
     // Mock has no Firebase resources or dependency, even on configured developer machines.
@@ -44,7 +51,8 @@ android {
         }
         live {
             dimension 'mode'
-            applicationId project.findProperty('mfaSampleApplicationId') ?: 'com.microsoft.identity.mfa.sample.live'
+            applicationId liveApplicationId
+            buildConfigField 'String', 'MFA_POLICY_PROFILE', "\"$policyProfile\""
             resValue 'string', 'app_name', 'MFA PoC - Live'
         }
     }
