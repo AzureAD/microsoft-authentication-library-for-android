@@ -1077,9 +1077,7 @@ public class CommandParametersAdapter {
     /**
      * Creates command parameter for [NativeAuthV2ResetPasswordStartCommand] of Native Auth.
      *
-     * No scopes are supplied at the start of a reset-password flow. Matching MSAL iOS/macOS, the
-     * scopes for the resulting access token are supplied at the sign-in-after-reset-password step
-     * instead, since no token is issued until then.
+     * Scopes and claims are supplied at V2 authorize-challenge entry.
      *
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
@@ -1090,6 +1088,16 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String username) throws ClientException {
+        return createResetPasswordV2StartCommandParameters(configuration, tokenCache, username, null, null);
+    }
+
+    /** Creates V2 reset entry parameters with optional scopes and claims. */
+    public static ResetPasswordV2StartCommandParameters createResetPasswordV2StartCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final String username,
+            @Nullable final List<String> scopes,
+            @Nullable final ClaimsRequest claimsRequest) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
@@ -1100,6 +1108,8 @@ public class CommandParametersAdapter {
 
         final ResetPasswordV2StartCommandParameters commandParameters =
                 ResetPasswordV2StartCommandParameters.builder()
+                        .scopes(scopes == null ? null : new ArrayList<>(scopes))
+                        .claimsRequestJson(ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest))
                         .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
                         .applicationName(configuration.getAppContext().getPackageName())
                         .applicationVersion(getPackageVersion(configuration.getAppContext()))
@@ -1141,6 +1151,18 @@ public class CommandParametersAdapter {
             @NonNull final String username,
             @Nullable final char[] password,
             @Nullable final Map<String, String> attributes) throws ClientException {
+        return createSignUpV2StartCommandParameters(configuration, tokenCache, username, password, attributes, null, null);
+    }
+
+    /** Creates V2 sign-up entry parameters with optional scopes and claims. */
+    public static SignUpV2StartCommandParameters createSignUpV2StartCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final String username,
+            @Nullable final char[] password,
+            @Nullable final Map<String, String> attributes,
+            @Nullable final List<String> scopes,
+            @Nullable final ClaimsRequest claimsRequest) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
@@ -1151,6 +1173,8 @@ public class CommandParametersAdapter {
 
         final SignUpV2StartCommandParameters commandParameters =
                 SignUpV2StartCommandParameters.builder()
+                        .scopes(scopes == null ? null : new ArrayList<>(scopes))
+                        .claimsRequestJson(ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest))
                         .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
                         .applicationName(configuration.getAppContext().getPackageName())
                         .applicationVersion(getPackageVersion(configuration.getAppContext()))

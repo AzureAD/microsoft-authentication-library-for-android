@@ -462,6 +462,8 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         var capturedUsername: String? = null
         var capturedPassword: CharArray? = null
         var capturedAttributes: Map<String, String>? = null
+        var capturedScopes: List<String>? = null
+        var capturedClaims: String? = null
         enqueueResult(
             NativeAuthV2CommandResult.PasswordRequired(correlationId, createContinuationState()),
             NativeAuthV2SignUpStartCommand::class
@@ -470,6 +472,8 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
             capturedUsername = commandParameters.username
             capturedPassword = commandParameters.password?.copyOf()
             capturedAttributes = commandParameters.attributes?.toMap()
+            capturedScopes = commandParameters.scopes
+            capturedClaims = commandParameters.claimsRequestJson
         }
 
         val callerPassword = "Password123!".toCharArray()
@@ -479,6 +483,11 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
             password = callerPassword,
             attributes = attributesBuilder.build()
         )
+        val scopes = mutableListOf("User.Read")
+        val claims = com.microsoft.identity.client.claims.ClaimsRequest().also { it.requestClaimInIdToken("auth_time", null) }
+        val expectedClaims = com.microsoft.identity.client.claims.ClaimsRequest.getJsonStringFromClaimsRequest(claims)
+        parameters.scopes = scopes
+        parameters.claimsRequest = claims
         val future = ResultFuture<NativeAuthResultV2>()
         application.signUpV2(
             parameters,
@@ -491,12 +500,17 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         attributesBuilder.city("Seattle")
         parameters.password = null
         parameters.attributes = null
+        scopes.clear()
+        claims.requestClaimInIdToken("changed", null)
+        parameters.claimsRequest = null
 
         future.get(10, TimeUnit.SECONDS)
 
         assertEquals(username, capturedUsername)
         assertEquals("Password123!", String(capturedPassword!!))
         assertEquals(mapOf("city" to "Redmond"), capturedAttributes)
+        assertEquals(listOf("User.Read"), capturedScopes)
+        assertEquals(expectedClaims, capturedClaims)
     }
 
     @Test

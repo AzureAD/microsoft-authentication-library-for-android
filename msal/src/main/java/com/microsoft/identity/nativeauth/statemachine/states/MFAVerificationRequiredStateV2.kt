@@ -127,14 +127,6 @@ class MFAVerificationRequiredStateV2 internal constructor(
             methodName = "${TAG}.submitChallenge(challenge: String)"
         )
         val state = continuationState ?: return invalidState()
-        if (challenge.isEmpty()) {
-            return NativeAuthErrorV2(
-                errorType = ErrorTypes.INVALID_CODE,
-                errorMessage = "Challenge cannot be empty.",
-                correlationId = correlationId,
-                scenario = scenario
-            )
-        }
         return withContext(Dispatchers.IO) {
             try {
                 val parameters = CommandParametersAdapter.createNativeAuthV2SubmitMFAChallengeCommandParameters(

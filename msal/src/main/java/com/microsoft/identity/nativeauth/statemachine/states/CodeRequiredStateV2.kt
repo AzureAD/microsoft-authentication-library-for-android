@@ -116,14 +116,6 @@ class CodeRequiredStateV2 internal constructor(
             methodName = "${TAG}.submitCode(code: String)"
         )
         val state = continuationState ?: return invalidState()
-        if (code.isEmpty()) {
-            return NativeAuthErrorV2(
-                errorType = ErrorTypes.INVALID_CODE,
-                errorMessage = "Code cannot be empty.",
-                correlationId = correlationId,
-                scenario = scenario
-            )
-        }
         if (scenario == NativeAuthFlowScenarioV2.UNKNOWN) {
             return invalidState()
         }
