@@ -118,14 +118,16 @@ abstract class NativeAuthBaseStateV2 internal constructor(
             errorType = ErrorTypes.INVALID_CODE,
             error = result.error, errorMessage = result.errorDescription,
             correlationId = result.correlationId, scenario = scenario,
-            errorCodes = result.errorCodes, subError = result.subError
+            errorCodes = result.errorCodes, subError = result.subError,
+            traceId = result.traceId, timestamp = result.timestamp
         )
         is NativeAuthV2CommandResult.UserAlreadyExists -> NativeAuthErrorV2(
             errorType = SignUpErrorTypes.USER_ALREADY_EXISTS,
             error = result.error, errorMessage = result.errorDescription,
             correlationId = result.correlationId, scenario = scenario,
             errorCodes = result.errorCodes, subError = result.subError,
-            attributeValidationDetails = result.attributeValidationDetails
+            attributeValidationDetails = result.attributeValidationDetails,
+            traceId = result.traceId, timestamp = result.timestamp
         )
         is NativeAuthV2CommandResult.PasswordResetFailed -> NativeAuthErrorV2(
             errorType = ResetPasswordErrorTypes.PASSWORD_RESET_FAILED,
@@ -135,13 +137,15 @@ abstract class NativeAuthBaseStateV2 internal constructor(
         is INativeAuthCommandResult.Redirect -> NativeAuthErrorV2(
             errorType = ErrorTypes.BROWSER_REQUIRED,
             error = result.error, errorMessage = result.errorDescription,
-            correlationId = result.correlationId, scenario = scenario
+            correlationId = result.correlationId, scenario = scenario,
+            errorCodes = result.errorCodes, traceId = result.traceId, timestamp = result.timestamp
         )
         is INativeAuthCommandResult.APIError -> NativeAuthErrorV2(
             error = result.error, errorMessage = result.errorDescription,
             correlationId = result.correlationId, scenario = scenario,
             errorCodes = result.errorCodes, subError = result.subError,
-            exception = result.exception, attributeValidationDetails = result.attributeValidationDetails
+            exception = result.exception, attributeValidationDetails = result.attributeValidationDetails,
+            traceId = result.traceId, timestamp = result.timestamp
         )
     }
 

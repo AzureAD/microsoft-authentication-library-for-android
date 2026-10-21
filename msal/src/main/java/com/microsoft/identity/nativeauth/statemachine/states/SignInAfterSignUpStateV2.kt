@@ -182,6 +182,9 @@ class SignInAfterSignUpStateV2 internal constructor(
                     is INativeAuthCommandResult.Redirect -> {
                         NativeAuthErrorV2(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
+                            errorCodes = result.errorCodes,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
@@ -194,6 +197,8 @@ class SignInAfterSignUpStateV2 internal constructor(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = scenario,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes,
                             exception = result.exception,
                             subError = result.subError,

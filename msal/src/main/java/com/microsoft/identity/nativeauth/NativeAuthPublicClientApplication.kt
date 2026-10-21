@@ -719,6 +719,8 @@ class NativeAuthPublicClientApplication(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = NativeAuthFlowScenarioV2.SIGN_IN,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes,
                             subError = result.subError
                         )
@@ -730,6 +732,8 @@ class NativeAuthPublicClientApplication(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = NativeAuthFlowScenarioV2.SIGN_IN,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes
                         )
                     }
@@ -740,6 +744,8 @@ class NativeAuthPublicClientApplication(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = NativeAuthFlowScenarioV2.SIGN_IN,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes
                         )
                     }
@@ -755,6 +761,9 @@ class NativeAuthPublicClientApplication(
                     is INativeAuthCommandResult.Redirect -> {
                         NativeAuthErrorV2(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
+                            errorCodes = result.errorCodes,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
@@ -767,6 +776,8 @@ class NativeAuthPublicClientApplication(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = NativeAuthFlowScenarioV2.SIGN_IN,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes,
                             exception = result.exception,
                             subError = result.subError,
@@ -811,16 +822,32 @@ class NativeAuthPublicClientApplication(
             correlationId = null,
             methodName = "${TAG}.signInV2(parameters: NativeAuthSignInParameters, callback: NativeAuthV2Callback)"
         )
-        val parametersSnapshot = NativeAuthSignInParameters(parameters.username).also {
-            it.password = parameters.password?.copyOf()
-            it.scopes = parameters.scopes?.toList()
-            it.claimsRequest = parameters.claimsRequest?.let { claims ->
+        val parametersSnapshot = NativeAuthSignInParameters(parameters.username)
+        val snapshotError = try {
+            parametersSnapshot.password = parameters.password?.copyOf()
+            parametersSnapshot.scopes = parameters.scopes?.toList()
+            parametersSnapshot.claimsRequest = parameters.claimsRequest?.let { claims ->
                 ClaimsRequest.getClaimsRequestFromJsonString(ClaimsRequest.getJsonStringFromClaimsRequest(claims))
             }
+            null
+        } catch (e: CancellationException) {
+            StringUtil.overwriteWithNull(parametersSnapshot.password)
+            throw e
+        } catch (e: Exception) {
+            StringUtil.overwriteWithNull(parametersSnapshot.password)
+            val correlationId = DiagnosticContext.INSTANCE.threadCorrelationId ?: "UNSET"
+            Logger.error(TAG, correlationId, "Exception thrown in signInV2", e)
+            NativeAuthErrorV2(
+                errorType = ErrorTypes.CLIENT_EXCEPTION,
+                errorMessage = "MSAL client exception occurred in signInV2.",
+                correlationId = correlationId,
+                scenario = NativeAuthFlowScenarioV2.SIGN_IN,
+                exception = e
+            )
         }
         pcaScope.launchOwningPasswordSnapshot(parametersSnapshot.password) {
             try {
-                callback.onResult(signInV2(parametersSnapshot))
+                callback.onResult(snapshotError ?: signInV2(parametersSnapshot))
             } catch (e: MsalException) {
                 Logger.error(TAG, "Exception thrown in signInV2", e)
                 callback.onError(e)
@@ -932,6 +959,8 @@ class NativeAuthPublicClientApplication(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = NativeAuthFlowScenarioV2.SIGN_UP,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes,
                             subError = result.subError,
                             attributeValidationDetails = result.attributeValidationDetails
@@ -953,6 +982,8 @@ class NativeAuthPublicClientApplication(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = NativeAuthFlowScenarioV2.SIGN_UP,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes
                         )
                     }
@@ -968,6 +999,9 @@ class NativeAuthPublicClientApplication(
                     is INativeAuthCommandResult.Redirect -> {
                         NativeAuthErrorV2(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
+                            errorCodes = result.errorCodes,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
@@ -980,6 +1014,8 @@ class NativeAuthPublicClientApplication(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = NativeAuthFlowScenarioV2.SIGN_UP,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes,
                             exception = result.exception,
                             subError = result.subError,
@@ -1024,19 +1060,35 @@ class NativeAuthPublicClientApplication(
             correlationId = null,
             methodName = "${TAG}.signUpV2(parameters: NativeAuthSignUpParameters, callback: NativeAuthV2Callback)"
         )
-        val parametersSnapshot = NativeAuthSignUpParameters(parameters.username).also {
-            it.password = parameters.password?.copyOf()
-            it.scopes = parameters.scopes?.toList()
-            it.claimsRequest = parameters.claimsRequest?.let { claims ->
+        val parametersSnapshot = NativeAuthSignUpParameters(parameters.username)
+        val snapshotError = try {
+            parametersSnapshot.password = parameters.password?.copyOf()
+            parametersSnapshot.scopes = parameters.scopes?.toList()
+            parametersSnapshot.claimsRequest = parameters.claimsRequest?.let { claims ->
                 ClaimsRequest.getClaimsRequestFromJsonString(ClaimsRequest.getJsonStringFromClaimsRequest(claims))
             }
-            it.attributes = parameters.attributes?.let { attributes ->
+            parametersSnapshot.attributes = parameters.attributes?.let { attributes ->
                 UserAttributes(attributes.toMap())
             }
+            null
+        } catch (e: CancellationException) {
+            StringUtil.overwriteWithNull(parametersSnapshot.password)
+            throw e
+        } catch (e: Exception) {
+            StringUtil.overwriteWithNull(parametersSnapshot.password)
+            val correlationId = DiagnosticContext.INSTANCE.threadCorrelationId ?: "UNSET"
+            Logger.error(TAG, correlationId, "Exception thrown in signUpV2", e)
+            NativeAuthErrorV2(
+                errorType = ErrorTypes.CLIENT_EXCEPTION,
+                errorMessage = "MSAL client exception occurred in signUpV2.",
+                correlationId = correlationId,
+                scenario = NativeAuthFlowScenarioV2.SIGN_UP,
+                exception = e
+            )
         }
         pcaScope.launchOwningPasswordSnapshot(parametersSnapshot.password) {
             try {
-                callback.onResult(signUpV2(parametersSnapshot))
+                callback.onResult(snapshotError ?: signUpV2(parametersSnapshot))
             } catch (e: MsalException) {
                 Logger.error(TAG, "Exception thrown in signUpV2", e)
                 callback.onError(e)
@@ -1140,6 +1192,8 @@ class NativeAuthPublicClientApplication(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes
                         )
                     }
@@ -1150,6 +1204,8 @@ class NativeAuthPublicClientApplication(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes
                         )
                     }
@@ -1165,6 +1221,9 @@ class NativeAuthPublicClientApplication(
                     is INativeAuthCommandResult.Redirect -> {
                         NativeAuthErrorV2(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
+                            errorCodes = result.errorCodes,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
@@ -1177,6 +1236,8 @@ class NativeAuthPublicClientApplication(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes,
                             exception = result.exception,
                             subError = result.subError,
@@ -1219,15 +1280,29 @@ class NativeAuthPublicClientApplication(
             correlationId = null,
             methodName = "${TAG}.resetPasswordV2(parameters: NativeAuthResetPasswordParameters, callback: NativeAuthV2Callback)"
         )
-        val parametersSnapshot = NativeAuthResetPasswordParameters(parameters.username).also {
-            it.scopes = parameters.scopes?.toList()
-            it.claimsRequest = parameters.claimsRequest?.let { claims ->
+        val parametersSnapshot = NativeAuthResetPasswordParameters(parameters.username)
+        val snapshotError = try {
+            parametersSnapshot.scopes = parameters.scopes?.toList()
+            parametersSnapshot.claimsRequest = parameters.claimsRequest?.let { claims ->
                 ClaimsRequest.getClaimsRequestFromJsonString(ClaimsRequest.getJsonStringFromClaimsRequest(claims))
             }
+            null
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            val correlationId = DiagnosticContext.INSTANCE.threadCorrelationId ?: "UNSET"
+            Logger.error(TAG, correlationId, "Exception thrown in resetPasswordV2", e)
+            NativeAuthErrorV2(
+                errorType = ErrorTypes.CLIENT_EXCEPTION,
+                errorMessage = "MSAL client exception occurred in resetPasswordV2.",
+                correlationId = correlationId,
+                scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
+                exception = e
+            )
         }
         pcaScope.launch {
             try {
-                callback.onResult(resetPasswordV2(parametersSnapshot))
+                callback.onResult(snapshotError ?: resetPasswordV2(parametersSnapshot))
             } catch (e: MsalException) {
                 Logger.error(TAG, "Exception thrown in resetPasswordV2", e)
                 callback.onError(e)

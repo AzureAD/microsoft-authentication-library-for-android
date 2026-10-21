@@ -156,6 +156,8 @@ class MFAVerificationRequiredStateV2 internal constructor(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = scenario,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes,
                             subError = result.subError
                         )
@@ -172,6 +174,9 @@ class MFAVerificationRequiredStateV2 internal constructor(
                     is INativeAuthCommandResult.Redirect -> {
                         NativeAuthErrorV2(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
+                            errorCodes = result.errorCodes,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
@@ -184,6 +189,8 @@ class MFAVerificationRequiredStateV2 internal constructor(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = scenario,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes,
                             exception = result.exception,
                             subError = result.subError,
@@ -291,6 +298,9 @@ class MFAVerificationRequiredStateV2 internal constructor(
                     is INativeAuthCommandResult.Redirect -> {
                         NativeAuthErrorV2(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
+                            errorCodes = result.errorCodes,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
@@ -303,6 +313,8 @@ class MFAVerificationRequiredStateV2 internal constructor(
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
                             scenario = scenario,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
                             errorCodes = result.errorCodes,
                             exception = result.exception,
                             subError = result.subError,

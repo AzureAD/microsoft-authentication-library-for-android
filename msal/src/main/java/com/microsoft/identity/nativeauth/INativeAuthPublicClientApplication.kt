@@ -223,7 +223,9 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      *
      * @param parameters parameters used for the signUp operation.
      * @return [NativeAuthResultV2] see the detailed possible return states under the object.
-     * @throws MsalClientException if an account is already signed in.
+     * Returns a [com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2] with
+     * [com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes.CLIENT_EXCEPTION] if an
+     * account is already signed in, rather than throwing [MsalClientException].
      */
     suspend fun signUpV2(parameters: NativeAuthSignUpParameters): NativeAuthResultV2
 
@@ -234,7 +236,10 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      *
      * @param parameters parameters used for the signUp operation.
      * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.NativeAuthV2Callback] to receive the result.
-     * @throws MsalClientException if an account is already signed in.
+     * If an account is already signed in, the callback receives a
+     * [com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2] with
+     * [com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes.CLIENT_EXCEPTION] through
+     * [com.microsoft.identity.nativeauth.statemachine.states.Callback.onResult].
      */
     fun signUpV2(parameters: NativeAuthSignUpParameters, callback: NativeAuthPublicClientApplication.NativeAuthV2Callback)
 

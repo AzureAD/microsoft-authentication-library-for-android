@@ -43,6 +43,8 @@ import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
  * @param exception an internal unexpected exception that happened.
  * @param subError the unmodified service suberror.
  * @param attributeValidationDetails service validation details, runtime-checked by classifiers.
+ * @param traceId the unmodified service trace identifier, when available.
+ * @param timestamp the unmodified service timestamp, when available.
  */
 class NativeAuthErrorV2 @JvmOverloads constructor(
     override val errorType: String? = null,
@@ -53,7 +55,9 @@ class NativeAuthErrorV2 @JvmOverloads constructor(
     override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null,
     val subError: String? = null,
-    val attributeValidationDetails: Any? = null
+    val attributeValidationDetails: Any? = null,
+    val traceId: String? = null,
+    val timestamp: String? = null
 ) : NativeAuthResultV2,
     BrowserRequiredError,
     Error(
@@ -87,16 +91,15 @@ class NativeAuthErrorV2 @JvmOverloads constructor(
     fun isInvalidCode(): Boolean = errorType == ErrorTypes.INVALID_CODE ||
         (error == "invalidGrant" && subError == "invalidOneTimeCode")
 
-    /** Whether a new password violates policy; does not classify sign-in credential failures. */
-    fun isInvalidPassword(): Boolean = !isInvalidCredentials() &&
-        (errorType == ErrorTypes.INVALID_PASSWORD ||
-            (error == "invalidRequest" && subError in PASSWORD_POLICY_SUBERRORS) ||
-            validationDetails().any { detail ->
-                detail["code"] == "passwordPolicyViolation" &&
-                    (detail["attributeIds"] as? List<*>)?.any {
-                        it is String && it.equals("password", ignoreCase = true)
-                    } == true
-            })
+    /** Whether password-specific errors or validation details indicate a new-password policy violation. */
+    fun isInvalidPassword(): Boolean = errorType == ErrorTypes.INVALID_PASSWORD ||
+        (error == "invalidRequest" && subError in PASSWORD_POLICY_SUBERRORS) ||
+        validationDetails().any { detail ->
+            detail["code"] == "passwordPolicyViolation" &&
+                (detail["attributeIds"] as? List<*>)?.any {
+                    it is String && it.equals("password", ignoreCase = true)
+                } == true
+        }
 
     /** Whether the identifier already belongs to an account. */
     fun isUserAlreadyExists(): Boolean = errorType == SignUpErrorTypes.USER_ALREADY_EXISTS ||
@@ -151,6 +154,8 @@ class NativeAuthErrorV2 @JvmOverloads constructor(
             errorMessage = result.errorDescription,
             correlationId = result.correlationId,
             scenario = scenario,
+            traceId = result.traceId,
+            timestamp = result.timestamp,
             errorCodes = result.errorCodes,
             subError = result.subError,
             attributeValidationDetails = result.attributeValidationDetails
