@@ -19,6 +19,10 @@
 ##---------------Begin: proguard configuration for MSAL  --------
 -keep class com.microsoft.device.display.** { *; }
 
+##---------------Begin: proguard configuration for Moshi  --------
+-dontwarn com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
+-keep class com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory { *; }
+
 # Keep things as they are used in TypeAdapter for deserialization/serialization
 -keep class com.microsoft.identity.client.Logger { *; }
 -keep class com.microsoft.identity.client.claims.ClaimsRequest { *; }
