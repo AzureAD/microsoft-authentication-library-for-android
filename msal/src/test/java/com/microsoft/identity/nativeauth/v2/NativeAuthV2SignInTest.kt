@@ -328,6 +328,58 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
+    fun passwordResetMfaResumesResetWithoutSigningIn() = runTest {
+        val config = strongAuthVerification().config
+        val reset = NativeAuthFlowScenarioV2.RESET_PASSWORD
+        val state = NativeAuthV2ContinuationStateTestFactory.afterPasswordUpdate(
+            NativeAuthV2ContinuationStateTestFactory.create(correlationId))
+        val method = NativeAuthV2AuthMethod("sms-id", "sms", "***00")
+        enqueueResult(
+            NativeAuthV2CommandResult.MFARequired(correlationId, state, listOf(method)),
+            NativeAuthV2SubmitNewPasswordCommand::class
+        )
+        val mfa = NewPasswordRequiredStateV2(state, reset, config)
+            .submitNewPassword("Password123!".toCharArray()) as NativeAuthResultV2.MFARequired
+        assertEquals(reset, mfa.scenario)
+        assertSame(state, mfa.nextState.continuationState)
+        enqueueResult(
+            NativeAuthV2CommandResult.MFAVerificationRequired(correlationId, state, 6, "***00", "sms"),
+            NativeAuthV2SelectMFAMethodCommand::class
+        )
+        val verification = mfa.nextState.selectAuthMethod(mfa.authMethods.single())
+            as NativeAuthResultV2.MFAVerificationRequired
+        assertEquals(reset, verification.scenario)
+        assertSame(state, verification.nextState.continuationState)
+        enqueueResult(
+            NativeAuthV2CommandResult.SignInAfterResetPasswordRequired(correlationId, state),
+            NativeAuthV2SubmitMFAChallengeCommand::class
+        )
+        val completed = verification.nextState.submitChallenge("123456")
+            as NativeAuthResultV2.SignInAfterResetPasswordRequired
+        assertEquals(reset, completed.scenario)
+        assertSame(state, completed.nextState.continuationState)
+        verify(exactly = 0) {
+            CommandDispatcher.submitSilentReturningFuture(match {
+                it is com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInAfterResetPasswordCommand
+            })
+        }
+    }
+
+    @Test
+    fun passwordResetMfaCanResumePasswordCollection() = runTest {
+        val config = strongAuthVerification().config
+        val state = NativeAuthV2ContinuationStateTestFactory.create(correlationId)
+        enqueueResult(
+            NativeAuthV2CommandResult.NewPasswordRequired(correlationId, state),
+            NativeAuthV2SubmitMFAChallengeCommand::class
+        )
+        val result = MFAVerificationRequiredStateV2(state, NativeAuthFlowScenarioV2.RESET_PASSWORD, config)
+            .submitChallenge("123456") as NativeAuthResultV2.NewPasswordRequired
+        assertEquals(NativeAuthFlowScenarioV2.RESET_PASSWORD, result.scenario)
+        assertSame(state, result.nextState.continuationState)
+    }
+
+    @Test
     fun activationMapsTypedErrorsAndRetainsRedactedDiagnostics() = runTest {
         val state = strongAuthVerification()
         val cases = listOf(

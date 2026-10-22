@@ -146,6 +146,18 @@ class MFAVerificationRequiredStateV2 internal constructor(
                 when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitMFAChallengeCommandResult>()) {
                     is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
                         result.toRegistrationResult(scenario, config)
+                    is NativeAuthV2CommandResult.NewPasswordRequired -> {
+                        NativeAuthResultV2.NewPasswordRequired(
+                            nextState = NewPasswordRequiredStateV2(result.continuationState, scenario, config),
+                            scenario = scenario
+                        )
+                    }
+                    is NativeAuthV2CommandResult.SignInAfterResetPasswordRequired -> {
+                        NativeAuthResultV2.SignInAfterResetPasswordRequired(
+                            nextState = SignInAfterResetPasswordStateV2(result.continuationState, scenario, config),
+                            scenario = scenario
+                        )
+                    }
                     is NativeAuthV2CommandResult.Complete -> {
                         mapCompleteResult(result)
                     }

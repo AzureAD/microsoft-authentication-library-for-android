@@ -46,6 +46,7 @@ import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
+import com.microsoft.identity.nativeauth.toListOfV2AuthMethods
 import com.microsoft.identity.nativeauth.utils.getCancellable
 import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
@@ -155,6 +156,15 @@ class NewPasswordRequiredStateV2 internal constructor(
                 when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitNewPasswordCommandResult>()) {
                     is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
                         result.toRegistrationResult(scenario, config)
+                    is NativeAuthV2CommandResult.MFARequired -> {
+                        NativeAuthResultV2.MFARequired(
+                            nextState = MFARequiredStateV2(
+                                result.continuationState, result.authMethods.toListOfV2AuthMethods(),
+                                scenario, config
+                            ),
+                            scenario = scenario
+                        )
+                    }
                     is NativeAuthV2CommandResult.Complete -> {
                         mapCompleteResult(result)
                     }
