@@ -32,10 +32,14 @@ import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2ActivateCommandParameters
+import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2ResendCodeCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2StrongAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ActivateCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResendCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.controllers.v2.NativeAuthV2FlowController
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
@@ -53,7 +57,9 @@ import kotlinx.coroutines.withContext
 
 /**
  * State that requires a strong-auth activation code. Invalid codes are retryable on this state.
- * Activation resumes the original sign-in, sign-up, or password-reset flow. No resend is exposed.
+ * Activation resumes the original sign-in, sign-up, or password-reset flow.
+ * [resendChallenge] returns a fresh verification state whose token and links must be used for
+ * subsequent calls. Resend is available only when the service supplies a resend link.
  */
 class StrongAuthVerificationRequiredStateV2 internal constructor(
     correlationId: String,
@@ -78,6 +84,9 @@ class StrongAuthVerificationRequiredStateV2 internal constructor(
     }
 
     interface SubmitChallengeCallback : Callback<NativeAuthResultV2>
+
+    /** Receives a refreshed activation state or an error from [resendChallenge]. */
+    interface ResendChallengeCallback : Callback<NativeAuthResultV2>
 
     /** Submits the activation code unchanged and delivers the resumed flow through [callback]. */
     fun submitChallenge(challenge: String, callback: SubmitChallengeCallback) {
@@ -127,6 +136,80 @@ class StrongAuthVerificationRequiredStateV2 internal constructor(
                 NativeAuthErrorV2(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred during strong-auth activation.",
+                    correlationId = correlationId, scenario = scenario, exception = e
+                )
+            }
+        }
+    }
+
+    /**
+     * Requests another activation code and delivers the refreshed state through [callback].
+     *
+     * @param callback receives the result or a callback-level exception.
+     */
+    fun resendChallenge(callback: ResendChallengeCallback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.resendChallenge(callback: ResendChallengeCallback)"
+        )
+        NativeAuthPublicClientApplication.pcaScope.launch {
+            try {
+                callback.onResult(resendChallenge())
+            } catch (e: MsalException) {
+                Logger.error(TAG, "Exception thrown in resendChallenge", e)
+                callback.onError(e)
+            }
+        }
+    }
+
+    /**
+     * Requests another activation code using the service's current resend link.
+     *
+     * @return a fresh [NativeAuthResultV2.StrongAuthVerificationRequired] on success. Its
+     * code length is positive and its sent-to hint is empty when absent from the response.
+     * Use its next state for subsequent submit/resend calls. A missing resend link produces
+     * a [NativeAuthErrorV2] without making a network request.
+     */
+    suspend fun resendChallenge(): NativeAuthResultV2 {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.resendChallenge()"
+        )
+        val state = continuationState ?: return invalidState()
+        return withContext(Dispatchers.IO) {
+            try {
+                val parameters = CommandParametersAdapter.createNativeAuthV2ResendCodeCommandParameters(
+                    config, config.oAuth2TokenCache, state
+                )
+                val command = NativeAuthV2ResendCodeCommand(
+                    parameters, NativeAuthV2FlowController(), PublicApiId.NATIVE_AUTH_JIT_RESEND_CHALLENGE
+                )
+                ensureActive()
+                val rawResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
+                ensureActive()
+                when (val result = rawResult.checkAndWrapCommandResultType<NativeAuthV2ResendCodeCommandResult>()) {
+                    is NativeAuthV2CommandResult.StrongAuthVerificationRequired ->
+                        mapStrongAuthResult(result, selectedChannel)
+                    is INativeAuthCommandResult.Redirect -> mapStrongAuthResult(result)
+                    is INativeAuthCommandResult.APIError -> mapStrongAuthResult(result)
+                    else -> {
+                        Logger.warnWithObject(TAG, result.correlationId, "JIT resend received unsupported result: ", result)
+                        NativeAuthErrorV2(
+                            errorType = ErrorTypes.INVALID_STATE,
+                            errorMessage = "Strong-auth resend returned an unsupported result.",
+                            correlationId = result.correlationId, scenario = scenario
+                        )
+                    }
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Logger.error(TAG, correlationId, "Exception thrown in resendChallenge", e)
+                NativeAuthErrorV2(
+                    errorType = ErrorTypes.CLIENT_EXCEPTION,
+                    errorMessage = "MSAL client exception occurred during strong-auth resend.",
                     correlationId = correlationId, scenario = scenario, exception = e
                 )
             }

@@ -42,6 +42,7 @@ import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2ResendCodeCommandParameters
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SignInAfterSignUpCommandParameters
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitCodeCommandParameters
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitPasswordCommandParameters
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInV2StartCommandParameters
@@ -293,6 +294,121 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         } finally {
             unmockkConstructor(NativeAuthV2FlowController::class)
         }
+    }
+
+    @Test
+    fun jitResendRetainsScenarioAndChannelAfterParcel() = runTest(timeout = 60.seconds) {
+        val original = strongAuthVerification()
+        for (scenario in listOf(NativeAuthFlowScenarioV2.SIGN_IN, NativeAuthFlowScenarioV2.SIGN_UP, NativeAuthFlowScenarioV2.RESET_PASSWORD)) {
+            for (channel in listOf("sms", "email")) {
+                val state = StrongAuthVerificationRequiredStateV2(
+                    correlationId, scenario, original.config, original.continuationState, channel)
+                val restored = parcelRoundTrip(state, StrongAuthVerificationRequiredStateV2.CREATOR)
+                restored.config.mergeConfiguration(state.config)
+                restored.config.appContext = state.config.appContext
+                restored.config.oAuth2TokenCache = state.config.oAuth2TokenCache
+                val fresh = NativeAuthV2ContinuationStateTestFactory.create(
+                    "resent", scenario = NativeAuthV2FlowScenario.valueOf(scenario.name))
+                val common = NativeAuthV2CommandResult.StrongAuthVerificationRequired("resent", fresh, 8, "")
+                enqueueResult(common, NativeAuthV2ResendCodeCommand::class) { command ->
+                    assertEquals(PublicApiId.NATIVE_AUTH_JIT_RESEND_CHALLENGE, command.publicApiId)
+                    assertSame(restored.continuationState,
+                        (command.parameters as NativeAuthV2ResendCodeCommandParameters).continuationState)
+                }
+                val raw = restored.resendChallenge()
+                assertTrue("Resend failed for $scenario/$channel: ${(raw as? NativeAuthErrorV2)?.exception}",
+                    raw is NativeAuthResultV2.StrongAuthVerificationRequired)
+                val result = raw as NativeAuthResultV2.StrongAuthVerificationRequired
+                assertSame(fresh, result.nextState.continuationState)
+                assertEquals(scenario, result.scenario)
+                assertEquals(scenario, result.nextState.scenario)
+                assertEquals(channel, result.channel)
+                assertEquals(channel, result.nextState.selectedChannel)
+                assertEquals("", result.sentTo)
+                assertEquals(8, result.codeLength)
+                enqueueResult(
+                    NativeAuthV2CommandResult.IncorrectCode("resent", "invalidGrant", "Retry", "invalidOneTimeCode"),
+                    NativeAuthV2ActivateCommand::class
+                ) { command ->
+                    assertSame(fresh, (command.parameters as NativeAuthV2SignInAfterSignUpCommandParameters).continuationState)
+                }
+                val activationError = result.nextState.submitChallenge("retry") as NativeAuthErrorV2
+                assertTrue("Activation after resend failed for $scenario/$channel: ${activationError.errorMessage}; ${activationError.exception}",
+                    activationError.isInvalidChallenge())
+                enqueueResult(common, NativeAuthV2ResendCodeCommand::class) { command ->
+                    assertSame(fresh, (command.parameters as NativeAuthV2ResendCodeCommandParameters).continuationState)
+                }
+                assertTrue(result.nextState.resendChallenge() is NativeAuthResultV2.StrongAuthVerificationRequired)
+            }
+        }
+    }
+
+    @Test
+    fun jitResendPreservesErrorsAndRejectsUnexpectedSuccess() = runTest {
+        val state = strongAuthVerification()
+        enqueueResult(
+            INativeAuthCommandResult.APIError(
+                correlationId = correlationId, error = "invalidRequest", errorDescription = "Try later",
+                traceId = "trace", timestamp = "time", errorCodes = listOf(42), subError = "serviceSpecific"
+            ),
+            NativeAuthV2ResendCodeCommand::class
+        )
+        val error = state.resendChallenge() as NativeAuthErrorV2
+        assertEquals("invalidRequest", error.error)
+        assertEquals("serviceSpecific", error.subError)
+        assertEquals("trace", error.traceId)
+        assertEquals("time", error.timestamp)
+        assertEquals(listOf(42), error.errorCodes)
+        enqueueResult(INativeAuthCommandResult.Redirect(correlationId, "Use browser"), NativeAuthV2ResendCodeCommand::class)
+        assertTrue((state.resendChallenge() as NativeAuthErrorV2).isBrowserRequired())
+        enqueueResult(emailCodeRequiredResult(), NativeAuthV2ResendCodeCommand::class)
+        assertEquals(ErrorTypes.INVALID_STATE, (state.resendChallenge() as NativeAuthErrorV2).errorType)
+    }
+
+    @Test
+    fun jitResendReturnsExplicitClientFailureAndPropagatesCancellation() = runTest {
+        val state = strongAuthVerification()
+        val failure = com.microsoft.identity.common.java.exception.ClientException(
+            com.microsoft.identity.common.java.exception.ClientException.MISSING_PARAMETER,
+            "Native Auth V2 continuation state is missing the required 'resend' relation.")
+        every {
+            CommandDispatcher.submitSilentReturningFuture(ofType<NativeAuthV2ResendCodeCommand>())
+        } throws failure
+        val result = state.resendChallenge() as NativeAuthErrorV2
+        assertEquals(ErrorTypes.CLIENT_EXCEPTION, result.errorType)
+        assertSame(failure, result.exception)
+        enqueueCancellation(NativeAuthV2ResendCodeCommand::class)
+        try {
+            state.resendChallenge()
+            fail("Expected cancellation")
+        } catch (_: CancellationException) {
+            // Cancellation must not be converted into an authentication error.
+        }
+    }
+
+    @Test
+    fun jitResendCallbackReturnsFreshStateAndMissingStateDoesNotDispatch() = runTest {
+        val state = strongAuthVerification()
+        val missing = StrongAuthVerificationRequiredStateV2(correlationId, state.scenario, state.config)
+        val missingResult = missing.resendChallenge() as NativeAuthErrorV2
+        assertEquals(ErrorTypes.INVALID_STATE, missingResult.errorType)
+        verify(exactly = 0) {
+            CommandDispatcher.submitSilentReturningFuture(ofType<NativeAuthV2ResendCodeCommand>())
+        }
+        val fresh = createContinuationState("callback-resend")
+        enqueueResult(
+            NativeAuthV2CommandResult.StrongAuthVerificationRequired("callback-resend", fresh, 7, "updated"),
+            NativeAuthV2ResendCodeCommand::class
+        )
+        val callbackResult = ResultFuture<NativeAuthResultV2>()
+        state.resendChallenge(object : StrongAuthVerificationRequiredStateV2.ResendChallengeCallback {
+            override fun onResult(result: NativeAuthResultV2) = callbackResult.setResult(result)
+            override fun onError(exception: BaseException) = callbackResult.setException(exception)
+        })
+        val result = callbackResult.get(10, TimeUnit.SECONDS) as NativeAuthResultV2.StrongAuthVerificationRequired
+        assertSame(fresh, result.nextState.continuationState)
+        assertEquals("sms", result.channel)
+        assertEquals("updated", result.sentTo)
     }
 
     @Test
@@ -617,9 +733,10 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         val verification = strongAuthVerification()
         val enrollCallback = mockk<StrongAuthRegistrationRequiredStateV2.SelectAuthMethodCallback>(relaxed = true)
         val activateCallback = mockk<StrongAuthVerificationRequiredStateV2.SubmitChallengeCallback>(relaxed = true)
+        val resendCallback = mockk<StrongAuthVerificationRequiredStateV2.ResendChallengeCallback>(relaxed = true)
         mockkObject(NativeAuthPublicClientApplication.Companion)
         try {
-            for (enrolling in listOf(true, false)) {
+            for (commandClass in listOf(NativeAuthV2EnrollCommand::class, NativeAuthV2ActivateCommand::class, NativeAuthV2ResendCodeCommand::class)) {
                 val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
                 val waiting = CountDownLatch(1)
                 val future = spyk(FinalizableResultFuture<CommandResult<Any>>())
@@ -630,16 +747,16 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
                 }
                 every {
                     CommandDispatcher.submitSilentReturningFuture(match {
-                        if (enrolling) it is NativeAuthV2EnrollCommand else it is NativeAuthV2ActivateCommand
+                        commandClass.java.isInstance(it)
                     })
                 } returns future
                 try {
-                    if (enrolling) {
-                        registration.nextState.selectAuthMethod(
+                    when (commandClass) {
+                        NativeAuthV2EnrollCommand::class -> registration.nextState.selectAuthMethod(
                             registration.authMethods.single(), "user@example.com", enrollCallback
                         )
-                    } else {
-                        verification.submitChallenge("otp", activateCallback)
+                        NativeAuthV2ActivateCommand::class -> verification.submitChallenge("otp", activateCallback)
+                        NativeAuthV2ResendCodeCommand::class -> verification.resendChallenge(resendCallback)
                     }
                     assertTrue(waiting.await(10, TimeUnit.SECONDS))
                 } finally {
@@ -652,6 +769,8 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             verify(exactly = 0) { enrollCallback.onError(any()) }
             verify(exactly = 0) { activateCallback.onResult(any()) }
             verify(exactly = 0) { activateCallback.onError(any()) }
+            verify(exactly = 0) { resendCallback.onResult(any()) }
+            verify(exactly = 0) { resendCallback.onError(any()) }
         } finally {
             unmockkObject(NativeAuthPublicClientApplication.Companion)
         }
