@@ -223,11 +223,11 @@ interface NativeAuthResultV2 : Result {
 
     /**
      * StrongAuthVerificationRequired Result, which indicates a strong-authentication challenge
-     * was sent and the user must enter the verification code.
+     * was sent or resent and the user must enter the activation code.
      *
-     * @param nextState the current state with follow-on methods.
-     * @param codeLength the length of the code required by the server.
-     * @param sentTo the email/phone number the code was sent to.
+     * @param nextState the refreshed state to use for subsequent submission or resend.
+     * @param codeLength the positive integer code length required by the server.
+     * @param sentTo the service-supplied contact hint, or an empty string when absent.
      * @param channel the channel (email/phone) the code was sent through.
      */
     class StrongAuthVerificationRequired(

@@ -167,6 +167,8 @@ class PasswordRequiredStateV2 internal constructor(
                 val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
                 ensureActive()
                 when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitPasswordCommandResult>()) {
+                    is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
+                        result.toRegistrationResult(scenario, config)
                     is NativeAuthV2CommandResult.Complete -> {
                         mapCompleteResult(result)
                     }
@@ -283,6 +285,8 @@ class PasswordRequiredStateV2 internal constructor(
         val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
         coroutineContext.ensureActive()
         return when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitAttributesCommandResult>()) {
+            is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
+                result.toRegistrationResult(scenario, config)
             is NativeAuthV2CommandResult.SignInAfterSignUpRequired -> {
                 NativeAuthResultV2.SignInAfterSignUpRequired(
                     nextState = SignInAfterSignUpStateV2(result.continuationState, scenario, config),

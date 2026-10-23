@@ -173,6 +173,8 @@ class ResetPasswordMethodRequiredStateV2 internal constructor(
                 ensureActive()
                 when (val result =
                     rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SelectResetPasswordMethodCommandResult>()) {
+                    is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
+                        result.toRegistrationResult(scenario, config)
                     is NativeAuthV2CommandResult.CodeRequired -> NativeAuthResultV2.CodeRequired(
                         nextState = CodeRequiredStateV2(
                             continuationState = result.continuationState,

@@ -174,6 +174,8 @@ internal suspend fun submitAttributesInternal(
             val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
             ensureActive()
             when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitAttributesCommandResult>()) {
+                is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
+                    result.toRegistrationResult(scenario, config)
                 is NativeAuthV2CommandResult.CodeRequired -> {
                     NativeAuthResultV2.CodeRequired(
                         nextState = CodeRequiredStateV2(result.continuationState, scenario, config),
