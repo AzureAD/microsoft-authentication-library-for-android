@@ -41,6 +41,7 @@ import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpV2StartCommandParameters
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitAttributesCommandParameters
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SignInAfterSignUpCommandResult
@@ -89,6 +90,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotSame
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
@@ -596,6 +598,69 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2SignUpSubmitCodeCommand::class
         )
         assertTrue(state.submitCode("123456") is NativeAuthResultV2.PasswordRequired)
+    }
+
+    @Test
+    fun submitCodePreservesRejectedRetainedAttributesAndAllowsRetry() = runTest {
+        val state = codeRequiredState()
+        val retryState = createContinuationState()
+        val details = listOf(mapOf(
+            "code" to "attributeValidationFailed", "attributeIds" to listOf("displayName")))
+        enqueueResult(
+            NativeAuthV2CommandResult.AttributesInvalid(
+                correlationId, retryState, listOf("displayName"), "invalidRequest", "Attribute rejected",
+                listOf(1002027), "attributeValidationError", details, "attribute-trace", "attribute-time"
+            ),
+            NativeAuthV2SignUpSubmitCodeCommand::class
+        )
+        val raw = state.submitCode("123456")
+        assertTrue(raw is NativeAuthResultV2.AttributesInvalid)
+        val result = raw as NativeAuthResultV2.AttributesInvalid
+        assertSame(retryState, result.nextState.continuationState)
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, result.scenario)
+        assertEquals(listOf("displayName"), result.invalidAttributes)
+        val error = result.error!!
+        assertTrue(error.isInvalidAttributes())
+        assertEquals("invalidRequest", error.error)
+        assertEquals("Attribute rejected", error.errorMessage)
+        assertEquals(correlationId, error.correlationId)
+        assertEquals("attributeValidationError", error.subError)
+        assertEquals(listOf(1002027), error.errorCodes)
+        assertEquals(details, error.attributeValidationDetails)
+        assertEquals("attribute-trace", error.traceId)
+        assertEquals("attribute-time", error.timestamp)
+        enqueueResult(
+            NativeAuthV2CommandResult.SignInAfterSignUpRequired(correlationId, retryState),
+            NativeAuthV2SubmitAttributesCommand::class
+        ) { command ->
+            assertSame(retryState, (command.parameters as NativeAuthV2SubmitAttributesCommandParameters).continuationState)
+        }
+        assertTrue(result.nextState.submitAttributes(UserAttributes.Builder().displayName("Corrected").build())
+            is NativeAuthResultV2.SignInAfterSignUpRequired)
+    }
+
+    @Test
+    fun submitCodePreservesExistingUserClassificationAndDiagnostics() = runTest {
+        val state = codeRequiredState()
+        val details = listOf(mapOf("code" to "userAlreadyExists", "attributeIds" to listOf("email")))
+        enqueueResult(
+            NativeAuthV2CommandResult.UserAlreadyExists(
+                correlationId, "invalidRequest", "Account exists", listOf(1002029),
+                "accountConflict", details, "exists-trace", "exists-time"
+            ),
+            NativeAuthV2SignUpSubmitCodeCommand::class
+        )
+        val error = state.submitCode("123456") as NativeAuthErrorV2
+        assertTrue(error.isUserAlreadyExists())
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, error.scenario)
+        assertEquals(correlationId, error.correlationId)
+        assertEquals("invalidRequest", error.error)
+        assertEquals("Account exists", error.errorMessage)
+        assertEquals(listOf(1002029), error.errorCodes)
+        assertEquals("accountConflict", error.subError)
+        assertEquals(details, error.attributeValidationDetails)
+        assertEquals("exists-trace", error.traceId)
+        assertEquals("exists-time", error.timestamp)
     }
 
     @Test

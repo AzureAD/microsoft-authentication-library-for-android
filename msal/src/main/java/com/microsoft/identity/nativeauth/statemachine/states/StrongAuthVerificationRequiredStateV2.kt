@@ -168,7 +168,9 @@ class StrongAuthVerificationRequiredStateV2 internal constructor(
      *
      * @return a fresh [NativeAuthResultV2.StrongAuthVerificationRequired] on success. Its
      * code length is positive and its sent-to hint is empty when absent from the response.
-     * Use its next state for subsequent submit/resend calls. A missing resend link produces
+     * Use its next state for subsequent submit/resend calls. If the service returns to method
+     * selection, returns [NativeAuthResultV2.StrongAuthRegistrationRequired] with the current
+     * methods and continuation state. A missing resend link produces
      * a [NativeAuthErrorV2] without making a network request.
      */
     suspend fun resendChallenge(): NativeAuthResultV2 {
@@ -190,6 +192,8 @@ class StrongAuthVerificationRequiredStateV2 internal constructor(
                 val rawResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
                 ensureActive()
                 when (val result = rawResult.checkAndWrapCommandResultType<NativeAuthV2ResendCodeCommandResult>()) {
+                    is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
+                        result.toRegistrationResult(scenario, config)
                     is NativeAuthV2CommandResult.StrongAuthVerificationRequired ->
                         mapStrongAuthResult(result, selectedChannel)
                     is INativeAuthCommandResult.Redirect -> mapStrongAuthResult(result)

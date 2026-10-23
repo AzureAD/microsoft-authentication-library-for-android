@@ -202,6 +202,8 @@ class CodeRequiredStateV2 internal constructor(
             val result =
                 rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SignUpSubmitCodeCommandResult>()
         ) {
+            is NativeAuthV2CommandResult.AttributesInvalid -> mapStrongAuthResult(result)
+            is NativeAuthV2CommandResult.UserAlreadyExists -> mapStrongAuthResult(result)
             is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
                 result.toRegistrationResult(scenario, config)
             is NativeAuthV2CommandResult.AttributesRequired -> {

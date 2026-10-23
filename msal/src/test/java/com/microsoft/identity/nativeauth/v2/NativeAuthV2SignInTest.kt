@@ -344,6 +344,44 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
+    fun jitResendReturnsRegistrationWithRefreshedMethodsAndContinuation() = runTest {
+        val original = strongAuthVerification()
+        for (scenario in listOf(NativeAuthFlowScenarioV2.SIGN_IN, NativeAuthFlowScenarioV2.SIGN_UP, NativeAuthFlowScenarioV2.RESET_PASSWORD)) {
+            val state = StrongAuthVerificationRequiredStateV2(
+                correlationId, scenario, original.config, original.continuationState, "sms")
+            val fresh = NativeAuthV2ContinuationStateTestFactory.registration(
+                NativeAuthV2ContinuationStateTestFactory.create(
+                    "registration-after-resend", scenario = NativeAuthV2FlowScenario.valueOf(scenario.name)))
+            val methods = listOf(
+                NativeAuthV2AuthMethod("phone:sms:0", "sms", "***00"),
+                NativeAuthV2AuthMethod("email:email:1", "email", "u***@contoso.com")
+            )
+            enqueueResult(
+                NativeAuthV2CommandResult.StrongAuthRegistrationRequired(fresh.correlationId, fresh, methods),
+                NativeAuthV2ResendCodeCommand::class
+            )
+            val raw = state.resendChallenge()
+            assertTrue(raw is NativeAuthResultV2.StrongAuthRegistrationRequired)
+            val result = raw as NativeAuthResultV2.StrongAuthRegistrationRequired
+            assertEquals(scenario, result.scenario)
+            assertEquals(scenario, result.nextState.scenario)
+            assertEquals(fresh.correlationId, result.nextState.correlationId)
+            assertSame(fresh, result.nextState.continuationState)
+            assertEquals(methods.map { it.id }, result.authMethods.map { it.id })
+            assertEquals(listOf("sms", "email"), result.authMethods.map { it.challengeChannel })
+            assertEquals(result.authMethods, result.nextState.authMethods)
+            enqueueResult(
+                NativeAuthV2CommandResult.StrongAuthVerificationRequired(fresh.correlationId, fresh, 6, ""),
+                NativeAuthV2EnrollCommand::class
+            )
+            val enrolled = result.nextState.selectAuthMethod(result.authMethods.last(), "user@example.com")
+                as NativeAuthResultV2.StrongAuthVerificationRequired
+            assertEquals("email", enrolled.channel)
+            assertEquals(scenario, enrolled.scenario)
+        }
+    }
+
+    @Test
     fun jitResendPreservesErrorsAndRejectsUnexpectedSuccess() = runTest {
         val state = strongAuthVerification()
         enqueueResult(
