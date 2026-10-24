@@ -52,7 +52,7 @@ class MfaModelsTest {
         source.clear()
         assertEquals(setOf(MfaApprovalBlockReason.UNKNOWN_POLICY), session.approvalBlockedReasons)
         assertThrows(UnsupportedOperationException::class.java) {
-            (session.approvalBlockedReasons as MutableSet).clear()
+            (session.approvalBlockedReasons as MutableSet<MfaApprovalBlockReason>).clear()
         }
         assertEquals(marker, session.sessionHandle)
         assertEquals(marker, session.registrationId)
