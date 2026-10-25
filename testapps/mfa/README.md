@@ -10,13 +10,11 @@ No MFA API is being added to an already released MSAL binary.
 
 | Variant | Default application ID | Behavior |
 | --- | --- | --- |
-| Mock Debug | `com.microsoft.identity.mfa.sample.mock` | Synthetic token and debug fixtures; no Firebase setup, tenant, or network service required |
-| Live Debug | `com.microsoft.identity.mfa.sample.live` | Explicitly opts into the experimental service; real Firebase token; no mock controls or fallback |
+| Live Debug | `com.microsoft.identity.mfa.sample.live` | Explicitly opts into the experimental service; real Firebase token and service-confirmed enrollment and decisions |
 
-The namespace is `com.microsoft.identity.mfa.sample`. Distinct app labels and
-application IDs let both modes coexist with isolated local state. The sample uses
-`project(':mfa')`, selecting the library's `local` flavor. Sample release variants
-are disabled; debug fixture support must not be shipped in a production app.
+The namespace is `com.microsoft.identity.mfa.sample`. The sample is live-only and
+uses `project(':mfa')`, selecting the library's `local` flavor. Sample release variants
+are disabled. Debug-only, non-PII diagnostics remain available.
 The library is an ordinary Android library, not a fat AAR; consumers must resolve
 its declared public dependencies. Publication coordinates and API stability are
 not established by this PoC.
@@ -28,20 +26,18 @@ dependency-feed setup. These PowerShell commands run from the MSAL repository
 root, not the sample directory:
 
 ```powershell
-.\gradlew.bat :testapps:mfa:assembleMockDebug :testapps:mfa:assembleLiveDebug
-.\gradlew.bat :testapps:mfa:installMockDebug
+.\gradlew.bat :testapps:mfa:assembleLiveDebug
 .\gradlew.bat :testapps:mfa:installLiveDebug
 
 # Discover actual generated APK filenames rather than assuming an output name.
 Get-ChildItem .\testapps\mfa\build\outputs\apk -Recurse -Filter *.apk
 
-adb shell am start -n com.microsoft.identity.mfa.sample.mock/com.microsoft.identity.mfa.sample.MainActivity
 adb shell am start -n com.microsoft.identity.mfa.sample.live/com.microsoft.identity.mfa.sample.MainActivity
 ```
 
-Install tasks require a connected authorized emulator/device. Mock requires no
-Google services configuration. Live also **compiles without configuration** and
-shows an actionable **Firebase setup required** message on opening. Network feed
+Install tasks require a connected authorized emulator/device. Live
+**compiles without configuration** and shows an actionable
+**Firebase setup required** message on opening. Network feed
 access is a build prerequisite, not a reason to change repository security policy.
 
 ### Existing outer-workspace alternative
@@ -51,8 +47,7 @@ its root build registers this app as `:mfaSample` rather than `:testapps:mfa`.
 From that workspace root, use the already-configured dependency feeds:
 
 ```powershell
-.\gradlew.bat :mfaSample:assembleMockDebug :mfaSample:assembleLiveDebug -PincludeAuthenticatorApp=false
-.\gradlew.bat :mfaSample:installMockDebug -PincludeAuthenticatorApp=false
+.\gradlew.bat :mfaSample:assembleLiveDebug -PincludeAuthenticatorApp=false
 .\gradlew.bat :mfaSample:installLiveDebug -PincludeAuthenticatorApp=false
 Get-ChildItem .\msal\testapps\mfa\build\outputs\apk -Recurse -Filter *.apk
 ```
@@ -62,27 +57,20 @@ workaround. If the standalone build receives an approved-feed authentication
 error, fix access through the normal process or use the existing configured
 workspace; do not weaken repositories or commit credentials.
 
-### Implementation verification
+### Previous live-flow verification
 
-The outer-workspace build produced both sample APKs and the library's local
-debug/release AARs. Eight compact JVM smoke tests passed. The release AAR contains
-neither debug fixture classes nor Firebase classes. Firebase BoM `35.0.2` resolved
-Messaging `26.0.0` through the existing feed.
+Before the live-only cleanup, the outer-workspace build produced the Live sample
+APK and the library's local debug/release AARs. Firebase BoM `35.0.2` resolved
+Messaging `26.0.0` through the existing feed. Live opened without configuration
+and showed Firebase setup required with token readiness false.
 
 Generated artifacts relative to the outer workspace:
 
 ```text
 msal\mfa\build\outputs\aar\mfa-local-debug.aar
 msal\mfa\build\outputs\aar\mfa-local-release.aar
-msal\testapps\mfa\build\outputs\apk\mock\debug\mfaSample-mock-debug.apk
 msal\testapps\mfa\build\outputs\apk\live\debug\mfaSample-live-debug.apk
 ```
-
-On an Android emulator, Mock completed QR and manual enrollment with a separate
-validation injection, retained registration after process restart, approved a
-number-matching request, denied a separate request, and surfaced
-`SERVICE_REJECTED` for an incorrect number. Live opened without configuration and
-showed Firebase setup required with token readiness false.
 
 Follow-up testing with an authorized physical-device setup verified Firebase token
 acquisition, live enrollment/confirmation, persisted registration, and pushed
@@ -90,6 +78,11 @@ number-matching challenge presentation. The tester also confirmed successful liv
 denial and browser completion after number-matching approval. Approval used the
 explicitly selected Authenticator policy profile. This establishes interoperability
 only for the exercised authorized identity/setup, not other app identities or policies.
+
+These are historical results, not validation of the live-only cleanup or the
+controlled same-device page flows below. Independent
+parser, endpoint-policy, proof, credential-policy, and diagnostic unit tests remain;
+they do not establish live service interoperability.
 
 ### Approval policy limits
 
@@ -115,41 +108,6 @@ oversized policies are blocked rather than treated as permission to approve.
 Policy payloads and the expected browser number are never exposed through this API
 or diagnostic output. A supported policy is not proof the service accepted a decision.
 
-## Mock walkthrough
-
-1. Open **MFA PoC - Mock**. Confirm the visible `MOCK` mode and synthetic push-token
-   readiness. The initial state has no registered account on a fresh install.
-2. Select **HAPPY_PATH**, choose **Load example QR**, then **Register QR text**.
-   Inputs clear immediately. At `AWAITING_VALIDATION`, click **Inject enrollment
-   validation**. That button remains usable while registration waits. Expect
-   `CONFIRMING`, `REGISTERED`, and an account row.
-3. Close and reopen the app, then **Refresh accounts / pull requests** to check
-   restored registration. The shared manager survives Activity recreation; the
-   SDK owns persisted state.
-4. Click **Inject sign-in challenge**. Read the number in the **Simulated browser
-   panel**, type it into the request, and **Approve**. Expect `APPROVED` and request
-   removal. The number is fixture UI data, not an answer exposed by a session.
-5. Inject a new request and **Deny**. Expect `DENIED`; do not reuse an approved or
-   denied request. Duplicate push/pull results are deduplicated by request GUID.
-6. **Reset Mock state**, select **HAPPY_PATH**, load the example manual input, and
-   register with **Register manual activation**, injecting validation as above.
-7. On fresh/reset fixture state, exercise **REJECTED_ACTIVATION**,
-   **TRANSPORT_FAILURE**, and **MALFORMED_RESPONSE**. Check safe failure codes
-   instead of successful enrollment. After enrollment, exercise **WRONG_NUMBER**
-   and **EXPIRED_REQUEST** with fresh challenges; no confirmed success should be
-   shown. **WRONG_NUMBER** deliberately shows `41` in the simulated browser
-   panel; enter that number to exercise rejection, rather than the happy-path
-   number `42`. For happy-path number-entry validation, also enter a wrong number
-   yourself.
-8. Rotate/background the Activity while waiting, return, and inject validation.
-   Secret text fields are not restored; re-enter any unsubmitted input. Verify
-   duplicate/double taps do not issue simultaneous UI decisions.
-
-The Mock-only timeline displays the debug SDK's sanitized operation summaries
-(latest 20), not arbitrary request/response bodies. Reset is not available in Live.
-Scenario selection is disabled while a UI operation is active. Wait for the
-operation's SDK timeout/error before resetting an interrupted enrollment.
-
 ## Live setup (local configuration only)
 
 1. Obtain an explicitly authorized SAS test setup and Android package/signing
@@ -159,7 +117,7 @@ operation's SDK timeout/error before resetting an interrupted enrollment.
    its downloaded client configuration only at
    `testapps\mfa\src\live\google-services.json`. This file is locally ignored and
    must not be committed. The Google services plugin is applied conditionally
-   when that file exists; no configuration is required for Mock or compilation.
+   when that file exists; compilation does not require configuration.
    No service-account keys or message-sending credentials belong in the APK.
 3. If an authorized setup requires a different dedicated test application ID,
    supply a local property when building/installing:
@@ -171,7 +129,7 @@ operation's SDK timeout/error before resetting an interrupted enrollment.
    The placeholder is not an approved identity. Use only an identity explicitly
    provisioned for this experiment, with matching Firebase package configuration
    and authorized signing. Do not copy or impersonate Authenticator's identity,
-   Firebase project, or signing material. The override affects Live only.
+   Firebase project, or signing material. The override affects the Live application ID.
 4. Install Live on a dedicated test device with Google Play services. Open it and
    use **Allow visible notifications** on Android 13+ if desired. On earlier
    Android versions, or if notifications/channels were disabled in system
@@ -195,7 +153,7 @@ Open integration questions must be resolved with the authorized service owner:
 
 Configure real inputs locally. Do not place activation codes, tokens, account
 identifiers, payload captures, signing keys, or Firebase/service credentials in
-issues, screenshots, source fixtures, logs, or chat.
+issues, screenshots, test inputs, logs, or chat.
 
 ## Live enrollment and decisions
 
@@ -207,9 +165,9 @@ issues, screenshots, source fixtures, logs, or chat.
    Some short-lived stages may pass too quickly to read. Verify enrollment
    independently in the supported browser/service flow.
 3. If waiting persists, inspect the displayed safe stage/error and confirm sender
-   routing, authorized identity, and validation delivery. **Do not use Mock as
-   evidence of Live success.** Refresh recovers pending sign-ins; it is not a
-   guarantee that a missing enrollment validation can be recovered by polling.
+   routing, authorized identity, and validation delivery. Refresh recovers pending
+   sign-ins; it is not a guarantee that a missing enrollment validation can be
+   recovered by polling.
 4. Relaunch and refresh accounts. Trigger an external test sign-in. If no push
    appears, **Refresh accounts / pull requests**. Enter the number shown by the
    real browser and approve; verify browser completion. Trigger a separate
@@ -223,6 +181,123 @@ issues, screenshots, source fixtures, logs, or chat.
    token-change status. The sample never silently overwrites the enrolled token,
    clears accounts, or resets Live. Coordinate authorized server cleanup and a
    fresh enrollment. Clearing app data/uninstalling is **not deregistration**.
+
+## Controlled same-device setup pages (live enrollment only)
+
+These are **controlled developer-demo pages**, not integration with a production
+security-information portal. They host real UI locally; they do not simulate an
+MFA service, generate activation inputs, or return a fabricated registration.
+There is still only one `live` flavor. Direct QR/manual registration and pushed
+challenge approval/denial remain available.
+
+### Developer preparation for every test
+
+Complete the authorized Live setup above and wait for `TOKEN_ACQUIRED`, **Token
+ready: true**, and no token-change block. Obtain **fresh, unused real activation
+input for EACH registration test**, including when switching between the two
+page options. Do not reuse input from an earlier success, cancellation, failure,
+or uncertain result. Do not automatically reset an existing registration to
+repeat a demo; coordinate authorized service cleanup separately if needed.
+
+In the native sample, paste either QR text alone, or enter both activation code
+and URL with the QR field empty. Do **not** press a direct Register button when
+testing a page flow. The selected Open setup action consumes and clears these
+native fields, retaining the input only in process memory until native Continue,
+Cancel, page expiry, or explicit clearing. This is developer preparation of the
+controlled page, not page-supplied activation.
+
+### Embedded page: four steps
+
+1. After preparing fresh native input, select **Open setup in this app**.
+2. On the controlled page, select **Set up on this device**.
+3. Review **Confirm native live enrollment** and select **Continue** (or
+   **Cancel**, which submits nothing). Keep the native app open while enrollment
+   runs; do not repeat the action.
+4. The same embedded page polls this request's safe status without reloading.
+   Success means that this request's live `registerAuthMethod` call returned,
+   including activation validation and confirmation. Independently verify the
+   service outcome. Closing the page after submission does not undo or cancel
+   enrollment; **Return to setup page** can reopen its status while available.
+
+The embedded option requires Android 7/API 24+ and an available Android WebView.
+Its exact expected launch navigation is accepted only from the current controlled
+page, with a main-frame user gesture and a matching embedded request. There is no
+JavaScript interface, injected script bridge, scraping, or production-page POST
+replay. Unexpected navigation, file/content access, popups, and third-party
+resources are blocked.
+
+### External browser: four steps
+
+1. After preparing **different fresh** native input, select **Open setup in
+   browser**. Use an installed browser supporting user-clicked Android `intent:`
+   links (for example Chrome); browser-specific restrictions still apply.
+2. On the controlled page, select **Set up on this device**. Its package-targeted
+   sample link opens native confirmation in this installed application.
+3. Review **Confirm native live enrollment**, then **Continue** or **Cancel**.
+   Keep the native app foregrounded while the real SDK operation runs.
+4. Select **Return to setup page**, or manually resume the original browser tab.
+   Both read the same request-specific status. A browser may open a new tab;
+   this sample does **not** promise original-tab focus or production portal
+   continuation. Independently verify the service outcome.
+
+The browser link uses `mfa-poc-live://enroll/<random-request-id>` through an
+`intent:` anchor targeted to the current application package, including an
+explicitly authorized package override. It does not register Microsoft's
+activation schemes and is **not a verified App Link** or browser-origin
+authentication. An unguessable live request, source/canonical URI checks, and
+explicit native confirmation are the demo's boundary. Foreign, malformed,
+expired, duplicated, or already-used links never invoke enrollment; page intents
+are handled separately from notification extras.
+
+### Lifetime, outcomes, and privacy
+
+- Exactly one page request can be prepared. Clear the current demo before a new
+  one; a submitting SDK operation continues to block replacement even if its
+  page is cleared. Existing account status and unrelated push notices never
+  indicate page success. Only the matching SDK call's return does.
+- A prepared request expires after five minutes; submission has a separate
+  five-minute page-observation window. A terminal result remains available for
+  two minutes. Expiring or clearing a submitting page **does not cancel, roll
+  back, or replay** its SDK call. An expired observation is explicitly uncertain,
+  not a claim of enrollment failure.
+- Cancelling native confirmation or closing an embedded page before submission
+  discards the staged input. Closing an external browser tab is not observable
+  natively: use native **Clear setup page**, or let it expire.
+- Rotation disposes Activity-owned dialogs/WebViews; in-process correlation and
+  running native enrollment remain application-owned. Process death invalidates
+  all page requests. Nothing is restored or automatically resubmitted. If a
+  page becomes unavailable, check the native app/service before preparing fresh
+  input. Android background execution is not guaranteed.
+- The server binds only `127.0.0.1` on an OS-assigned port, with four concurrent
+  sockets, an 8 KiB request-head limit, bounded reads, and connection-close
+  responses. Only exact request page/status GET routes exist; there are no
+  credential, mutation, filesystem, proxy, or MFA backend routes.
+- HTML/status contain fixed messages and page correlation identifiers, never
+  activation input, account names, tokens, SDK exceptions, or service payloads.
+  There is no CORS grant, and foreign Origin/Host requests are rejected.
+  Responses are no-store/no-referrer with a restrictive CSP and no third-party
+  assets. URLs may remain in browser history but contain no activation values.
+- The sample-only network-security configuration allows cleartext solely for
+  `127.0.0.1`. System TLS trust and the SDK's HTTPS endpoint validation remain;
+  no user-CA/proxy override or public domain is needed.
+- This exercises real FCM, ActivateNew, validation, and ConfirmActivation only
+  when the user explicitly continues with authorized fresh input. Verified
+  domain links and production portal handoff/continuation remain out of scope.
+
+### Focused checks
+
+The pure session/URI/HTTP/page tests check one-shot consumption, duplicates,
+foreign inputs, expiry, stale results, and native-input exclusion. They contain
+no fake MFA backend or runtime fixture, and do not establish live interoperability.
+From the existing outer-workspace build context:
+
+```powershell
+.\gradlew.bat :mfaSample:testLiveDebugUnitTest :mfaSample:assembleLiveDebug -PincludeAuthenticatorApp=false
+```
+
+For the standalone MSAL build, substitute `:testapps:mfa` for `:mfaSample`.
+Build success is not a real-device/browser acceptance result. Exercise each path
+separately with fresh input on the authorized device.
 
 ## Push behavior, privacy, and limits
 
@@ -246,10 +321,10 @@ issues, screenshots, source fixtures, logs, or chat.
 - Denying Android 13+ notification permission disables visible notifications,
   **not** Firebase token acquisition and not necessarily all data delivery.
   No delivery claim is made from permission status or token readiness.
-- Account/session names are displayed only in the foreground UI; no sample
-  logging or analytics is performed. Screen capture is disabled and backup is
-  disabled. Errors show bounded SDK codes, never arbitrary exception messages,
-  raw payloads, activation material, or real tokens.
+- Account/session names are displayed only in the foreground UI. Debug diagnostics
+  emit bounded, non-PII lifecycle and SDK events; no analytics is performed.
+  Screen capture is disabled and backup is disabled. Errors show bounded SDK codes,
+  never arbitrary exception messages, raw payloads, activation material, or real tokens.
 - Sessions are deduplicated and capped at 32 in-memory prompts. Pull again as
   needed. Pending prompts are not saved by the UI across process death; the SDK
   and service remain authoritative.
@@ -258,8 +333,8 @@ issues, screenshots, source fixtures, logs, or chat.
   signed-in enrollment, advanced policy enforcement, all-cloud interoperability,
   publishing, and complete Authenticator parity.
 
-Build success verifies packaging, Mock verifies fixture behavior, and a Firebase
-token verifies only client setup. Only independently observed Live enrollment
-and browser decisions establish interoperability for the specific exercised
+Build success verifies packaging, and a Firebase token verifies only client setup.
+Only independently observed Live enrollment and browser decisions establish
+interoperability for the specific exercised
 authorized setup. The limited checks above do not establish that every manual
 scenario has passed or that Live service interoperability works.

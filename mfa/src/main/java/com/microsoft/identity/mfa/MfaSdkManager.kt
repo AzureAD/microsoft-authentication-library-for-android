@@ -35,7 +35,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Experimental commercial-cloud activation MFA client. Obtain one process-wide instance with
- * [create]. Live calls are disabled unless explicitly opted in; no live failure falls back to Mock.
+ * [create]. Live calls are disabled unless explicitly opted in.
  * The host owns push token acquisition, push delivery and number-entry UI.
  */
 class MfaSdkManager internal constructor(
@@ -49,7 +49,6 @@ class MfaSdkManager internal constructor(
     private var snapshot: MfaStoredState? = null
     private var enrolling = false
     private var validationBusy = false
-    private var submitting = 0
     private var validationSignal: CompletableDeferred<Unit>? = null
     private val sessions = HashMap<String, Session>()
     private val mutableStatus = MutableStateFlow(MfaSdkStatus(MfaEnrollmentStage.IDLE, false, false))
@@ -434,7 +433,6 @@ class MfaSdkManager internal constructor(
                 }
             }
             commit(state.copy(submitted = state.submitted + value.guid))
-            submitting++
             session
         }
         val numbered = approve && value.requiresNumberMatching
@@ -460,8 +458,6 @@ class MfaSdkManager internal constructor(
         catch (e: MfaSdkException) {
             if (e.code == MfaErrorCode.SERVICE_REJECTED) throw e
             fail(MfaErrorCode.OUTCOME_UNKNOWN)
-        } finally {
-            withContext(NonCancellable) { mutex.withLock { submitting-- } }
         }
     }
 
@@ -546,14 +542,6 @@ class MfaSdkManager internal constructor(
         mutableStatus.value = MfaSdkStatus(stage, state.token != null, state.tokenChangeBlocked)
         MfaDiagnostics.event("state.stage=${stage.name} pending=${state.pending != null} " +
             "tokenReady=${state.token != null} tokenChangeBlocked=${state.tokenChangeBlocked}")
-    }
-
-    internal suspend fun resetPocState() {
-        mutex.withLock {
-            requireMfa(!enrolling && !validationBusy && submitting == 0, MfaErrorCode.OPERATION_IN_PROGRESS)
-            commit(MfaStoredState())
-            sessions.clear()
-        }
     }
 
     private class Session(

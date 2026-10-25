@@ -23,6 +23,10 @@ class MfaSampleApplication : Application() {
         private set
     private val applicationJob = SupervisorJob()
     private val callbackScope = CoroutineScope(applicationJob + Dispatchers.Main.immediate)
+    internal val operationScope = CoroutineScope(applicationJob + Dispatchers.Main.immediate)
+    internal val operationBusy = MutableStateFlow(false)
+    internal lateinit var handoff: LiveSetupHandoff
+        private set
     private val callbackSlots = Semaphore(8)
     private val mutableSessions = MutableStateFlow<List<MfaAuthSession>>(emptyList())
     private val mutableNotice = MutableStateFlow("STARTING")
@@ -32,6 +36,7 @@ class MfaSampleApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         MfaPocDiagnostics.enable()
+        handoff = LiveSetupHandoff(operationScope, packageName)
         environment = EnvironmentFactory.create(this)
         environment.prepareNotifications()
         retrySetup()
@@ -79,10 +84,6 @@ class MfaSampleApplication : Application() {
         mutableSessions.value = mutableSessions.value.filterNot { it.guid == session.guid }
     }
 
-    internal fun clearSessions() {
-        mutableSessions.value = emptyList()
-    }
-
     internal fun report(value: String) {
         mutableNotice.value = value
     }
@@ -121,6 +122,7 @@ class MfaSampleApplication : Application() {
     }
 
     override fun onTerminate() {
+        handoff.clear()
         applicationJob.cancel()
         super.onTerminate()
     }

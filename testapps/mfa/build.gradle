@@ -23,12 +23,6 @@ if (!(policyProfile in ['CONSERVATIVE', 'AUTHENTICATOR']) ||
 
 if (file('src/live/google-services.json').exists()) {
     apply plugin: 'com.google.gms.google-services'
-    // Mock has no Firebase resources or dependency, even on configured developer machines.
-    tasks.configureEach {
-        if (name.startsWith('processMock') && name.endsWith('GoogleServices')) {
-            enabled = false
-        }
-    }
 }
 
 android {
@@ -44,11 +38,6 @@ android {
     }
     flavorDimensions 'mode'
     productFlavors {
-        mock {
-            dimension 'mode'
-            applicationId 'com.microsoft.identity.mfa.sample.mock'
-            resValue 'string', 'app_name', 'MFA PoC - Mock'
-        }
         live {
             dimension 'mode'
             applicationId liveApplicationId
@@ -79,6 +68,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$rootProject.ext.lifecycleKtxVersion"
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:$rootProject.ext.lifecycleKtxVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.ext.kotlinXCoroutinesVersion"
+    testImplementation "junit:junit:$rootProject.ext.junitVersion"
     liveImplementation platform('com.google.firebase:firebase-bom:35.0.2')
     liveImplementation 'com.google.firebase:firebase-messaging'
 }

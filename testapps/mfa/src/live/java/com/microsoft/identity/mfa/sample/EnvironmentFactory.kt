@@ -30,7 +30,6 @@ private class LiveEnvironment(private val context: Context) : SampleMfaEnvironme
     override val modeLabel = "LIVE — experimental service; authorized test setup only\n" +
         "Policy profile: ${BuildConfig.MFA_POLICY_PROFILE}"
     override val setup = MutableStateFlow(SampleSetup.STARTING)
-    override val mock: MockControls? = null
     private val initialization = Mutex()
 
     override suspend fun initialize() = initialization.withLock {

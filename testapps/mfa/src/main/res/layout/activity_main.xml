@@ -24,8 +24,8 @@
             android:text="@string/rotation_warning" android:textStyle="bold" android:visibility="gone" />
         <TextView android:id="@+id/notice" android:layout_width="match_parent" android:layout_height="wrap_content"
             android:paddingTop="8dp" android:accessibilityLiveRegion="polite" />
-        <LinearLayout android:id="@+id/liveControls" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+        <LinearLayout android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:orientation="vertical">
             <Button android:id="@+id/retrySetup" android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:text="@string/retry_setup" />
             <TextView android:id="@+id/permissionStatus" android:layout_width="match_parent" android:layout_height="wrap_content" />
@@ -54,33 +54,22 @@
         <Button android:id="@+id/registerManual" android:layout_width="match_parent" android:layout_height="wrap_content"
             android:text="@string/register_manual" />
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="16dp" android:text="@string/controlled_page_title" android:textSize="20sp" android:textStyle="bold" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/controlled_page_preparation" />
+        <Button android:id="@+id/openEmbeddedSetup" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/open_embedded_setup" />
+        <Button android:id="@+id/openBrowserSetup" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/open_browser_setup" />
+        <TextView android:id="@+id/pageStatus" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:accessibilityLiveRegion="polite" android:text="@string/no_setup_page" />
+        <Button android:id="@+id/returnSetup" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/return_setup" />
+        <Button android:id="@+id/clearSetup" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/clear_setup" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
             android:paddingTop="16dp" android:text="@string/challenge_title" android:textSize="20sp" android:textStyle="bold" />
         <LinearLayout android:id="@+id/challenges" android:layout_width="match_parent"
             android:layout_height="wrap_content" android:orientation="vertical" android:saveEnabled="false" />
-        <LinearLayout android:id="@+id/mockControls" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:paddingTop="16dp" android:text="@string/mock_title" android:textSize="20sp" android:textStyle="bold" />
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="@string/scenario_hint" />
-            <Spinner android:id="@+id/scenario" android:layout_width="match_parent"
-                android:layout_height="48dp" android:saveEnabled="false" />
-            <TextView android:id="@+id/browserNumber" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:padding="12dp" android:background="#FFF3CD" android:textSize="18sp" />
-            <Button android:id="@+id/loadQr" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="@string/load_qr" />
-            <Button android:id="@+id/loadManual" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="@string/load_manual" />
-            <Button android:id="@+id/injectValidation" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="@string/inject_validation" />
-            <Button android:id="@+id/injectChallenge" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="@string/inject_challenge" />
-            <Button android:id="@+id/resetMock" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="@string/reset_mock" />
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="@string/operations_title" android:textStyle="bold" />
-            <TextView android:id="@+id/operations" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:saveEnabled="false" />
-        </LinearLayout>
     </LinearLayout>
 </ScrollView>

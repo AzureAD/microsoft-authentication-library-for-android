@@ -4,28 +4,28 @@ package com.microsoft.identity.mfa.sample
 
 import android.Manifest
 import android.app.NotificationManager
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.net.Uri
 import android.text.InputFilter
 import android.text.InputType
 import android.view.View
 import android.view.WindowManager
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.microsoft.identity.mfa.MfaAuthSession
 import com.microsoft.identity.mfa.MfaApprovalBlockReason
-import com.microsoft.identity.mfa.MfaEnrollmentStage
 import com.microsoft.identity.mfa.MfaRegistrationParameters
 import com.microsoft.identity.mfa.sample.databinding.ActivityMainBinding
 import kotlinx.coroutines.flow.collect
@@ -37,6 +37,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var model: MfaSampleViewModel
     private val decisionButtons = mutableListOf<Pair<Button, Boolean>>()
     private var lastSessions: List<MfaAuthSession>? = null
+    private var embeddedPage: EmbeddedSetupPage? = null
+    private var confirmation: AlertDialog? = null
+    private var confirmationId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,70 +69,46 @@ class MainActivity : AppCompatActivity() {
             clearActivationInputs()
             model.register(input)
         }
+        binding.openEmbeddedSetup.setOnClickListener { prepareSetup(SetupSource.EMBEDDED) }
+        binding.openBrowserSetup.setOnClickListener { prepareSetup(SetupSource.BROWSER) }
+        binding.returnSetup.setOnClickListener {
+            model.handoff.location.value?.let(::openSetup)
+        }
+        binding.clearSetup.setOnClickListener {
+            closeEmbeddedPage()
+            model.handoff.clear()
+        }
         binding.refresh.setOnClickListener { model.refresh() }
         binding.retrySetup.setOnClickListener { model.retrySetup() }
-        configureMode()
+        binding.requestPermission.setOnClickListener {
+            if (Build.VERSION.SDK_INT >= 33) {
+                requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 100)
+            }
+        }
         observeState()
-        consumePushIntent(intent)
+        if (savedInstanceState == null) consumeIncomingIntent(intent)
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        consumePushIntent(intent)
+        consumeIncomingIntent(intent)
     }
 
     override fun onResume() {
         super.onResume()
-        if (::model.isInitialized && model.environment.mock == null) showPermissionStatus()
+        if (::model.isInitialized) {
+            showPermissionStatus()
+            if (model.embeddedPageOpen && embeddedPage == null) {
+                model.handoff.location.value?.let(::openSetup)
+            }
+        }
     }
 
     override fun onStop() {
         clearActivationInputs()
         clearNumberInputs(binding.challenges)
         super.onStop()
-    }
-
-    private fun configureMode() {
-        val mock = model.environment.mock
-        binding.mockControls.visibility = if (mock == null) View.GONE else View.VISIBLE
-        binding.liveControls.visibility = if (mock == null) View.VISIBLE else View.GONE
-        if (mock == null) {
-            binding.requestPermission.setOnClickListener {
-                if (Build.VERSION.SDK_INT >= 33) {
-                    requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 100)
-                }
-            }
-            return
-        }
-        binding.scenario.adapter = ArrayAdapter(
-            this, android.R.layout.simple_spinner_dropdown_item, mock.scenarios
-        )
-        binding.scenario.setSelection(model.selectedScenario)
-        binding.scenario.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                model.selectedScenario = position
-                mock.setScenario(mock.scenarios[position])
-                binding.browserNumber.text = getString(R.string.mock_number, mock.signInNumber)
-            }
-            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
-        }
-        binding.browserNumber.text = getString(R.string.mock_number, mock.signInNumber)
-        binding.loadQr.setOnClickListener {
-            clearActivationInputs()
-            binding.qrInput.setText(mock.qrCode)
-        }
-        binding.loadManual.setOnClickListener {
-            clearActivationInputs()
-            binding.codeInput.setText(mock.activationCode)
-            binding.urlInput.setText(mock.activationUrl)
-        }
-        binding.injectValidation.setOnClickListener { model.injectValidation() }
-        binding.injectChallenge.setOnClickListener { model.injectChallenge() }
-        binding.resetMock.setOnClickListener {
-            clearActivationInputs()
-            model.resetMock()
-        }
     }
 
     private fun observeState() {
@@ -148,6 +127,7 @@ class MainActivity : AppCompatActivity() {
                     model.environment.setup.collect { setup ->
                         binding.setupStatus.text = if (setup == SampleSetup.FIREBASE_SETUP_REQUIRED)
                             getString(R.string.setup_required) else "Push setup: ${setup.name}"
+                        updateButtons()
                     }
                 }
                 launch { model.notice.collect { binding.notice.text = it } }
@@ -159,36 +139,37 @@ class MainActivity : AppCompatActivity() {
                 }
                 launch { model.sessions.collect { renderSessions(it) } }
                 launch { model.busy.collect { updateButtons() } }
-                launch { model.injecting.collect { updateButtons() } }
-                model.environment.mock?.let { mock ->
-                    launch {
-                        mock.operations.collect { operations ->
-                            // The debug SDK contract guarantees these are sanitized operation summaries.
-                            binding.operations.text = operations.takeLast(20)
-                                .joinToString("\n") { it.take(120) }
-                            binding.browserNumber.text =
-                                getString(R.string.mock_number, mock.signInNumber)
+                launch {
+                    model.pageToOpen.collect { location ->
+                        if (location != null) {
+                            model.pageOpened()
+                            openSetup(location)
                         }
                     }
                 }
+                launch {
+                    model.handoff.requests.state.collect { request ->
+                        binding.pageStatus.text = request?.phase?.message ?: getString(R.string.no_setup_page)
+                        renderConfirmation(request)
+                        if (request == null) closeEmbeddedPage()
+                        updateButtons()
+                    }
+                }
+                launch { model.handoff.location.collect { updateButtons() } }
             }
         }
     }
 
     private fun updateButtons() {
         val available = !model.busy.value
-        val status = model.status.value
-        binding.registerQr.isEnabled = available && status.tokenReady && !status.tokenChangeBlocked
+        binding.registerQr.isEnabled = model.registrationReady() && model.handoff.requests.canPrepare()
         binding.registerManual.isEnabled = binding.registerQr.isEnabled
+        binding.openEmbeddedSetup.isEnabled = model.pageRegistrationReady() && model.handoff.requests.canPrepare()
+        binding.openBrowserSetup.isEnabled = binding.openEmbeddedSetup.isEnabled
+        binding.returnSetup.isEnabled = model.handoff.location.value != null
+        binding.clearSetup.isEnabled = model.handoff.location.value != null
+        confirmation?.getButton(AlertDialog.BUTTON_POSITIVE)?.isEnabled = model.pageRegistrationReady()
         binding.refresh.isEnabled = available
-        binding.scenario.isEnabled = available
-        binding.loadQr.isEnabled = available
-        binding.loadManual.isEnabled = available
-        binding.injectChallenge.isEnabled = available &&
-            status.enrollmentStage == MfaEnrollmentStage.REGISTERED
-        binding.resetMock.isEnabled = available && !model.injecting.value
-        binding.injectValidation.isEnabled = !model.injecting.value &&
-            status.enrollmentStage == MfaEnrollmentStage.AWAITING_VALIDATION
         decisionButtons.forEach { (button, supported) -> button.isEnabled = available && supported }
     }
 
@@ -263,13 +244,125 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun consumePushIntent(source: Intent?) {
-        if (model.environment.mock != null) return
         val extras = source?.extras ?: return
         val payload = extras.keySet().filterNot {
             it.startsWith("google.") || it.startsWith("gcm.")
         }.mapNotNull { key -> (extras.get(key) as? String)?.let { key to it } }.toMap()
         source.replaceExtras(null as Bundle?)
         (application as MfaSampleApplication).dispatchPush(payload)
+    }
+
+    private fun consumeIncomingIntent(source: Intent?) {
+        if (source == null) return
+        if (source.action == Intent.ACTION_VIEW || source.data != null) {
+            if (source.action == Intent.ACTION_VIEW && source.selector == null) {
+                model.receiveSetup(source.dataString.orEmpty(), SetupSource.BROWSER)
+            } else {
+                model.reportInvalidPage()
+            }
+            // Page intents never enter the push dispatcher, including untrusted extras.
+            source.data = null
+            source.replaceExtras(null as Bundle?)
+            source.action = null
+        } else {
+            consumePushIntent(source)
+        }
+    }
+
+    private fun prepareSetup(source: SetupSource) {
+        val qr = binding.qrInput.text.toString()
+        val code = binding.codeInput.text.toString()
+        val url = binding.urlInput.text.toString()
+        clearActivationInputs()
+        val input = when {
+            qr.isNotBlank() && code.isBlank() && url.isBlank() -> MfaRegistrationParameters.QrCode(qr)
+            qr.isBlank() && code.isNotBlank() && url.isNotBlank() -> MfaRegistrationParameters.Activation(code, url)
+            else -> {
+                model.reportInvalidInput()
+                return
+            }
+        }
+        model.preparePage(input, source)
+    }
+
+    private fun openSetup(location: SetupLocation) {
+        if (model.handoff.requests.current()?.id != location.request.id) {
+            model.reportInvalidPage()
+            return
+        }
+        if (location.request.source == SetupSource.BROWSER) {
+            try {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(location.pageUrl))
+                    .addCategory(Intent.CATEGORY_BROWSABLE))
+            } catch (_: ActivityNotFoundException) {
+                model.pageUnavailable(location.request.id)
+            } catch (_: SecurityException) {
+                model.pageUnavailable(location.request.id)
+            }
+        } else if (embeddedPage == null) {
+            if (Build.VERSION.SDK_INT < 24) {
+                model.pageUnavailable(location.request.id)
+                return
+            }
+            try {
+                model.embeddedPageOpen = true
+                embeddedPage = EmbeddedSetupPage(
+                    this, location, model.handoff.requests,
+                    onSetup = { model.receiveSetup(it, SetupSource.EMBEDDED) },
+                    onClose = {
+                        embeddedPage = null
+                        model.embeddedPageOpen = false
+                        model.handoff.requests.cancel(location.request.id)
+                    }
+                )
+                confirmation?.dismiss()
+                confirmation = null
+                confirmationId = null
+                renderConfirmation(model.handoff.requests.current())
+            } catch (_: RuntimeException) {
+                model.embeddedPageOpen = false
+                model.pageUnavailable(location.request.id)
+            }
+        }
+    }
+
+    private fun renderConfirmation(request: SetupSnapshot?) {
+        if (request?.phase != SetupPhase.CONFIRMATION) {
+            confirmation?.dismiss()
+            confirmation = null
+            confirmationId = null
+            return
+        }
+        if (confirmationId == request.id) return
+        confirmation?.dismiss()
+        confirmationId = request.id
+        confirmation = AlertDialog.Builder(this)
+            .setTitle(R.string.native_setup_confirmation)
+            .setMessage(if (request.source == SetupSource.EMBEDDED)
+                R.string.confirm_embedded_setup else R.string.confirm_browser_setup)
+            .setPositiveButton(R.string.continue_setup) { _, _ -> model.confirmSetup(request.id) }
+            .setNegativeButton(android.R.string.cancel) { _, _ -> model.handoff.requests.cancel(request.id) }
+            .setOnCancelListener { model.handoff.requests.cancel(request.id) }
+            .create().also {
+                it.show()
+                it.window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            }
+        updateButtons()
+    }
+
+    private fun closeEmbeddedPage() {
+        embeddedPage?.dispose()
+        embeddedPage = null
+        model.embeddedPageOpen = false
+    }
+
+    override fun onDestroy() {
+        confirmation?.dismiss()
+        confirmation = null
+        // Recreation disposes only UI; native session/operation lifetime is application-owned.
+        embeddedPage?.dispose()
+        embeddedPage = null
+        super.onDestroy()
     }
 
     private fun showPermissionStatus() {

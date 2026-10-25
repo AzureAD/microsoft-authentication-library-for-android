@@ -26,13 +26,14 @@ class MfaSampleViewModel(application: Application) : AndroidViewModel(applicatio
     internal val status = environment.manager.status
     internal val sessions = app.sessions
     internal val notice = app.notice
+    internal val handoff = app.handoff
+    private val mutablePageToOpen = MutableStateFlow<SetupLocation?>(null)
+    internal val pageToOpen: StateFlow<SetupLocation?> = mutablePageToOpen
+    internal var embeddedPageOpen = false
     private val mutableAccounts = MutableStateFlow<List<MfaRegistrationResult>>(emptyList())
     internal val accounts: StateFlow<List<MfaRegistrationResult>> = mutableAccounts
-    private val mutableBusy = MutableStateFlow(false)
+    private val mutableBusy = app.operationBusy
     internal val busy: StateFlow<Boolean> = mutableBusy
-    private val mutableInjecting = MutableStateFlow(false)
-    internal val injecting: StateFlow<Boolean> = mutableInjecting
-    internal var selectedScenario: Int = 0
 
     init {
         viewModelScope.launch {
@@ -59,16 +60,77 @@ class MfaSampleViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    internal fun register(input: MfaRegistrationParameters) = operation {
+    internal fun registrationReady(): Boolean = !busy.value &&
+        environment.setup.value == SampleSetup.TOKEN_ACQUIRED &&
+        status.value.tokenReady && !status.value.tokenChangeBlocked
+
+    internal fun pageRegistrationReady(): Boolean = registrationReady() &&
+        status.value.enrollmentStage in listOf(MfaEnrollmentStage.IDLE, MfaEnrollmentStage.REGISTERED)
+
+    internal fun register(input: MfaRegistrationParameters) {
+        if (!registrationReady() || !handoff.requests.canPrepare()) {
+            app.report("REGISTRATION_NOT_READY_OR_PAGE_ACTIVE")
+            return
+        }
+        operation { enroll(input) }
+    }
+
+    private suspend fun enroll(input: MfaRegistrationParameters, requestId: String? = null) {
         MfaPocDiagnostics.event(Event.REGISTER_START)
         try {
             environment.manager.registerAuthMethod(input)
+            // Only this invocation's return confirms this request, never a restored SDK status.
+            requestId?.let { handoff.requests.complete(it, true) }
             mutableAccounts.value = environment.manager.registeredAuthMethods()
             app.report("REGISTERED")
+        } catch (error: Exception) {
+            requestId?.let { handoff.requests.complete(it, false) }
+            throw error
         } finally {
             MfaPocDiagnostics.event(Event.REGISTER_END)
         }
     }
+
+    internal fun preparePage(input: MfaRegistrationParameters, source: SetupSource) {
+        if (!pageRegistrationReady() || !handoff.requests.canPrepare()) {
+            app.report("REGISTRATION_NOT_READY_OR_PAGE_ACTIVE")
+            return
+        }
+        operation {
+            mutablePageToOpen.value = handoff.prepare(input, source)
+            app.report("CONTROLLED_PAGE_READY")
+        }
+    }
+
+    internal fun pageOpened() {
+        mutablePageToOpen.value = null
+    }
+
+    internal fun receiveSetup(uri: String, source: SetupSource) {
+        if (!handoff.requests.receive(uri, source)) app.report("PAGE_REQUEST_INVALID_EXPIRED_OR_ALREADY_USED")
+    }
+
+    internal fun confirmSetup(id: String) {
+        if (!pageRegistrationReady()) {
+            handoff.requests.cancel(id, notReady = true)
+            app.report("REGISTRATION_NOT_READY")
+            return
+        }
+        val input = handoff.requests.consume(id) ?: run {
+            app.report("PAGE_REQUEST_INVALID_EXPIRED_OR_ALREADY_USED")
+            return
+        }
+        operation { enroll(input, id) }
+    }
+
+    internal fun pageUnavailable(id: String) {
+        handoff.requests.cancel(id)
+        app.report("SETUP_PAGE_UNAVAILABLE_USE_SUPPORTED_BROWSER_OR_WEBVIEW")
+    }
+
+    internal fun reportInvalidInput() = app.report("ENTER_ONLY_QR_OR_COMPLETE_MANUAL_ACTIVATION")
+
+    internal fun reportInvalidPage() = app.report("PAGE_REQUEST_INVALID_EXPIRED_OR_ALREADY_USED")
 
     internal fun refresh() = operation {
         mutableAccounts.value = environment.manager.registeredAuthMethods()
@@ -90,48 +152,13 @@ class MfaSampleViewModel(application: Application) : AndroidViewModel(applicatio
         app.report(if (decision == MfaDecision.APPROVED) "APPROVED" else "DENIED")
     }
 
-    internal fun injectChallenge() = operation {
-        environment.mock?.let {
-            app.mergeSessions(it.injectChallenge())
-            app.report("MOCK_CHALLENGE_INJECTED")
-        }
-    }
-
-    internal fun injectValidation() {
-        val mock = environment.mock ?: return
-        if (mutableInjecting.value) return
-        mutableInjecting.value = true
-        // Registration intentionally waits for this separate operation; never gate it on busy.
-        viewModelScope.launch {
-            try {
-                mock.injectValidation()
-                app.report("MOCK_VALIDATION_INJECTED")
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Exception) {
-                app.reportFailure(error)
-            } finally {
-                mutableInjecting.value = false
-            }
-        }
-    }
-
-    internal fun resetMock() = operation {
-        environment.mock?.let {
-            it.reset()
-            it.setScenario(it.scenarios[selectedScenario])
-            app.clearSessions()
-            mutableAccounts.value = environment.manager.registeredAuthMethods()
-            app.report("MOCK_RESET")
-        }
-    }
-
     internal fun retrySetup() = app.retrySetup()
 
     private fun operation(block: suspend () -> Unit) {
         if (mutableBusy.value) return
         mutableBusy.value = true
-        viewModelScope.launch {
+        // Enrollment survives Activity/ViewModel destruction. Process loss is not replayed.
+        app.operationScope.launch {
             try {
                 block()
             } catch (error: CancellationException) {
