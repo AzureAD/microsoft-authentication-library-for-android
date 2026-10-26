@@ -519,6 +519,13 @@ Installing the button itself does not submit enrollment.
    verification. Back navigates WebView history; **Close page** closes it.
    Closing the page/overlay does not cancel an already submitted operation.
    **View enrollment status** can reopen the request-local native observation.
+5. When a sign-in push arrives, the sample shows its existing number-entry and
+   **Approve**/**Deny** controls in a native dialog above that same WebView.
+   Use **Back to website** to read the number, then **Review sign-in** in the
+   WebView's native controls to reopen the request. Enter the number yourself
+   and choose a decision; the SDK's existing policy checks remain authoritative.
+   The dialog shows the operation result. **Back to website** dismisses only
+   that dialog, without reloading or closing the page or submitting a decision.
 
 JavaScript and DOM storage are enabled for ordinary portal sign-in; file/content
 access, mixed content, popups and geolocation are disabled. HTTPS navigation,
@@ -527,7 +534,8 @@ restricted loopback WebView is a separate component and is unchanged.
 
 Native automation IDs (in the installed app's resource namespace):
 `openEntraWebView`, `portalWebView`, `portalClosePage`, `portalEnrollmentStatus`,
-`portalConfirm`, `portalCancelOrHide`, `portalStatus`, and `showPortalStatus`.
+`portalConfirm`, `portalCancelOrHide`, `portalStatus`, `showPortalStatus`,
+`portalReviewSignIn`, `portalApprovalStatus`, and `portalBackToWebsite`.
 The injected HTML control is `mfa-custom-app-setup`.
 
 ### Lifetime, cancellation and observation limitations

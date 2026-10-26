@@ -7,4 +7,7 @@
     <item name="portalEnrollmentStatus" type="id" />
     <item name="portalConfirm" type="id" />
     <item name="portalCancelOrHide" type="id" />
+    <item name="portalReviewSignIn" type="id" />
+    <item name="portalApprovalStatus" type="id" />
+    <item name="portalBackToWebsite" type="id" />
 </resources>

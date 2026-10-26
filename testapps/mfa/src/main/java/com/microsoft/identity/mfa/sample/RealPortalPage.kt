@@ -20,12 +20,13 @@ import com.microsoft.identity.mfa.MfaHandoffReceipt
 import com.microsoft.identity.mfa.MfaHandoffWebViewConnector
 import java.net.URI
 
-/** Activity-owned real portal. Native enrollment overlays this same WebView without reloading it. */
+/** Activity-owned real portal. Native enrollment and approval overlay this WebView without reloading it. */
 @SuppressLint("SetJavaScriptEnabled")
 internal class RealPortalPage(
     activity: AppCompatActivity,
     handoff: MfaEnrollmentHandoff,
     onReceipt: (MfaHandoffReceipt) -> Unit,
+    onReviewSignIn: () -> Unit,
     onClose: () -> Unit
 ) {
     private var released = false
@@ -74,6 +75,7 @@ internal class RealPortalPage(
     private val dialog = AlertDialog.Builder(activity)
         .setTitle(R.string.portal_webview_title)
         .setView(webView)
+        .setNeutralButton(R.string.portal_review_sign_in, null)
         .setNegativeButton(R.string.close_setup_page) { _, _ -> }
         .create()
 
@@ -91,6 +93,10 @@ internal class RealPortalPage(
                 } else false
             }
             dialog.show()
+            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).apply {
+                id = R.id.portalReviewSignIn
+                setOnClickListener { onReviewSignIn() }
+            }
             dialog.getButton(AlertDialog.BUTTON_NEGATIVE).id = R.id.portalClosePage
             dialog.window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
             dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)

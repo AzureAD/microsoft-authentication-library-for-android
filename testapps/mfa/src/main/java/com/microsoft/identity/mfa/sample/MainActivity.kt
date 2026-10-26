@@ -13,10 +13,12 @@ import android.net.Uri
 import android.text.InputFilter
 import android.text.InputType
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -45,6 +47,8 @@ class MainActivity : AppCompatActivity() {
     private var confirmationId: String? = null
     private var portalPage: RealPortalPage? = null
     private lateinit var portalUi: PortalEnrollmentUi
+    private var portalApproval: AlertDialog? = null
+    private var portalApprovalStatus: TextView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -139,7 +143,12 @@ class MainActivity : AppCompatActivity() {
                         updateButtons()
                     }
                 }
-                launch { model.notice.collect { binding.notice.text = it } }
+                launch {
+                    model.notice.collect {
+                        binding.notice.text = it
+                        portalApprovalStatus?.text = it
+                    }
+                }
                 launch {
                     model.accounts.collect { accounts ->
                         binding.accounts.text = if (accounts.isEmpty()) getString(R.string.no_accounts)
@@ -243,7 +252,53 @@ class MainActivity : AppCompatActivity() {
             }
             binding.challenges.addView(row)
         }
+        if (sessions.isNotEmpty()) showPortalApproval()
         updateButtons()
+    }
+
+    private fun showPortalApproval() {
+        if (portalPage == null || portalApproval != null || isFinishing || isDestroyed) return
+        val challenges = binding.challenges
+        val parent = challenges.parent as? ViewGroup ?: return
+        val index = parent.indexOfChild(challenges)
+        val originalParams = challenges.layoutParams
+        val status = TextView(this).apply {
+            id = R.id.portalApprovalStatus
+            text = model.notice.value
+            isSaveEnabled = false
+            accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
+        }
+        parent.removeView(challenges)
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(24, 16, 24, 16)
+            isSaveEnabled = false
+            addView(status)
+            addView(challenges, LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        }
+        val scroll = ScrollView(this).apply {
+            isSaveEnabled = false
+            addView(content)
+        }
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(R.string.portal_review_sign_in)
+            .setView(scroll)
+            .setNegativeButton(R.string.portal_back_to_website, null)
+            .create()
+        portalApproval = dialog
+        portalApprovalStatus = status
+        dialog.setOnDismissListener {
+            clearNumberInputs(challenges)
+            (challenges.parent as? ViewGroup)?.removeView(challenges)
+            parent.addView(challenges, index.coerceAtMost(parent.childCount), originalParams)
+            portalApproval = null
+            portalApprovalStatus = null
+        }
+        dialog.setCanceledOnTouchOutside(false)
+        dialog.show()
+        dialog.window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).id = R.id.portalBackToWebsite
     }
 
     private fun blockReason(reason: MfaApprovalBlockReason): Int = when (reason) {
@@ -307,10 +362,16 @@ class MainActivity : AppCompatActivity() {
                         Toast.makeText(this, "Portal handoff: ${it.disposition.name}", Toast.LENGTH_LONG).show()
                     }
                 },
-                onClose = { portalPage = null; updateButtons() })
+                onReviewSignIn = ::showPortalApproval,
+                onClose = {
+                    portalApproval?.dismiss()
+                    portalPage = null
+                    updateButtons()
+                })
             // Bring native state back above the page without replacing the WebView/document.
             portalUi.dispose()
             portalUi.show()
+            if (model.sessions.value.isNotEmpty()) showPortalApproval()
         } catch (error: Exception) {
             model.portalUnavailable(error)
             Toast.makeText(this, if (error is MfaSdkException) error.code.name
@@ -407,6 +468,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        portalApproval?.dismiss()
         portalUi.dispose()
         portalPage?.dispose()
         portalPage = null
