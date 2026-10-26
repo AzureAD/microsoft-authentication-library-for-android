@@ -52,4 +52,22 @@
     <string name="notification_channel">MFA sign-in requests</string>
     <string name="notification_title">MFA request available</string>
     <string name="notification_text">Open the sample and refresh to review. No action is available on the lock screen.</string>
+    <string name="portal_demo_title">Real registration page demo</string>
+    <string name="portal_demo_instructions">Use Set up using custom app on the supported Pair your account step. No QR import or native preparation is needed. Chrome uses the USB-injected demo button; the WebView below signs in separately. Native confirmation is required. Leave the original page open and use its normal Next/verification afterward.</string>
+    <string name="open_entra_webview">Open Entra in WebView</string>
+    <string name="portal_webview_title">Entra — separate WebView sign-in</string>
+    <string name="portal_show_status">View enrollment status</string>
+    <string name="portal_confirmation_title">Confirm live enrollment in this app</string>
+    <string name="portal_confirm_webview">The supported registration origin in this app’s WebView supplied an activation link. Only continue if you intentionally started this setup. Continue calls the real MFA registration service. Cancel submits nothing. Keep the app open; this page stays loaded underneath. The website must still verify normally afterward.</string>
+    <string name="portal_confirm_browser">An external app supplied an activation link. This callback does not authenticate Chrome or the sender. Only continue if you intentionally clicked Set up using custom app on your registration page. Continue calls the real MFA registration service. Cancel submits nothing. Keep the app open, then use Back or app switching to return to your ORIGINAL browser tab and let the website verify normally.</string>
+    <string name="portal_idle">No current real-page enrollment request.</string>
+    <string name="portal_awaiting">Waiting for native confirmation. No enrollment has been submitted.</string>
+    <string name="portal_submitting">This request is enrolling through the real SDK (activation, independent validation push, then confirmation). Keep the app open. Hiding this overlay or closing the page will not cancel submission. Do not resubmit.</string>
+    <string name="portal_succeeded">This request returned successfully from registerAuthMethod. Native enrollment is complete; this does not claim portal completion. Close this overlay to resume the SAME WebView, or switch back to the ORIGINAL Chrome tab. Use the website’s normal Next and verification.</string>
+    <string name="portal_failed">This request did not complete native enrollment. Check the category below and the service state before obtaining fresh input. Do not replay this request.</string>
+    <string name="portal_cancelled">Cancelled before submission. No enrollment was submitted.</string>
+    <string name="portal_expired">This unsubmitted request expired. Obtain fresh pairing input from the website.</string>
+    <string name="portal_unknown">This request’s outcome is unknown or interrupted. No success is claimed. Check the app and service before any new setup; do not replay this request.</string>
+    <string name="portal_disposed">The handoff session was disposed. No pending input remains.</string>
+    <string name="portal_hide_status">Hide status</string>
 </resources>

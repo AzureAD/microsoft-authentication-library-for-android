@@ -18,6 +18,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Lifecycle
@@ -27,6 +28,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.microsoft.identity.mfa.MfaAuthSession
 import com.microsoft.identity.mfa.MfaApprovalBlockReason
 import com.microsoft.identity.mfa.MfaRegistrationParameters
+import com.microsoft.identity.mfa.MfaHandoffDisposition
+import com.microsoft.identity.mfa.MfaSdkException
 import com.microsoft.identity.mfa.sample.databinding.ActivityMainBinding
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -40,6 +43,8 @@ class MainActivity : AppCompatActivity() {
     private var embeddedPage: EmbeddedSetupPage? = null
     private var confirmation: AlertDialog? = null
     private var confirmationId: String? = null
+    private var portalPage: RealPortalPage? = null
+    private lateinit var portalUi: PortalEnrollmentUi
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,6 +61,8 @@ class MainActivity : AppCompatActivity() {
         model = ViewModelProvider(
             this, ViewModelProvider.AndroidViewModelFactory.getInstance(application)
         )[MfaSampleViewModel::class.java]
+        portalUi = PortalEnrollmentUi(this, model.portalHandoff,
+            model::portalRegistrationReady, model::confirmPortal)
         binding.modeLabel.text = model.environment.modeLabel
         binding.registerQr.setOnClickListener {
             val input = MfaRegistrationParameters.QrCode(binding.qrInput.text.toString())
@@ -71,6 +78,8 @@ class MainActivity : AppCompatActivity() {
         }
         binding.openEmbeddedSetup.setOnClickListener { prepareSetup(SetupSource.EMBEDDED) }
         binding.openBrowserSetup.setOnClickListener { prepareSetup(SetupSource.BROWSER) }
+        binding.openEntraWebView.setOnClickListener { openPortal() }
+        binding.showPortalStatus.setOnClickListener { portalUi.show() }
         binding.returnSetup.setOnClickListener {
             model.handoff.location.value?.let(::openSetup)
         }
@@ -86,7 +95,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         observeState()
-        if (savedInstanceState == null) consumeIncomingIntent(intent)
+        consumeIncomingIntent(intent)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -156,6 +165,13 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 launch { model.handoff.location.collect { updateButtons() } }
+                launch {
+                    model.portalHandoff.state.collect {
+                        binding.portalStatus.text = portalUi.statusText(it)
+                        portalUi.render(it)
+                        updateButtons()
+                    }
+                }
             }
         }
     }
@@ -169,6 +185,9 @@ class MainActivity : AppCompatActivity() {
         binding.returnSetup.isEnabled = model.handoff.location.value != null
         binding.clearSetup.isEnabled = model.handoff.location.value != null
         confirmation?.getButton(AlertDialog.BUTTON_POSITIVE)?.isEnabled = model.pageRegistrationReady()
+        portalUi.updateButtons()
+        binding.openEntraWebView.isEnabled = portalPage == null && embeddedPage == null
+        binding.showPortalStatus.isEnabled = model.portalHandoff.state.value.requestId != null
         binding.refresh.isEnabled = available
         decisionButtons.forEach { (button, supported) -> button.isEnabled = available && supported }
     }
@@ -254,6 +273,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun consumeIncomingIntent(source: Intent?) {
         if (source == null) return
+        val receipt = model.portalIntentAdapter.receive(source)
+        if (receipt.disposition != MfaHandoffDisposition.IGNORED) {
+            model.portalReceipt(receipt)
+            source.data = null
+            source.replaceExtras(null as Bundle?)
+            source.action = null
+            setIntent(Intent())
+            return
+        }
         if (source.action == Intent.ACTION_VIEW || source.data != null) {
             if (source.action == Intent.ACTION_VIEW && source.selector == null) {
                 model.receiveSetup(source.dataString.orEmpty(), SetupSource.BROWSER)
@@ -267,6 +295,28 @@ class MainActivity : AppCompatActivity() {
         } else {
             consumePushIntent(source)
         }
+    }
+
+    private fun openPortal() {
+        if (portalPage != null || embeddedPage != null) return
+        try {
+            portalPage = RealPortalPage(this, model.portalHandoff,
+                onReceipt = {
+                    model.portalReceipt(it)
+                    if (it.disposition != MfaHandoffDisposition.STAGED) {
+                        Toast.makeText(this, "Portal handoff: ${it.disposition.name}", Toast.LENGTH_LONG).show()
+                    }
+                },
+                onClose = { portalPage = null; updateButtons() })
+            // Bring native state back above the page without replacing the WebView/document.
+            portalUi.dispose()
+            portalUi.show()
+        } catch (error: Exception) {
+            model.portalUnavailable(error)
+            Toast.makeText(this, if (error is MfaSdkException) error.code.name
+                else "PORTAL_WEBVIEW_UNAVAILABLE", Toast.LENGTH_LONG).show()
+        }
+        updateButtons()
     }
 
     private fun prepareSetup(source: SetupSource) {
@@ -357,6 +407,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        portalUi.dispose()
+        portalPage?.dispose()
+        portalPage = null
         confirmation?.dismiss()
         confirmation = null
         // Recreation disposes only UI; native session/operation lifetime is application-owned.

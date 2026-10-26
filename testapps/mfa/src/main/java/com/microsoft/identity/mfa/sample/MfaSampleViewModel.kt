@@ -8,6 +8,9 @@ import androidx.lifecycle.viewModelScope
 import com.microsoft.identity.mfa.MfaAuthSession
 import com.microsoft.identity.mfa.MfaDecision
 import com.microsoft.identity.mfa.MfaEnrollmentStage
+import com.microsoft.identity.mfa.MfaHandoffDisposition
+import com.microsoft.identity.mfa.MfaHandoffPhase
+import com.microsoft.identity.mfa.MfaHandoffReceipt
 import com.microsoft.identity.mfa.MfaRegistrationParameters
 import com.microsoft.identity.mfa.MfaRegistrationResult
 import com.microsoft.identity.mfa.MfaSdkException
@@ -27,6 +30,8 @@ class MfaSampleViewModel(application: Application) : AndroidViewModel(applicatio
     internal val sessions = app.sessions
     internal val notice = app.notice
     internal val handoff = app.handoff
+    internal val portalHandoff = app.portalHandoff
+    internal val portalIntentAdapter = app.portalIntentAdapter
     private val mutablePageToOpen = MutableStateFlow<SetupLocation?>(null)
     internal val pageToOpen: StateFlow<SetupLocation?> = mutablePageToOpen
     internal var embeddedPageOpen = false
@@ -60,9 +65,33 @@ class MfaSampleViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    internal fun registrationReady(): Boolean = !busy.value &&
+    private fun pushRegistrationReady(): Boolean = !busy.value &&
         environment.setup.value == SampleSetup.TOKEN_ACQUIRED &&
         status.value.tokenReady && !status.value.tokenChangeBlocked
+
+    internal fun registrationReady(): Boolean = pushRegistrationReady() &&
+        portalHandoff.state.value.phase !in setOf(
+            MfaHandoffPhase.AWAITING_CONFIRMATION, MfaHandoffPhase.SUBMITTING)
+
+    internal fun portalRegistrationReady(): Boolean = pushRegistrationReady() &&
+        handoff.requests.canPrepare() &&
+        status.value.enrollmentStage in listOf(MfaEnrollmentStage.IDLE, MfaEnrollmentStage.REGISTERED)
+
+    internal fun confirmPortal(id: String) {
+        if (!portalRegistrationReady()) {
+            app.report("REGISTRATION_NOT_READY_OR_CONTROLLED_PAGE_ACTIVE")
+        } else if (!portalHandoff.confirm(id)) {
+            app.report("PORTAL_REQUEST_EXPIRED_OR_ALREADY_USED")
+        }
+    }
+
+    internal fun portalReceipt(receipt: MfaHandoffReceipt) {
+        if (receipt.disposition != MfaHandoffDisposition.IGNORED) {
+            app.report("PORTAL_HANDOFF_${receipt.disposition.name}")
+        }
+    }
+
+    internal fun portalUnavailable(error: Exception) = app.reportFailure(error)
 
     internal fun pageRegistrationReady(): Boolean = registrationReady() &&
         status.value.enrollmentStage in listOf(MfaEnrollmentStage.IDLE, MfaEnrollmentStage.REGISTERED)

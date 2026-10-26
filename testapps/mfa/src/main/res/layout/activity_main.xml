@@ -54,6 +54,16 @@
         <Button android:id="@+id/registerManual" android:layout_width="match_parent" android:layout_height="wrap_content"
             android:text="@string/register_manual" />
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="16dp" android:text="@string/portal_demo_title" android:textSize="20sp" android:textStyle="bold" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/portal_demo_instructions" />
+        <Button android:id="@+id/openEntraWebView" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/open_entra_webview" />
+        <TextView android:id="@+id/portalStatus" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:accessibilityLiveRegion="polite" android:text="@string/portal_idle" />
+        <Button android:id="@+id/showPortalStatus" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/portal_show_status" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
             android:paddingTop="16dp" android:text="@string/controlled_page_title" android:textSize="20sp" android:textStyle="bold" />
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
             android:text="@string/controlled_page_preparation" />

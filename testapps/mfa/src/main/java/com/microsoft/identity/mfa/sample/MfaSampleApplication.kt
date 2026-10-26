@@ -4,6 +4,8 @@ package com.microsoft.identity.mfa.sample
 
 import android.app.Application
 import com.microsoft.identity.mfa.MfaAuthSession
+import com.microsoft.identity.mfa.MfaEnrollmentHandoff
+import com.microsoft.identity.mfa.MfaHandoffIntentAdapter
 import com.microsoft.identity.mfa.MfaSdkException
 import com.microsoft.identity.mfa.poc.MfaPocDiagnostics
 import com.microsoft.identity.mfa.poc.MfaPocDiagnostics.Event
@@ -27,6 +29,10 @@ class MfaSampleApplication : Application() {
     internal val operationBusy = MutableStateFlow(false)
     internal lateinit var handoff: LiveSetupHandoff
         private set
+    internal lateinit var portalHandoff: MfaEnrollmentHandoff
+        private set
+    internal lateinit var portalIntentAdapter: MfaHandoffIntentAdapter
+        private set
     private val callbackSlots = Semaphore(8)
     private val mutableSessions = MutableStateFlow<List<MfaAuthSession>>(emptyList())
     private val mutableNotice = MutableStateFlow("STARTING")
@@ -38,6 +44,8 @@ class MfaSampleApplication : Application() {
         MfaPocDiagnostics.enable()
         handoff = LiveSetupHandoff(operationScope, packageName)
         environment = EnvironmentFactory.create(this)
+        portalHandoff = MfaEnrollmentHandoff(environment.manager, operationScope)
+        portalIntentAdapter = MfaHandoffIntentAdapter(portalHandoff, "mfa-poc-live://activate")
         environment.prepareNotifications()
         retrySetup()
     }
@@ -123,6 +131,7 @@ class MfaSampleApplication : Application() {
 
     override fun onTerminate() {
         handoff.clear()
+        portalHandoff.close()
         applicationJob.cancel()
         super.onTerminate()
     }

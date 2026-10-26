@@ -5,7 +5,8 @@
 A dedicated, debug-only Android XML/ViewModel sample for the separate experimental
 `:mfa` library. It demonstrates work/school activation enrollment, restored
 accounts, pending sign-ins, number matching, approval, and denial. It does **not**
-use MSAL OAuth login, a public-client application, a browser login, or a client ID.
+use MSAL OAuth login, a public-client application, or a client ID. The optional
+real-page demos below let the user sign in normally in Chrome or a separate WebView.
 No MFA API is being added to an already released MSAL binary.
 
 | Variant | Default application ID | Behavior |
@@ -298,6 +299,286 @@ From the existing outer-workspace build context:
 For the standalone MSAL build, substitute `:testapps:mfa` for `:mfaSample`.
 Build success is not a real-device/browser acceptance result. Exercise each path
 separately with fresh input on the authorized device.
+
+## SDK-owned handoffs on real registration pages
+
+These **separate** real-page demos use `MfaEnrollmentHandoff` in the MFA library.
+They do not use the controlled-page server, opaque page tickets, QR image import,
+or native prestaging. Both entry points feed the **same application-owned
+coordinator** and require customer-owned native confirmation before any service
+call. They reuse the manager's real `registerAuthMethod`, activation parser,
+endpoint policy, validation push, encrypted state and confirmation implementation.
+This is feasibility work, not a supported production provisioning contract.
+
+### Actual public SDK API
+
+The APIs are under `com.microsoft.identity.mfa`:
+
+```kotlin
+MfaEnrollmentHandoff(
+    manager: MfaSdkManager,
+    scope: CoroutineScope,
+    pendingLifetimeMillis: Long = 120_000
+)
+// Properties/methods:
+val state: StateFlow<MfaHandoffState>
+fun stage(activationLink: String): MfaHandoffReceipt
+fun confirm(requestId: String): Boolean
+fun cancel(requestId: String): Boolean
+fun acknowledge(requestId: String): Boolean
+fun close()
+
+MfaHandoffIntentAdapter(handoff: MfaEnrollmentHandoff, callbackUri: String)
+fun receive(intent: Intent?): MfaHandoffReceipt
+// MfaHandoffIntentAdapter.EXTRA_ACTIVATION_LINK:
+// "com.microsoft.identity.mfa.ACTIVATION_LINK"
+
+MfaHandoffWebViewConnector(
+    handoff: MfaEnrollmentHandoff,
+    allowedHttpsOrigins: Set<String>,
+    onReceipt: (MfaHandoffReceipt) -> Unit = {}
+)
+fun attach(webView: WebView) // UI thread, before navigation
+fun close()                // UI thread, before WebView destruction
+// MfaHandoffWebViewConnector.JAVASCRIPT_OBJECT: "mfaEnrollment"
+```
+
+`MfaHandoffState` contains only `phase`, nullable SDK-generated `requestId`,
+nullable `source` (`DIRECT`, `BROWSER`, `WEBVIEW`), and nullable `errorCode`.
+Phases are `IDLE`, `AWAITING_CONFIRMATION`, `SUBMITTING`, `SUCCEEDED`, `FAILED`,
+`CANCELLED`, `EXPIRED`, `OUTCOME_UNKNOWN`, and `DISPOSED`. The request ID is an
+opaque correlation handle, not a ticket/activation credential. No account names,
+activation URLs/codes or arbitrary exception text appear in these snapshots.
+
+`MfaHandoffReceipt` contains `disposition`, nullable `requestId` (on `STAGED`),
+and nullable SDK `errorCode`. Dispositions are `STAGED`, `DUPLICATE`, `BUSY`,
+`IGNORED`, `REJECTED`, `CLOSED`, and `LIMIT_REACHED`. Receiving another input cannot
+overwrite an awaiting/submitting request. A receipt is never enrollment success.
+
+### Minimal customer wiring: configure once, then render your UX
+
+```kotlin
+// Application/session ownership; do not capture Activity/WebView in this scope.
+val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+val manager = MfaSdkManager.create(application, enableExperimentalService = true)
+val enrollment = MfaEnrollmentHandoff(manager, scope)
+val intents = MfaHandoffIntentAdapter(enrollment, "mfa-poc-live://activate")
+
+// Host Activity: forward onCreate (including recreation) AND onNewIntent.
+// Preserve your existing unrelated-intent handling when receipt is IGNORED.
+val receipt = intents.receive(incomingIntent)
+if (receipt.disposition != MfaHandoffDisposition.IGNORED) {
+    incomingIntent.data = null
+    incomingIntent.replaceExtras(null as Bundle?)
+    incomingIntent.action = null
+    setIntent(Intent())
+}
+
+// Host owns the existing WebView, lifecycle, navigation, UI and exact allowed origins.
+val connector = MfaHandoffWebViewConnector(
+    enrollment, setOf("https://mysignins.microsoft.com")
+) { receipt -> showSafeInputReceipt(receipt) } // your UX; no raw inputs
+try {
+    connector.attach(webView)
+} catch (error: MfaSdkException) {
+    showSafeError(error.code) // including WEBVIEW_UNSUPPORTED; never weaken the checks
+}
+
+lifecycleScope.launch {
+    repeatOnLifecycle(Lifecycle.State.STARTED) {
+        enrollment.state.collect { state -> renderYourEnrollmentUi(state) }
+    }
+}
+// Your explicit native button handlers, using the currently displayed request's ID:
+enrollment.confirm(displayedRequestId)
+enrollment.cancel(displayedRequestId)      // only unsubmitted requests can cancel
+enrollment.acknowledge(displayedRequestId) // dismiss matching terminal observation
+
+// When the host destroys its WebView:
+connector.close()
+// Do NOT close the coordinator/cancel its scope when hiding UI or closing a page.
+// At session disposal:
+enrollment.close() // pending input discarded; submitted operation continues
+```
+
+The `showSafeInputReceipt`, `showSafeError` and `renderYourEnrollmentUi` functions
+above are customer presentation hooks, not SDK methods. The sample implementations
+are `MfaSampleViewModel.portalReceipt`, `MainActivity.openPortal` and
+`PortalEnrollmentUi`. No URI parser, origin validator or enrollment state machine
+needs copying into the host.
+
+Use one coordinator per manager/session and keep its scope alive through any
+submission. The host still initializes push using the existing manager APIs.
+The sample gates Continue on token readiness, no token-change block, no other
+native enrollment and no active controlled-page request. Receiving a link alone
+never calls the service. SDK validation remains independent of sample UI checks.
+
+### Intent and WebView message contracts
+
+For this sample, the exact callback is `mfa-poc-live://activate`, distinct from
+the old controlled `/enroll/<id>` route. The SDK verifies action `ACTION_VIEW`,
+absence of a selector, exact callback shape/equality, and a bounded **String
+extra**, then validates the HTTPS activation link. The payload is not accepted
+from callback query parameters. The maximum activation-link size is 8192 UTF-8
+bytes. The host declares its own callback filter; the sample does not claim
+Microsoft's activation schemes or verified App Link/browser authentication.
+
+The user-clicked browser anchor follows this shape (placeholders only):
+
+```text
+intent://activate#Intent;scheme=mfa-poc-live;package=<installed-authorized-package>;S.com.microsoft.identity.mfa.ACTIVATION_LINK=<encodeURIComponent(existing-HTTPS-pairing-link)>;end
+```
+
+An origin-allowed page in a connected WebView sends this JSON **string**:
+
+```javascript
+window.mfaEnrollment.postMessage(JSON.stringify({
+    version: 1, type: "activation", activationLink: existingHttpsPairingLink
+}));
+```
+
+The SDK checks WebKit's actual `sourceOrigin` and `isMainFrame` before parsing;
+a self-declared origin is neither accepted nor trusted. Messages are limited to
+16384 UTF-8 bytes with exactly the three named fields, correct primitive types
+and no duplicates/trailing content. No wildcard origins, subframe acceptance,
+unrestricted `addJavascriptInterface`, UI, page navigation or site-specific DOM
+extraction is added to the SDK. `WEB_MESSAGE_LISTENER` must be available, otherwise
+`attach` throws `WEBVIEW_UNSUPPORTED`. The library uses the repository's existing
+AndroidX WebKit `1.14.0` pin, without upgrading unrelated dependencies.
+
+### Shared demo-only page extraction
+
+`src\main\assets\portal-enrollment-demo.js` supplies both demonstrations. It adds
+**Set up using custom app** only in the top-level `https://mysignins.microsoft.com`
+document and observes SPA changes. It does not change or click Microsoft's
+original pairing anchor, decode QR pixels, press Next, or manufacture portal
+success. Its click handler reads the **current**, connected, visible **Pair your
+account** anchor, requiring exactly one candidate and the supported HTTPS
+`login.microsoftonline.com/authenticatorApp/activateAccount` link with exactly
+`accountType=mfa`, `code`, and `url`. Missing/ambiguous/stale/unsupported input
+is rejected; “different authenticator” Account name/Secret key (TOTP) is not this
+push enrollment flow.
+
+Demo extraction is intentionally site/wording-specific (English verified wording).
+It is not an SDK DOM contract. The SDK independently validates received input.
+The injected panel emits no account/activation data to console, new URL query
+parameters, or diagnostic output. One click is allowed per installation of the
+panel; after cancellation/failure/uncertainty, obtain fresh input rather than
+trying to replay the same request.
+
+### Chrome: inject into the original visible tab over USB
+
+1. Complete the authorized identity/Firebase setup above. Open the actual
+   registration flow in Chrome and reach the **Pair your account** step. Keep
+   that tab visible and open. Do not prepare native QR/manual fields.
+2. With installed adb, authorized USB debugging, and Node with its built-in
+   WebSocket (Node 22.4+), run from this repository root:
+
+   ```powershell
+   node .\testapps\mfa\tools\inject-portal-demo.mjs `
+     --serial "<USB_DEVICE_SERIAL>" `
+     --package "<INSTALLED_AUTHORIZED_APP_PACKAGE>" `
+     --adb "<PATH_TO_ADB_EXECUTABLE>"
+   ```
+
+   `--adb` defaults to installed `adb`; omit `--serial` only when adb can select
+   the single intended device. Optional `--socket` defaults to
+   `chrome_devtools_remote`. The package is required and has no authorized-app
+   identity default. No Node dependencies or installations are used.
+3. Tap **Set up using custom app**, then review native confirmation and select
+   **Continue** or **Cancel**. Keep the app foregrounded during real enrollment.
+4. After this request succeeds, close the native result and use Android
+   Back/app switching to the **ORIGINAL Chrome tab**. The app does not reopen
+   the portal or promise original-tab focus. Use the website's normal Next and
+   independent verification; trigger/approve any real sign-in challenge normally.
+
+The helper only injects the shared demo asset into exactly one visible supported
+top-level page. It never activates a background tab. CDP evaluations return only
+booleans, not DOM dumps, titles, URLs, QR contents, cookies or tokens. It uses an
+OS-assigned adb forward, a 60-second abort deadline and bounded subprocess/CDP
+calls, and removes **only its own** forward in `finally`. A forced process kill
+can prevent cleanup; normal errors and signals go through cleanup. The observer
+persists for the current document; full reload/navigation requires reinjection.
+Installing the button itself does not submit enrollment.
+
+### Real-site WebView: keep the same document under native enrollment
+
+1. Select **Open Entra in WebView**. It opens `https://entra.microsoft.com`;
+   sign in normally and navigate to the account's security-info/Authenticator
+   registration **Pair your account** step. This WebView has its own sign-in
+   session: Chrome cookies are not imported, and login/policy restrictions are
+   not bypassed.
+2. The SDK connector is attached before navigation but exposed only to the
+   configured registration origin. The sample injects the same asset after
+   top-level navigation reaches that exact origin; SPA changes are observed.
+3. Tap **Set up using custom app**, review native confirmation, and select
+   **Continue** or **Cancel**. The confirmation/progress/result dialog is a
+   native overlay above the **same existing WebView/document**. Enrollment
+   does not close, reload, navigate or recreate it.
+4. Close/hide the result to return to that page, then use its normal Next and
+   verification. Back navigates WebView history; **Close page** closes it.
+   Closing the page/overlay does not cancel an already submitted operation.
+   **View enrollment status** can reopen the request-local native observation.
+
+JavaScript and DOM storage are enabled for ordinary portal sign-in; file/content
+access, mixed content, popups and geolocation are disabled. HTTPS navigation,
+platform SSL validation and `FLAG_SECURE` remain enforced. The existing tightly
+restricted loopback WebView is a separate component and is unchanged.
+
+Native automation IDs (in the installed app's resource namespace):
+`openEntraWebView`, `portalWebView`, `portalClosePage`, `portalEnrollmentStatus`,
+`portalConfirm`, `portalCancelOrHide`, `portalStatus`, and `showPortalStatus`.
+The injected HTML control is `mfa-custom-app-setup`.
+
+### Lifetime, cancellation and observation limitations
+
+- Pending native input expires after two minutes by default; SDK-configurable
+  range is 1–300000 milliseconds. Input references are dropped on consumption,
+  cancellation, expiry or disposal. In-flight parameters live only for the call;
+  managed strings cannot be reliably zeroed.
+- Confirmation consumes the request once. Duplicate digests remain blocked for
+  the coordinator session; after 64 accepted requests it fails closed with
+  `LIMIT_REACHED` instead of accumulating unbounded replay state. A new
+  coordinator is not service cleanup or authorization to reuse an activation.
+- `SUCCEEDED` is published only after **this** real `registerAuthMethod` returns.
+  Restored global `REGISTERED` status only refreshes the accounts UI. It does not
+  complete a new handoff. Expected failures retain their `MfaErrorCode`;
+  unexpected/interrupted outcomes are `OUTCOME_UNKNOWN`, never auto-retried.
+- Scope cancellation propagates to coroutine work and preserves unknown-outcome
+  observation. `close()` refuses further staging and discards unsubmitted input,
+  but does not cancel submitted work. Hiding UI does neither.
+- Activity recreation destroys its WebView (no credential-bearing saved WebView
+  state); in-process native enrollment survives. Keeping the same document is
+  guaranteed only across the enrollment overlay, not Activity/process death.
+  Process death loses coordinator state and must not infer completion from
+  restored accounts. No automatic replay or page restoration is performed.
+- Every live enrollment, including switching browser/WebView demos, needs fresh
+  authorized input. Token rotation, service cleanup, identity/signing permission,
+  validation delivery, unsupported policy and background-execution constraints
+  above remain unchanged.
+
+### Lightweight automated checks
+
+The SDK unit tests exercise accepted/invalid/duplicate/oversized inputs, exact
+Intent contract, actual-source/subframe validation, strict message schema,
+one-shot/cancel/expiry/disposal, bounded replay history, stale results, scope
+cancellation and secret-free snapshots/errors. Android adapter plumbing is
+compiled; actual WebKit messaging/navigation must still be verified on-device.
+The Node tests use a small synthetic document model, not a fake service/browser.
+
+```powershell
+# Existing outer-workspace test/build context:
+.\gradlew.bat :mfa:testLocalDebugUnitTest :mfaSample:testLiveDebugUnitTest `
+  :mfaSample:assembleLiveDebug :mfa:assembleLocalRelease -PincludeAuthenticatorApp=false
+# Source-only checks from this repository root; no device/browser operation:
+node --test .\testapps\mfa\tools\portal-demo.test.mjs
+node --check .\testapps\mfa\tools\inject-portal-demo.mjs
+node .\testapps\mfa\tools\inject-portal-demo.mjs --help
+```
+
+Build/unit checks do **not** establish real-page acceptance. Independently verify
+both real pages with fresh inputs, native confirmation, real service return,
+unchanged page state and normal portal verification on the authorized device.
 
 ## Push behavior, privacy, and limits
 
