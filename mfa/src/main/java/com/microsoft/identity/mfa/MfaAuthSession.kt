@@ -15,7 +15,7 @@ import java.util.Collections
  * @property registrationId Opaque registration identity owning this session.
  * @property displayMetadata Untrusted, display-only account information.
  * @property expiresAtEpochMillis Expiration time in milliseconds since the Unix epoch (UTC).
- * @property requiresNumberMatching Whether a separate number submission is required.
+ * @property requiresNumberMatching Whether this challenge requires number matching.
  */
 class MfaAuthSession internal constructor(
     val sessionHandle: String,

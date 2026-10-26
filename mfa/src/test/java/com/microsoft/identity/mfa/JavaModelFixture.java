@@ -9,23 +9,24 @@ import static org.junit.Assert.assertTrue;
 
 /** Compile fixture for the host-facing Java getters and immutable collections. */
 final class JavaModelFixture {
-    static void verify(final MfaAuthSession session, final MfaDisplayMetadata display) {
+    static void verify(final MfaAuthSession session, final MfaRegistrationResult result) {
         final MfaRegistrationParameters.QrCode qr = new MfaRegistrationParameters.QrCode("synthetic");
         final MfaRegistrationParameters.Activation activation =
                 new MfaRegistrationParameters.Activation("synthetic", "https://example.invalid");
-        final MfaSdkStatus status =
-                new MfaSdkStatus(MfaEnrollmentState.NOT_ENROLLED, MfaPushTokenState.AVAILABLE);
         assertEquals("synthetic", qr.getText());
         assertEquals("synthetic", activation.getCode());
         assertEquals("https://example.invalid", activation.getUrl());
-        assertEquals(MfaPushTokenState.AVAILABLE, status.getPushTokenState());
-        assertEquals(MfaEnrollmentState.NOT_ENROLLED, status.getEnrollmentState());
-        assertEquals(display, session.getDisplayMetadata());
-        assertEquals(display.getAccountName(), display.getUsername());
-        assertEquals(session.getRegistrationId(), session.getSessionHandle());
+        assertEquals("registration-id", result.getRegistrationId());
+        assertEquals(result.getDisplayMetadata(), session.getDisplayMetadata());
+        assertEquals("Account label", session.getDisplayMetadata().getAccountName());
+        assertEquals("User label", session.getDisplayMetadata().getUsername());
+        assertEquals("registration-id", session.getRegistrationId());
+        assertEquals("session-handle", session.getSessionHandle());
         assertEquals(1234L, session.getExpiresAtEpochMillis());
         assertTrue(session.getRequiresNumberMatching());
         assertThrows(UnsupportedOperationException.class, () -> session.getApprovalBlockedReasons().clear());
+        assertEquals(MfaDecision.APPROVED, MfaDecision.valueOf("APPROVED"));
+        assertEquals(MfaDecision.DENIED, MfaDecision.valueOf("DENIED"));
         assertEquals(MfaErrorCategory.UNAVAILABLE,
                 new MfaSdkException(MfaErrorCategory.UNAVAILABLE).getCategory());
     }

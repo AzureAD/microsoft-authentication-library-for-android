@@ -28,6 +28,7 @@ class MfaModelsTest {
         }
         assertEquals(marker, qr.text)
         assertEquals(marker, activation.code)
+        assertEquals("https://example.invalid/$marker", activation.url)
         assertEquals(marker, result.registrationId)
     }
 
@@ -59,7 +60,6 @@ class MfaModelsTest {
         assertEquals(1234L, session.expiresAtEpochMillis)
         assertTrue(session.requiresNumberMatching)
         assertEquals(marker, session.displayMetadata.username)
-        JavaModelFixture.verify(session, display)
     }
 
     @Test
@@ -81,17 +81,22 @@ class MfaModelsTest {
     }
 
     @Test
-    fun tokenAvailabilityDoesNotImplyConfirmedEnrollment() {
-        val status = MfaSdkStatus(MfaEnrollmentState.NOT_ENROLLED, MfaPushTokenState.AVAILABLE)
-        assertEquals(MfaEnrollmentState.NOT_ENROLLED, status.enrollmentState)
-        assertEquals(MfaPushTokenState.AVAILABLE, status.pushTokenState)
-        MfaEnrollmentState.values().forEach { enrollment ->
-            MfaPushTokenState.values().forEach { token ->
-                val snapshot = MfaSdkStatus(enrollment, token)
-                assertEquals(enrollment, snapshot.enrollmentState)
-                assertEquals(token, snapshot.pushTokenState)
-            }
-        }
+    fun publicModelsAreUsableFromJava() {
+        val metadata = MfaDisplayMetadata("Account label", "User label")
+        val session = MfaAuthSession(
+            "session-handle", "registration-id", metadata, 1234L, true,
+            setOf(MfaApprovalBlockReason.UNKNOWN_POLICY)
+        )
+        JavaModelFixture.verify(session, MfaRegistrationResult("registration-id", metadata))
+    }
+
+    @Test
+    fun registrationInputsRemainUnparsedUntilAnEnrollmentImplementationConsumesThem() {
+        val qr = MfaRegistrationParameters.QrCode("")
+        val activation = MfaRegistrationParameters.Activation("", "not-a-url")
+        assertEquals("", qr.text)
+        assertEquals("", activation.code)
+        assertEquals("not-a-url", activation.url)
     }
 
     private fun session(reasons: Set<MfaApprovalBlockReason>) = MfaAuthSession(

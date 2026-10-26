@@ -33,14 +33,9 @@ android {
     }
 }
 
-// Matches the pinned Common source version; release consumers may supply their aligned version.
-def commonVersion = project.findProperty('distCommonVersion') ?: '24.7.0'
+// Add Common and coroutine dependencies when an implementation first consumes them.
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$rootProject.ext.kotlinVersion"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$rootProject.ext.kotlinXCoroutinesVersion"
-    localImplementation project(':common')
-    distImplementation "com.microsoft.identity:common:$commonVersion"
 
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
-    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$rootProject.ext.kotlinXCoroutinesVersion"
 }
