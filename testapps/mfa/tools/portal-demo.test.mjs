@@ -22,12 +22,18 @@ function page(hrefs = [link('synthetic-one')], options = {}) {
             this.listeners = {};
         }
         get innerText() { return this.textContent; }
+        get parentElement() { return this.parentNode ?? null; }
         get href() { return this.attributes.href; }
         set href(value) { this.attributes.href = value; }
         setAttribute(key, value) { this.attributes[key] = String(value); }
         getAttribute(key) { return this.attributes[key] ?? null; }
         removeAttribute(key) { delete this.attributes[key]; }
-        appendChild(child) { this.children.push(child); child.parentNode = this; return child; }
+        appendChild(child) {
+            if (child.parentNode) child.parentNode.children = child.parentNode.children.filter(item => item !== child);
+            this.children.push(child);
+            child.parentNode = this;
+            return child;
+        }
         append(...children) { children.forEach(child => this.appendChild(child)); }
         remove() {
             this.isConnected = false;
@@ -90,6 +96,44 @@ test('installs only on supported top-level origin', () => {
     }
 });
 
+test('shows the demo only when the page reaches supported pairing input', () => {
+    const p = page();
+    const pairingAnchor = p.anchors.pop();
+    p.install({ mode: 'webview' });
+    const panel = p.context.document.getElementById('mfa-custom-app-demo');
+    assert.equal(panel.hidden, true);
+
+    p.anchors.push(pairingAnchor);
+    p.observers[0].callback([{ target: p.context.document.body }]);
+    assert.equal(panel.hidden, false);
+
+    pairingAnchor.hidden = true;
+    p.observers[0].callback([{ target: p.context.document.body }]);
+    assert.equal(panel.hidden, true);
+
+    pairingAnchor.hidden = false;
+    p.observers[0].callback([{ target: p.context.document.body }]);
+    p.button().click();
+    p.anchors.pop();
+    p.observers[0].callback([{ target: p.context.document.body }]);
+    assert.equal(panel.hidden, false);
+    assert.equal(p.sent.length, 1);
+});
+
+test('renders only the button in normal page flow without a footer', () => {
+    const p = page();
+    const setup = p.context.document.createElement('div');
+    const next = p.context.document.createElement('button');
+    setup.append(p.anchors[0], next);
+    p.context.document.body.appendChild(setup);
+    p.install({ mode: 'webview' });
+    const panel = p.context.document.getElementById('mfa-custom-app-demo');
+    assert.doesNotMatch(panel.style.cssText, /position\s*:\s*(fixed|absolute)|z-index/i);
+    assert.deepEqual(panel.children, [p.button()]);
+    assert.equal(panel.parentElement, setup);
+    assert.equal(setup.children.at(-1), panel);
+});
+
 test('browser click uses CURRENT pairing link and targeted String extra, not callback query', () => {
     const p = page();
     assert.equal(p.install({ mode: 'browser', packageName: 'example.test.host' }), true);
@@ -113,8 +157,21 @@ test('WebView mode sends exact SDK message without navigating original pairing a
     assert.equal(p.anchors[0].href, link('synthetic-one'));
 });
 
+test('accepts the optional source parameter on the Microsoft pairing link', () => {
+    const href = link('synthetic-source') + '&source=synthetic-portal';
+    for (const mode of ['webview', 'browser']) {
+        const p = page([href]);
+        p.install({ mode, packageName: 'example.test.host' });
+        assert.equal(p.button().getAttribute('aria-disabled'), 'false');
+        p.button().click();
+        if (mode === 'webview') assert.equal(p.sent[0].activationLink, href);
+        else assert.ok(p.button().href.includes(encodeURIComponent(href)));
+    }
+});
+
 test('click rejects missing, ambiguous, stale, TOTP and malformed current page input', () => {
     const invalid = ['', link('a') + '&code=b', link('a').replace('accountType=mfa', 'accountType=totp'),
+        link('a') + '&source=one&source=two',
         link('a').replace('login.microsoftonline.com', 'evil.invalid'), link(''),
         link('a').replace('poc.mobileappcommunicator.auth.microsoft.com', 'evil.invalid'),
         link('a').replace('https%3A', 'http%3A')];

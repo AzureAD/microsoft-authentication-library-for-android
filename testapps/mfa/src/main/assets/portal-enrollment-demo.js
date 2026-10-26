@@ -15,9 +15,8 @@
     if (window.__mfaPortalDemo) window.__mfaPortalDemo.dispose();
     const panel = document.createElement('div');
     panel.id = 'mfa-custom-app-demo';
-    panel.style.cssText = 'position:fixed;bottom:16px;left:16px;right:16px;z-index:2147483647;' +
-        'padding:12px;background:#fff;color:#111;border:2px solid #005a9e;border-radius:6px;' +
-        'font:14px sans-serif;box-shadow:0 2px 8px #555';
+    panel.hidden = true;
+    panel.style.cssText = 'margin:16px 0;flex-shrink:0';
     const button = document.createElement('a');
     button.id = 'mfa-custom-app-setup';
     button.textContent = 'Set up using custom app';
@@ -26,9 +25,7 @@
     button.setAttribute('tabindex', '0');
     button.style.cssText = 'display:inline-block;padding:10px;background:#005a9e;color:white;' +
         'text-decoration:none;border-radius:4px;cursor:pointer';
-    const status = document.createElement('div');
-    status.setAttribute('aria-live', 'polite');
-    panel.append(button, status);
+    panel.appendChild(button);
     document.body.appendChild(panel);
     let sent = false;
     let scheduled = false;
@@ -60,8 +57,8 @@
                 link.port || link.username || link.password || link.hash ||
                 link.pathname !== '/authenticatorApp/activateAccount') return null;
             const keys = Array.from(link.searchParams.keys());
-            if (keys.length !== 3 || new Set(keys).size !== 3 ||
-                !keys.every(key => ['accountType', 'code', 'url'].includes(key)) ||
+            if (keys.length < 3 || keys.length > 4 || new Set(keys).size !== keys.length ||
+                !keys.every(key => ['accountType', 'code', 'url', 'source'].includes(key)) ||
                 link.searchParams.get('accountType') !== 'mfa') return null;
             const code = link.searchParams.get('code');
             if (!code || !code.trim() || new TextEncoder().encode(code).length > 1024 ||
@@ -76,42 +73,39 @@
                 !['mobileappcommunicator.auth.microsoft.com', 'phonefactor.net'].some(zone =>
                     endpoint.hostname === zone || endpoint.hostname.endsWith('.' + zone)) ||
                 /\/\.{1,2}(\/|$)/.test(endpointValue)) return null;
-            return raw;
+            return candidates[0];
         } catch (_) { return null; }
-    }
-
-    function say(message) {
-        if (status.textContent !== message) status.textContent = message;
     }
 
     function refresh() {
         scheduled = false;
         if (disposed) return;
-        const ready = !sent && currentLink() !== null;
+        const pairingLink = !sent && currentLink();
+        const ready = Boolean(pairingLink);
+        panel.hidden = !sent && !ready;
+        const content = pairingLink && pairingLink.parentElement;
+        if (content && panel.parentNode !== content) content.appendChild(panel);
         button.setAttribute('aria-disabled', String(!ready));
-        if (!sent) say(ready ?
-            'Demo: native confirmation is required. Keep this page open.' :
-            'Open the visible Pair your account step. Missing, ambiguous or different-authenticator (TOTP) input is not supported.');
+        button.style.opacity = ready ? '1' : '0.6';
     }
 
     button.addEventListener('click', event => {
         // Read the current page on every click, never a value captured while installing the button.
-        const activationLink = !sent && event.isTrusted && currentLink();
+        const pairingLink = !sent && event.isTrusted && currentLink();
+        const activationLink = pairingLink && pairingLink.getAttribute('href');
         if (!activationLink) {
             event.preventDefault();
-            say('No fresh supported pairing link is available. Nothing was submitted.');
+            refresh();
             return;
         }
         if (mode === 'webview') {
             event.preventDefault();
             if (!window.mfaEnrollment || typeof window.mfaEnrollment.postMessage !== 'function') {
-                say('The secure SDK WebView connector is unavailable. Nothing was submitted.');
                 return;
             }
             try {
                 window.mfaEnrollment.postMessage(JSON.stringify({ version: 1, type: 'activation', activationLink }));
             } catch (_) {
-                say('The SDK handoff could not be delivered. Check the native app.');
                 return;
             }
         } else {
@@ -121,8 +115,7 @@
             clearIntentTimer = setTimeout(() => button.removeAttribute('href'), 0);
         }
         sent = true;
-        button.setAttribute('aria-disabled', 'true');
-        say('Handoff requested, not enrollment success. Confirm in the native app, then return here and let the website verify normally. Do not repeat this request.');
+        refresh();
     });
     const observer = new MutationObserver(records => {
         if (disposed || scheduled || records.every(record => panel.contains(record.target))) return;
