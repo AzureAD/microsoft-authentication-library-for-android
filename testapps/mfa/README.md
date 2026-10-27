@@ -310,6 +310,35 @@ call. They reuse the manager's real `registerAuthMethod`, activation parser,
 endpoint policy, validation push, encrypted state and confirmation implementation.
 This is feasibility work, not a supported production provisioning contract.
 
+### Verified behavior and remaining work
+
+Live checks on October 26, 2026 established the following on an authorized
+physical-device configuration:
+
+- The real-page WebView flow completed enrollment, number-matching approval,
+  and website sign-in. Native enrollment and approval dialogs retained the same
+  WebView document underneath.
+- Enrollment confirmation now uses **Confirm registration using this device?**.
+  Submission shows **Enrolling...**; only confirmed success shows
+  **Enrollment succeeded** with a single **OK** button.
+- A read-only check on the allowed registration origin confirmed that
+  `typeof window.mfaEnrollment?.postMessage === "function"` is true. The bridge
+  was absent on the unapproved Microsoft sign-in origin. This establishes
+  bridge discovery, not a consolidated enrollment-readiness handshake.
+
+The SDK accepts customer-configured HTTPS origins, not fixed page paths. The
+Microsoft-specific DOM inspection and injected button belong only to the sample.
+Page-owned readiness detection and native-to-page completion callbacks are not
+implemented: current results are presented natively, and the website continues
+through its normal Next/verification flow. The SDK also does not currently
+provide an API that initiates a test challenge and returns its display number.
+
+Chrome button injection was exercised, but fresh enrollment and return to the
+original browser tab have not been verified end to end for that path. Customer
+app identity/push provisioning, Activity/process-death recovery, and background
+reliability are not established by these checks. The successful WebView sign-in
+does not establish native customer-app OAuth/token integration.
+
 ### Actual public SDK API
 
 The APIs are under `com.microsoft.identity.mfa`:
@@ -571,7 +600,7 @@ The SDK unit tests exercise accepted/invalid/duplicate/oversized inputs, exact
 Intent contract, actual-source/subframe validation, strict message schema,
 one-shot/cancel/expiry/disposal, bounded replay history, stale results, scope
 cancellation and secret-free snapshots/errors. Android adapter plumbing is
-compiled; actual WebKit messaging/navigation must still be verified on-device.
+compiled; the live-device findings and remaining gaps are recorded above.
 The Node tests use a small synthetic document model, not a fake service/browser.
 
 ```powershell

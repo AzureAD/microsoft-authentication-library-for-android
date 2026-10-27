@@ -2,13 +2,13 @@
 // Licensed under the MIT License.
 package com.microsoft.identity.mfa.sample
 
+import android.view.View
 import android.view.WindowManager
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.microsoft.identity.mfa.MfaEnrollmentHandoff
 import com.microsoft.identity.mfa.MfaHandoffPhase
-import com.microsoft.identity.mfa.MfaHandoffSource
 import com.microsoft.identity.mfa.MfaHandoffState
 
 /** Customer-owned UX only. Hiding it never cancels submitted coordinator work or its WebView. */
@@ -75,11 +75,16 @@ internal class PortalEnrollmentUi(
                     }
                 }
         }
-        val explanation = if (state.phase == MfaHandoffPhase.AWAITING_CONFIRMATION) {
-            activity.getString(if (state.source == MfaHandoffSource.WEBVIEW)
-                R.string.portal_confirm_webview else R.string.portal_confirm_browser)
-        } else statusText(state)
-        text?.text = explanation
+        val compactStatus = state.phase == MfaHandoffPhase.SUBMITTING ||
+            state.phase == MfaHandoffPhase.SUCCEEDED
+        dialog?.setTitle(if (compactStatus) statusText(state)
+            else activity.getString(R.string.portal_confirmation_title))
+        text?.apply {
+            visibility = if (compactStatus) View.GONE else View.VISIBLE
+            text = if (state.phase == MfaHandoffPhase.AWAITING_CONFIRMATION) {
+                activity.getString(R.string.portal_confirmation_body)
+            } else statusText(state)
+        }
         updateButtons()
     }
 
@@ -94,9 +99,11 @@ internal class PortalEnrollmentUi(
                 else -> true
             }
         }
-        dialog?.getButton(AlertDialog.BUTTON_NEGATIVE)?.setText(
-            if (state.phase == MfaHandoffPhase.AWAITING_CONFIRMATION) android.R.string.cancel
-            else R.string.portal_hide_status)
+        dialog?.getButton(AlertDialog.BUTTON_NEGATIVE)?.apply {
+            setText(if (state.phase == MfaHandoffPhase.AWAITING_CONFIRMATION) android.R.string.cancel
+                else R.string.portal_hide_status)
+            visibility = if (state.phase == MfaHandoffPhase.SUCCEEDED) View.GONE else View.VISIBLE
+        }
     }
 
     fun show() {
