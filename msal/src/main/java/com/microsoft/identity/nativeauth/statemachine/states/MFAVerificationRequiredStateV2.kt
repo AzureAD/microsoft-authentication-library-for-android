@@ -144,6 +144,20 @@ class MFAVerificationRequiredStateV2 internal constructor(
                 val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
                 ensureActive()
                 when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitMFAChallengeCommandResult>()) {
+                    is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
+                        result.toRegistrationResult(scenario, config)
+                    is NativeAuthV2CommandResult.NewPasswordRequired -> {
+                        NativeAuthResultV2.NewPasswordRequired(
+                            nextState = NewPasswordRequiredStateV2(result.continuationState, scenario, config),
+                            scenario = scenario
+                        )
+                    }
+                    is NativeAuthV2CommandResult.SignInAfterResetPasswordRequired -> {
+                        NativeAuthResultV2.SignInAfterResetPasswordRequired(
+                            nextState = SignInAfterResetPasswordStateV2(result.continuationState, scenario, config),
+                            scenario = scenario
+                        )
+                    }
                     is NativeAuthV2CommandResult.Complete -> {
                         mapCompleteResult(result)
                     }
@@ -270,6 +284,8 @@ class MFAVerificationRequiredStateV2 internal constructor(
                 val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
                 ensureActive()
                 when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2ResendCodeCommandResult>()) {
+                    is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
+                        result.toRegistrationResult(scenario, config)
                     is NativeAuthV2CommandResult.CodeRequired -> {
                         NativeAuthResultV2.MFAVerificationRequired(
                             nextState = MFAVerificationRequiredStateV2(result.continuationState, scenario, config),
