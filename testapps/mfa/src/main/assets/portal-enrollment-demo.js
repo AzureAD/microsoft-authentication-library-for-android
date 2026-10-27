@@ -8,9 +8,9 @@
     const mode = configuration && configuration.mode;
     if (mode !== 'webview' && mode !== 'browser') return false;
     const packageName = configuration.packageName;
-    if (mode === 'browser' && (typeof packageName !== 'string' ||
+    if (typeof packageName !== 'string' ||
         !/^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$/.test(packageName) ||
-        packageName.length > 255)) return false;
+        packageName.length > 255) return false;
 
     if (window.__mfaPortalDemo) window.__mfaPortalDemo.dispose();
     const panel = document.createElement('div');
@@ -19,7 +19,7 @@
     panel.style.cssText = 'margin:16px 0;flex-shrink:0';
     const button = document.createElement('a');
     button.id = 'mfa-custom-app-setup';
-    button.textContent = 'Set up using custom app';
+    button.textContent = 'Set up using this device';
     button.href = '#';
     button.setAttribute('role', 'button');
     button.setAttribute('tabindex', '0');
@@ -98,22 +98,10 @@
             refresh();
             return;
         }
-        if (mode === 'webview') {
-            event.preventDefault();
-            if (!window.mfaEnrollment || typeof window.mfaEnrollment.postMessage !== 'function') {
-                return;
-            }
-            try {
-                window.mfaEnrollment.postMessage(JSON.stringify({ version: 1, type: 'activation', activationLink }));
-            } catch (_) {
-                return;
-            }
-        } else {
-            // A real user-clicked anchor keeps Chrome's intent navigation within its gesture policy.
-            button.href = 'intent://activate#Intent;scheme=mfa-poc-live;package=' + packageName +
-                ';S.com.microsoft.identity.mfa.ACTIVATION_LINK=' + encodeURIComponent(activationLink) + ';end';
-            clearIntentTimer = setTimeout(() => button.removeAttribute('href'), 0);
-        }
+        // Both hosts consume the same user-clicked link; no native JavaScript bridge is required.
+        button.href = 'intent://activate#Intent;scheme=mfa-poc-live;package=' + packageName +
+            ';S.com.microsoft.identity.mfa.ACTIVATION_LINK=' + encodeURIComponent(activationLink) + ';end';
+        clearIntentTimer = setTimeout(() => button.removeAttribute('href'), 0);
         sent = true;
         refresh();
     });

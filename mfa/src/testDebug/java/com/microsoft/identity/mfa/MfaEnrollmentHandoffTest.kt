@@ -241,6 +241,59 @@ class MfaEnrollmentHandoffTest {
         handoff.close()
     }
 
+    @Test fun deepLinkNavigationRequiresMetadataHostContextAndExactDecodedTarget() = runTest {
+        var calls = 0
+        val handoff = MfaEnrollmentHandoff(backgroundScope, 1000, { testScheduler.currentTime }) { calls++ }
+        val adapter = MfaHandoffDeepLinkAdapter(handoff, CALLBACK, "example.test.host", setOf(ORIGIN))
+        fun receive(action: String? = "android.intent.action.VIEW", selector: Boolean = false,
+                    component: Boolean = false, packageName: String? = "example.test.host",
+                    uri: String? = CALLBACK, payload: Any? = LINK, page: String? = "$ORIGIN/security-info",
+                    mainFrame: Boolean = true, gesture: Boolean = true, method: String? = "GET",
+                    redirect: Boolean = false) =
+            adapter.receiveDecoded(action, selector, component, packageName, uri, payload, page,
+                mainFrame, gesture, method, redirect)
+        val rejected = listOf(
+            receive(mainFrame = false), receive(gesture = false), receive(method = "POST"),
+            receive(method = null), receive(redirect = true), receive(page = null),
+            receive(page = "https://evil.invalid"), receive(page = "http://mysignins.microsoft.com"),
+            receive(page = "$ORIGIN:444/security-info"), receive(page = "https://secret@mysignins.microsoft.com"),
+            receive(page = "$ORIGIN.evil.invalid"), receive(action = "other"),
+            receive(selector = true), receive(component = true), receive(packageName = null),
+            receive(packageName = "example.other.host"), receive(uri = "other://activate"),
+            receive(uri = "$CALLBACK/"), receive(uri = "$CALLBACK?secret"), receive(uri = "$CALLBACK#secret"),
+            receive(payload = 1), receive(payload = null), receive(payload = "x".repeat(8193))
+        )
+        rejected.forEach {
+            assertEquals(MfaHandoffDisposition.REJECTED, it.disposition)
+            assertFalse(it.toString().contains("secret"))
+        }
+        assertEquals(MfaHandoffPhase.IDLE, handoff.state.value.phase)
+        assertEquals(MfaHandoffDisposition.STAGED, receive(page = "$ORIGIN:443/security-info?tab=methods#setup").disposition)
+        assertEquals(MfaHandoffSource.WEBVIEW, handoff.state.value.source)
+        assertEquals(MfaHandoffDisposition.DUPLICATE, receive().disposition)
+        assertEquals(0, calls)
+        handoff.close()
+    }
+
+    @Test fun deepLinkNavigationRejectsInvalidConfigurationWithoutEchoingInput() = runTest {
+        val handoff = MfaEnrollmentHandoff(backgroundScope, 1000, { testScheduler.currentTime }) {}
+        for ((packageName, origins) in listOf(
+            "" to setOf(ORIGIN), "a.b;secret" to setOf(ORIGIN),
+            "example.test.host" to emptySet(), "example.test.host" to setOf("*"),
+            "example.test.host" to setOf("$ORIGIN/"),
+            "example.test.host" to setOf("$ORIGIN?secret")
+        )) {
+            try {
+                MfaHandoffDeepLinkAdapter(handoff, CALLBACK, packageName, origins)
+                fail("Expected invalid configuration")
+            } catch (error: MfaSdkException) {
+                assertEquals(MfaErrorCode.INVALID_CONFIGURATION, error.code)
+                assertFalse(error.toString().contains("secret"))
+            }
+        }
+        handoff.close()
+    }
+
     private fun otherLink(code: String = "different-synthetic") = LINK.replace(CODE, code)
 
     private companion object {

@@ -6,7 +6,6 @@ import android.annotation.SuppressLint
 import android.os.Build
 import android.view.KeyEvent
 import android.view.ViewGroup
-import android.view.WindowManager
 import android.webkit.ConsoleMessage
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -16,8 +15,10 @@ import android.webkit.WebViewClient
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.microsoft.identity.mfa.MfaEnrollmentHandoff
+import com.microsoft.identity.mfa.MfaHandoffDeepLinkAdapter
+import com.microsoft.identity.mfa.MfaHandoffDisposition
 import com.microsoft.identity.mfa.MfaHandoffReceipt
-import com.microsoft.identity.mfa.MfaHandoffWebViewConnector
+import org.json.JSONObject
 import java.net.URI
 
 /** Activity-owned real portal. Native enrollment and approval overlay this WebView without reloading it. */
@@ -31,7 +32,8 @@ internal class RealPortalPage(
 ) {
     private var released = false
     private val script = activity.assets.open("portal-enrollment-demo.js").bufferedReader().use { it.readText() }
-    private val connector = MfaHandoffWebViewConnector(handoff, setOf(REGISTRATION_ORIGIN), onReceipt)
+    private val navigation = MfaHandoffDeepLinkAdapter(
+        handoff, "mfa-poc-live://activate", activity.packageName, setOf(REGISTRATION_ORIGIN))
     private val webView = WebView(activity).apply {
         id = R.id.portalWebView
         isSaveEnabled = false
@@ -54,10 +56,17 @@ internal class RealPortalPage(
             override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean = true
         }
         webViewClient = object : WebViewClient() {
-            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
-                !isHttps(request.url.toString())
+            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                if (released) return true
+                val receipt = navigation.receive(request, view.url)
+                if (receipt.disposition != MfaHandoffDisposition.IGNORED) {
+                    onReceipt(receipt)
+                    return true
+                }
+                return !isHttps(request.url.toString())
+            }
 
-            @Deprecated("Legacy navigation retains the same HTTPS-only policy.")
+            @Deprecated("No request metadata: block deep links rather than bypass gesture/frame checks.")
             override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean = !isHttps(url)
 
             override fun onPageFinished(view: WebView, url: String?) {
@@ -65,7 +74,8 @@ internal class RealPortalPage(
                     // This Microsoft-specific DOM/button integration is deliberately sample-only.
                     view.evaluateJavascript(
                         "if (window.top === window && location.origin === '$REGISTRATION_ORIGIN' && " +
-                            "!window.__mfaPortalDemo) { ($script)({mode:'webview'}); }",
+                            "!window.__mfaPortalDemo) { ($script)({mode:'webview'," +
+                            "packageName:${JSONObject.quote(activity.packageName)}}); }",
                         null
                     )
                 }
@@ -81,7 +91,6 @@ internal class RealPortalPage(
 
     init {
         try {
-            connector.attach(webView)
             dialog.setOnDismissListener {
                 release()
                 onClose()
@@ -98,7 +107,6 @@ internal class RealPortalPage(
                 setOnClickListener { onReviewSignIn() }
             }
             dialog.getButton(AlertDialog.BUTTON_NEGATIVE).id = R.id.portalClosePage
-            dialog.window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
             dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
             webView.loadUrl("https://entra.microsoft.com")
         } catch (error: RuntimeException) {
@@ -119,7 +127,6 @@ internal class RealPortalPage(
     private fun release() {
         if (released) return
         released = true
-        connector.close()
         webView.stopLoading()
         (webView.parent as? ViewGroup)?.removeView(webView)
         webView.destroy()

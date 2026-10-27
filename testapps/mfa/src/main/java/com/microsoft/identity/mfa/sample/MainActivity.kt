@@ -14,7 +14,6 @@ import android.text.InputFilter
 import android.text.InputType
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -52,7 +51,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.root.setOnApplyWindowInsetsListener { view, insets ->
@@ -297,7 +295,6 @@ class MainActivity : AppCompatActivity() {
         }
         dialog.setCanceledOnTouchOutside(false)
         dialog.show()
-        dialog.window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).id = R.id.portalBackToWebsite
     }
 
@@ -454,10 +451,7 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton(R.string.continue_setup) { _, _ -> model.confirmSetup(request.id) }
             .setNegativeButton(android.R.string.cancel) { _, _ -> model.handoff.requests.cancel(request.id) }
             .setOnCancelListener { model.handoff.requests.cancel(request.id) }
-            .create().also {
-                it.show()
-                it.window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-            }
+            .create().also { it.show() }
         updateButtons()
     }
 

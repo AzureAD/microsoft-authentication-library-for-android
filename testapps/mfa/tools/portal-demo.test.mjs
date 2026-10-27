@@ -7,6 +7,7 @@ import vm from 'node:vm';
 
 const source = readFileSync(new URL('../src/main/assets/portal-enrollment-demo.js', import.meta.url), 'utf8');
 const origin = 'https://mysignins.microsoft.com';
+const packageName = 'example.test.host';
 const link = code => 'https://login.microsoftonline.com/authenticatorApp/activateAccount' +
     `?accountType=mfa&code=${code}&url=https%3A%2F%2Fpoc.mobileappcommunicator.auth.microsoft.com`;
 
@@ -42,8 +43,8 @@ function page(hrefs = [link('synthetic-one')], options = {}) {
         contains(child) { return this === child || this.children.some(item => item.contains(child)); }
         getClientRects() { return this.isConnected && !this.hidden ? [{ width: 20, height: 20 }] : []; }
         addEventListener(name, callback) { this.listeners[name] = callback; }
-        click() {
-            const event = { isTrusted: true, preventDefault() { this.prevented = true; } };
+        click(isTrusted = true) {
+            const event = { isTrusted, preventDefault() { this.prevented = true; } };
             this.listeners.click(event);
             return event;
         }
@@ -56,7 +57,6 @@ function page(hrefs = [link('synthetic-one')], options = {}) {
     });
     const body = new Element('body');
     const observers = [];
-    const sent = [];
     const context = {
         URL, JSON, Set, TextEncoder,
         location: { origin: options.origin ?? origin },
@@ -78,20 +78,19 @@ function page(hrefs = [link('synthetic-one')], options = {}) {
         requestAnimationFrame: callback => { callback(); return 1; },
         cancelAnimationFrame() {},
         setTimeout: () => 1,
-        clearTimeout() {},
-        mfaEnrollment: { postMessage: value => sent.push(JSON.parse(value)) }
+        clearTimeout() {}
     };
     context.window = context;
     context.top = options.subframe ? {} : context;
     const install = vm.runInNewContext(source, context);
-    return { context, anchors, sent, observers, install,
+    return { context, anchors, observers, install,
         button: () => context.document.getElementById('mfa-custom-app-setup') };
 }
 
 test('installs only on supported top-level origin', () => {
     for (const options of [{ origin: 'https://evil.invalid' }, { subframe: true }]) {
         const p = page(undefined, options);
-        assert.equal(p.install({ mode: 'webview' }), false);
+        assert.equal(p.install({ mode: 'webview', packageName }), false);
         assert.equal(p.context.document.body.children.length, 0);
     }
 });
@@ -99,7 +98,7 @@ test('installs only on supported top-level origin', () => {
 test('shows the demo only when the page reaches supported pairing input', () => {
     const p = page();
     const pairingAnchor = p.anchors.pop();
-    p.install({ mode: 'webview' });
+    p.install({ mode: 'webview', packageName });
     const panel = p.context.document.getElementById('mfa-custom-app-demo');
     assert.equal(panel.hidden, true);
 
@@ -117,7 +116,8 @@ test('shows the demo only when the page reaches supported pairing input', () => 
     p.anchors.pop();
     p.observers[0].callback([{ target: p.context.document.body }]);
     assert.equal(panel.hidden, false);
-    assert.equal(p.sent.length, 1);
+    assert.equal(p.button().getAttribute('aria-disabled'), 'true');
+    assert.equal(p.button().click().prevented, true);
 });
 
 test('renders only the button in normal page flow without a footer', () => {
@@ -126,7 +126,7 @@ test('renders only the button in normal page flow without a footer', () => {
     const next = p.context.document.createElement('button');
     setup.append(p.anchors[0], next);
     p.context.document.body.appendChild(setup);
-    p.install({ mode: 'webview' });
+    p.install({ mode: 'webview', packageName });
     const panel = p.context.document.getElementById('mfa-custom-app-demo');
     assert.doesNotMatch(panel.style.cssText, /position\s*:\s*(fixed|absolute)|z-index/i);
     assert.deepEqual(panel.children, [p.button()]);
@@ -134,38 +134,35 @@ test('renders only the button in normal page flow without a footer', () => {
     assert.equal(setup.children.at(-1), panel);
 });
 
-test('browser click uses CURRENT pairing link and targeted String extra, not callback query', () => {
-    const p = page();
-    assert.equal(p.install({ mode: 'browser', packageName: 'example.test.host' }), true);
-    const button = p.button();
-    assert.equal(button.textContent, 'Set up using custom app');
-    p.anchors[0].href = link('synthetic-current');
-    const event = button.click();
-    assert.notEqual(event.prevented, true);
-    assert.equal(button.href, 'intent://activate#Intent;scheme=mfa-poc-live;' +
-        'package=example.test.host;S.com.microsoft.identity.mfa.ACTIVATION_LINK=' +
-        encodeURIComponent(link('synthetic-current')) + ';end');
-    assert.equal(p.anchors[0].href, link('synthetic-current'));
-    assert.equal(p.sent.length, 0);
-});
-
-test('WebView mode sends exact SDK message without navigating original pairing anchor', () => {
-    const p = page();
-    p.install({ mode: 'webview' });
-    assert.equal(p.button().click().prevented, true);
-    assert.deepEqual(p.sent, [{ version: 1, type: 'activation', activationLink: link('synthetic-one') }]);
-    assert.equal(p.anchors[0].href, link('synthetic-one'));
+test('both modes use the identical CURRENT package-targeted link without a bridge', () => {
+    const outputs = [];
+    for (const mode of ['webview', 'browser']) {
+        const p = page();
+        assert.equal(p.context.mfaEnrollment, undefined);
+        assert.equal(p.install({ mode, packageName }), true);
+        const button = p.button();
+        assert.equal(button.textContent, 'Set up using this device');
+        p.anchors[0].href = link('synthetic-current');
+        assert.notEqual(button.click().prevented, true);
+        outputs.push(button.href);
+        assert.equal(button.href, 'intent://activate#Intent;scheme=mfa-poc-live;' +
+            'package=example.test.host;S.com.microsoft.identity.mfa.ACTIVATION_LINK=' +
+            encodeURIComponent(link('synthetic-current')) + ';end');
+        assert.equal(p.anchors[0].href, link('synthetic-current'));
+        assert.equal(button.click().prevented, true);
+    }
+    assert.equal(outputs[0], outputs[1]);
+    assert.doesNotMatch(source, /postMessage|mfaEnrollment|addJavascriptInterface|addWebMessageListener/);
 });
 
 test('accepts the optional source parameter on the Microsoft pairing link', () => {
     const href = link('synthetic-source') + '&source=synthetic-portal';
     for (const mode of ['webview', 'browser']) {
         const p = page([href]);
-        p.install({ mode, packageName: 'example.test.host' });
+        p.install({ mode, packageName });
         assert.equal(p.button().getAttribute('aria-disabled'), 'false');
         p.button().click();
-        if (mode === 'webview') assert.equal(p.sent[0].activationLink, href);
-        else assert.ok(p.button().href.includes(encodeURIComponent(href)));
+        assert.ok(p.button().href.includes(encodeURIComponent(href)));
     }
 });
 
@@ -175,37 +172,53 @@ test('click rejects missing, ambiguous, stale, TOTP and malformed current page i
         link('a').replace('login.microsoftonline.com', 'evil.invalid'), link(''),
         link('a').replace('poc.mobileappcommunicator.auth.microsoft.com', 'evil.invalid'),
         link('a').replace('https%3A', 'http%3A')];
-    for (const hrefs of [[], [link('a'), link('b')], ...invalid.map(href => [href])]) {
-        const p = page(hrefs);
-        p.install({ mode: 'webview' });
-        assert.equal(p.button().click().prevented, true);
-        assert.equal(p.sent.length, 0);
-    }
-    for (const stale of ['detached', 'hidden', 'invisible']) {
-        const p = page();
-        p.install({ mode: 'webview' });
-        if (stale === 'detached') p.anchors[0].isConnected = false;
-        if (stale === 'hidden') p.context.document.visibilityState = 'hidden';
-        if (stale === 'invisible') p.anchors[0].hidden = true;
-        assert.equal(p.button().click().prevented, true);
-        assert.equal(p.sent.length, 0);
+    for (const mode of ['webview', 'browser']) {
+        for (const hrefs of [[], [link('a'), link('b')], ...invalid.map(href => [href])]) {
+            const p = page(hrefs);
+            p.install({ mode, packageName });
+            assert.equal(p.button().click().prevented, true);
+            assert.equal(p.button().href, '#');
+        }
+        for (const stale of ['detached', 'hidden', 'invisible', 'changed']) {
+            const p = page();
+            p.install({ mode, packageName });
+            if (stale === 'detached') p.anchors[0].isConnected = false;
+            if (stale === 'hidden') p.context.document.visibilityState = 'hidden';
+            if (stale === 'invisible') p.anchors[0].hidden = true;
+            if (stale === 'changed') p.anchors[0].href = 'https://evil.invalid';
+            assert.equal(p.button().click().prevented, true);
+            assert.equal(p.button().href, '#');
+        }
     }
 });
 
-test('requires explicit browser package and rejects absent WebKit connector', () => {
-    const p = page();
-    assert.equal(p.install({ mode: 'browser' }), false);
-    delete p.context.mfaEnrollment;
-    assert.equal(p.install({ mode: 'webview' }), true);
-    assert.equal(p.button().click().prevented, true);
-    assert.equal(p.sent.length, 0);
+test('both modes reject a missing or invalid package before inserting a link', () => {
+    for (const mode of ['webview', 'browser']) {
+        for (const invalid of [undefined, null, '', 1, 'one', 'a.b;end', 'a..b',
+            'a.b c', '1a.b', 'a.' + 'b'.repeat(254)]) {
+            const p = page();
+            assert.equal(p.install({ mode, packageName: invalid }), false);
+            assert.equal(p.context.document.body.children.length, 0);
+        }
+    }
+});
+
+test('untrusted clicks cannot consume the one permitted user click in either mode', () => {
+    for (const mode of ['webview', 'browser']) {
+        const p = page();
+        p.install({ mode, packageName });
+        assert.equal(p.button().click(false).prevented, true);
+        assert.equal(p.button().href, '#');
+        assert.notEqual(p.button().click().prevented, true);
+        assert.equal(p.button().click().prevented, true);
+    }
 });
 
 test('reinjection removes only the prior demo observer and panel', () => {
     const p = page();
-    p.install({ mode: 'webview' });
+    p.install({ mode: 'webview', packageName });
     const old = p.button();
-    p.install({ mode: 'webview' });
+    p.install({ mode: 'webview', packageName });
     assert.notEqual(p.button(), old);
     assert.equal(p.observers[0].disconnected, true);
     assert.equal(p.context.document.body.children.length, 1);

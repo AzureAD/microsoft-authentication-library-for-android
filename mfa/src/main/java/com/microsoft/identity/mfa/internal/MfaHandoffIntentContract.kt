@@ -11,7 +11,8 @@ import java.net.URI
 
 internal class MfaHandoffIntentContract(
     private val handoff: MfaEnrollmentHandoff,
-    private val callbackUri: String
+    private val callbackUri: String,
+    private val source: MfaHandoffSource = MfaHandoffSource.BROWSER
 ) {
     private val callback = try {
         URI(callbackUri).also {
@@ -33,6 +34,6 @@ internal class MfaHandoffIntentContract(
         if (action != "android.intent.action.VIEW" || hasSelector || uri != callbackUri || payload !is String) {
             return MfaHandoffReceipt(MfaHandoffDisposition.REJECTED, errorCode = MfaErrorCode.INVALID_ACTIVATION)
         }
-        return handoff.stage(payload, MfaHandoffSource.BROWSER)
+        return handoff.stage(payload, source)
     }
 }

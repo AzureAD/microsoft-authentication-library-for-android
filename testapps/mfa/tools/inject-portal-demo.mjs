@@ -149,7 +149,7 @@ try {
         const configuration = JSON.stringify({ mode: 'browser', packageName: values.package });
         const installed = await visible.evaluateBoolean(`Boolean((${script})(${configuration}))`);
         if (!installed) throw new Error('INJECTION_REJECTED');
-        console.log('Injected: true. Keep the original tab open. Click Set up using custom app and confirm natively.');
+        console.log('Injected: true. Keep the original tab open. Click Set up using this device and confirm natively.');
         console.log('The observer lasts only for this document; reinject after a full reload. No enrollment was submitted by this helper.');
     }
 } catch (_) {

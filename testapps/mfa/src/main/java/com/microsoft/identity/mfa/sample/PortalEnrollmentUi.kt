@@ -3,7 +3,6 @@
 package com.microsoft.identity.mfa.sample
 
 import android.view.View
-import android.view.WindowManager
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -52,7 +51,6 @@ internal class PortalEnrollmentUi(
                     }
                     ui.setCanceledOnTouchOutside(false)
                     ui.show()
-                    ui.window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
                     ui.getButton(AlertDialog.BUTTON_POSITIVE).apply {
                         this.id = R.id.portalConfirm
                         setOnClickListener {

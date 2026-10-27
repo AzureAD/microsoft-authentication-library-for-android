@@ -53,7 +53,7 @@
     <string name="notification_title">MFA request available</string>
     <string name="notification_text">Open the sample and refresh to review. No action is available on the lock screen.</string>
     <string name="portal_demo_title">Real registration page demo</string>
-    <string name="portal_demo_instructions">Use Set up using custom app on the supported Pair your account step. No QR import or native preparation is needed. Chrome uses the USB-injected demo button; the WebView below signs in separately. Native confirmation is required. Leave the original page open and use its normal Next/verification afterward.</string>
+    <string name="portal_demo_instructions">Use Set up using this device on the supported Pair your account step. The demo link simulates future AuthUX page UI; both hosts use the same deep link without a JavaScript bridge. Chrome uses the USB-injected button; this WebView signs in separately. Confirm natively, then manually press Next on the website. For Chrome, return to the original browser tab first.</string>
     <string name="open_entra_webview">Open Entra in WebView</string>
     <string name="portal_webview_title">Entra — separate WebView sign-in</string>
     <string name="portal_show_status">View enrollment status</string>

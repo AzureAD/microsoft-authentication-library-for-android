@@ -310,34 +310,47 @@ call. They reuse the manager's real `registerAuthMethod`, activation parser,
 endpoint policy, validation push, encrypted state and confirmation implementation.
 This is feasibility work, not a supported production provisioning contract.
 
-### Verified behavior and remaining work
+**AuthUX owns the hosted sign-in UI, mobile-device detection/visibility decision,
+and production setup link.** Mobile detection is a product requirement, not
+logic reimplemented or independently verified by this PoC. The sample's
+Microsoft-specific DOM insertion only simulates the future page-owned link.
+Both hosts now use the same package-targeted Android intent link, with no
+JavaScript messaging bridge, readiness handshake or native-to-page callback.
 
-Live checks on October 26, 2026 established the following on an authorized
-physical-device configuration:
+### Verification status and remaining limits
 
-- The real-page WebView flow completed enrollment, number-matching approval,
-  and website sign-in. Native enrollment and approval dialogs retained the same
-  WebView document underneath.
-- Enrollment confirmation now uses **Confirm registration using this device?**.
-  Submission shows **Enrolling...**; only confirmed success shows
-  **Enrollment succeeded** with a single **OK** button.
-- A read-only check on the allowed registration origin confirmed that
-  `typeof window.mfaEnrollment?.postMessage === "function"` is true. The bridge
-  was absent on the unapproved Microsoft sign-in origin. This establishes
-  bridge discovery, not a consolidated enrollment-readiness handshake.
+Live checks on October 26, 2026 verified the **previous bridge-based WebView
+implementation** on an authorized physical-device configuration: enrollment,
+number-matching approval and website sign-in, with native dialogs retaining
+the same document underneath. Bridge discovery was also checked for that
+implementation. Those results are historical; they do **not** verify this
+new deep-link-only transport.
+
+On October 27, 2026, the tester reported the **deep-link-only PoC fully working**
+and approved publishing the branch. This is a manual-testing report for the
+authorized setup, not an automated end-to-end result or general customer-app
+provisioning guarantee.
+
+This variant was built, installed in place and launched on the authorized
+physical device, with screen capture enabled. Android's Intent parser also
+round-tripped a synthetic shared link without launching it. These supporting
+checks are separate from the tester's live-flow confirmation.
+
+The retained enrollment dialog says **Confirm registration using this device?**
+with body **Enrollment will continue in the background, continue once it
+succeeds to approve the test notification**. Submission shows **Enrolling...**;
+only confirmed success shows **Enrollment succeeded** with **OK** only.
 
 The SDK accepts customer-configured HTTPS origins, not fixed page paths. The
 Microsoft-specific DOM inspection and injected button belong only to the sample.
 Page-owned readiness detection and native-to-page completion callbacks are not
 implemented: current results are presented natively, and the website continues
-through its normal Next/verification flow. The SDK also does not currently
+through its **manual Next**/verification flow. The SDK also does not currently
 provide an API that initiates a test challenge and returns its display number.
 
-Chrome button injection was exercised, but fresh enrollment and return to the
-original browser tab have not been verified end to end for that path. Customer
-app identity/push provisioning, Activity/process-death recovery, and background
-reliability are not established by these checks. The successful WebView sign-in
-does not establish native customer-app OAuth/token integration.
+Customer app identity/push provisioning, Activity/process-death recovery and
+background reliability are not established by the historical checks. The
+previous WebView sign-in does not establish native customer-app OAuth/token integration.
 
 ### Actual public SDK API
 
@@ -362,15 +375,17 @@ fun receive(intent: Intent?): MfaHandoffReceipt
 // MfaHandoffIntentAdapter.EXTRA_ACTIVATION_LINK:
 // "com.microsoft.identity.mfa.ACTIVATION_LINK"
 
-MfaHandoffWebViewConnector(
+MfaHandoffDeepLinkAdapter(
     handoff: MfaEnrollmentHandoff,
-    allowedHttpsOrigins: Set<String>,
-    onReceipt: (MfaHandoffReceipt) -> Unit = {}
+    callbackUri: String,
+    hostPackageName: String,
+    allowedHttpsOrigins: Set<String>
 )
-fun attach(webView: WebView) // UI thread, before navigation
-fun close()                // UI thread, before WebView destruction
-// MfaHandoffWebViewConnector.JAVASCRIPT_OBJECT: "mfaEnrollment"
+fun receive(request: WebResourceRequest, currentPageUrl: String?): MfaHandoffReceipt
 ```
+
+Existing bridge APIs remain available for compatibility, but this real-page
+sample and its shared JavaScript asset no longer attach or call them.
 
 `MfaHandoffState` contains only `phase`, nullable SDK-generated `requestId`,
 nullable `source` (`DIRECT`, `BROWSER`, `WEBVIEW`), and nullable `errorCode`.
@@ -404,14 +419,18 @@ if (receipt.disposition != MfaHandoffDisposition.IGNORED) {
 }
 
 // Host owns the existing WebView, lifecycle, navigation, UI and exact allowed origins.
-val connector = MfaHandoffWebViewConnector(
-    enrollment, setOf("https://mysignins.microsoft.com")
-) { receipt -> showSafeInputReceipt(receipt) } // your UX; no raw inputs
-try {
-    connector.attach(webView)
-} catch (error: MfaSdkException) {
-    showSafeError(error.code) // including WEBVIEW_UNSUPPORTED; never weaken the checks
+val navigation = MfaHandoffDeepLinkAdapter(
+    enrollment, "mfa-poc-live://activate", application.packageName,
+    setOf("https://mysignins.microsoft.com")
+)
+// In request-based shouldOverrideUrlLoading:
+val navigationReceipt = navigation.receive(request, webView.url)
+if (navigationReceipt.disposition != MfaHandoffDisposition.IGNORED) {
+    showSafeInputReceipt(navigationReceipt) // your UX; no raw inputs
+    return true // consume acceptance AND rejection; never launch the decoded Intent
 }
+// Otherwise apply the host's normal HTTPS-only navigation policy.
+// The legacy String callback blocks non-HTTPS navigation; it must NOT stage input.
 
 lifecycleScope.launch {
     repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -423,14 +442,12 @@ enrollment.confirm(displayedRequestId)
 enrollment.cancel(displayedRequestId)      // only unsubmitted requests can cancel
 enrollment.acknowledge(displayedRequestId) // dismiss matching terminal observation
 
-// When the host destroys its WebView:
-connector.close()
 // Do NOT close the coordinator/cancel its scope when hiding UI or closing a page.
 // At session disposal:
 enrollment.close() // pending input discarded; submitted operation continues
 ```
 
-The `showSafeInputReceipt`, `showSafeError` and `renderYourEnrollmentUi` functions
+The `showSafeInputReceipt` and `renderYourEnrollmentUi` functions
 above are customer presentation hooks, not SDK methods. The sample implementations
 are `MfaSampleViewModel.portalReceipt`, `MainActivity.openPortal` and
 `PortalEnrollmentUi`. No URI parser, origin validator or enrollment state machine
@@ -442,54 +459,64 @@ The sample gates Continue on token readiness, no token-change block, no other
 native enrollment and no active controlled-page request. Receiving a link alone
 never calls the service. SDK validation remains independent of sample UI checks.
 
-### Intent and WebView message contracts
+### Shared intent-link contract and embedded navigation guards
 
 For this sample, the exact callback is `mfa-poc-live://activate`, distinct from
-the old controlled `/enroll/<id>` route. The SDK verifies action `ACTION_VIEW`,
-absence of a selector, exact callback shape/equality, and a bounded **String
-extra**, then validates the HTTPS activation link. The payload is not accepted
+the old controlled `/enroll/<id>` route. The existing Activity adapter retains
+its contract: action `ACTION_VIEW`, absence of a selector, exact callback
+shape/equality, and a bounded **String extra**, then HTTPS activation validation.
+The payload is not accepted
 from callback query parameters. The maximum activation-link size is 8192 UTF-8
 bytes. The host declares its own callback filter; the sample does not claim
 Microsoft's activation schemes or verified App Link/browser authentication.
 
-The user-clicked browser anchor follows this shape (placeholders only):
+Both browser and WebView user-clicked anchors follow this identical shape
+(placeholders only):
 
 ```text
 intent://activate#Intent;scheme=mfa-poc-live;package=<installed-authorized-package>;S.com.microsoft.identity.mfa.ACTIVATION_LINK=<encodeURIComponent(existing-HTTPS-pairing-link)>;end
 ```
 
-An origin-allowed page in a connected WebView sends this JSON **string**:
+The SDK's new WebView adapter decodes with `Intent.parseUri` and **never executes
+the Intent**. It accepts only the configured actual host package, exact callback
+and `ACTION_VIEW`, without component/selector redirection. Selector/component
+wire markers are also rejected before parsing, since a parser may discard them.
+Unexpected decoded MIME type, categories, flags, source bounds or extra keys
+are rejected. Input is bounded to 25600 UTF-8 bytes before parsing, with the
+independent 8192-byte activation limit still enforced.
 
-```javascript
-window.mfaEnrollment.postMessage(JSON.stringify({
-    version: 1, type: "activation", activationLink: existingHttpsPairingLink
-}));
-```
+Staging requires API 24+, a main-frame user-gesture **GET**, no redirect, and a
+currently loaded HTTPS page in the configured origin set (no user info or
+nonstandard port). Origins are exact, without wildcards or paths. The current
+top-level URL is **host-context restriction only**, not authenticated evidence
+of the initiating frame/origin; this is not equivalent to the previous WebKit
+source-origin signal. Native confirmation and SDK/service activation validation
+remain authoritative.
 
-The SDK checks WebKit's actual `sourceOrigin` and `isMainFrame` before parsing;
-a self-declared origin is neither accepted nor trusted. Messages are limited to
-16384 UTF-8 bytes with exactly the three named fields, correct primitive types
-and no duplicates/trailing content. No wildcard origins, subframe acceptance,
-unrestricted `addJavascriptInterface`, UI, page navigation or site-specific DOM
-extraction is added to the SDK. `WEB_MESSAGE_LISTENER` must be available, otherwise
-`attach` throws `WEBVIEW_UNSUPPORTED`. The library uses the repository's existing
-AndroidX WebKit `1.14.0` pin, without upgrading unrelated dependencies.
+Relevant intent/callback-scheme navigations are consumed on acceptance **or
+rejection**, without leaving the document. Bare callback links cannot provide
+the required String extra. The legacy String navigation callback has no gesture/
+frame/redirect metadata and therefore blocks deep links without staging.
+Ordinary HTTPS sign-in navigation remains permitted. No bridge capability,
+handshake, native-to-page result callback or page reload is needed.
 
 ### Shared demo-only page extraction
 
 `src\main\assets\portal-enrollment-demo.js` supplies both demonstrations. It adds
-**Set up using custom app** only in the top-level `https://mysignins.microsoft.com`
+**Set up using this device** only in the top-level `https://mysignins.microsoft.com`
 document and observes SPA changes. It does not change or click Microsoft's
 original pairing anchor, decode QR pixels, press Next, or manufacture portal
 success. Its click handler reads the **current**, connected, visible **Pair your
 account** anchor, requiring exactly one candidate and the supported HTTPS
 `login.microsoftonline.com/authenticatorApp/activateAccount` link with exactly
-`accountType=mfa`, `code`, and `url`. Missing/ambiguous/stale/unsupported input
+`accountType=mfa`, `code`, and `url`, plus an optional `source` field.
+Both modes require an explicit valid actual app package. Missing/ambiguous/stale/unsupported input
 is rejected; “different authenticator” Account name/Secret key (TOTP) is not this
 push enrollment flow.
 
-Demo extraction is intentionally site/wording-specific (English verified wording).
-It is not an SDK DOM contract. The SDK independently validates received input.
+Demo extraction is intentionally site/wording-specific (historically exercised
+English wording). It is not an SDK DOM contract or production mobile detection.
+The SDK independently validates received input.
 The injected panel emits no account/activation data to console, new URL query
 parameters, or diagnostic output. One click is allowed per installation of the
 panel; after cancellation/failure/uncertainty, obtain fresh input rather than
@@ -514,7 +541,7 @@ trying to replay the same request.
    the single intended device. Optional `--socket` defaults to
    `chrome_devtools_remote`. The package is required and has no authorized-app
    identity default. No Node dependencies or installations are used.
-3. Tap **Set up using custom app**, then review native confirmation and select
+3. Tap **Set up using this device**, then review native confirmation and select
    **Continue** or **Cancel**. Keep the app foregrounded during real enrollment.
 4. After this request succeeds, close the native result and use Android
    Back/app switching to the **ORIGINAL Chrome tab**. The app does not reopen
@@ -537,14 +564,15 @@ Installing the button itself does not submit enrollment.
    registration **Pair your account** step. This WebView has its own sign-in
    session: Chrome cookies are not imported, and login/policy restrictions are
    not bypassed.
-2. The SDK connector is attached before navigation but exposed only to the
-   configured registration origin. The sample injects the same asset after
-   top-level navigation reaches that exact origin; SPA changes are observed.
-3. Tap **Set up using custom app**, review native confirmation, and select
+2. No message connector is attached. The sample injects the shared demo asset
+   with the actual application package after top-level navigation reaches the
+   configured registration origin; SPA changes are observed. This is a demo
+   stand-in for the future AuthUX-owned link.
+3. Tap **Set up using this device**, review native confirmation, and select
    **Continue** or **Cancel**. The confirmation/progress/result dialog is a
    native overlay above the **same existing WebView/document**. Enrollment
    does not close, reload, navigate or recreate it.
-4. Close/hide the result to return to that page, then use its normal Next and
+4. Close/hide the result to return to that page, then manually press its normal Next and
    verification. Back navigates WebView history; **Close page** closes it.
    Closing the page/overlay does not cancel an already submitted operation.
    **View enrollment status** can reopen the request-local native observation.
@@ -557,9 +585,10 @@ Installing the button itself does not submit enrollment.
    that dialog, without reloading or closing the page or submitting a decision.
 
 JavaScript and DOM storage are enabled for ordinary portal sign-in; file/content
-access, mixed content, popups and geolocation are disabled. HTTPS navigation,
-platform SSL validation and `FLAG_SECURE` remain enforced. The existing tightly
-restricted loopback WebView is a separate component and is unchanged.
+access, mixed content, popups and geolocation are disabled. HTTPS navigation and
+platform SSL validation remain enforced. Screen capture is enabled in this
+debug-only sample, including native enrollment and approval dialogs, for demo
+recordings. The controlled loopback WebView retains its navigation restrictions.
 
 Native automation IDs (in the installed app's resource namespace):
 `openEntraWebView`, `portalWebView`, `portalClosePage`, `portalEnrollmentStatus`,
@@ -596,12 +625,19 @@ The injected HTML control is `mfa-custom-app-setup`.
 
 ### Lightweight automated checks
 
-The SDK unit tests exercise accepted/invalid/duplicate/oversized inputs, exact
-Intent contract, actual-source/subframe validation, strict message schema,
-one-shot/cancel/expiry/disposal, bounded replay history, stale results, scope
-cancellation and secret-free snapshots/errors. Android adapter plumbing is
-compiled; the live-device findings and remaining gaps are recorded above.
-The Node tests use a small synthetic document model, not a fake service/browser.
+The existing SDK unit suite covers handoff state and the retained bridge/Intent
+contracts. Compact new cases exercise the decoded navigation-validation seam:
+request metadata, loaded-page restriction, package/component/selector/action/
+callback guards, bounded payload and WEBVIEW source. They do not execute Android's
+Intent parser. The targeted handoff class passed 16 tests, the sample passed
+8 tests, and the Live Debug APK compiled and launched on the authorized device.
+The installed APK matched the built artifact. A separate non-launching Android
+Intent-parser check passed with synthetic input. Actual page-click handoff,
+WebView retention and live enrollment are covered by manual testing, not by
+these unit/parser checks; see the tester-reported result above.
+The Node tests use the existing small synthetic document model, not a fake
+service/browser, to check identical links without a bridge, current-on-click
+input, optional source, stale/malformed input, package validation and one click.
 
 ```powershell
 # Existing outer-workspace test/build context:
@@ -641,7 +677,7 @@ unchanged page state and normal portal verification on the authorized device.
   No delivery claim is made from permission status or token readiness.
 - Account/session names are displayed only in the foreground UI. Debug diagnostics
   emit bounded, non-PII lifecycle and SDK events; no analytics is performed.
-  Screen capture is disabled and backup is disabled. Errors show bounded SDK codes,
+  Screen capture is enabled for demo recordings; backup remains disabled. Errors show bounded SDK codes,
   never arbitrary exception messages, raw payloads, activation material, or real tokens.
 - Sessions are deduplicated and capped at 32 in-memory prompts. Pull again as
   needed. Pending prompts are not saved by the UI across process death; the SDK
