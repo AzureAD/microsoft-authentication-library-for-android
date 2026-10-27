@@ -61,6 +61,8 @@ import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2Re
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInAfterSignUpCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignUpSubmitCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignUpStartCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInSubmitCodeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitPasswordCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitAttributesCommand
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
@@ -73,6 +75,8 @@ import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesInvalidStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.ExistingAccountCodeRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.ExistingAccountPasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpStateV2
 import io.mockk.every
@@ -972,6 +976,124 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     // -----------------------------------------------------------------------------------------
     // Helpers
     // -----------------------------------------------------------------------------------------
+
+    @Test
+    fun existingAccountCode_isDistinctResendsAndContinuesSignIn() = runTest {
+        val state = NativeAuthV2ContinuationStateTestFactory.create(
+            correlationId, scenario = NativeAuthV2FlowScenario.SIGN_IN)
+        enqueueResult(NativeAuthV2CommandResult.ExistingAccountCodeRequired(
+            correlationId, state, 6, "***@contoso.com", "email"), NativeAuthV2SignUpStartCommand::class)
+        val registration = application.signUpV2(signUpParameters())
+            as NativeAuthResultV2.ExistingAccountCodeRequired
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, registration.scenario)
+        assertSame(state, registration.nextState.continuationState)
+        assertEquals(6, registration.codeLength)
+        assertEquals("***@contoso.com", registration.sentTo)
+        enqueueResult(NativeAuthV2CommandResult.CodeRequired(
+            correlationId, state, 8, "***@contoso.com", "email"), NativeAuthV2ResendCodeCommand::class)
+        val resent = registration.nextState.resendCode() as NativeAuthResultV2.ExistingAccountCodeRequired
+        assertEquals(8, resent.codeLength)
+        enqueueResult(NativeAuthV2CommandResult.IncorrectCode(
+            correlationId, "invalid_code", "Retry", "invalid_oob_value"), NativeAuthV2SignInSubmitCodeCommand::class)
+        assertTrue((resent.nextState.submitCode("wrong") as NativeAuthErrorV2).isInvalidChallenge())
+        enqueueResult(NativeAuthV2CommandResult.MFARequired(
+            correlationId, state, emptyList()), NativeAuthV2SignInSubmitCodeCommand::class)
+        val mfa = resent.nextState.submitCode("12345678") as NativeAuthResultV2.MFARequired
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, mfa.scenario)
+        assertSame(state, mfa.nextState.continuationState)
+        verify(exactly = 0) {
+            CommandDispatcher.submitSilentReturningFuture(match { it is NativeAuthV2SignUpSubmitCodeCommand })
+        }
+    }
+
+    @Test
+    fun existingAccountPassword_usesSignInCommandAndPreservesCallerBuffer() = runTest {
+        val state = NativeAuthV2ContinuationStateTestFactory.create(
+            correlationId, scenario = NativeAuthV2FlowScenario.SIGN_IN)
+        enqueueResult(NativeAuthV2CommandResult.ExistingAccountPasswordRequired(
+            correlationId, state), NativeAuthV2SignUpStartCommand::class)
+        val existing = application.signUpV2(signUpParameters())
+            as NativeAuthResultV2.ExistingAccountPasswordRequired
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, existing.scenario)
+        assertSame(state, existing.nextState.continuationState)
+        val password = "Current-password!".toCharArray()
+        enqueueResult(NativeAuthV2CommandResult.IncorrectPassword(
+            correlationId, "invalid_credentials", "Retry", "invalid_password"), NativeAuthV2SubmitPasswordCommand::class)
+        assertTrue(existing.nextState.submitPassword(password) is NativeAuthErrorV2)
+        assertEquals("Current-password!", String(password))
+        enqueueResult(NativeAuthV2CommandResult.MFARequired(
+            correlationId, state, emptyList()), NativeAuthV2SubmitPasswordCommand::class)
+        assertTrue(existing.nextState.submitPassword(password) is NativeAuthResultV2.MFARequired)
+        verify(exactly = 0) {
+            CommandDispatcher.submitSilentReturningFuture(match { it is NativeAuthV2SubmitAttributesCommand })
+        }
+    }
+
+    @Test
+    fun existingAccountSuccessorsMapFromEverySignUpState() = runTest {
+        val signin = NativeAuthV2ContinuationStateTestFactory.create(
+            correlationId, scenario = NativeAuthV2FlowScenario.SIGN_IN)
+        for (result in listOf(
+            NativeAuthV2CommandResult.ExistingAccountCodeRequired(correlationId, signin, 6, "***", "email"),
+            NativeAuthV2CommandResult.ExistingAccountPasswordRequired(correlationId, signin)
+        )) {
+            val expected = if (result is NativeAuthV2CommandResult.ExistingAccountCodeRequired) {
+                NativeAuthResultV2.ExistingAccountCodeRequired::class.java
+            } else NativeAuthResultV2.ExistingAccountPasswordRequired::class.java
+            val attributes = attributesRequiredState()
+            enqueueResult(result, NativeAuthV2SubmitAttributesCommand::class)
+            assertTrue(expected.isInstance(attributes.submitAttributes(UserAttributes.Builder().build())))
+            val password = signUpPasswordRequiredState()
+            enqueueResult(result, NativeAuthV2SubmitAttributesCommand::class)
+            assertTrue(expected.isInstance(password.submitPassword("password".toCharArray())))
+            val code = codeRequiredState()
+            enqueueResult(result, NativeAuthV2SignUpSubmitCodeCommand::class)
+            assertTrue(expected.isInstance(code.submitCode("123456")))
+        }
+    }
+
+    @Test
+    fun existingAccountStates_propagateCancellationAndCallbackResults() = runTest {
+        val state = NativeAuthV2ContinuationStateTestFactory.create(
+            correlationId, scenario = NativeAuthV2FlowScenario.SIGN_IN)
+        enqueueResult(NativeAuthV2CommandResult.ExistingAccountPasswordRequired(
+            correlationId, state), NativeAuthV2SignUpStartCommand::class)
+        val password = (application.signUpV2(signUpParameters()) as
+            NativeAuthResultV2.ExistingAccountPasswordRequired).nextState
+        enqueueCancellation(NativeAuthV2SubmitPasswordCommand::class)
+        try {
+            password.submitPassword("password".toCharArray())
+            fail("Expected cancellation")
+        } catch (_: CancellationException) {
+        }
+        enqueueResult(NativeAuthV2CommandResult.MFARequired(
+            correlationId, state, emptyList()), NativeAuthV2SubmitPasswordCommand::class)
+        val future = ResultFuture<NativeAuthResultV2>()
+        password.submitPassword("password".toCharArray(),
+            object : ExistingAccountPasswordRequiredStateV2.SubmitPasswordCallback {
+                override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
+                override fun onError(exception: BaseException) = fail(exception.message)
+            })
+        assertTrue(future.get(30, TimeUnit.SECONDS) is NativeAuthResultV2.MFARequired)
+        enqueueResult(NativeAuthV2CommandResult.ExistingAccountCodeRequired(
+            correlationId, state, 6, "***", "email"), NativeAuthV2SignUpStartCommand::class)
+        val code = (application.signUpV2(signUpParameters()) as
+            NativeAuthResultV2.ExistingAccountCodeRequired).nextState
+        enqueueCancellation(NativeAuthV2SignInSubmitCodeCommand::class)
+        try {
+            code.submitCode("123456")
+            fail("Expected cancellation")
+        } catch (_: CancellationException) {
+        }
+        enqueueResult(NativeAuthV2CommandResult.MFARequired(
+            correlationId, state, emptyList()), NativeAuthV2SignInSubmitCodeCommand::class)
+        val codeFuture = ResultFuture<NativeAuthResultV2>()
+        code.submitCode("123456", object : ExistingAccountCodeRequiredStateV2.SubmitCodeCallback {
+            override fun onResult(result: NativeAuthResultV2) = codeFuture.setResult(result)
+            override fun onError(exception: BaseException) = fail(exception.message)
+        })
+        assertTrue(codeFuture.get(30, TimeUnit.SECONDS) is NativeAuthResultV2.MFARequired)
+    }
 
     private fun signUpParameters(
         username: String = this.username,

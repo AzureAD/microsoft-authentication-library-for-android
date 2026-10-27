@@ -78,6 +78,8 @@ abstract class NativeAuthBaseStateV2 internal constructor(
         result: NativeAuthV2StrongAuthCommandResult,
         selectedChannel: String? = null
     ): NativeAuthResultV2 = when (result) {
+        is NativeAuthV2CommandResult.ExistingAccountCodeRequired -> result.toExistingAccountResult(config)
+        is NativeAuthV2CommandResult.ExistingAccountPasswordRequired -> result.toExistingAccountResult(config)
         is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
             result.toRegistrationResult(scenario, config)
         is NativeAuthV2CommandResult.StrongAuthVerificationRequired ->
@@ -199,6 +201,21 @@ internal fun NativeAuthV2CommandResult.StrongAuthRegistrationRequired.toRegistra
     val state = StrongAuthRegistrationRequiredStateV2(correlationId, scenario, config, continuationState, methods)
     return NativeAuthResultV2.StrongAuthRegistrationRequired(state, scenario, state.authMethods)
 }
+
+/** Exposes the existing-account transition independently of normal sign-up code collection. */
+internal fun NativeAuthV2CommandResult.ExistingAccountCodeRequired.toExistingAccountResult(
+    config: NativeAuthPublicClientApplicationConfiguration
+): NativeAuthResultV2.ExistingAccountCodeRequired = NativeAuthResultV2.ExistingAccountCodeRequired(
+    ExistingAccountCodeRequiredStateV2(continuationState, config),
+    codeLength, challengeTargetLabel, challengeChannel
+)
+
+/** Exposes current-password sign-in independently of sign-up password creation. */
+internal fun NativeAuthV2CommandResult.ExistingAccountPasswordRequired.toExistingAccountResult(
+    config: NativeAuthPublicClientApplicationConfiguration
+): NativeAuthResultV2.ExistingAccountPasswordRequired = NativeAuthResultV2.ExistingAccountPasswordRequired(
+    ExistingAccountPasswordRequiredStateV2(continuationState, config)
+)
 
 /**
  * Used by states that never carry a continuation state, so

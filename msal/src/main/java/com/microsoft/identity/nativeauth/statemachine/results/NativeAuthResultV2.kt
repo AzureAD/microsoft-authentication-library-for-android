@@ -32,6 +32,8 @@ import com.microsoft.identity.nativeauth.statemachine.states.AccountState
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesInvalidStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.ExistingAccountCodeRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.ExistingAccountPasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2
@@ -47,6 +49,29 @@ import java.util.Collections
  * NativeAuthResultV2 is the single unified result for the Native Auth V2 surface.
  */
 interface NativeAuthResultV2 : Result {
+
+    /**
+     * Sign-up found an existing account and sent an email code to sign it in.
+     * Unlike [CodeRequired], this is not new-account verification; [scenario] is sign-in.
+     */
+    class ExistingAccountCodeRequired(
+        override val nextState: ExistingAccountCodeRequiredStateV2,
+        val codeLength: Int,
+        val sentTo: String,
+        val channel: String
+    ) : Result.SuccessResult(nextState), NativeAuthResultV2 {
+        override val scenario: NativeAuthFlowScenarioV2 = NativeAuthFlowScenarioV2.SIGN_IN
+    }
+
+    /**
+     * Sign-up found an existing account and requires its current password to sign in.
+     * Unlike [PasswordRequired], this is not password creation; [scenario] is sign-in.
+     */
+    class ExistingAccountPasswordRequired(
+        override val nextState: ExistingAccountPasswordRequiredStateV2
+    ) : Result.SuccessResult(nextState), NativeAuthResultV2 {
+        override val scenario: NativeAuthFlowScenarioV2 = NativeAuthFlowScenarioV2.SIGN_IN
+    }
 
     /**
      * Identifies which part of the Native Auth V2 surface produced this result.
