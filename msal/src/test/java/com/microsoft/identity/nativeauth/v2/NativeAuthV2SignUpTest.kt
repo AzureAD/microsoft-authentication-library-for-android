@@ -51,6 +51,7 @@ import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeA
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignUpCommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationStateTestFactory
+import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2AuthMethod
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2LinkRelation
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2RequiredAttribute
 import com.microsoft.identity.common.java.nativeauth.providers.v2.NativeAuthV2FlowScenario
@@ -61,6 +62,8 @@ import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2Re
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInAfterSignUpCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignUpSubmitCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignUpStartCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2EnrollCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ActivateCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInSubmitCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitPasswordCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitAttributesCommand
@@ -1049,6 +1052,52 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
             val code = codeRequiredState()
             enqueueResult(result, NativeAuthV2SignUpSubmitCodeCommand::class)
             assertTrue(expected.isInstance(code.submitCode("123456")))
+        }
+    }
+
+    @Test
+    fun enrollmentPreservesExistingAccountSignInFromEverySignUpStep() = runTest {
+        for ((commonScenario, expectedScenario) in listOf(
+            NativeAuthV2FlowScenario.SIGN_IN to NativeAuthFlowScenarioV2.SIGN_IN,
+            NativeAuthV2FlowScenario.SIGN_UP to NativeAuthFlowScenarioV2.SIGN_UP
+        )) {
+            val continuation = NativeAuthV2ContinuationStateTestFactory.create(
+                correlationId, scenario = commonScenario)
+            val commandResult = NativeAuthV2CommandResult.StrongAuthRegistrationRequired(
+                correlationId, continuation, listOf(NativeAuthV2AuthMethod("email-id", "email", null)))
+            val results = mutableListOf<NativeAuthResultV2>()
+            enqueueResult(commandResult, NativeAuthV2SignUpStartCommand::class)
+            results += application.signUpV2(signUpParameters())
+            val attributes = attributesRequiredState()
+            enqueueResult(commandResult, NativeAuthV2SubmitAttributesCommand::class)
+            results += attributes.submitAttributes(UserAttributes.Builder().build())
+            val password = signUpPasswordRequiredState()
+            enqueueResult(commandResult, NativeAuthV2SubmitAttributesCommand::class)
+            results += password.submitPassword("password".toCharArray())
+            val code = codeRequiredState()
+            enqueueResult(commandResult, NativeAuthV2SignUpSubmitCodeCommand::class)
+            results += code.submitCode("123456")
+
+            for (result in results) {
+                val registration = result as NativeAuthResultV2.StrongAuthRegistrationRequired
+                assertEquals(expectedScenario, registration.scenario)
+                assertEquals(expectedScenario, registration.nextState.scenario)
+                assertSame(continuation, registration.nextState.continuationState)
+                assertEquals("email-id", registration.authMethods.single().id)
+
+                enqueueResult(NativeAuthV2CommandResult.StrongAuthVerificationRequired(
+                    correlationId, continuation, 6, "***@contoso.com"), NativeAuthV2EnrollCommand::class)
+                val verification = registration.nextState.selectAuthMethod(
+                    registration.authMethods.single(), "user@contoso.com"
+                ) as NativeAuthResultV2.StrongAuthVerificationRequired
+                assertEquals(expectedScenario, verification.scenario)
+                assertEquals(expectedScenario, verification.nextState.scenario)
+                enqueueResult(NativeAuthV2CommandResult.MFARequired(
+                    correlationId, continuation, emptyList()), NativeAuthV2ActivateCommand::class)
+                val resumed = verification.nextState.submitChallenge("123456") as NativeAuthResultV2.MFARequired
+                assertEquals(expectedScenario, resumed.scenario)
+                assertEquals(expectedScenario, resumed.nextState.scenario)
+            }
         }
     }
 

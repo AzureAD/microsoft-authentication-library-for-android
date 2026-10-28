@@ -31,6 +31,7 @@ import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeA
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2StrongAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
+import com.microsoft.identity.common.java.nativeauth.providers.v2.NativeAuthV2FlowScenario
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.toListOfV2AuthMethods
 import com.microsoft.identity.nativeauth.toListOfRequiredUserAttributeV2
@@ -192,14 +193,18 @@ abstract class NativeAuthBaseStateV2 internal constructor(
     override fun describeContents(): Int = 0
 }
 
-/** Maps an enrollment interruption without changing the originating public flow. */
+/** Maps enrollment, preserving an existing-account transition from sign-up to sign-in. */
 internal fun NativeAuthV2CommandResult.StrongAuthRegistrationRequired.toRegistrationResult(
     scenario: NativeAuthFlowScenarioV2,
     config: NativeAuthPublicClientApplicationConfiguration
 ): NativeAuthResultV2.StrongAuthRegistrationRequired {
     val methods = authMethods.toListOfV2AuthMethods()
-    val state = StrongAuthRegistrationRequiredStateV2(correlationId, scenario, config, continuationState, methods)
-    return NativeAuthResultV2.StrongAuthRegistrationRequired(state, scenario, state.authMethods)
+    val resultScenario = if (scenario == NativeAuthFlowScenarioV2.SIGN_UP &&
+        continuationState.flowScenario() == NativeAuthV2FlowScenario.SIGN_IN) {
+        NativeAuthFlowScenarioV2.SIGN_IN
+    } else scenario
+    val state = StrongAuthRegistrationRequiredStateV2(correlationId, resultScenario, config, continuationState, methods)
+    return NativeAuthResultV2.StrongAuthRegistrationRequired(state, resultScenario, state.authMethods)
 }
 
 /** Exposes the existing-account transition independently of normal sign-up code collection. */
