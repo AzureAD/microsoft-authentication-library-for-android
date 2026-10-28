@@ -100,14 +100,9 @@ abstract class NativeAuthBaseStateV2 internal constructor(
         is NativeAuthV2CommandResult.SignInAfterSignUpRequired -> NativeAuthResultV2.SignInAfterSignUpRequired(
             SignInAfterSignUpStateV2(result.continuationState, scenario, config), scenario
         )
-        is NativeAuthV2CommandResult.PasswordRequired ->
-            if (result.continuationState.continuesExistingAccountSignIn(scenario)) {
-                NativeAuthResultV2.ExistingAccountPasswordRequired(
-                    ExistingAccountPasswordRequiredStateV2(result.continuationState, config)
-                )
-            } else NativeAuthResultV2.PasswordRequired(
-                PasswordRequiredStateV2(result.continuationState, scenario, config), scenario
-            )
+        is NativeAuthV2CommandResult.PasswordRequired -> NativeAuthResultV2.PasswordRequired(
+            PasswordRequiredStateV2(result.continuationState, scenario, config), scenario
+        )
         is NativeAuthV2CommandResult.AttributesRequired -> NativeAuthResultV2.AttributesRequired(
             AttributesRequiredStateV2(result.continuationState, scenario, config), scenario,
             result.requiredAttributes.toListOfRequiredUserAttributeV2()
@@ -116,16 +111,10 @@ abstract class NativeAuthBaseStateV2 internal constructor(
             AttributesInvalidStateV2(result.continuationState, scenario, config), scenario,
             result.invalidAttributes, NativeAuthErrorV2.fromAttributeError(result, scenario)
         )
-        is NativeAuthV2CommandResult.CodeRequired ->
-            if (result.continuationState.continuesExistingAccountSignIn(scenario)) {
-                NativeAuthResultV2.ExistingAccountCodeRequired(
-                    ExistingAccountCodeRequiredStateV2(result.continuationState, config),
-                    result.codeLength, result.challengeTargetLabel, result.challengeChannel
-                )
-            } else NativeAuthResultV2.CodeRequired(
-                CodeRequiredStateV2(result.continuationState, scenario, config), scenario,
-                result.codeLength, result.challengeTargetLabel, result.challengeChannel
-            )
+        is NativeAuthV2CommandResult.CodeRequired -> NativeAuthResultV2.CodeRequired(
+            CodeRequiredStateV2(result.continuationState, scenario, config), scenario,
+            result.codeLength, result.challengeTargetLabel, result.challengeChannel
+        )
         is NativeAuthV2CommandResult.IncorrectCode -> NativeAuthErrorV2(
             errorType = ErrorTypes.INVALID_CODE,
             error = result.error, errorMessage = result.errorDescription,
