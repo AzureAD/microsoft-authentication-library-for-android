@@ -79,8 +79,6 @@ abstract class NativeAuthBaseStateV2 internal constructor(
         result: NativeAuthV2StrongAuthCommandResult,
         selectedChannel: String? = null
     ): NativeAuthResultV2 = when (result) {
-        is NativeAuthV2CommandResult.ExistingAccountCodeRequired -> result.toExistingAccountResult(config)
-        is NativeAuthV2CommandResult.ExistingAccountPasswordRequired -> result.toExistingAccountResult(config)
         is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
             result.toRegistrationResult(scenario, config)
         is NativeAuthV2CommandResult.StrongAuthVerificationRequired ->
@@ -102,9 +100,14 @@ abstract class NativeAuthBaseStateV2 internal constructor(
         is NativeAuthV2CommandResult.SignInAfterSignUpRequired -> NativeAuthResultV2.SignInAfterSignUpRequired(
             SignInAfterSignUpStateV2(result.continuationState, scenario, config), scenario
         )
-        is NativeAuthV2CommandResult.PasswordRequired -> NativeAuthResultV2.PasswordRequired(
-            PasswordRequiredStateV2(result.continuationState, scenario, config), scenario
-        )
+        is NativeAuthV2CommandResult.PasswordRequired ->
+            if (result.continuationState.continuesExistingAccountSignIn(scenario)) {
+                NativeAuthResultV2.ExistingAccountPasswordRequired(
+                    ExistingAccountPasswordRequiredStateV2(result.continuationState, config)
+                )
+            } else NativeAuthResultV2.PasswordRequired(
+                PasswordRequiredStateV2(result.continuationState, scenario, config), scenario
+            )
         is NativeAuthV2CommandResult.AttributesRequired -> NativeAuthResultV2.AttributesRequired(
             AttributesRequiredStateV2(result.continuationState, scenario, config), scenario,
             result.requiredAttributes.toListOfRequiredUserAttributeV2()
@@ -113,10 +116,16 @@ abstract class NativeAuthBaseStateV2 internal constructor(
             AttributesInvalidStateV2(result.continuationState, scenario, config), scenario,
             result.invalidAttributes, NativeAuthErrorV2.fromAttributeError(result, scenario)
         )
-        is NativeAuthV2CommandResult.CodeRequired -> NativeAuthResultV2.CodeRequired(
-            CodeRequiredStateV2(result.continuationState, scenario, config), scenario,
-            result.codeLength, result.challengeTargetLabel, result.challengeChannel
-        )
+        is NativeAuthV2CommandResult.CodeRequired ->
+            if (result.continuationState.continuesExistingAccountSignIn(scenario)) {
+                NativeAuthResultV2.ExistingAccountCodeRequired(
+                    ExistingAccountCodeRequiredStateV2(result.continuationState, config),
+                    result.codeLength, result.challengeTargetLabel, result.challengeChannel
+                )
+            } else NativeAuthResultV2.CodeRequired(
+                CodeRequiredStateV2(result.continuationState, scenario, config), scenario,
+                result.codeLength, result.challengeTargetLabel, result.challengeChannel
+            )
         is NativeAuthV2CommandResult.IncorrectCode -> NativeAuthErrorV2(
             errorType = ErrorTypes.INVALID_CODE,
             error = result.error, errorMessage = result.errorDescription,
@@ -193,14 +202,18 @@ abstract class NativeAuthBaseStateV2 internal constructor(
     override fun describeContents(): Int = 0
 }
 
+private fun NativeAuthV2ContinuationState.continuesExistingAccountSignIn(
+    originalScenario: NativeAuthFlowScenarioV2
+): Boolean = originalScenario == NativeAuthFlowScenarioV2.SIGN_UP &&
+    flowScenario() == NativeAuthV2FlowScenario.SIGN_IN
+
 /** Maps enrollment, preserving an existing-account transition from sign-up to sign-in. */
 internal fun NativeAuthV2CommandResult.StrongAuthRegistrationRequired.toRegistrationResult(
     scenario: NativeAuthFlowScenarioV2,
     config: NativeAuthPublicClientApplicationConfiguration
 ): NativeAuthResultV2.StrongAuthRegistrationRequired {
     val methods = authMethods.toListOfV2AuthMethods()
-    val resultScenario = if (scenario == NativeAuthFlowScenarioV2.SIGN_UP &&
-        continuationState.flowScenario() == NativeAuthV2FlowScenario.SIGN_IN) {
+    val resultScenario = if (continuationState.continuesExistingAccountSignIn(scenario)) {
         NativeAuthFlowScenarioV2.SIGN_IN
     } else scenario
     val state = StrongAuthRegistrationRequiredStateV2(correlationId, resultScenario, config, continuationState, methods)

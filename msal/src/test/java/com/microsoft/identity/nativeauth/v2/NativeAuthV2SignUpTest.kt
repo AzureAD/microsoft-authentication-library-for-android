@@ -82,6 +82,7 @@ import com.microsoft.identity.nativeauth.statemachine.states.ExistingAccountCode
 import com.microsoft.identity.nativeauth.statemachine.states.ExistingAccountPasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthVerificationRequiredStateV2
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
@@ -1098,6 +1099,41 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
                 assertEquals(expectedScenario, resumed.scenario)
                 assertEquals(expectedScenario, resumed.nextState.scenario)
             }
+        }
+    }
+
+    @Test
+    fun activationExposesDistinctExistingAccountResultsFromCompatibleCommonResults() = runTest {
+        val config = attributesRequiredState().config
+        val signup = createContinuationState()
+        val signin = NativeAuthV2ContinuationStateTestFactory.create(
+            correlationId, scenario = NativeAuthV2FlowScenario.SIGN_IN)
+        val verification = StrongAuthVerificationRequiredStateV2(
+            correlationId, NativeAuthFlowScenarioV2.SIGN_UP, config, signup, "email")
+
+        enqueueResult(NativeAuthV2CommandResult.CodeRequired(
+            correlationId, signin, 6, "***@contoso.com", "Email"), NativeAuthV2ActivateCommand::class)
+        val code = verification.submitChallenge("123456") as NativeAuthResultV2.ExistingAccountCodeRequired
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, code.scenario)
+        assertSame(signin, code.nextState.continuationState)
+        assertEquals(6, code.codeLength)
+        assertEquals("***@contoso.com", code.sentTo)
+        assertEquals("Email", code.channel)
+        enqueueResult(NativeAuthV2CommandResult.IncorrectCode(
+            correlationId, "invalid_code", "Retry", "invalid_oob_value"), NativeAuthV2SignInSubmitCodeCommand::class)
+        assertTrue((code.nextState.submitCode("wrong") as NativeAuthErrorV2).isInvalidChallenge())
+
+        enqueueResult(NativeAuthV2CommandResult.PasswordRequired(
+            correlationId, signin), NativeAuthV2ActivateCommand::class)
+        val password = verification.submitChallenge("123456") as NativeAuthResultV2.ExistingAccountPasswordRequired
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, password.scenario)
+        assertSame(signin, password.nextState.continuationState)
+        enqueueResult(NativeAuthV2CommandResult.IncorrectPassword(
+            correlationId, "invalid_credentials", "Retry", "invalid_password"), NativeAuthV2SubmitPasswordCommand::class)
+        assertTrue(password.nextState.submitPassword("password".toCharArray()) is NativeAuthErrorV2)
+        verify(exactly = 0) {
+            CommandDispatcher.submitSilentReturningFuture(
+                match { it is NativeAuthV2SignUpSubmitCodeCommand || it is NativeAuthV2SubmitAttributesCommand })
         }
     }
 
