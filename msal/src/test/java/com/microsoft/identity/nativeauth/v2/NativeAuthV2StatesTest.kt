@@ -41,6 +41,8 @@ import com.microsoft.identity.nativeauth.statemachine.states.AttributesInvalidSt
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.BaseState
 import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.ExistingAccountCodeRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.ExistingAccountPasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.NativeAuthBaseStateV2
@@ -168,6 +170,17 @@ class NativeAuthV2StatesTest {
 
     @Test
     fun testStatesAreParcelable() {
+        val existing = NativeAuthV2ContinuationStateTestFactory.create(
+            correlationId,
+            scenario = com.microsoft.identity.common.java.nativeauth.providers.v2.NativeAuthV2FlowScenario.SIGN_IN)
+        val code = assertParcelRoundTrip(
+            ExistingAccountCodeRequiredStateV2(existing, config), ExistingAccountCodeRequiredStateV2.CREATOR)
+        val password = assertParcelRoundTrip(
+            ExistingAccountPasswordRequiredStateV2(existing, config), ExistingAccountPasswordRequiredStateV2.CREATOR)
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, code.scenario)
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, password.scenario)
+        assertEquals(existing.flowScenario(), code.continuationState?.flowScenario())
+        assertEquals(existing.flowScenario(), password.continuationState?.flowScenario())
         assertParcelRoundTrip(
             CodeRequiredStateV2(correlationId, scenario, config),
             CodeRequiredStateV2.CREATOR

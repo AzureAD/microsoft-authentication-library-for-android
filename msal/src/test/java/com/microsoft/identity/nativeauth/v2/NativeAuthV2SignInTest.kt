@@ -452,21 +452,22 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     @Test
     fun activationMapsEveryOriginatingFlowSuccessor() = runTest {
         val original = strongAuthVerification()
-        val state = createContinuationState("next-correlation")
-        val successors = listOf(
-            NativeAuthV2CommandResult.MFARequired(correlationId, state, emptyList()) to NativeAuthResultV2.MFARequired::class,
-            NativeAuthV2CommandResult.NewPasswordRequired(correlationId, state) to NativeAuthResultV2.NewPasswordRequired::class,
-            NativeAuthV2CommandResult.SignInAfterResetPasswordRequired(correlationId, state) to NativeAuthResultV2.SignInAfterResetPasswordRequired::class,
-            NativeAuthV2CommandResult.SignInAfterSignUpRequired(correlationId, state) to NativeAuthResultV2.SignInAfterSignUpRequired::class,
-            NativeAuthV2CommandResult.PasswordRequired(correlationId, state) to NativeAuthResultV2.PasswordRequired::class,
-            NativeAuthV2CommandResult.AttributesRequired(correlationId, state, emptyList()) to NativeAuthResultV2.AttributesRequired::class,
-            NativeAuthV2CommandResult.AttributesInvalid(correlationId, state, listOf("city"), "invalidRequest", "Invalid city") to NativeAuthResultV2.AttributesInvalid::class,
-            NativeAuthV2CommandResult.CodeRequired(correlationId, state, 8, "***", "email") to NativeAuthResultV2.CodeRequired::class,
-            NativeAuthV2CommandResult.StrongAuthRegistrationRequired(correlationId, state, emptyList()) to NativeAuthResultV2.StrongAuthRegistrationRequired::class
-        )
         for (scenario in listOf(NativeAuthFlowScenarioV2.SIGN_IN, NativeAuthFlowScenarioV2.SIGN_UP, NativeAuthFlowScenarioV2.RESET_PASSWORD)) {
+            val state = NativeAuthV2ContinuationStateTestFactory.create(
+                "next-correlation", scenario = NativeAuthV2FlowScenario.valueOf(scenario.name))
+            val successors = listOf(
+                NativeAuthV2CommandResult.MFARequired(correlationId, state, emptyList()) to NativeAuthResultV2.MFARequired::class,
+                NativeAuthV2CommandResult.NewPasswordRequired(correlationId, state) to NativeAuthResultV2.NewPasswordRequired::class,
+                NativeAuthV2CommandResult.SignInAfterResetPasswordRequired(correlationId, state) to NativeAuthResultV2.SignInAfterResetPasswordRequired::class,
+                NativeAuthV2CommandResult.SignInAfterSignUpRequired(correlationId, state) to NativeAuthResultV2.SignInAfterSignUpRequired::class,
+                NativeAuthV2CommandResult.PasswordRequired(correlationId, state) to NativeAuthResultV2.PasswordRequired::class,
+                NativeAuthV2CommandResult.AttributesRequired(correlationId, state, emptyList()) to NativeAuthResultV2.AttributesRequired::class,
+                NativeAuthV2CommandResult.AttributesInvalid(correlationId, state, listOf("city"), "invalidRequest", "Invalid city") to NativeAuthResultV2.AttributesInvalid::class,
+                NativeAuthV2CommandResult.CodeRequired(correlationId, state, 8, "***", "email") to NativeAuthResultV2.CodeRequired::class,
+                NativeAuthV2CommandResult.StrongAuthRegistrationRequired(correlationId, state, emptyList()) to NativeAuthResultV2.StrongAuthRegistrationRequired::class
+            )
             val verification = StrongAuthVerificationRequiredStateV2(
-                correlationId, scenario, original.config, original.continuationState, "sms"
+                correlationId, scenario, original.config, state, "sms"
             )
             for ((common, expected) in successors) {
                 enqueueResult(common, NativeAuthV2ActivateCommand::class)
@@ -602,9 +603,11 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             commandClass: KClass<out BaseCommand<*>>,
             operation: suspend () -> NativeAuthResultV2
         ) {
+            val registrationState = NativeAuthV2ContinuationStateTestFactory.create(
+                correlationId, scenario = NativeAuthV2FlowScenario.valueOf(scenario.name))
             enqueueResult(
                 NativeAuthV2CommandResult.StrongAuthRegistrationRequired(
-                    correlationId, state, listOf(NativeAuthV2AuthMethod("sms-1", "sms", null))
+                    correlationId, registrationState, listOf(NativeAuthV2AuthMethod("sms-1", "sms", null))
                 ), commandClass
             )
             val result = operation()
@@ -612,7 +615,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             result as NativeAuthResultV2.StrongAuthRegistrationRequired
             assertEquals(scenario, result.scenario)
             assertEquals(scenario, result.nextState.scenario)
-            assertSame(state, result.nextState.continuationState)
+            assertSame(registrationState, result.nextState.continuationState)
             assertEquals("sms-1", result.authMethods.single().id)
         }
         check(NativeAuthFlowScenarioV2.SIGN_IN, NativeAuthV2SignInStartCommand::class) {

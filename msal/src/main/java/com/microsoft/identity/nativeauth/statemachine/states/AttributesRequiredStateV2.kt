@@ -174,6 +174,10 @@ internal suspend fun submitAttributesInternal(
             val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
             ensureActive()
             when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitAttributesCommandResult>()) {
+                is NativeAuthV2CommandResult.ExistingAccountCodeRequired ->
+                    result.toExistingAccountResult(config)
+                is NativeAuthV2CommandResult.ExistingAccountPasswordRequired ->
+                    result.toExistingAccountResult(config)
                 is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
                     result.toRegistrationResult(scenario, config)
                 is NativeAuthV2CommandResult.CodeRequired -> {

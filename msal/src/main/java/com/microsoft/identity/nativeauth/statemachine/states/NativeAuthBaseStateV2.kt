@@ -31,6 +31,7 @@ import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeA
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2StrongAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
+import com.microsoft.identity.common.java.nativeauth.providers.v2.NativeAuthV2FlowScenario
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.toListOfV2AuthMethods
 import com.microsoft.identity.nativeauth.toListOfRequiredUserAttributeV2
@@ -190,15 +191,38 @@ abstract class NativeAuthBaseStateV2 internal constructor(
     override fun describeContents(): Int = 0
 }
 
-/** Maps an enrollment interruption without changing the originating public flow. */
+private fun NativeAuthV2ContinuationState.continuesExistingAccountSignIn(
+    originalScenario: NativeAuthFlowScenarioV2
+): Boolean = originalScenario == NativeAuthFlowScenarioV2.SIGN_UP &&
+    flowScenario() == NativeAuthV2FlowScenario.SIGN_IN
+
+/** Maps enrollment, preserving an existing-account transition from sign-up to sign-in. */
 internal fun NativeAuthV2CommandResult.StrongAuthRegistrationRequired.toRegistrationResult(
     scenario: NativeAuthFlowScenarioV2,
     config: NativeAuthPublicClientApplicationConfiguration
 ): NativeAuthResultV2.StrongAuthRegistrationRequired {
     val methods = authMethods.toListOfV2AuthMethods()
-    val state = StrongAuthRegistrationRequiredStateV2(correlationId, scenario, config, continuationState, methods)
-    return NativeAuthResultV2.StrongAuthRegistrationRequired(state, scenario, state.authMethods)
+    val resultScenario = if (continuationState.continuesExistingAccountSignIn(scenario)) {
+        NativeAuthFlowScenarioV2.SIGN_IN
+    } else scenario
+    val state = StrongAuthRegistrationRequiredStateV2(correlationId, resultScenario, config, continuationState, methods)
+    return NativeAuthResultV2.StrongAuthRegistrationRequired(state, resultScenario, state.authMethods)
 }
+
+/** Exposes the existing-account transition independently of normal sign-up code collection. */
+internal fun NativeAuthV2CommandResult.ExistingAccountCodeRequired.toExistingAccountResult(
+    config: NativeAuthPublicClientApplicationConfiguration
+): NativeAuthResultV2.ExistingAccountCodeRequired = NativeAuthResultV2.ExistingAccountCodeRequired(
+    ExistingAccountCodeRequiredStateV2(continuationState, config),
+    codeLength, challengeTargetLabel, challengeChannel
+)
+
+/** Exposes current-password sign-in independently of sign-up password creation. */
+internal fun NativeAuthV2CommandResult.ExistingAccountPasswordRequired.toExistingAccountResult(
+    config: NativeAuthPublicClientApplicationConfiguration
+): NativeAuthResultV2.ExistingAccountPasswordRequired = NativeAuthResultV2.ExistingAccountPasswordRequired(
+    ExistingAccountPasswordRequiredStateV2(continuationState, config)
+)
 
 /**
  * Used by states that never carry a continuation state, so

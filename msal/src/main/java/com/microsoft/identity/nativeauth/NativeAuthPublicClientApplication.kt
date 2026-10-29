@@ -24,6 +24,7 @@
 package com.microsoft.identity.nativeauth
 
 import com.microsoft.identity.nativeauth.statemachine.states.toRegistrationResult
+import com.microsoft.identity.nativeauth.statemachine.states.toExistingAccountResult
 
 import android.content.Context
 import com.microsoft.identity.client.AccountAdapter
@@ -904,6 +905,10 @@ class NativeAuthPublicClientApplication(
                 ensureActive()
 
                 when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SignUpStartCommandResult>()) {
+                    is NativeAuthV2CommandResult.ExistingAccountCodeRequired ->
+                        result.toExistingAccountResult(nativeAuthConfig)
+                    is NativeAuthV2CommandResult.ExistingAccountPasswordRequired ->
+                        result.toExistingAccountResult(nativeAuthConfig)
                     is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
                         result.toRegistrationResult(NativeAuthFlowScenarioV2.SIGN_UP, nativeAuthConfig)
                     is NativeAuthV2CommandResult.CodeRequired -> {
