@@ -169,6 +169,37 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
+    fun signUpCodeStateRetainsProfileButNeverParcelsPendingPassword() {
+        val password = "pending-password-never-parceled".toCharArray()
+        val continuation = NativeAuthV2ContinuationStateTestFactory.create(
+            correlationId,
+            entryRelation = com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2LinkRelation.SIGN_UP,
+            scenario = com.microsoft.identity.common.java.nativeauth.providers.v2.NativeAuthV2FlowScenario.SIGN_UP
+        ).withPendingSignUpAttributes(mapOf("displayName" to "Original"), true, password)
+        val state = CodeRequiredStateV2(continuation, NativeAuthFlowScenarioV2.SIGN_UP, config)
+        try {
+            val parcel = Parcel.obtain()
+            try {
+                state.writeToParcel(parcel, 0)
+                val bytes = parcel.marshall()
+                assertFalse(String(bytes, Charsets.ISO_8859_1).contains(String(password)))
+                assertFalse(String(bytes, Charsets.UTF_16LE).contains(String(password)))
+            } finally {
+                parcel.recycle()
+            }
+            val restored = assertParcelRoundTrip(state, CodeRequiredStateV2.CREATOR)
+            assertEquals(mapOf("displayName" to "Original"),
+                restored.continuationState?.pendingSignUpAttributesForSubmission())
+            assertTrue(restored.continuationState?.requiresSignUpPasswordRecollection() == true)
+            assertEquals(null, restored.continuationState?.pendingSignUpPasswordForSubmission())
+            assertFalse(continuation.requiresSignUpPasswordRecollection())
+        } finally {
+            password.fill('\u0000')
+            continuation.withoutPendingSignUpAttributes()
+        }
+    }
+
+    @Test
     fun testStatesAreParcelable() {
         val existing = NativeAuthV2ContinuationStateTestFactory.create(
             correlationId,

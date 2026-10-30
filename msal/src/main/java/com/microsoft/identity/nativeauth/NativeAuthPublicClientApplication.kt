@@ -865,8 +865,8 @@ class NativeAuthPublicClientApplication(
         return withContext(Dispatchers.IO) {
             var correlationId = DiagnosticContext.INSTANCE.threadCorrelationId ?: "UNSET"
             // Copied so the caller keeps ownership of its own buffer, while this copy is cleared
-            // below on every exit path, including cancellation. A password is never stored in a
-            // Parcelable state or in the opaque continuation state.
+            // below on every exit path, including cancellation. Common owns any deferred
+            // in-memory copy and excludes it from serialized continuation state.
             val passwordCopy = parameters.password?.copyOf()
             try {
                 // Kept inside the try so an already-signed-in account is surfaced through the V2

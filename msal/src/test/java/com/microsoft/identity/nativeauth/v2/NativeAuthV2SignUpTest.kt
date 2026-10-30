@@ -442,8 +442,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         application.signUpV2(signUpParameters(password = callerPassword))
 
         // signUpV2 submits a distinct, owned copy -- never the caller's own array -- and wipes that
-        // copy on exit, so the caller's buffer stays intact while the owned copy is zeroed. A
-        // password is never stored in a Parcelable state or in the opaque continuation state.
+        // copy on exit. Common separately owns any non-serialized pending password.
         assertNotSame(callerPassword, capturedOnCompletion)
         assertEquals("Password123!", String(callerPassword))
         assertPasswordCleared(capturedOnCompletion!!)

@@ -2,6 +2,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+- [PATCH] Native Auth V2 sign-up sends the username at start and retains upfront password/profile values through verification and resend until attribute collection. Email cannot be collected as an attribute; restored flows recollect non-serialized passwords.
 - [MAJOR] Native Auth V2 errors now use NativeAuthErrorV2. Replace operation-specific V2 error type checks with its classifiers; rejected sign-in passwords use isInvalidCredentials, not isInvalidPassword. V1 is unchanged (AB#3784695).
 - [MINOR] Native Auth V2 sign-in, sign-up and password-reset entries accept scopes and claims. Scope is also sent at token exchange; claims are sent only at entry. Null continuation scopes retain entry scopes, while explicit empty scopes request default OIDC scopes (AB#3784690).
 
