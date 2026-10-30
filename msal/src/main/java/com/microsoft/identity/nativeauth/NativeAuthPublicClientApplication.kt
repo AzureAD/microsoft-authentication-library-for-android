@@ -73,6 +73,7 @@ import com.microsoft.identity.common.nativeauth.internal.commands.SignUpStartCom
 import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.common.nativeauth.internal.controllers.v2.NativeAuthV2FlowController
 import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParametersV2
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParametersV2
@@ -1092,11 +1093,11 @@ class NativeAuthPublicClientApplication(
         }
     }
 
-    override suspend fun resetPasswordV2(parameters: NativeAuthResetPasswordParameters): NativeAuthResultV2 {
+    override suspend fun resetPasswordV2(parameters: NativeAuthResetPasswordParametersV2): NativeAuthResultV2 {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = null,
-            methodName = "${TAG}.resetPasswordV2(parameters: NativeAuthResetPasswordParameters)"
+            methodName = "${TAG}.resetPasswordV2(parameters: NativeAuthResetPasswordParametersV2)"
         )
         return withContext(Dispatchers.IO) {
             var correlationId = DiagnosticContext.INSTANCE.threadCorrelationId ?: "UNSET"
@@ -1270,13 +1271,13 @@ class NativeAuthPublicClientApplication(
         }
     }
 
-    override fun resetPasswordV2(parameters: NativeAuthResetPasswordParameters, callback: NativeAuthV2Callback) {
+    override fun resetPasswordV2(parameters: NativeAuthResetPasswordParametersV2, callback: NativeAuthV2Callback) {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = null,
-            methodName = "${TAG}.resetPasswordV2(parameters: NativeAuthResetPasswordParameters, callback: NativeAuthV2Callback)"
+            methodName = "${TAG}.resetPasswordV2(parameters: NativeAuthResetPasswordParametersV2, callback: NativeAuthV2Callback)"
         )
-        val parametersSnapshot = NativeAuthResetPasswordParameters(parameters.username)
+        val parametersSnapshot = NativeAuthResetPasswordParametersV2(parameters.username)
         val snapshotError = try {
             parametersSnapshot.scopes = parameters.scopes?.toList()
             parametersSnapshot.claimsRequest = parameters.claimsRequest?.let { claims ->
