@@ -95,7 +95,7 @@ import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeA
 import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.UserAttributes
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParametersV2
-import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParametersV2
 import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordMethodRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
@@ -625,7 +625,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             application.signUpV2(NativeAuthSignUpParametersV2(username))
         }
         check(NativeAuthFlowScenarioV2.RESET_PASSWORD, NativeAuthV2ResetPasswordStartCommand::class) {
-            application.resetPasswordV2(NativeAuthResetPasswordParameters(username))
+            application.resetPasswordV2(NativeAuthResetPasswordParametersV2(username))
         }
         for (scenario in listOf(NativeAuthFlowScenarioV2.SIGN_IN, NativeAuthFlowScenarioV2.SIGN_UP, NativeAuthFlowScenarioV2.RESET_PASSWORD)) {
             val code = CodeRequiredStateV2(state, scenario, config)

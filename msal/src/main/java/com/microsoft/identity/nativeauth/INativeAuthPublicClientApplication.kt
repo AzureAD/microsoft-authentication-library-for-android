@@ -26,6 +26,7 @@ import com.microsoft.identity.client.IPublicClientApplication
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParametersV2
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParametersV2
@@ -255,7 +256,7 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      * [com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes.CLIENT_EXCEPTION] if an
      * account is already signed in.
      */
-    suspend fun resetPasswordV2(parameters: NativeAuthResetPasswordParameters): NativeAuthResultV2
+    suspend fun resetPasswordV2(parameters: NativeAuthResetPasswordParametersV2): NativeAuthResultV2
 
     /**
      * Reset password for a user with the Native Auth V2 surface; callback variant.
@@ -268,5 +269,5 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      * [com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2] with
      * [com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes.CLIENT_EXCEPTION].
      */
-    fun resetPasswordV2(parameters: NativeAuthResetPasswordParameters, callback: NativeAuthPublicClientApplication.NativeAuthV2Callback)
+    fun resetPasswordV2(parameters: NativeAuthResetPasswordParametersV2, callback: NativeAuthPublicClientApplication.NativeAuthV2Callback)
 }
