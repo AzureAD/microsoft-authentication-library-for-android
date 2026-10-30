@@ -24,7 +24,6 @@
 package com.microsoft.identity.nativeauth.parameters
 
 import com.microsoft.identity.nativeauth.UserAttributes
-import com.microsoft.identity.client.claims.ClaimsRequest
 
 /**
  * Encapsulates the parameters passed to the signUp method of NativeAuthPublicClientApplication
