@@ -38,7 +38,7 @@ import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication;
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration;
 import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters;
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters;
-import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters;
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParametersV2;
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2;
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2;
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2;
@@ -105,7 +105,7 @@ public class NativeAuthV2InterfaceJavaTest extends PublicClientApplicationAbstra
         // A blank username is rejected before any command is dispatched, so this exercises the
         // Java callback surface of the now-implemented signUpV2 without needing a service.
         final ResultFuture<NativeAuthResultV2> future = new ResultFuture<>();
-        application.signUpV2(new NativeAuthSignUpParameters(" "), newCallback(future));
+        application.signUpV2(new NativeAuthSignUpParametersV2(" "), newCallback(future));
         final NativeAuthResultV2 result = future.get(30, TimeUnit.SECONDS);
         assertTrue(result instanceof NativeAuthErrorV2);
         assertTrue(((NativeAuthErrorV2) result).isInvalidUsername());
@@ -163,7 +163,7 @@ public class NativeAuthV2InterfaceJavaTest extends PublicClientApplicationAbstra
     @Test
     public void resultDefaultImplsDelegateToBaseResult() throws ExecutionException, InterruptedException, TimeoutException {
         final ResultFuture<NativeAuthResultV2> future = new ResultFuture<>();
-        application.signUpV2(new NativeAuthSignUpParameters(username), newCallback(future));
+        application.signUpV2(new NativeAuthSignUpParametersV2(username), newCallback(future));
         final NativeAuthResultV2 result = future.get(30, TimeUnit.SECONDS);
         assertFalse(NativeAuthResultV2.DefaultImpls.isSuccess(result));
         assertFalse(NativeAuthResultV2.DefaultImpls.isComplete(result));

@@ -911,7 +911,6 @@ public class CommandParametersTest {
             final NativeAuthPublicClientApplicationConfiguration configuration = getNativeAuthConfiguration(NATIVE_AUTH_CONFIG_FILE);
             final OAuth2TokenCache tokenCache = getCache();
             final String username = "username@example.com";
-            final char[] password = "Password123!".toCharArray();
             final Map<String, String> attributes = new HashMap<>();
             attributes.put("city", "Redmond");
 
@@ -920,15 +919,12 @@ public class CommandParametersTest {
                             configuration,
                             tokenCache,
                             username,
-                            password,
                             attributes
                     );
 
             Assert.assertEquals(username, commandParameters.username);
-            Assert.assertSame(password, commandParameters.password);
             Assert.assertSame(attributes, commandParameters.attributes);
-            // Sign-up requests no scopes or claims at its start; they are supplied at the
-            // sign-in-after-sign-up step instead, matching the reset-password flow and MSAL iOS.
+            // The overload without scopes or claims leaves them unset.
             Assert.assertNull(commandParameters.scopes);
             Assert.assertEquals(configuration.getChallengeTypes(), commandParameters.challengeType);
             // The start step has no continuation state to source a correlation id from, so it uses

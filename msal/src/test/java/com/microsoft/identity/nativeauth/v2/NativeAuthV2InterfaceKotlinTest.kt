@@ -43,7 +43,6 @@ import com.microsoft.identity.common.java.controllers.CommandResult
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.logging.DiagnosticContext
-import com.microsoft.identity.common.java.logging.RequestContext
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2ResendCodeCommandResult
@@ -73,6 +72,7 @@ import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfig
 import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParametersV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
@@ -100,7 +100,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlinx.coroutines.withContext
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
@@ -159,7 +158,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             })
             assertCaptured()
             enqueueResult(result, NativeAuthV2SignUpStartCommand::class, ::capture)
-            application.signUpV2(NativeAuthSignUpParameters(username).also {
+            application.signUpV2(NativeAuthSignUpParametersV2(username).also {
                 it.scopes = scopes
                 it.claimsRequest = claims
             })
@@ -174,7 +173,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun sharedEntryScopesAndClaimsDoNotChangeV1CommandInputsOrErrors() = runTest {
+    fun v1SignUpAndResetPasswordPreserveCommandInputsAndErrors() = runTest {
         val claims = com.microsoft.identity.client.claims.ClaimsRequest().also { it.requestClaimInIdToken("auth_time", null) }
         var signUpInputs: com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpStartCommandParameters? = null
         var resetInputs: com.microsoft.identity.common.java.nativeauth.commands.parameters.ResetPasswordStartCommandParameters? = null
@@ -185,10 +184,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         enqueueResult(result, com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordStartCommand::class) {
             resetInputs = it.parameters as com.microsoft.identity.common.java.nativeauth.commands.parameters.ResetPasswordStartCommandParameters
         }
-        val signUp = application.signUp(NativeAuthSignUpParameters(username).also {
-            it.scopes = listOf("V2.Only")
-            it.claimsRequest = claims
-        })
+        val signUp = application.signUp(NativeAuthSignUpParameters(username))
         val reset = application.resetPassword(NativeAuthResetPasswordParameters(username).also {
             it.scopes = listOf("V2.Only")
             it.claimsRequest = claims
@@ -198,6 +194,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         assertEquals(username, signUpInputs?.username)
         assertEquals(null, signUpInputs?.userAttributes)
         assertEquals(null, signUpInputs?.password)
+        assertEquals(ErrorTypes.INVALID_STATE, (signUp as com.microsoft.identity.nativeauth.statemachine.errors.SignUpError).error)
         assertEquals(username, resetInputs?.username)
         assertEquals("test_stop", (reset as com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError).error)
     }
@@ -275,7 +272,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
                 assertEquals("Password123!", String(password))
                 // Completion may clear a previous case's buffer again after its job leaves the scope.
                 val scenarioClearedPasswords = clearedPasswords.filter { it !in previouslyClearedPasswords }
-                if (scenario == NativeAuthFlowScenarioV2.RESET_PASSWORD) {
+                if (scenario != NativeAuthFlowScenarioV2.SIGN_IN) {
                     assertTrue(scenarioClearedPasswords.isEmpty())
                 } else {
                     assertTrue(scenarioClearedPasswords.isNotEmpty())
@@ -334,7 +331,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
                     assertSame(cancellation, e)
                 }
                 assertEquals("Password123!", String(password))
-                assertEquals(if (scenario == NativeAuthFlowScenarioV2.RESET_PASSWORD) 0 else 1, clearedPasswords.size)
+                assertEquals(if (scenario == NativeAuthFlowScenarioV2.SIGN_IN) 1 else 0, clearedPasswords.size)
                 clearedPasswords.forEach {
                     assertTrue(it !== password)
                     assertTrue(it.all { char -> char == '\u0000' })
@@ -379,8 +376,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
                 }, callback
             )
             NativeAuthFlowScenarioV2.SIGN_UP -> application.signUpV2(
-                NativeAuthSignUpParameters(username).also {
-                    it.password = password
+                NativeAuthSignUpParametersV2(username).also {
                     it.claimsRequest = claims
                     it.scopes = scopes
                 }, callback
@@ -429,7 +425,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2SignUpStartCommand::class
         )
 
-        val result = application.signUpV2(NativeAuthSignUpParameters(username = username))
+        val result = application.signUpV2(NativeAuthSignUpParametersV2(username = username))
 
         assertTrue(result is NativeAuthResultV2.CodeRequired)
         result as NativeAuthResultV2.CodeRequired
@@ -691,23 +687,17 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
 
     @Test
     fun resetPasswordV2UsesDiagnosticCorrelationIdForBlankUsername() = runTest {
-        withContext(Dispatchers.IO) {
-            val previousContext = DiagnosticContext.INSTANCE.requestContext
-            val requestContext = RequestContext().apply {
-                put(DiagnosticContext.CORRELATION_ID, correlationId)
-            }
-            // Seed the real thread-local on the IO thread used by the nested reset operation.
-            DiagnosticContext.INSTANCE.setRequestContext(requestContext)
-            try {
-                val error = application.resetPasswordV2(
-                    NativeAuthResetPasswordParameters(username = " ")
-                ) as NativeAuthErrorV2
+        mockkObject(DiagnosticContext.INSTANCE)
+        try {
+            every { DiagnosticContext.INSTANCE.threadCorrelationId } returns correlationId
+            val error = application.resetPasswordV2(
+                NativeAuthResetPasswordParameters(username = " ")
+            ) as NativeAuthErrorV2
 
-                assertTrue(error.isInvalidUsername())
-                assertEquals(correlationId, error.correlationId)
-            } finally {
-                DiagnosticContext.INSTANCE.setRequestContext(previousContext)
-            }
+            assertTrue(error.isInvalidUsername())
+            assertEquals(correlationId, error.correlationId)
+        } finally {
+            unmockkObject(DiagnosticContext.INSTANCE)
         }
     }
 
@@ -1127,7 +1117,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     @Test
     fun signUpV2RoutesExceptionToOnError() {
         assertRoutesToOnError { future ->
-            application.signUpV2(NativeAuthSignUpParameters(username = username), throwingCallback(future))
+            application.signUpV2(NativeAuthSignUpParametersV2(username = username), throwingCallback(future))
         }
     }
 

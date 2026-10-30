@@ -75,6 +75,7 @@ import com.microsoft.identity.common.nativeauth.internal.controllers.v2.NativeAu
 import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParametersV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccountError
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
@@ -856,18 +857,14 @@ class NativeAuthPublicClientApplication(
         }
     }
 
-    override suspend fun signUpV2(parameters: NativeAuthSignUpParameters): NativeAuthResultV2 {
+    override suspend fun signUpV2(parameters: NativeAuthSignUpParametersV2): NativeAuthResultV2 {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = null,
-            methodName = "${TAG}.signUpV2(parameters: NativeAuthSignUpParameters)"
+            methodName = "${TAG}.signUpV2(parameters: NativeAuthSignUpParametersV2)"
         )
         return withContext(Dispatchers.IO) {
             var correlationId = DiagnosticContext.INSTANCE.threadCorrelationId ?: "UNSET"
-            // Copied so the caller keeps ownership of its own buffer, while this copy is cleared
-            // below on every exit path, including cancellation. Common owns any deferred
-            // in-memory copy and excludes it from serialized continuation state.
-            val passwordCopy = parameters.password?.copyOf()
             try {
                 // Kept inside the try so an already-signed-in account is surfaced through the V2
                 // result contract as a NativeAuthErrorV2, rather than escaping as a thrown
@@ -887,7 +884,6 @@ class NativeAuthPublicClientApplication(
                     nativeAuthConfig,
                     nativeAuthConfig.oAuth2TokenCache,
                     parameters.username,
-                    passwordCopy,
                     parameters.attributes?.toMap(),
                     parameters.scopes?.toList(),
                     parameters.claimsRequest
@@ -1053,21 +1049,18 @@ class NativeAuthPublicClientApplication(
                     scenario = NativeAuthFlowScenarioV2.SIGN_UP,
                     exception = e
                 )
-            } finally {
-                StringUtil.overwriteWithNull(passwordCopy)
             }
         }
     }
 
-    override fun signUpV2(parameters: NativeAuthSignUpParameters, callback: NativeAuthV2Callback) {
+    override fun signUpV2(parameters: NativeAuthSignUpParametersV2, callback: NativeAuthV2Callback) {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = null,
-            methodName = "${TAG}.signUpV2(parameters: NativeAuthSignUpParameters, callback: NativeAuthV2Callback)"
+            methodName = "${TAG}.signUpV2(parameters: NativeAuthSignUpParametersV2, callback: NativeAuthV2Callback)"
         )
-        val parametersSnapshot = NativeAuthSignUpParameters(parameters.username)
+        val parametersSnapshot = NativeAuthSignUpParametersV2(parameters.username)
         val snapshotError = try {
-            parametersSnapshot.password = parameters.password?.copyOf()
             parametersSnapshot.scopes = parameters.scopes?.toList()
             parametersSnapshot.claimsRequest = parameters.claimsRequest?.let { claims ->
                 ClaimsRequest.getClaimsRequestFromJsonString(ClaimsRequest.getJsonStringFromClaimsRequest(claims))
@@ -1077,10 +1070,8 @@ class NativeAuthPublicClientApplication(
             }
             null
         } catch (e: CancellationException) {
-            StringUtil.overwriteWithNull(parametersSnapshot.password)
             throw e
         } catch (e: Exception) {
-            StringUtil.overwriteWithNull(parametersSnapshot.password)
             val correlationId = DiagnosticContext.INSTANCE.threadCorrelationId ?: "UNSET"
             Logger.error(TAG, correlationId, "Exception thrown in signUpV2", e)
             NativeAuthErrorV2(
@@ -1091,7 +1082,7 @@ class NativeAuthPublicClientApplication(
                 exception = e
             )
         }
-        pcaScope.launchOwningPasswordSnapshot(parametersSnapshot.password) {
+        pcaScope.launch {
             try {
                 callback.onResult(snapshotError ?: signUpV2(parametersSnapshot))
             } catch (e: MsalException) {
