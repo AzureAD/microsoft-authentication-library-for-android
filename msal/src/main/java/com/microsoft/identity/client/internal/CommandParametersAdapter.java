@@ -1139,9 +1139,6 @@ public class CommandParametersAdapter {
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param username username of the account being created
-     * @param password (Optional) password to submit upfront once the server requests it. The
-     *                 caller's array is passed through unchanged so the same buffer can be cleared
-     *                 later.
      * @param attributes (Optional) custom user attributes to submit upfront, keyed by attribute name
      * @return Command parameter object
      */
@@ -1149,9 +1146,8 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String username,
-            @Nullable final char[] password,
             @Nullable final Map<String, String> attributes) throws ClientException {
-        return createSignUpV2StartCommandParameters(configuration, tokenCache, username, password, attributes, null, null);
+        return createSignUpV2StartCommandParameters(configuration, tokenCache, username, attributes, null, null);
     }
 
     /** Creates V2 sign-up entry parameters with optional scopes and claims. */
@@ -1159,7 +1155,6 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String username,
-            @Nullable final char[] password,
             @Nullable final Map<String, String> attributes,
             @Nullable final List<String> scopes,
             @Nullable final ClaimsRequest claimsRequest) throws ClientException {
@@ -1192,7 +1187,6 @@ public class CommandParametersAdapter {
                         .requestInterceptor(configuration.getRequestInterceptor())
                         .capabilities(configuration.getCapabilities())
                         .username(username)
-                        .password(password)
                         .attributes(attributes)
                         .correlationId(DiagnosticContext.INSTANCE.getThreadCorrelationId())
                         .build();

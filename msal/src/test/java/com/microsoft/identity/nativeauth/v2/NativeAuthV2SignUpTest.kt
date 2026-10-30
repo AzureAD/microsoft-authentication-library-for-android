@@ -70,7 +70,7 @@ import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2Su
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.UserAttributes
-import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParametersV2
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
@@ -235,7 +235,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun signUpV2WithPasswordSurfacesCodeRequired() = runTest {
+    fun signUpV2SurfacesCodeRequired() = runTest {
         enqueueResult(
             NativeAuthV2CommandResult.CodeRequired(
                 correlationId,
@@ -257,13 +257,13 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun signUpV2WithoutPasswordSurfacesPasswordRequired() = runTest {
+    fun signUpV2SurfacesPasswordRequired() = runTest {
         enqueueResult(
             NativeAuthV2CommandResult.PasswordRequired(correlationId, createContinuationState()),
             NativeAuthV2SignUpStartCommand::class
         )
 
-        val result = application.signUpV2(signUpParameters(password = null))
+        val result = application.signUpV2(signUpParameters())
 
         assertTrue(result is NativeAuthResultV2.PasswordRequired)
         assertEquals(
@@ -429,46 +429,19 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun signUpV2ClearsTheOwnedPasswordCopyOnCompletionAndCancellationWhileLeavingTheCallersBufferIntact() = runTest {
-        var capturedOnCompletion: CharArray? = null
-        enqueueResult(
-            NativeAuthV2CommandResult.PasswordRequired(correlationId, createContinuationState()),
-            NativeAuthV2SignUpStartCommand::class
-        ) { command ->
-            capturedOnCompletion = (command.parameters as SignUpV2StartCommandParameters).password
+    fun signUpV2EntryTypesDoNotExposePassword() {
+        for (type in listOf(
+            NativeAuthSignUpParametersV2::class.java,
+            SignUpV2StartCommandParameters::class.java
+        )) {
+            assertFalse(type.declaredFields.any { it.name == "password" })
+            assertFalse(type.methods.any { it.name == "getPassword" || it.name == "setPassword" })
         }
-
-        val callerPassword = "Password123!".toCharArray()
-        application.signUpV2(signUpParameters(password = callerPassword))
-
-        // signUpV2 submits a distinct, owned copy -- never the caller's own array -- and wipes that
-        // copy on exit. Common separately owns any non-serialized pending password.
-        assertNotSame(callerPassword, capturedOnCompletion)
-        assertEquals("Password123!", String(callerPassword))
-        assertPasswordCleared(capturedOnCompletion!!)
-
-        var capturedOnCancellation: CharArray? = null
-        enqueueCancellation(NativeAuthV2SignUpStartCommand::class) { command ->
-            capturedOnCancellation = (command.parameters as SignUpV2StartCommandParameters).password
-        }
-        val secondCallerPassword = "Password123!".toCharArray()
-        try {
-            application.signUpV2(signUpParameters(password = secondCallerPassword))
-            fail("Expected CancellationException")
-        } catch (_: CancellationException) {
-            // Expected.
-        }
-
-        // The owned copy must be cleared even when the command is cancelled, while the caller's
-        // own buffer -- which it never handed over -- remains untouched.
-        assertEquals("Password123!", String(secondCallerPassword))
-        assertPasswordCleared(capturedOnCancellation!!)
     }
 
     @Test
     fun signUpV2CallbackSnapshotsMutableParametersSynchronouslyBeforeLaunch() = runTest {
         var capturedUsername: String? = null
-        var capturedPassword: CharArray? = null
         var capturedAttributes: Map<String, String>? = null
         var capturedScopes: List<String>? = null
         var capturedClaims: String? = null
@@ -478,17 +451,14 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         ) { command ->
             val commandParameters = command.parameters as SignUpV2StartCommandParameters
             capturedUsername = commandParameters.username
-            capturedPassword = commandParameters.password?.copyOf()
             capturedAttributes = commandParameters.attributes?.toMap()
             capturedScopes = commandParameters.scopes
             capturedClaims = commandParameters.claimsRequestJson
         }
 
-        val callerPassword = "Password123!".toCharArray()
         val attributesBuilder = UserAttributes.Builder().city("Redmond")
         val parameters = signUpParameters(
             username = username,
-            password = callerPassword,
             attributes = attributesBuilder.build()
         )
         val scopes = mutableListOf("User.Read")
@@ -504,9 +474,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
                 override fun onError(exception: BaseException) = future.setException(exception)
             }
         )
-        callerPassword.fill('X')
         attributesBuilder.city("Seattle")
-        parameters.password = null
         parameters.attributes = null
         scopes.clear()
         claims.requestClaimInIdToken("changed", null)
@@ -515,7 +483,6 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         future.get(10, TimeUnit.SECONDS)
 
         assertEquals(username, capturedUsername)
-        assertEquals("Password123!", String(capturedPassword!!))
         assertEquals(mapOf("city" to "Redmond"), capturedAttributes)
         assertEquals(listOf("User.Read"), capturedScopes)
         assertEquals(expectedClaims, capturedClaims)
@@ -543,7 +510,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2CommandResult.PasswordRequired(correlationId, createContinuationState()),
             NativeAuthV2SignUpStartCommand::class
         )
-        val suspendResult = application.signUpV2(signUpParameters(password = null))
+        val suspendResult = application.signUpV2(signUpParameters())
 
         enqueueResult(
             NativeAuthV2CommandResult.PasswordRequired(correlationId, createContinuationState()),
@@ -551,7 +518,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         )
         val future = ResultFuture<NativeAuthResultV2>()
         application.signUpV2(
-            signUpParameters(password = null),
+            signUpParameters(),
             object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
                 override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
                 override fun onError(exception: BaseException) = future.setException(exception)
@@ -855,6 +822,37 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
+    fun submitPasswordClearsOwnedBufferOnCompletionAndCancellation() = runTest {
+        val state = signUpPasswordRequiredState()
+        var ownedPassword: CharArray? = null
+        val capturePassword: (BaseCommand<*>) -> Unit = {
+            ownedPassword = (it.parameters as NativeAuthV2SubmitAttributesCommandParameters).password
+        }
+        val callerPassword = "Password123!".toCharArray()
+        enqueueResult(
+            NativeAuthV2CommandResult.SignInAfterSignUpRequired(correlationId, createContinuationState()),
+            NativeAuthV2SubmitAttributesCommand::class,
+            capturePassword
+        )
+
+        assertTrue(state.submitPassword(callerPassword) is NativeAuthResultV2.SignInAfterSignUpRequired)
+        assertNotSame(callerPassword, ownedPassword)
+        assertEquals("Password123!", String(callerPassword))
+        assertPasswordCleared(ownedPassword!!)
+
+        enqueueCancellation(NativeAuthV2SubmitAttributesCommand::class, capturePassword)
+        try {
+            state.submitPassword(callerPassword)
+            fail("Expected CancellationException")
+        } catch (_: CancellationException) {
+            // Cancellation still releases the owned password buffer.
+        }
+        assertNotSame(callerPassword, ownedPassword)
+        assertEquals("Password123!", String(callerPassword))
+        assertPasswordCleared(ownedPassword!!)
+    }
+
+    @Test
     fun submitPasswordWithPolicyViolationIsRetryableInvalidPassword() = runTest {
         val state = signUpPasswordRequiredState()
         // A sign-up password-policy violation comes back as an attribute-validation error on the
@@ -1145,10 +1143,8 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
 
     private fun signUpParameters(
         username: String = this.username,
-        password: CharArray? = "Password123!".toCharArray(),
         attributes: UserAttributes? = null
-    ): NativeAuthSignUpParameters = NativeAuthSignUpParameters(username).also {
-        it.password = password
+    ): NativeAuthSignUpParametersV2 = NativeAuthSignUpParametersV2(username).also {
         it.attributes = attributes
     }
 
@@ -1198,7 +1194,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2CommandResult.PasswordRequired(correlationId, createContinuationState()),
             NativeAuthV2SignUpStartCommand::class
         )
-        return (application.signUpV2(signUpParameters(password = null)) as
+        return (application.signUpV2(signUpParameters()) as
             NativeAuthResultV2.PasswordRequired).nextState
     }
 

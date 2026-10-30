@@ -73,6 +73,7 @@ import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfig
 import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParametersV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
@@ -159,7 +160,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             })
             assertCaptured()
             enqueueResult(result, NativeAuthV2SignUpStartCommand::class, ::capture)
-            application.signUpV2(NativeAuthSignUpParameters(username).also {
+            application.signUpV2(NativeAuthSignUpParametersV2(username).also {
                 it.scopes = scopes
                 it.claimsRequest = claims
             })
@@ -275,7 +276,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
                 assertEquals("Password123!", String(password))
                 // Completion may clear a previous case's buffer again after its job leaves the scope.
                 val scenarioClearedPasswords = clearedPasswords.filter { it !in previouslyClearedPasswords }
-                if (scenario == NativeAuthFlowScenarioV2.RESET_PASSWORD) {
+                if (scenario != NativeAuthFlowScenarioV2.SIGN_IN) {
                     assertTrue(scenarioClearedPasswords.isEmpty())
                 } else {
                     assertTrue(scenarioClearedPasswords.isNotEmpty())
@@ -334,7 +335,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
                     assertSame(cancellation, e)
                 }
                 assertEquals("Password123!", String(password))
-                assertEquals(if (scenario == NativeAuthFlowScenarioV2.RESET_PASSWORD) 0 else 1, clearedPasswords.size)
+                assertEquals(if (scenario == NativeAuthFlowScenarioV2.SIGN_IN) 1 else 0, clearedPasswords.size)
                 clearedPasswords.forEach {
                     assertTrue(it !== password)
                     assertTrue(it.all { char -> char == '\u0000' })
@@ -379,8 +380,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
                 }, callback
             )
             NativeAuthFlowScenarioV2.SIGN_UP -> application.signUpV2(
-                NativeAuthSignUpParameters(username).also {
-                    it.password = password
+                NativeAuthSignUpParametersV2(username).also {
                     it.claimsRequest = claims
                     it.scopes = scopes
                 }, callback
@@ -429,7 +429,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2SignUpStartCommand::class
         )
 
-        val result = application.signUpV2(NativeAuthSignUpParameters(username = username))
+        val result = application.signUpV2(NativeAuthSignUpParametersV2(username = username))
 
         assertTrue(result is NativeAuthResultV2.CodeRequired)
         result as NativeAuthResultV2.CodeRequired
@@ -1127,7 +1127,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     @Test
     fun signUpV2RoutesExceptionToOnError() {
         assertRoutesToOnError { future ->
-            application.signUpV2(NativeAuthSignUpParameters(username = username), throwingCallback(future))
+            application.signUpV2(NativeAuthSignUpParametersV2(username = username), throwingCallback(future))
         }
     }
 
