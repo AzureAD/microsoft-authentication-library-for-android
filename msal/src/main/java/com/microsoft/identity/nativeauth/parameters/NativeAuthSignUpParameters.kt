@@ -32,17 +32,24 @@ import com.microsoft.identity.client.claims.ClaimsRequest
 class NativeAuthSignUpParameters(
     /**
      * username of the account to sign up.
+     * V2 sends this at sign-up start, never as an `email` user attribute.
      */
     val username: String
 ) {
 
     /**
      * password of the account to sign up.
+     *
+     * V2 retains an in-memory copy until attribute collection, including across verification
+     * and code resend. The copy is erased after submission or sign-up completion and is never
+     * serialized. Restoring a saved flow may require the app to supply the password again.
      */
     var password: CharArray? = null
 
     /**
      * User attributes to be used during account creation.
+     * V2 retains supplied profile values until attribute collection, even when verification
+     * occurs first.
      *
      * The attribute names `email` and `password` are reserved and must not be included.
      * Supply them through the dedicated [username] and [password] properties instead.
