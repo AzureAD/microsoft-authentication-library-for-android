@@ -2,6 +2,8 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+- [PATCH] Native Auth V2 private-preview sign-up returns AuthMethodSelectionRequired when an existing account offers multiple supported email/password methods. Call nextState.selectAuthMethod to continue sign-in; a single supported method is challenged automatically.
+- [PATCH] Rename the private-preview ResetPasswordMethodRequired result and ResetPasswordMethodRequiredStateV2 to AuthMethodSelectionRequired and AuthMethodSelectionRequiredStateV2, shared with existing-account selection during sign-up. Password reset behavior and normal sign-in method preferences are unchanged.
 - [PATCH] Native Auth V2 private-preview sign-up now accepts NativeAuthSignUpParametersV2 instead of NativeAuthSignUpParameters. Copy username, attributes, scopes, and claimsRequest to the new type; supply passwords only through PasswordRequiredStateV2.submitPassword when requested. V1 sign-up is unchanged.
 - [PATCH] Native Auth V2 sign-up sends the username at start and retains upfront profile values through verification and resend until attribute collection. Email cannot be collected as an attribute.
 - [MAJOR] Native Auth V2 errors now use NativeAuthErrorV2. Replace operation-specific V2 error type checks with its classifiers; rejected sign-in passwords use isInvalidCredentials, not isInvalidPassword. V1 is unchanged (AB#3784695).

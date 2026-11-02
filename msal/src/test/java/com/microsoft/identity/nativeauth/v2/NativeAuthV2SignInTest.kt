@@ -85,7 +85,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import java.util.concurrent.CountDownLatch
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResetPasswordStartCommand
-import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SelectResetPasswordMethodCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SelectAuthMethodCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResetPasswordSubmitCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitNewPasswordCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignUpStartCommand
@@ -97,7 +97,7 @@ import com.microsoft.identity.nativeauth.UserAttributes
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParametersV2
 import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters
 import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2
-import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordMethodRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.AuthMethodSelectionRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesInvalidStateV2
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
@@ -637,8 +637,8 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             check(scenario, commandClass) { code.submitCode("otp") }
             check(scenario, NativeAuthV2ResendCodeCommand::class) { code.resendCode() }
         }
-        check(NativeAuthFlowScenarioV2.RESET_PASSWORD, NativeAuthV2SelectResetPasswordMethodCommand::class) {
-            ResetPasswordMethodRequiredStateV2(state, listOf(method), config).selectAuthMethod(method)
+        check(NativeAuthFlowScenarioV2.RESET_PASSWORD, NativeAuthV2SelectAuthMethodCommand::class) {
+            AuthMethodSelectionRequiredStateV2(state, listOf(method), config).selectAuthMethod(method)
         }
         // Common also returns this result from password-update polling through the same command.
         check(NativeAuthFlowScenarioV2.RESET_PASSWORD, NativeAuthV2SubmitNewPasswordCommand::class) {

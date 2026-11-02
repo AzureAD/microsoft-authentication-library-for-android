@@ -36,7 +36,7 @@ import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2
-import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordMethodRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.AuthMethodSelectionRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthRegistrationRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthVerificationRequiredStateV2
 import io.mockk.mockk
@@ -180,16 +180,16 @@ class NativeAuthV2ResultsTest {
     }
 
     @Test
-    fun testResetPasswordMethodRequiredExposesImmutableMethods() {
+    fun testAuthMethodSelectionRequiredExposesImmutableMethods() {
         val authMethods =
             mutableListOf(AuthMethod("sms-1", "sms", "+X XXX XXX 34", "sms"))
-        val nextState = ResetPasswordMethodRequiredStateV2(
+        val nextState = AuthMethodSelectionRequiredStateV2(
             correlationId,
             NativeAuthFlowScenarioV2.RESET_PASSWORD,
             config,
             authMethods = authMethods
         )
-        val result = NativeAuthResultV2.ResetPasswordMethodRequired(
+        val result = NativeAuthResultV2.AuthMethodSelectionRequired(
             nextState = nextState,
             scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD
         )

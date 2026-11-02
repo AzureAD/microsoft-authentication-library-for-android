@@ -97,7 +97,7 @@ import com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState
 import com.microsoft.identity.nativeauth.statemachine.states.Callback
 import com.microsoft.identity.nativeauth.statemachine.states.RegisterStrongAuthState
 import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState
-import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordMethodRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.AuthMethodSelectionRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequiredState
@@ -901,6 +901,8 @@ class NativeAuthPublicClientApplication(
                 ensureActive()
 
                 when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SignUpStartCommandResult>()) {
+                    is NativeAuthV2CommandResult.AuthMethodSelectionRequired ->
+                        result.toExistingAccountResult(nativeAuthConfig)
                     is NativeAuthV2CommandResult.ExistingAccountCodeRequired ->
                         result.toExistingAccountResult(nativeAuthConfig)
                     is NativeAuthV2CommandResult.ExistingAccountPasswordRequired ->
@@ -1150,9 +1152,9 @@ class NativeAuthPublicClientApplication(
                             channel = result.challengeChannel
                         )
                     }
-                    is NativeAuthV2CommandResult.ResetPasswordMethodRequired -> {
-                        NativeAuthResultV2.ResetPasswordMethodRequired(
-                            nextState = ResetPasswordMethodRequiredStateV2(
+                    is NativeAuthV2CommandResult.AuthMethodSelectionRequired -> {
+                        NativeAuthResultV2.AuthMethodSelectionRequired(
+                            nextState = AuthMethodSelectionRequiredStateV2(
                                 continuationState = result.continuationState,
                                 authMethods = result.authMethods.toListOfV2AuthMethods(),
                                 config = nativeAuthConfig
