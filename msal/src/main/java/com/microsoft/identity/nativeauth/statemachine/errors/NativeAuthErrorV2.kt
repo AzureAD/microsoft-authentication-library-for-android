@@ -74,37 +74,24 @@ class NativeAuthErrorV2 @JvmOverloads constructor(
      */
     fun isNotImplemented(): Boolean = this.errorType == ErrorTypes.NOT_IMPLEMENTED
 
-    /** Whether the service rejected the username. */
-    fun isInvalidUsername(): Boolean = errorType == ErrorTypes.INVALID_USERNAME ||
-        (error == "invalidRequest" && errorMessage?.contains("AADSTS90100") == true &&
-            errorMessage.contains("username", ignoreCase = true))
+    /** Whether the username failed local SDK validation. */
+    fun isInvalidUsername(): Boolean = errorType == ErrorTypes.INVALID_USERNAME
 
     /** Whether the account does not exist. */
     fun isUserNotFound(): Boolean = errorType == ErrorTypes.USER_NOT_FOUND ||
-        (error == "invalidRequest" && errorMessage?.contains("AADSTS50034") == true)
+        (error == "invalidRequest" && subError == "userNotFound")
 
-    /** Whether sign-in credentials were rejected, not a new-password policy violation. */
-    fun isInvalidCredentials(): Boolean = errorType == SignInErrorTypes.INVALID_CREDENTIALS ||
-        (error == "invalidGrant" && subError == "invalidUserNameOrPassword")
-
-    /** Whether a first-factor or MFA one-time code was rejected. */
+    /** Whether a first-factor one-time code was rejected; MFA and enrollment use [isInvalidChallenge]. */
     fun isInvalidCode(): Boolean = errorType == ErrorTypes.INVALID_CODE ||
-        (error == "invalidGrant" && subError == "invalidOneTimeCode")
+        (errorType != ErrorTypes.INVALID_CHALLENGE &&
+            error == "invalidGrant" && subError == "invalidOneTimeCode")
 
-    /** Whether password-specific errors or validation details indicate a new-password policy violation. */
+    /** Whether a submitted sign-in password was rejected or a new password failed service validation. */
     fun isInvalidPassword(): Boolean = errorType == ErrorTypes.INVALID_PASSWORD ||
-        (error == "invalidRequest" && subError in PASSWORD_POLICY_SUBERRORS) ||
-        validationDetails().any { detail ->
-            detail["code"] == "passwordPolicyViolation" &&
-                (detail["attributeIds"] as? List<*>)?.any {
-                    it is String && it.equals("password", ignoreCase = true)
-                } == true
-        }
-
-    /** Whether the identifier already belongs to an account. */
-    fun isUserAlreadyExists(): Boolean = errorType == SignUpErrorTypes.USER_ALREADY_EXISTS ||
-        subError == "userAlreadyExists" ||
-        validationDetails().any { it["code"] == "userAlreadyExists" }
+        (error == "invalidRequest" && (subError in PASSWORD_POLICY_SUBERRORS ||
+            (subError == "attributeValidationError" && validationDetails().any { detail ->
+                (detail["attributeIds"] as? List<*>)?.contains("password") == true
+            })))
 
     /** Whether the request omitted required attributes. */
     fun isMissingRequiredAttributes(): Boolean =
@@ -114,14 +101,12 @@ class NativeAuthErrorV2 @JvmOverloads constructor(
     fun isInvalidAttributes(): Boolean = errorType == SignUpErrorTypes.INVALID_ATTRIBUTES ||
         subError == "attributeValidationError" || isMissingRequiredAttributes()
 
-    /** Whether the service rejected a verification challenge. */
-    fun isInvalidChallenge(): Boolean = isInvalidCode() || errorType == ErrorTypes.INVALID_CHALLENGE
+    /** Whether an MFA or strong-auth registration code was rejected. */
+    fun isInvalidChallenge(): Boolean = errorType == ErrorTypes.INVALID_CHALLENGE
 
-    /** Whether the service blocked the selected authentication method. */
-    fun isAuthMethodBlocked(): Boolean = errorType == ErrorTypes.AUTH_METHOD_BLOCKED
-
-    /** Whether the service blocked the supplied verification contact. */
-    fun isVerificationContactBlocked(): Boolean = errorType == ErrorTypes.VERIFICATION_CONTACT_BLOCKED
+    /** Whether the SDK or the exact OAuth error/suberror pair requires browser authentication. */
+    override fun isBrowserRequired(): Boolean = errorType == ErrorTypes.BROWSER_REQUIRED ||
+        (error == "invalid_grant" && subError == "web_redirect_required")
 
     /** Whether caller input is invalid. */
     fun isInvalidInput(): Boolean = errorType == ErrorTypes.INVALID_INPUT ||
@@ -135,9 +120,8 @@ class NativeAuthErrorV2 @JvmOverloads constructor(
 
     /** Whether no stable classifier describes this error; raw diagnostics remain available. */
     fun isGeneralError(): Boolean = !(isInvalidUsername() || isUserNotFound() ||
-        isInvalidCredentials() || isInvalidCode() || isInvalidPassword() ||
-        isUserAlreadyExists() || isMissingRequiredAttributes() || isInvalidAttributes() ||
-        isInvalidChallenge() || isAuthMethodBlocked() || isVerificationContactBlocked() ||
+        isInvalidCode() || isInvalidPassword() ||
+        isMissingRequiredAttributes() || isInvalidAttributes() || isInvalidChallenge() ||
         isInvalidInput() || isAuthNotSupported() || isPasswordResetFailed() ||
         isBrowserRequired() || isNotImplemented())
 

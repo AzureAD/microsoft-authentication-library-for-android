@@ -188,7 +188,6 @@ class AttributesRequiredStateV2 internal constructor(
                     }
                     is NativeAuthV2CommandResult.UserAlreadyExists -> {
                         NativeAuthErrorV2(
-                            errorType = SignUpErrorTypes.USER_ALREADY_EXISTS,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,

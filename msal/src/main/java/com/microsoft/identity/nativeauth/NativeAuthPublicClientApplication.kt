@@ -718,19 +718,6 @@ class NativeAuthPublicClientApplication(
                             scenario = NativeAuthFlowScenarioV2.SIGN_IN
                         )
                     }
-                    is NativeAuthV2CommandResult.InvalidCredentials -> {
-                        NativeAuthErrorV2(
-                            errorType = SignInErrorTypes.INVALID_CREDENTIALS,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = NativeAuthFlowScenarioV2.SIGN_IN,
-                            traceId = result.traceId,
-                            timestamp = result.timestamp,
-                            errorCodes = result.errorCodes,
-                            subError = result.subError
-                        )
-                    }
                     is NativeAuthV2CommandResult.UserNotFound -> {
                         NativeAuthErrorV2(
                             errorType = ErrorTypes.USER_NOT_FOUND,
@@ -740,7 +727,9 @@ class NativeAuthPublicClientApplication(
                             scenario = NativeAuthFlowScenarioV2.SIGN_IN,
                             traceId = result.traceId,
                             timestamp = result.timestamp,
-                            errorCodes = result.errorCodes
+                            errorCodes = result.errorCodes,
+                            subError = result.subError,
+                            attributeValidationDetails = result.attributeValidationDetails
                         )
                     }
                     is INativeAuthCommandResult.InvalidUsername -> {
@@ -946,7 +935,6 @@ class NativeAuthPublicClientApplication(
                         NativeAuthErrorV2.fromAttributeError(result, NativeAuthFlowScenarioV2.SIGN_UP)
                     is NativeAuthV2CommandResult.UserAlreadyExists -> {
                         NativeAuthErrorV2(
-                            errorType = SignUpErrorTypes.USER_ALREADY_EXISTS,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
@@ -1181,7 +1169,9 @@ class NativeAuthPublicClientApplication(
                             scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
                             traceId = result.traceId,
                             timestamp = result.timestamp,
-                            errorCodes = result.errorCodes
+                            errorCodes = result.errorCodes,
+                            subError = result.subError,
+                            attributeValidationDetails = result.attributeValidationDetails
                         )
                     }
                     is INativeAuthCommandResult.InvalidUsername -> {

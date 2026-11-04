@@ -105,12 +105,12 @@ class SignInV2EmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest(
     }
 
     /**
-     * A wrong password submitted from the password-required state is invalid credentials, not
-     * a password-policy violation. The caller retries on the state it already holds.
+     * A wrong password submitted from the password-required state is an invalid password.
+     * The caller retries on the state it already holds.
      */
     @Ignore("Native Auth V2 sign-in endpoints are not available on the E2E slice.")
     @Test
-    fun testErrorDeferredPasswordIsInvalidCredentialsNotPasswordPolicy() {
+    fun testErrorDeferredPasswordIsInvalidPassword() {
         config = getConfig(defaultConfigType)
         application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
@@ -121,8 +121,8 @@ class SignInV2EmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest(
 
             val wrongPassword = passwordState.submitPassword(INVALID_PASSWORD.toCharArray())
             assertTrue(wrongPassword is NativeAuthErrorV2)
-            assertTrue((wrongPassword as NativeAuthErrorV2).isInvalidCredentials())
-            assertFalse(wrongPassword.isInvalidPassword())
+            assertTrue((wrongPassword as NativeAuthErrorV2).isInvalidPassword())
+            assertFalse(wrongPassword.isGeneralError())
 
             // Retrying on the retained state succeeds; the error carried no state of its own.
             val retry = passwordState.submitPassword(getSafePassword().toCharArray())
@@ -245,7 +245,7 @@ class SignInV2EmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest(
 
             assertTrue(result is NativeAuthErrorV2)
             val error = result as NativeAuthErrorV2
-            assertFalse(error.isInvalidCredentials())
+            assertFalse(error.isInvalidPassword())
             assertTrue(error.exception is MsalClientException)
             assertEquals("An account is already signed in.", error.exception!!.message)
         }

@@ -38,7 +38,6 @@ import com.microsoft.identity.nativeauth.toListOfRequiredUserAttributeV2
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
-import com.microsoft.identity.nativeauth.statemachine.errors.SignUpErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.utils.serializable
@@ -113,14 +112,14 @@ abstract class NativeAuthBaseStateV2 internal constructor(
             result.codeLength, result.challengeTargetLabel, result.challengeChannel
         )
         is NativeAuthV2CommandResult.IncorrectCode -> NativeAuthErrorV2(
-            errorType = ErrorTypes.INVALID_CODE,
+            errorType = ErrorTypes.INVALID_CHALLENGE,
             error = result.error, errorMessage = result.errorDescription,
             correlationId = result.correlationId, scenario = scenario,
             errorCodes = result.errorCodes, subError = result.subError,
-            traceId = result.traceId, timestamp = result.timestamp
+            traceId = result.traceId, timestamp = result.timestamp,
+            attributeValidationDetails = result.attributeValidationDetails
         )
         is NativeAuthV2CommandResult.UserAlreadyExists -> NativeAuthErrorV2(
-            errorType = SignUpErrorTypes.USER_ALREADY_EXISTS,
             error = result.error, errorMessage = result.errorDescription,
             correlationId = result.correlationId, scenario = scenario,
             errorCodes = result.errorCodes, subError = result.subError,
@@ -139,6 +138,9 @@ abstract class NativeAuthBaseStateV2 internal constructor(
             errorCodes = result.errorCodes, traceId = result.traceId, timestamp = result.timestamp
         )
         is INativeAuthCommandResult.APIError -> NativeAuthErrorV2(
+            errorType = if (result.error == "invalidGrant" && result.subError == "invalidOneTimeCode") {
+                ErrorTypes.INVALID_CHALLENGE
+            } else null,
             error = result.error, errorMessage = result.errorDescription,
             correlationId = result.correlationId, scenario = scenario,
             errorCodes = result.errorCodes, subError = result.subError,

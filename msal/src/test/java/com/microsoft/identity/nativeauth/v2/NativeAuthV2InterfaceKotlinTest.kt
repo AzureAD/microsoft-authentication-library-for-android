@@ -710,15 +710,20 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         enqueueResult(
             NativeAuthV2CommandResult.UserNotFound(
                 correlationId,
-                "user_not_found",
+                "invalidRequest",
                 "No account",
-                errorCodes
+                errorCodes,
+                subError = "userNotFound",
+                attributeValidationDetails = listOf(mapOf("code" to "diagnostic"))
             ),
             NativeAuthV2ResetPasswordStartCommand::class
         )
         val userNotFound = application.resetPasswordV2(NativeAuthResetPasswordParametersV2(username))
         assertTrue(userNotFound is NativeAuthErrorV2)
         assertEquals(errorCodes, (userNotFound as NativeAuthErrorV2).errorCodes)
+        assertTrue(userNotFound.isUserNotFound())
+        assertEquals("userNotFound", userNotFound.subError)
+        assertEquals(listOf(mapOf("code" to "diagnostic")), userNotFound.attributeValidationDetails)
 
         enqueueResult(
             INativeAuthCommandResult.APIError(
@@ -735,6 +740,33 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         enqueueCancellation(NativeAuthV2ResetPasswordStartCommand::class)
         assertCancellation {
             application.resetPasswordV2(NativeAuthResetPasswordParametersV2(username))
+        }
+    }
+
+    @Test
+    fun resetPasswordBrowserFallbackPreservesEntryAndTokenErrors() = runTest {
+        val rawError = INativeAuthCommandResult.APIError(
+            error = "invalid_grant", errorDescription = "Use browser", correlationId = correlationId,
+            subError = "web_redirect_required", traceId = "trace", timestamp = "time",
+            errorCodes = errorCodes
+        )
+        enqueueResult(rawError, NativeAuthV2ResetPasswordStartCommand::class)
+        val entry = application.resetPasswordV2(NativeAuthResetPasswordParametersV2(username)) as NativeAuthErrorV2
+        val state = SignInAfterResetPasswordStateV2(
+            createContinuationState(), NativeAuthFlowScenarioV2.RESET_PASSWORD,
+            application.configuration as NativeAuthPublicClientApplicationConfiguration
+        )
+        enqueueResult(rawError, NativeAuthV2SignInAfterResetPasswordCommand::class)
+        val terminal = state.signIn() as NativeAuthErrorV2
+        for (error in listOf(entry, terminal)) {
+            assertTrue(error.isBrowserRequired())
+            assertEquals("invalid_grant", error.error)
+            assertEquals("web_redirect_required", error.subError)
+            assertEquals("Use browser", error.errorMessage)
+            assertEquals(correlationId, error.correlationId)
+            assertEquals(errorCodes, error.errorCodes)
+            assertEquals("trace", error.traceId)
+            assertEquals("time", error.timestamp)
         }
     }
 
@@ -964,7 +996,8 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
                 "invalid_password",
                 "Rejected",
                 subError,
-                errorCodes
+                errorCodes,
+                attributeValidationDetails = listOf(mapOf("attributeIds" to listOf("password")))
             ),
             NativeAuthV2SubmitNewPasswordCommand::class
         )
@@ -972,6 +1005,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         assertTrue(rejected.isInvalidPassword())
         assertEquals(errorCodes, rejected.errorCodes)
         assertEquals(subError, rejected.subError)
+        assertEquals(listOf(mapOf("attributeIds" to listOf("password"))), rejected.attributeValidationDetails)
 
         enqueueResult(
             NativeAuthV2CommandResult.PasswordResetFailed(correlationId, "reset_failed", "Failed"),
