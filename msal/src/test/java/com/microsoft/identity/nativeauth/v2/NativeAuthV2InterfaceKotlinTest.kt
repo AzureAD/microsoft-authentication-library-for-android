@@ -43,7 +43,6 @@ import com.microsoft.identity.common.java.controllers.CommandResult
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.logging.DiagnosticContext
-import com.microsoft.identity.common.java.logging.RequestContext
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2ResendCodeCommandResult
@@ -100,13 +99,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlinx.coroutines.withContext
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.mockkStatic
 import io.mockk.unmockkObject
 import io.mockk.unmockkStatic
+import io.mockk.verify
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -690,24 +689,24 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun resetPasswordV2UsesDiagnosticCorrelationIdForBlankUsername() = runTest {
-        withContext(Dispatchers.IO) {
-            val previousContext = DiagnosticContext.INSTANCE.requestContext
-            val requestContext = RequestContext().apply {
-                put(DiagnosticContext.CORRELATION_ID, correlationId)
-            }
-            // Seed the real thread-local on the IO thread used by the nested reset operation.
-            DiagnosticContext.INSTANCE.setRequestContext(requestContext)
-            try {
-                val error = application.resetPasswordV2(
-                    NativeAuthResetPasswordParameters(username = " ")
-                ) as NativeAuthErrorV2
+    fun resetPasswordV2RejectsBlankUsernameWithoutSubmittingResetCommand() = runTest {
+        enqueueResult(apiError(), NativeAuthV2ResetPasswordStartCommand::class)
 
-                assertTrue(error.isInvalidUsername())
-                assertEquals(correlationId, error.correlationId)
-            } finally {
-                DiagnosticContext.INSTANCE.setRequestContext(previousContext)
-            }
+        listOf("", " ", "\t\n").forEach { blankUsername ->
+            val result = application.resetPasswordV2(
+                NativeAuthResetPasswordParameters(username = blankUsername)
+            )
+
+            assertTrue(result is NativeAuthErrorV2)
+            val error = result as NativeAuthErrorV2
+            assertTrue(error.isInvalidUsername())
+            assertEquals(NativeAuthFlowScenarioV2.RESET_PASSWORD, error.scenario)
+        }
+
+        verify(exactly = 0) {
+            CommandDispatcher.submitSilentReturningFuture(
+                match { NativeAuthV2ResetPasswordStartCommand::class.java.isInstance(it) }
+            )
         }
     }
 
