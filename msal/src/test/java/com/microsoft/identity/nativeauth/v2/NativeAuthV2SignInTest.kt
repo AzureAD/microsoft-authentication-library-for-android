@@ -571,7 +571,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             assertEquals(common.traceId, error.traceId)
             assertEquals(common.timestamp, error.timestamp)
             when (kind) {
-                "exists" -> assertTrue(error.isUserAlreadyExists())
+                "exists" -> assertTrue(error.isGeneralError())
                 "reset" -> assertTrue(error.isPasswordResetFailed())
                 "code" -> assertTrue(error.isInvalidChallenge())
                 "browser" -> {
@@ -944,7 +944,8 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
                 "invalidUserNameOrPassword",
                 errorCodes,
                 traceId = "password-trace",
-                timestamp = "password-time"
+                timestamp = "password-time",
+                attributeValidationDetails = listOf(mapOf("code" to "diagnostic"))
             ),
             NativeAuthV2SignInStartCommand::class
         )
@@ -959,6 +960,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         assertEquals("invalidUserNameOrPassword", result.subError)
         assertEquals("password-trace", result.traceId)
         assertEquals("password-time", result.timestamp)
+        assertEquals(listOf(mapOf("code" to "diagnostic")), result.attributeValidationDetails)
         assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.scenario)
         // A recoverable-looking error must not hand back a state to continue from.
         assertNull((result as NativeAuthResultV2).let { (it as? NativeAuthResultV2.PasswordRequired)?.nextState })
@@ -969,9 +971,11 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         enqueueResult(
             NativeAuthV2CommandResult.UserNotFound(
                 correlationId,
-                "invalid_grant",
-                "AADSTS50034: user not found.",
-                errorCodes
+                "invalidRequest",
+                "Account unavailable.",
+                errorCodes,
+                subError = "userNotFound",
+                attributeValidationDetails = listOf(mapOf("code" to "diagnostic"))
             ),
             NativeAuthV2SignInStartCommand::class
         )
@@ -981,18 +985,30 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         assertTrue(result.isUserNotFound())
         assertFalse(result.isInvalidCredentials())
         assertEquals(errorCodes, result.errorCodes)
+        assertEquals("userNotFound", result.subError)
+        assertEquals(listOf(mapOf("code" to "diagnostic")), result.attributeValidationDetails)
     }
 
     @Test
     fun signInV2MapsBrowserRequiredToSignInError() = runTest {
         enqueueResult(
-            INativeAuthCommandResult.Redirect(correlationId, "browser"),
+            INativeAuthCommandResult.APIError(
+                error = "invalid_grant", errorDescription = "Use browser",
+                correlationId = correlationId, subError = "web_redirect_required",
+                errorCodes = errorCodes, traceId = "trace", timestamp = "time"
+            ),
             NativeAuthV2SignInStartCommand::class
         )
 
         val result = application.signInV2(signInParameters()) as NativeAuthErrorV2
 
         assertTrue(result.isBrowserRequired())
+        assertEquals("invalid_grant", result.error)
+        assertEquals("web_redirect_required", result.subError)
+        assertEquals("Use browser", result.errorMessage)
+        assertEquals(errorCodes, result.errorCodes)
+        assertEquals("trace", result.traceId)
+        assertEquals("time", result.timestamp)
     }
 
     @Test
@@ -1593,7 +1609,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         assertTrue(result is NativeAuthErrorV2)
         val error = result as NativeAuthErrorV2
         assertTrue(error.isNotImplemented())
-        assertFalse(error.isAuthMethodBlocked())
+        assertFalse(error.isGeneralError())
         assertFalse(error.isBrowserRequired())
     }
 
@@ -1612,10 +1628,54 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
 
         val result = state.selectAuthMethod(state.authMethods.single()) as NativeAuthErrorV2
 
-        assertFalse(result.isAuthMethodBlocked())
+        assertTrue(result.isGeneralError())
         assertEquals("accessDenied", result.error)
         assertEquals("blocked", result.errorMessage)
         assertEquals(errorCodes, result.errorCodes)
+    }
+
+    @Test
+    fun codeAndChallengeFailuresPreserveDiagnosticsAndUseOperationSpecificClassifiers() = runTest {
+        val ordinary = codeRequiredState()
+        val mfa = mfaVerificationState(mfaRequiredState())
+        val enrollment = strongAuthVerification()
+        val resetMfa = MFAVerificationRequiredStateV2(
+            createContinuationState(), NativeAuthFlowScenarioV2.RESET_PASSWORD, mfa.config
+        )
+        val submissions: List<Pair<KClass<out BaseCommand<*>>, suspend () -> NativeAuthResultV2>> = listOf(
+            NativeAuthV2SignInSubmitCodeCommand::class to { ordinary.submitCode("wrong") },
+            NativeAuthV2SubmitMFAChallengeCommand::class to { mfa.submitChallenge("wrong") },
+            NativeAuthV2SubmitMFAChallengeCommand::class to { resetMfa.submitChallenge("wrong") },
+            NativeAuthV2ActivateCommand::class to { enrollment.submitChallenge("wrong") }
+        )
+        val details = listOf(mapOf("code" to "diagnostic", "attributeIds" to listOf("otp")))
+        val failures = listOf(
+            NativeAuthV2CommandResult.IncorrectCode(
+                correlationId, "invalidGrant", "Rejected", "invalidOneTimeCode", errorCodes,
+                traceId = "trace", timestamp = "time", attributeValidationDetails = details
+            ),
+            INativeAuthCommandResult.APIError(
+                error = "invalidGrant", errorDescription = "Rejected", correlationId = correlationId,
+                subError = "invalidOneTimeCode", errorCodes = errorCodes,
+                traceId = "trace", timestamp = "time", attributeValidationDetails = details
+            )
+        )
+        submissions.forEachIndexed { index, (command, submit) ->
+            failures.forEach { failure ->
+                enqueueResult(failure, command)
+                val error = submit() as NativeAuthErrorV2
+                assertEquals(index == 0, error.isInvalidCode())
+                assertEquals(index != 0, error.isInvalidChallenge())
+                assertEquals("invalidGrant", error.error)
+                assertEquals("invalidOneTimeCode", error.subError)
+                assertEquals("Rejected", error.errorMessage)
+                assertEquals(correlationId, error.correlationId)
+                assertEquals(errorCodes, error.errorCodes)
+                assertEquals(details, error.attributeValidationDetails)
+                assertEquals("trace", error.traceId)
+                assertEquals("time", error.timestamp)
+            }
+        }
     }
 
     @Test
@@ -1699,7 +1759,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             }
             val result = verificationState.submitChallenge(code) as NativeAuthErrorV2
             assertTrue(result.isInvalidChallenge())
-            assertTrue(result.isInvalidCode())
+            assertFalse(result.isInvalidCode())
             assertEquals(code, submittedCode)
         }
     }

@@ -163,7 +163,7 @@ class MFAVerificationRequiredStateV2 internal constructor(
                     }
                     is NativeAuthV2CommandResult.IncorrectCode -> {
                         NativeAuthErrorV2(
-                            errorType = ErrorTypes.INVALID_CODE,
+                            errorType = ErrorTypes.INVALID_CHALLENGE,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
@@ -171,7 +171,8 @@ class MFAVerificationRequiredStateV2 internal constructor(
                             traceId = result.traceId,
                             timestamp = result.timestamp,
                             errorCodes = result.errorCodes,
-                            subError = result.subError
+                            subError = result.subError,
+                            attributeValidationDetails = result.attributeValidationDetails
                         )
                     }
                     is NativeAuthV2CommandResult.NotImplemented -> {
@@ -197,6 +198,9 @@ class MFAVerificationRequiredStateV2 internal constructor(
                     }
                     is INativeAuthCommandResult.APIError -> {
                         NativeAuthErrorV2(
+                            errorType = if (result.error == "invalidGrant" && result.subError == "invalidOneTimeCode") {
+                                ErrorTypes.INVALID_CHALLENGE
+                            } else null,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,

@@ -194,7 +194,8 @@ class PasswordRequiredStateV2 internal constructor(
                             traceId = result.traceId,
                             timestamp = result.timestamp,
                             errorCodes = result.errorCodes,
-                            subError = result.subError
+                            subError = result.subError,
+                            attributeValidationDetails = result.attributeValidationDetails
                         )
                     }
                     is NativeAuthV2CommandResult.NotImplemented -> {
@@ -322,28 +323,10 @@ class PasswordRequiredStateV2 internal constructor(
                 )
             }
             is NativeAuthV2CommandResult.AttributesInvalid -> {
-                val onlyPasswordIsInvalid = result.invalidAttributes.isNotEmpty() &&
-                    result.invalidAttributes.all { it.equals("password", ignoreCase = true) }
-                if (onlyPasswordIsInvalid) {
-                    NativeAuthErrorV2(
-                        errorType = if (result.attributeValidationDetails == null) ErrorTypes.INVALID_PASSWORD else SignUpErrorTypes.INVALID_ATTRIBUTES,
-                        error = result.error,
-                        errorMessage = result.errorDescription,
-                        correlationId = result.correlationId,
-                        scenario = scenario,
-                        traceId = result.traceId,
-                        timestamp = result.timestamp,
-                        errorCodes = result.errorCodes,
-                        subError = result.subError,
-                        attributeValidationDetails = result.attributeValidationDetails
-                    )
-                } else {
-                    NativeAuthErrorV2.fromAttributeError(result, scenario)
-                }
+                NativeAuthErrorV2.fromAttributeError(result, scenario)
             }
             is NativeAuthV2CommandResult.UserAlreadyExists -> {
                 NativeAuthErrorV2(
-                    errorType = SignUpErrorTypes.USER_ALREADY_EXISTS,
                     error = result.error,
                     errorMessage = result.errorDescription,
                     correlationId = result.correlationId,
