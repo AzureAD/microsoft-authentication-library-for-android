@@ -2,6 +2,8 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+- [PATCH] Add AuthMethodSelectionRequired for password reset and existing-account sign-up with multiple supported methods.
+- [PATCH] Separate V1 and V2 password-reset parameters with NativeAuthResetPasswordParametersV2.
 - [PATCH] Native Auth V2 sign-up sends the username at start and retains profile attributes until collection.
 - [MAJOR] Add password-free NativeAuthSignUpParametersV2 and remove upfront password retention from V2 sign-up.
 - [MAJOR] Remove Native Auth V2 AttributesInvalidStateV2 and NativeAuthResultV2.AttributesInvalid.

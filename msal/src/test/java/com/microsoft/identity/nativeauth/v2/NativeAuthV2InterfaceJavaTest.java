@@ -36,7 +36,7 @@ import com.microsoft.identity.common.java.util.ResultFuture;
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication;
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication;
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration;
-import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters;
+import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParametersV2;
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters;
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParametersV2;
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2;
@@ -98,6 +98,16 @@ public class NativeAuthV2InterfaceJavaTest extends PublicClientApplicationAbstra
         assertTrue(result instanceof NativeAuthErrorV2);
         assertTrue(((NativeAuthErrorV2) result).isInvalidUsername());
         assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.getScenario());
+    }
+
+    @Test
+    public void resetPasswordV2RejectsBlankUsername() throws ExecutionException, InterruptedException, TimeoutException {
+        final ResultFuture<NativeAuthResultV2> future = new ResultFuture<>();
+        application.resetPasswordV2(new NativeAuthResetPasswordParametersV2(" "), newCallback(future));
+        final NativeAuthResultV2 result = future.get(30, TimeUnit.SECONDS);
+        assertTrue(result instanceof NativeAuthErrorV2);
+        assertTrue(((NativeAuthErrorV2) result).isInvalidUsername());
+        assertEquals(NativeAuthFlowScenarioV2.RESET_PASSWORD, result.getScenario());
     }
 
     @Test

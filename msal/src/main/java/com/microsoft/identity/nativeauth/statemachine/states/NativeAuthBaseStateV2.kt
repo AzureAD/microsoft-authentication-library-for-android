@@ -206,6 +206,15 @@ internal fun NativeAuthV2CommandResult.StrongAuthRegistrationRequired.toRegistra
     return NativeAuthResultV2.StrongAuthRegistrationRequired(state, resultScenario, state.authMethods)
 }
 
+/** Defers an existing-account challenge until the app selects a server-offered method. */
+internal fun NativeAuthV2CommandResult.AuthMethodSelectionRequired.toExistingAccountResult(
+    config: NativeAuthPublicClientApplicationConfiguration
+): NativeAuthResultV2.AuthMethodSelectionRequired = NativeAuthResultV2.AuthMethodSelectionRequired(
+    AuthMethodSelectionRequiredStateV2(
+        continuationState, authMethods.toListOfV2AuthMethods(), config, NativeAuthFlowScenarioV2.SIGN_IN
+    )
+)
+
 /** Exposes the existing-account transition independently of normal sign-up code collection. */
 internal fun NativeAuthV2CommandResult.ExistingAccountCodeRequired.toExistingAccountResult(
     config: NativeAuthPublicClientApplicationConfiguration

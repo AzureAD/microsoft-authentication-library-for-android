@@ -148,6 +148,8 @@ class AttributesRequiredStateV2 internal constructor(
                 val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
                 ensureActive()
                 when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitAttributesCommandResult>()) {
+                    is NativeAuthV2CommandResult.AuthMethodSelectionRequired ->
+                        result.toExistingAccountResult(config)
                     is NativeAuthV2CommandResult.ExistingAccountCodeRequired ->
                         result.toExistingAccountResult(config)
                     is NativeAuthV2CommandResult.ExistingAccountPasswordRequired ->

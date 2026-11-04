@@ -202,6 +202,8 @@ class CodeRequiredStateV2 internal constructor(
             val result =
                 rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SignUpSubmitCodeCommandResult>()
         ) {
+            is NativeAuthV2CommandResult.AuthMethodSelectionRequired ->
+                result.toExistingAccountResult(config)
             is NativeAuthV2CommandResult.ExistingAccountCodeRequired ->
                 result.toExistingAccountResult(config)
             is NativeAuthV2CommandResult.ExistingAccountPasswordRequired ->
