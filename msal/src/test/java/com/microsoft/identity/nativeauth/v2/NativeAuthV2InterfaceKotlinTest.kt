@@ -241,7 +241,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun signInCallbackClearsItsPasswordSnapshotAfterDeliveringInvalidCredentials() = runTest {
+    fun signInCallbackClearsItsPasswordSnapshotAfterDeliveringInvalidCredentials() {
         val pca = spyk(application as NativeAuthPublicClientApplication)
         val password = "Password123!".toCharArray()
         val snapshot = slot<NativeAuthSignInParameters>()
@@ -257,33 +257,39 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             assertEquals("Password123!", String(requireNotNull(snapshot.captured.password)))
             expectedResult
         }
-        mockkObject(NativeAuthPublicClientApplication.Companion)
+        // Callback entry points read the backing field directly, bypassing the companion getter.
+        val scope = NativeAuthPublicClientApplication.pcaScope
+        mockkObject(scope)
         try {
-            every { NativeAuthPublicClientApplication.pcaScope } returns this
-            pca.signInV2(
-                NativeAuthSignInParameters(username).also { it.password = password },
-                object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
-                    override fun onResult(result: NativeAuthResultV2) { results.add(result) }
-                    override fun onError(exception: BaseException) { fail("Unexpected onError: $exception") }
-                }
-            )
-            assertEquals("Password123!", String(password))
-            // The callback cannot run until the scheduler advances, so this mutation precedes it.
-            password.fill('X')
-            testScheduler.runCurrent()
+            runTest {
+                every { scope.coroutineContext } returns coroutineContext
+                pca.signInV2(
+                    NativeAuthSignInParameters(username).also { it.password = password },
+                    object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
+                        override fun onResult(result: NativeAuthResultV2) { results.add(result) }
+                        override fun onError(exception: BaseException) { fail("Unexpected onError: $exception") }
+                    }
+                )
+                assertFalse(snapshot.isCaptured)
+                assertTrue(results.isEmpty())
+                assertEquals("Password123!", String(password))
+                // The callback cannot run until the scheduler advances, so this mutation precedes it.
+                password.fill('X')
+                testScheduler.runCurrent()
 
-            coVerify(exactly = 1) { pca.signInV2(any<NativeAuthSignInParameters>()) }
-            assertEquals(listOf(expectedResult), results)
-            assertNotSame(password, snapshot.captured.password)
-            assertArrayEquals(CharArray(password.size), snapshot.captured.password)
-            assertArrayEquals(CharArray(password.size) { 'X' }, password)
+                coVerify(exactly = 1) { pca.signInV2(any<NativeAuthSignInParameters>()) }
+                assertEquals(listOf(expectedResult), results)
+                assertNotSame(password, snapshot.captured.password)
+                assertArrayEquals(CharArray(password.size), snapshot.captured.password)
+                assertArrayEquals(CharArray(password.size) { 'X' }, password)
+            }
         } finally {
-            unmockkObject(NativeAuthPublicClientApplication.Companion)
+            unmockkObject(scope)
         }
     }
 
     @Test
-    fun signUpCallbackClearsItsPasswordSnapshotAfterDeliveringCodeRequired() = runTest {
+    fun signUpCallbackClearsItsPasswordSnapshotAfterDeliveringCodeRequired() {
         val pca = spyk(application as NativeAuthPublicClientApplication)
         val password = "Password123!".toCharArray()
         val snapshot = slot<NativeAuthSignUpParameters>()
@@ -299,27 +305,32 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             assertEquals("Password123!", String(requireNotNull(snapshot.captured.password)))
             expectedResult
         }
-        mockkObject(NativeAuthPublicClientApplication.Companion)
+        val scope = NativeAuthPublicClientApplication.pcaScope
+        mockkObject(scope)
         try {
-            every { NativeAuthPublicClientApplication.pcaScope } returns this
-            pca.signUpV2(
-                NativeAuthSignUpParameters(username).also { it.password = password },
-                object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
-                    override fun onResult(result: NativeAuthResultV2) { results.add(result) }
-                    override fun onError(exception: BaseException) { fail("Unexpected onError: $exception") }
-                }
-            )
-            assertEquals("Password123!", String(password))
-            password.fill('X')
-            testScheduler.runCurrent()
+            runTest {
+                every { scope.coroutineContext } returns coroutineContext
+                pca.signUpV2(
+                    NativeAuthSignUpParameters(username).also { it.password = password },
+                    object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
+                        override fun onResult(result: NativeAuthResultV2) { results.add(result) }
+                        override fun onError(exception: BaseException) { fail("Unexpected onError: $exception") }
+                    }
+                )
+                assertFalse(snapshot.isCaptured)
+                assertTrue(results.isEmpty())
+                assertEquals("Password123!", String(password))
+                password.fill('X')
+                testScheduler.runCurrent()
 
-            coVerify(exactly = 1) { pca.signUpV2(any<NativeAuthSignUpParameters>()) }
-            assertEquals(listOf(expectedResult), results)
-            assertNotSame(password, snapshot.captured.password)
-            assertArrayEquals(CharArray(password.size), snapshot.captured.password)
-            assertArrayEquals(CharArray(password.size) { 'X' }, password)
+                coVerify(exactly = 1) { pca.signUpV2(any<NativeAuthSignUpParameters>()) }
+                assertEquals(listOf(expectedResult), results)
+                assertNotSame(password, snapshot.captured.password)
+                assertArrayEquals(CharArray(password.size), snapshot.captured.password)
+                assertArrayEquals(CharArray(password.size) { 'X' }, password)
+            }
         } finally {
-            unmockkObject(NativeAuthPublicClientApplication.Companion)
+            unmockkObject(scope)
         }
     }
 
