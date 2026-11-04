@@ -1536,8 +1536,6 @@ public class CommandParametersAdapter {
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param username username of the account signing in
-     * @param password (Optional) password to submit for the password first factor. The caller's
-     *                 array is passed through unchanged so the same buffer can be cleared later.
      * @param scopes (Optional) scopes to request for the resulting access token
      * @param claimsRequest (Optional) claims request to send with the token request
      * @return Command parameter object
@@ -1546,7 +1544,6 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String username,
-            @Nullable final char[] password,
             @Nullable final List<String> scopes,
             @Nullable final ClaimsRequest claimsRequest) throws ClientException {
 
@@ -1578,7 +1575,6 @@ public class CommandParametersAdapter {
                         .requestInterceptor(configuration.getRequestInterceptor())
                         .capabilities(configuration.getCapabilities())
                         .username(username)
-                        .password(password)
                         .scopes(scopes)
                         .claimsRequestJson(claimsRequestJson)
                         .correlationId(DiagnosticContext.INSTANCE.getThreadCorrelationId())

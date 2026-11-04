@@ -63,8 +63,7 @@ import kotlinx.coroutines.withContext
 /**
  * State that requires the user to submit a password.
  *
- * A rejected sign-in password is a [NativeAuthErrorV2] classified by
- * [NativeAuthErrorV2.isInvalidCredentials]; a rejected new sign-up password is classified by
+ * A rejected sign-in or new sign-up password is a [NativeAuthErrorV2] classified by
  * [NativeAuthErrorV2.isInvalidPassword]. The caller retries on this same state instance;
  * no error result carries a next state.
  */
@@ -186,7 +185,7 @@ class PasswordRequiredStateV2 internal constructor(
                     }
                     is NativeAuthV2CommandResult.IncorrectPassword -> {
                         NativeAuthErrorV2(
-                            errorType = com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorTypes.INVALID_CREDENTIALS,
+                            errorType = ErrorTypes.INVALID_PASSWORD,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
@@ -194,7 +193,8 @@ class PasswordRequiredStateV2 internal constructor(
                             traceId = result.traceId,
                             timestamp = result.timestamp,
                             errorCodes = result.errorCodes,
-                            subError = result.subError
+                            subError = result.subError,
+                            attributeValidationDetails = result.attributeValidationDetails
                         )
                     }
                     is NativeAuthV2CommandResult.NotImplemented -> {
@@ -220,6 +220,10 @@ class PasswordRequiredStateV2 internal constructor(
                     }
                     is INativeAuthCommandResult.APIError -> {
                         NativeAuthErrorV2(
+                            errorType = if (result.error == "invalidGrant" &&
+                                result.subError == "invalidUserNameOrPassword") {
+                                ErrorTypes.INVALID_PASSWORD
+                            } else null,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
@@ -322,28 +326,10 @@ class PasswordRequiredStateV2 internal constructor(
                 )
             }
             is NativeAuthV2CommandResult.AttributesInvalid -> {
-                val onlyPasswordIsInvalid = result.invalidAttributes.isNotEmpty() &&
-                    result.invalidAttributes.all { it.equals("password", ignoreCase = true) }
-                if (onlyPasswordIsInvalid) {
-                    NativeAuthErrorV2(
-                        errorType = if (result.attributeValidationDetails == null) ErrorTypes.INVALID_PASSWORD else SignUpErrorTypes.INVALID_ATTRIBUTES,
-                        error = result.error,
-                        errorMessage = result.errorDescription,
-                        correlationId = result.correlationId,
-                        scenario = scenario,
-                        traceId = result.traceId,
-                        timestamp = result.timestamp,
-                        errorCodes = result.errorCodes,
-                        subError = result.subError,
-                        attributeValidationDetails = result.attributeValidationDetails
-                    )
-                } else {
-                    NativeAuthErrorV2.fromAttributeError(result, scenario)
-                }
+                NativeAuthErrorV2.fromAttributeError(result, scenario)
             }
             is NativeAuthV2CommandResult.UserAlreadyExists -> {
                 NativeAuthErrorV2(
-                    errorType = SignUpErrorTypes.USER_ALREADY_EXISTS,
                     error = result.error,
                     errorMessage = result.errorDescription,
                     correlationId = result.correlationId,

@@ -184,7 +184,8 @@ class NewPasswordRequiredStateV2 internal constructor(
                             traceId = result.traceId,
                             timestamp = result.timestamp,
                             errorCodes = result.errorCodes,
-                            subError = result.subError
+                            subError = result.subError,
+                            attributeValidationDetails = result.attributeValidationDetails
                         )
                     }
                     is NativeAuthV2CommandResult.PasswordResetFailed -> {

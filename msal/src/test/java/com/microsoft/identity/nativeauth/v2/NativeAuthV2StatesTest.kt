@@ -193,9 +193,11 @@ class NativeAuthV2StatesTest {
             com.microsoft.identity.nativeauth.AuthMethod("email", "oob", "***", "email"),
             com.microsoft.identity.nativeauth.AuthMethod("password", "password", "", "password"))
         val selection = assertParcelRoundTrip(
-            AuthMethodSelectionRequiredStateV2(existing, methods, config, NativeAuthFlowScenarioV2.SIGN_IN),
+            AuthMethodSelectionRequiredStateV2(existing, methods, config, NativeAuthFlowScenarioV2.SIGN_IN,
+                existingAccountSignIn = true),
             AuthMethodSelectionRequiredStateV2.CREATOR)
         assertEquals(methods, selection.authMethods)
+        assertTrue(selection.existingAccountSignIn)
         assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, selection.scenario)
         assertEquals(existing.flowScenario(), selection.continuationState?.flowScenario())
         assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, code.scenario)

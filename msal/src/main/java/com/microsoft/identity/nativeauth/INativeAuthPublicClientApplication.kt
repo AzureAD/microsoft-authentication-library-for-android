@@ -28,6 +28,7 @@ import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParametersV2
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParametersV2
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParametersV2
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
@@ -196,6 +197,7 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
 
     /**
      * Sign in a user with the Native Auth V2 surface; Kotlin coroutines variant.
+     * Supply a password only through the returned password-required state.
      *
      * Warning: This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      *
@@ -203,10 +205,11 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      * @return a [NativeAuthResultV2] terminal result, action-required state, or error result.
      * Account conflicts are returned as an error result rather than thrown.
      */
-    suspend fun signInV2(parameters: NativeAuthSignInParameters): NativeAuthResultV2
+    suspend fun signInV2(parameters: NativeAuthSignInParametersV2): NativeAuthResultV2
 
     /**
      * Sign in a user with the Native Auth V2 surface; callback variant.
+     * Supply a password only through the returned password-required state.
      *
      * Warning: This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      *
@@ -216,7 +219,7 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      * including account conflicts, are delivered through
      * [com.microsoft.identity.nativeauth.statemachine.states.Callback.onResult].
      */
-    fun signInV2(parameters: NativeAuthSignInParameters, callback: NativeAuthPublicClientApplication.NativeAuthV2Callback)
+    fun signInV2(parameters: NativeAuthSignInParametersV2, callback: NativeAuthPublicClientApplication.NativeAuthV2Callback)
 
     /**
      * Sign up a user with the Native Auth V2 surface; Kotlin coroutines variant.
