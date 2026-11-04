@@ -211,7 +211,8 @@ internal fun NativeAuthV2CommandResult.AuthMethodSelectionRequired.toExistingAcc
     config: NativeAuthPublicClientApplicationConfiguration
 ): NativeAuthResultV2.AuthMethodSelectionRequired = NativeAuthResultV2.AuthMethodSelectionRequired(
     AuthMethodSelectionRequiredStateV2(
-        continuationState, authMethods.toListOfV2AuthMethods(), config, NativeAuthFlowScenarioV2.SIGN_IN
+        continuationState, authMethods.toListOfV2AuthMethods(), config, NativeAuthFlowScenarioV2.SIGN_IN,
+        existingAccountSignIn = true
     )
 )
 

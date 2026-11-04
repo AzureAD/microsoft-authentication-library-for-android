@@ -659,7 +659,6 @@ public class CommandParametersTest {
                 final NativeAuthPublicClientApplicationConfiguration configuration = getNativeAuthConfiguration(NATIVE_AUTH_CONFIG_FILE);
                 final OAuth2TokenCache tokenCache = getCache();
                 final String username = "username@example.com";
-                final char[] password = "Password123!".toCharArray();
                 final List<String> scopes = Arrays.asList("api://scope/read", "offline_access");
                 final ClaimsRequest claimsRequest = getAccessTokenClaimsRequest("xms_cc", "cp1");
 
@@ -668,13 +667,11 @@ public class CommandParametersTest {
                                 configuration,
                                 tokenCache,
                                 username,
-                                password,
                                 scopes,
                                 claimsRequest
                         );
 
                 Assert.assertEquals(username, commandParameters.username);
-                Assert.assertSame(password, commandParameters.password);
                 Assert.assertEquals(scopes, commandParameters.scopes);
                 Assert.assertEquals(
                         ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest),

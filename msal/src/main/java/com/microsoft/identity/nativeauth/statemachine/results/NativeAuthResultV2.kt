@@ -105,7 +105,7 @@ interface NativeAuthResultV2 : Result {
     ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2
 
     /**
-     * Password reset or an existing account found during sign-up offers multiple supported methods.
+     * Sign-in, password reset, or an existing account found during sign-up offers multiple supported methods.
      * The app must select one before a challenge is sent.
      *
      * @param nextState the current state with follow-on methods.
