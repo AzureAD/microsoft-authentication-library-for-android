@@ -94,7 +94,7 @@ import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2Su
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitAttributesCommandParameters
 import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.UserAttributes
-import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParametersV2
 import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters
 import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordMethodRequiredStateV2
@@ -630,7 +630,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             application.signInV2(signInParameters())
         }
         check(NativeAuthFlowScenarioV2.SIGN_UP, NativeAuthV2SignUpStartCommand::class) {
-            application.signUpV2(NativeAuthSignUpParameters(username))
+            application.signUpV2(NativeAuthSignUpParametersV2(username))
         }
         check(NativeAuthFlowScenarioV2.RESET_PASSWORD, NativeAuthV2ResetPasswordStartCommand::class) {
             application.resetPasswordV2(NativeAuthResetPasswordParameters(username))
@@ -670,7 +670,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun activationResumesSignUpPasswordRecollectionThroughSubmitAttributes() = runTest {
+    fun activationResumesSignUpPasswordCollectionThroughSubmitAttributes() = runTest {
         val config = strongAuthRegistration().nextState.config
         val commonState = NativeAuthV2ContinuationStateTestFactory.create(
             correlationId = correlationId, entryRelation = NativeAuthV2LinkRelation.SIGN_UP,

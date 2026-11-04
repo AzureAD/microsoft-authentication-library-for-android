@@ -72,6 +72,7 @@ import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfig
 import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParametersV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorTypes
@@ -163,7 +164,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             })
             assertCaptured()
             enqueueResult(result, NativeAuthV2SignUpStartCommand::class, ::capture)
-            application.signUpV2(NativeAuthSignUpParameters(username).also {
+            application.signUpV2(NativeAuthSignUpParametersV2(username).also {
                 it.scopes = scopes
                 it.claimsRequest = claims
             })
@@ -287,10 +288,11 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun signUpCallbackClearsItsPasswordSnapshotAfterDeliveringCodeRequired() {
+    fun signUpCallbackSnapshotsScopesBeforeDeliveringCodeRequired() {
         val pca = spyk(application as NativeAuthPublicClientApplication)
-        val password = "Password123!".toCharArray()
-        val snapshot = slot<NativeAuthSignUpParameters>()
+        val scopes = mutableListOf("User.Read")
+        val parameters = NativeAuthSignUpParametersV2(username).also { it.scopes = scopes }
+        val snapshot = slot<NativeAuthSignUpParametersV2>()
         val expectedResult = NativeAuthResultV2.CodeRequired(
             nextState = mockk<CodeRequiredStateV2>(),
             scenario = NativeAuthFlowScenarioV2.SIGN_UP,
@@ -300,7 +302,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         )
         val results = mutableListOf<NativeAuthResultV2>()
         coEvery { pca.signUpV2(capture(snapshot)) } coAnswers {
-            assertEquals("Password123!", String(requireNotNull(snapshot.captured.password)))
+            assertEquals(listOf("User.Read"), snapshot.captured.scopes)
             expectedResult
         }
         val scope = NativeAuthPublicClientApplication.pcaScope
@@ -309,7 +311,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             runTest {
                 every { scope.coroutineContext } returns coroutineContext
                 pca.signUpV2(
-                    NativeAuthSignUpParameters(username).also { it.password = password },
+                    parameters,
                     object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
                         override fun onResult(result: NativeAuthResultV2) { results.add(result) }
                         override fun onError(exception: BaseException) { fail("Unexpected onError: $exception") }
@@ -317,15 +319,17 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
                 )
                 assertFalse(snapshot.isCaptured)
                 assertTrue(results.isEmpty())
-                assertEquals("Password123!", String(password))
-                password.fill('X')
+                scopes.clear()
+                parameters.scopes = null
                 testScheduler.runCurrent()
 
-                coVerify(exactly = 1) { pca.signUpV2(any<NativeAuthSignUpParameters>()) }
+                coVerify(exactly = 1) { pca.signUpV2(any<NativeAuthSignUpParametersV2>()) }
                 assertEquals(listOf(expectedResult), results)
-                assertNotSame(password, snapshot.captured.password)
-                assertArrayEquals(CharArray(password.size), snapshot.captured.password)
-                assertArrayEquals(CharArray(password.size) { 'X' }, password)
+                assertNotSame(parameters, snapshot.captured)
+                assertEquals(username, snapshot.captured.username)
+                assertEquals(listOf("User.Read"), snapshot.captured.scopes)
+                assertTrue(scopes.isEmpty())
+                assertEquals(null, parameters.scopes)
             }
         } finally {
             unmockkObject(scope)
@@ -364,7 +368,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
                     assertSame(cancellation, e)
                 }
                 assertEquals("Password123!", String(password))
-                assertEquals(if (scenario == NativeAuthFlowScenarioV2.RESET_PASSWORD) 0 else 1, clearedPasswords.size)
+                assertEquals(if (scenario == NativeAuthFlowScenarioV2.SIGN_IN) 1 else 0, clearedPasswords.size)
                 clearedPasswords.forEach {
                     assertTrue(it !== password)
                     assertTrue(it.all { char -> char == '\u0000' })
@@ -409,8 +413,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
                 }, callback
             )
             NativeAuthFlowScenarioV2.SIGN_UP -> application.signUpV2(
-                NativeAuthSignUpParameters(username).also {
-                    it.password = password
+                NativeAuthSignUpParametersV2(username).also {
                     it.claimsRequest = claims
                     it.scopes = scopes
                 }, callback
@@ -459,7 +462,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2SignUpStartCommand::class
         )
 
-        val result = application.signUpV2(NativeAuthSignUpParameters(username = username))
+        val result = application.signUpV2(NativeAuthSignUpParametersV2(username = username))
 
         assertTrue(result is NativeAuthResultV2.CodeRequired)
         result as NativeAuthResultV2.CodeRequired
@@ -1157,7 +1160,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     @Test
     fun signUpV2RoutesExceptionToOnError() {
         assertRoutesToOnError { future ->
-            application.signUpV2(NativeAuthSignUpParameters(username = username), throwingCallback(future))
+            application.signUpV2(NativeAuthSignUpParametersV2(username = username), throwingCallback(future))
         }
     }
 

@@ -1149,9 +1149,8 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String username,
-            @Nullable final char[] password,
             @Nullable final Map<String, String> attributes) throws ClientException {
-        return createSignUpV2StartCommandParameters(configuration, tokenCache, username, password, attributes, null, null);
+        return createSignUpV2StartCommandParameters(configuration, tokenCache, username, attributes, null, null);
     }
 
     /** Creates V2 sign-up entry parameters with optional scopes and claims. */
@@ -1159,7 +1158,6 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String username,
-            @Nullable final char[] password,
             @Nullable final Map<String, String> attributes,
             @Nullable final List<String> scopes,
             @Nullable final ClaimsRequest claimsRequest) throws ClientException {
@@ -1192,7 +1190,6 @@ public class CommandParametersAdapter {
                         .requestInterceptor(configuration.getRequestInterceptor())
                         .capabilities(configuration.getCapabilities())
                         .username(username)
-                        .password(password)
                         .attributes(attributes)
                         .correlationId(DiagnosticContext.INSTANCE.getThreadCorrelationId())
                         .build();
