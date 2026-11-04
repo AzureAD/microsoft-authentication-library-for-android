@@ -935,14 +935,14 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun signInV2PreservesCredentialErrorDiagnostics() = runTest {
+    fun signInV2PreservesUnexpectedCredentialErrorAsGeneralError() = runTest {
         enqueueResult(
-            NativeAuthV2CommandResult.InvalidCredentials(
-                correlationId,
-                "invalid_grant",
-                "AADSTS50126: invalid username or password.",
-                "invalidUserNameOrPassword",
-                errorCodes,
+            INativeAuthCommandResult.APIError(
+                correlationId = correlationId,
+                error = "invalidGrant",
+                errorDescription = "AADSTS50126: invalid username or password.",
+                subError = "invalidUserNameOrPassword",
+                errorCodes = errorCodes,
                 traceId = "password-trace",
                 timestamp = "password-time",
                 attributeValidationDetails = listOf(mapOf("code" to "diagnostic"))
@@ -954,7 +954,8 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
 
         assertTrue(result is NativeAuthErrorV2)
         result as NativeAuthErrorV2
-        assertTrue(result.isInvalidCredentials())
+        assertTrue(result.isGeneralError())
+        assertFalse(result.isInvalidPassword())
         assertFalse(result.isUserNotFound())
         assertEquals(errorCodes, result.errorCodes)
         assertEquals("invalidUserNameOrPassword", result.subError)
@@ -983,7 +984,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         val result = application.signInV2(signInParameters()) as NativeAuthErrorV2
 
         assertTrue(result.isUserNotFound())
-        assertFalse(result.isInvalidCredentials())
+        assertFalse(result.isInvalidPassword())
         assertEquals(errorCodes, result.errorCodes)
         assertEquals("userNotFound", result.subError)
         assertEquals(listOf(mapOf("code" to "diagnostic")), result.attributeValidationDetails)
@@ -1329,30 +1330,65 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     // -----------------------------------------------------------------------------------------
 
     @Test
-    fun submitPasswordWithWrongPasswordIsInvalidCredentialsNotPasswordPolicy() = runTest {
+    fun submitPasswordWithWrongPasswordIsInvalidPassword() = runTest {
         val state = passwordRequiredState()
-        enqueueResult(
+        val details = listOf(mapOf("code" to "diagnostic"))
+        for (failure in listOf(
             NativeAuthV2CommandResult.IncorrectPassword(
                 correlationId,
-                "invalid_grant",
-                "AADSTS50126: invalid username or password.",
+                "invalidGrant",
+                "AADSTS50126: Error validating credentials due to invalid username or password.",
                 "invalidUserNameOrPassword",
                 errorCodes,
                 traceId = "password-trace",
-                timestamp = "password-time"
+                timestamp = "password-time",
+                attributeValidationDetails = details
             ),
-            NativeAuthV2SubmitPasswordCommand::class
-        )
+            INativeAuthCommandResult.APIError(
+                error = "invalidGrant", subError = "invalidUserNameOrPassword",
+                errorDescription = "AADSTS50126: Error validating credentials due to invalid username or password.",
+                correlationId = correlationId, errorCodes = errorCodes,
+                traceId = "password-trace", timestamp = "password-time",
+                attributeValidationDetails = details
+            )
+        )) {
+            enqueueResult(failure, NativeAuthV2SubmitPasswordCommand::class)
+            val result = state.submitPassword("WrongPassword!".toCharArray()) as NativeAuthErrorV2
+            assertTrue(result.isInvalidPassword())
+            assertFalse(result.isGeneralError())
+            assertEquals(ErrorTypes.INVALID_PASSWORD, result.errorType)
+            assertEquals("invalidGrant", result.error)
+            assertEquals("invalidUserNameOrPassword", result.subError)
+            assertEquals("AADSTS50126: Error validating credentials due to invalid username or password.", result.errorMessage)
+            assertEquals(correlationId, result.correlationId)
+            assertEquals(errorCodes, result.errorCodes)
+            assertEquals("password-trace", result.traceId)
+            assertEquals("password-time", result.timestamp)
+            assertEquals(details, result.attributeValidationDetails)
+            assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.scenario)
+        }
+    }
 
-        val result = state.submitPassword("WrongPassword!".toCharArray())
-
-        assertTrue(result is NativeAuthErrorV2)
-        result as NativeAuthErrorV2
-        assertTrue(result.isInvalidCredentials())
-        assertFalse(result.isInvalidPassword())
-        assertEquals(errorCodes, result.errorCodes)
-        assertEquals("password-trace", result.traceId)
-        assertEquals("password-time", result.timestamp)
+    @Test
+    fun submitPasswordRequiresExactCredentialErrorPairForRawFailures() = runTest {
+        val state = passwordRequiredState()
+        for ((code, subError) in listOf(
+            "invalid_grant" to "invalidUserNameOrPassword",
+            "invalidRequest" to "invalidUserNameOrPassword",
+            "invalidGrant" to "unrelated",
+            "invalidGrant" to null
+        )) {
+            enqueueResult(
+                INativeAuthCommandResult.APIError(
+                    error = code, subError = subError, correlationId = correlationId,
+                    errorDescription = "AADSTS50126: invalid username or password."
+                ),
+                NativeAuthV2SubmitPasswordCommand::class
+            )
+            val error = state.submitPassword("WrongPassword!".toCharArray()) as NativeAuthErrorV2
+            assertFalse(error.isInvalidPassword())
+            assertTrue(error.isGeneralError())
+        }
     }
 
     @Test
@@ -1488,8 +1524,8 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         )
 
         val result = future.get(30, TimeUnit.SECONDS)
-        assertTrue((result as NativeAuthErrorV2).isInvalidCredentials())
-        assertFalse(result.isInvalidPassword())
+        assertTrue((result as NativeAuthErrorV2).isInvalidPassword())
+        assertFalse(result.isGeneralError())
     }
 
     // -----------------------------------------------------------------------------------------

@@ -55,19 +55,18 @@ class NativeAuthV2ErrorsTest {
     }
 
     @Test
-    fun unifiedError_credentialsAreNotPasswordPolicyViolations() {
+    fun unifiedError_credentialResponseNeedsPasswordSubmissionContext() {
         val error = NativeAuthErrorV2(
             error = "invalidGrant", subError = "invalidUserNameOrPassword",
             errorMessage = errorMessage, correlationId = correlationId,
             scenario = NativeAuthFlowScenarioV2.SIGN_IN
         )
-        assertTrue(error.isInvalidCredentials())
         assertFalse(error.isInvalidPassword())
-        assertFalse(error.isGeneralError())
+        assertTrue(error.isGeneralError())
     }
 
     @Test
-    fun unifiedError_passwordDetailsCannotOverrideCredentialClassification() {
+    fun unifiedError_passwordDetailsCannotReplacePasswordSubmissionContext() {
         val error = NativeAuthErrorV2(
             error = "invalidGrant",
             subError = "invalidUserNameOrPassword",
@@ -82,9 +81,8 @@ class NativeAuthV2ErrorsTest {
             )
         )
 
-        assertTrue(error.isInvalidCredentials())
         assertFalse(error.isInvalidPassword())
-        assertFalse(error.isGeneralError())
+        assertTrue(error.isGeneralError())
     }
 
     @Test
@@ -116,7 +114,6 @@ class NativeAuthV2ErrorsTest {
                     errorMessage = "Unrelated description", correlationId = correlationId, scenario = scenario
                 )
                 assertTrue(error.isInvalidPassword())
-                assertFalse(error.isInvalidCredentials())
             }
         }
         for ((code, subError) in listOf(
@@ -129,6 +126,32 @@ class NativeAuthV2ErrorsTest {
                 errorMessage = "passwordPolicyViolation", correlationId = correlationId,
                 scenario = NativeAuthFlowScenarioV2.SIGN_UP
             ).isInvalidPassword())
+        }
+    }
+
+    @Test
+    fun unifiedError_usernameClassificationIsLocalOnly() {
+        val serviceError = NativeAuthErrorV2(
+            error = "invalidRequest", errorMessage = "AADSTS90100: invalid username",
+            correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.SIGN_IN
+        )
+        assertFalse(serviceError.isInvalidUsername())
+        assertTrue(serviceError.isGeneralError())
+        assertTrue(NativeAuthErrorV2(
+            errorType = ErrorTypes.INVALID_USERNAME, errorMessage = "Empty or blank username",
+            correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.SIGN_IN
+        ).isInvalidUsername())
+    }
+
+    @Test
+    fun unifiedError_expiredSessionRemainsGeneralAcrossScenarios() {
+        for (scenario in NativeAuthFlowScenarioV2.values()) {
+            val error = NativeAuthErrorV2(
+                error = "invalidRequest", subError = "sessionExpiredOrInvalid",
+                errorMessage = "AADSTS400004: The session has expired or is invalid. Please try again.",
+                correlationId = correlationId, scenario = scenario
+            )
+            assertTrue(error.isGeneralError())
         }
     }
 
@@ -192,9 +215,6 @@ class NativeAuthV2ErrorsTest {
             NativeAuthErrorV2(errorType = "user_not_found", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isUserNotFound()
         )
         assertTrue(
-            NativeAuthErrorV2(errorType = "invalid_credentials", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isInvalidCredentials()
-        )
-        assertTrue(
             NativeAuthErrorV2(errorType = "invalid_username", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isInvalidUsername()
         )
         val error = NativeAuthErrorV2(
@@ -205,7 +225,6 @@ class NativeAuthV2ErrorsTest {
             subError = "sub"
         )
         assertFalse(error.isUserNotFound())
-        assertFalse(error.isInvalidCredentials())
         assertFalse(error.isInvalidUsername())
         assertEquals(NativeAuthFlowScenarioV2.UNKNOWN, error.scenario)
         assertEquals("sub", error.subError)
@@ -331,11 +350,17 @@ class NativeAuthV2ErrorsTest {
     @Test
     fun removedV2ClassifiersRemainGeneralErrorsWithoutChangingV1() {
         val removedMethods = setOf("isUserAlreadyExists", "isAuthMethodBlocked",
-            "isVerificationContactBlocked", "isUserDoesNotHavePassword")
+            "isVerificationContactBlocked", "isUserDoesNotHavePassword", "isInvalidCredentials")
         assertFalse(NativeAuthErrorV2::class.java.methods.any { it.name in removedMethods })
         assertTrue(com.microsoft.identity.nativeauth.statemachine.errors.SignUpError::class.java
             .methods.any { it.name == "isUserAlreadyExists" })
-        for (type in listOf("user_already_exists", "auth_method_blocked", "verification_contact_blocked")) {
+        assertTrue(com.microsoft.identity.nativeauth.statemachine.errors.SignInError(
+            errorType = "invalid_credentials", errorMessage = errorMessage, correlationId = correlationId
+        ).isInvalidCredentials())
+        assertFalse(com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult::class.java
+            .declaredClasses.any { it.simpleName == "InvalidCredentials" })
+        for (type in listOf("user_already_exists", "auth_method_blocked", "verification_contact_blocked",
+            "invalid_credentials")) {
             assertTrue(NativeAuthErrorV2(
                 errorType = type, errorMessage = errorMessage, correlationId = correlationId,
                 scenario = NativeAuthFlowScenarioV2.UNKNOWN

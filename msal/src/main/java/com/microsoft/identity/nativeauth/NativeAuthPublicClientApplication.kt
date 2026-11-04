@@ -718,20 +718,6 @@ class NativeAuthPublicClientApplication(
                             scenario = NativeAuthFlowScenarioV2.SIGN_IN
                         )
                     }
-                    is NativeAuthV2CommandResult.InvalidCredentials -> {
-                        NativeAuthErrorV2(
-                            errorType = SignInErrorTypes.INVALID_CREDENTIALS,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = NativeAuthFlowScenarioV2.SIGN_IN,
-                            traceId = result.traceId,
-                            timestamp = result.timestamp,
-                            errorCodes = result.errorCodes,
-                            subError = result.subError,
-                            attributeValidationDetails = result.attributeValidationDetails
-                        )
-                    }
                     is NativeAuthV2CommandResult.UserNotFound -> {
                         NativeAuthErrorV2(
                             errorType = ErrorTypes.USER_NOT_FOUND,

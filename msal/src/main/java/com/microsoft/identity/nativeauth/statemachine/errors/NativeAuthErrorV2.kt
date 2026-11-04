@@ -74,25 +74,19 @@ class NativeAuthErrorV2 @JvmOverloads constructor(
      */
     fun isNotImplemented(): Boolean = this.errorType == ErrorTypes.NOT_IMPLEMENTED
 
-    /** Whether the service rejected the username. */
-    fun isInvalidUsername(): Boolean = errorType == ErrorTypes.INVALID_USERNAME ||
-        (error == "invalidRequest" && errorMessage?.contains("AADSTS90100") == true &&
-            errorMessage.contains("username", ignoreCase = true))
+    /** Whether the username failed local SDK validation. */
+    fun isInvalidUsername(): Boolean = errorType == ErrorTypes.INVALID_USERNAME
 
     /** Whether the account does not exist. */
     fun isUserNotFound(): Boolean = errorType == ErrorTypes.USER_NOT_FOUND ||
         (error == "invalidRequest" && subError == "userNotFound")
-
-    /** Whether sign-in credentials were rejected, not a new-password policy violation. */
-    fun isInvalidCredentials(): Boolean = errorType == SignInErrorTypes.INVALID_CREDENTIALS ||
-        (error == "invalidGrant" && subError == "invalidUserNameOrPassword")
 
     /** Whether a first-factor one-time code was rejected; MFA and enrollment use [isInvalidChallenge]. */
     fun isInvalidCode(): Boolean = errorType == ErrorTypes.INVALID_CODE ||
         (errorType != ErrorTypes.INVALID_CHALLENGE &&
             error == "invalidGrant" && subError == "invalidOneTimeCode")
 
-    /** Whether password-specific errors or validation details indicate a new-password policy violation. */
+    /** Whether a submitted sign-in password was rejected or a new password failed service validation. */
     fun isInvalidPassword(): Boolean = errorType == ErrorTypes.INVALID_PASSWORD ||
         (error == "invalidRequest" && (subError in PASSWORD_POLICY_SUBERRORS ||
             (subError == "attributeValidationError" && validationDetails().any { detail ->
@@ -126,7 +120,7 @@ class NativeAuthErrorV2 @JvmOverloads constructor(
 
     /** Whether no stable classifier describes this error; raw diagnostics remain available. */
     fun isGeneralError(): Boolean = !(isInvalidUsername() || isUserNotFound() ||
-        isInvalidCredentials() || isInvalidCode() || isInvalidPassword() ||
+        isInvalidCode() || isInvalidPassword() ||
         isMissingRequiredAttributes() || isInvalidAttributes() || isInvalidChallenge() ||
         isInvalidInput() || isAuthNotSupported() || isPasswordResetFailed() ||
         isBrowserRequired() || isNotImplemented())
