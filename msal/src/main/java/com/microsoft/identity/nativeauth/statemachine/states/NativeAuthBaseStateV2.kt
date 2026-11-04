@@ -107,10 +107,7 @@ abstract class NativeAuthBaseStateV2 internal constructor(
             AttributesRequiredStateV2(result.continuationState, scenario, config), scenario,
             result.requiredAttributes.toListOfRequiredUserAttributeV2()
         )
-        is NativeAuthV2CommandResult.AttributesInvalid -> NativeAuthResultV2.AttributesInvalid(
-            AttributesInvalidStateV2(result.continuationState, scenario, config), scenario,
-            result.invalidAttributes, NativeAuthErrorV2.fromAttributeError(result, scenario)
-        )
+        is NativeAuthV2CommandResult.AttributesInvalid -> NativeAuthErrorV2.fromAttributeError(result, scenario)
         is NativeAuthV2CommandResult.CodeRequired -> NativeAuthResultV2.CodeRequired(
             CodeRequiredStateV2(result.continuationState, scenario, config), scenario,
             result.codeLength, result.challengeTargetLabel, result.challengeChannel

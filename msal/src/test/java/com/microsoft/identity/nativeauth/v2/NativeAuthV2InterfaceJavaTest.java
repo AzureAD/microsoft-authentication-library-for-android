@@ -161,6 +161,15 @@ public class NativeAuthV2InterfaceJavaTest extends PublicClientApplicationAbstra
     }
 
     @Test
+    public void invalidAttributesClassifierIsCallableFromJava() {
+        final NativeAuthErrorV2 error = new NativeAuthErrorV2(
+                "invalid_attributes", "invalidRequest", "Invalid attributes",
+                "correlation-id", NativeAuthFlowScenarioV2.SIGN_UP);
+        assertTrue(error.isInvalidAttributes());
+        assertFalse(error.isSuccess());
+    }
+
+    @Test
     public void resultDefaultImplsDelegateToBaseResult() throws ExecutionException, InterruptedException, TimeoutException {
         final ResultFuture<NativeAuthResultV2> future = new ResultFuture<>();
         application.signUpV2(new NativeAuthSignUpParameters(username), newCallback(future));

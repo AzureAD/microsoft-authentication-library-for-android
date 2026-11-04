@@ -37,7 +37,6 @@ import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
-import com.microsoft.identity.nativeauth.statemachine.states.AttributesInvalidStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.BaseState
 import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
@@ -229,10 +228,6 @@ class NativeAuthV2StatesTest {
             AttributesRequiredStateV2.CREATOR
         )
         assertParcelRoundTrip(
-            AttributesInvalidStateV2(correlationId, scenario, config),
-            AttributesInvalidStateV2.CREATOR
-        )
-        assertParcelRoundTrip(
             MFARequiredStateV2(correlationId, scenario, config),
             MFARequiredStateV2.CREATOR
         )
@@ -296,10 +291,6 @@ class NativeAuthV2StatesTest {
             assertParcelRoundTrip(
                 AttributesRequiredStateV2(continuationState, NativeAuthFlowScenarioV2.SIGN_UP, config),
                 AttributesRequiredStateV2.CREATOR
-            ),
-            assertParcelRoundTrip(
-                AttributesInvalidStateV2(continuationState, NativeAuthFlowScenarioV2.SIGN_UP, config),
-                AttributesInvalidStateV2.CREATOR
             ),
             assertParcelRoundTrip(
                 SignInAfterSignUpStateV2(continuationState, NativeAuthFlowScenarioV2.SIGN_UP, config),
@@ -436,20 +427,6 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
-    fun testAttributesInvalidStateCallbackReturnsInvalidState() {
-        val attributes = UserAttributes.Builder().city("city").build()
-        assertCallbackInvalidState { future ->
-            AttributesInvalidStateV2(correlationId, scenario, config).submitAttributes(
-                attributes,
-                object : AttributesInvalidStateV2.SubmitAttributesCallback {
-                    override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
-                    override fun onError(exception: BaseException) = future.setException(exception)
-                }
-            )
-        }
-    }
-
-    @Test
     fun testMFARequiredStateCallbackReturnsInvalidState() {
         val authMethod = AuthMethod("id", "oob", null, "email")
         assertCallbackInvalidState { future ->
@@ -573,15 +550,6 @@ class NativeAuthV2StatesTest {
             AttributesRequiredStateV2(correlationId, scenario, config).submitAttributes(
                 attributes,
                 object : AttributesRequiredStateV2.SubmitAttributesCallback {
-                    override fun onResult(result: NativeAuthResultV2): Unit = throw thrown
-                    override fun onError(exception: BaseException) = future.setException(exception)
-                }
-            )
-        }
-        assertCallbackRoutesToOnError { future, thrown ->
-            AttributesInvalidStateV2(correlationId, scenario, config).submitAttributes(
-                attributes,
-                object : AttributesInvalidStateV2.SubmitAttributesCallback {
                     override fun onResult(result: NativeAuthResultV2): Unit = throw thrown
                     override fun onError(exception: BaseException) = future.setException(exception)
                 }

@@ -176,6 +176,33 @@ class NativeAuthV2ErrorsTest {
     }
 
     @Test
+    fun testInvalidAttributesClassifierPreservesServiceValidation() {
+        val errors = listOf(
+            NativeAuthErrorV2(
+                errorType = "invalid_attributes", errorMessage = errorMessage,
+                correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.SIGN_UP),
+            NativeAuthErrorV2(
+                subError = "attributeValidationError", errorMessage = errorMessage,
+                correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.SIGN_UP),
+            NativeAuthErrorV2(
+                attributeValidationDetails = listOf(mapOf("code" to "attributeRequired")),
+                errorMessage = errorMessage, correlationId = correlationId,
+                scenario = NativeAuthFlowScenarioV2.SIGN_UP)
+        )
+        errors.forEach {
+            assertTrue(it.isInvalidAttributes())
+            assertFalse(it.isGeneralError())
+        }
+        val unrelated = NativeAuthErrorV2(
+            errorMessage = errorMessage, correlationId = correlationId,
+            scenario = NativeAuthFlowScenarioV2.SIGN_UP,
+            attributeValidationDetails = listOf("malformed", mapOf("code" to "unknown"))
+        )
+        assertFalse(unrelated.isInvalidAttributes())
+        assertTrue(unrelated.isGeneralError())
+    }
+
+    @Test
     fun testResetPasswordErrorV2UtilityMethods() {
         assertTrue(
             NativeAuthErrorV2(errorType = "user_not_found", errorMessage = errorMessage, correlationId = correlationId, scenario = NativeAuthFlowScenarioV2.UNKNOWN).isUserNotFound()
@@ -205,16 +232,12 @@ class NativeAuthV2ErrorsTest {
 
     @Test
     fun testNativeAuthV2ErrorsDoNotExposeRetryState() {
-        listOf(
-            NativeAuthErrorV2::class.java,
-            NativeAuthErrorV2::class.java,
-            NativeAuthErrorV2::class.java
-        ).forEach { errorClass ->
-            assertFalse(
-                "${errorClass.simpleName} must not expose retry state",
-                errorClass.methods.any { it.name == "getNextState" }
-            )
-        }
+        assertFalse(
+            "NativeAuthErrorV2 must not expose a continuation or retry state",
+            NativeAuthErrorV2::class.java.methods.any {
+                it.name in setOf("getNextState", "getRetryState", "getContinuationState")
+            }
+        )
     }
 
     @Test

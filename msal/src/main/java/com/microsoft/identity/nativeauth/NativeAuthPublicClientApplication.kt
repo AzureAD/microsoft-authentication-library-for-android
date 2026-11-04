@@ -90,7 +90,6 @@ import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStart
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
-import com.microsoft.identity.nativeauth.statemachine.states.AttributesInvalidStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState
 import com.microsoft.identity.nativeauth.statemachine.states.Callback
@@ -945,18 +944,8 @@ class NativeAuthPublicClientApplication(
                             requiredAttributes = result.requiredAttributes.toListOfRequiredUserAttributeV2()
                         )
                     }
-                    is NativeAuthV2CommandResult.AttributesInvalid -> {
-                        NativeAuthResultV2.AttributesInvalid(
-                            nextState = AttributesInvalidStateV2(
-                                continuationState = result.continuationState,
-                                scenario = NativeAuthFlowScenarioV2.SIGN_UP,
-                                config = nativeAuthConfig
-                            ),
-                            scenario = NativeAuthFlowScenarioV2.SIGN_UP,
-                            invalidAttributes = result.invalidAttributes,
-                            error = NativeAuthErrorV2.fromAttributeError(result, NativeAuthFlowScenarioV2.SIGN_UP)
-                        )
-                    }
+                    is NativeAuthV2CommandResult.AttributesInvalid ->
+                        NativeAuthErrorV2.fromAttributeError(result, NativeAuthFlowScenarioV2.SIGN_UP)
                     is NativeAuthV2CommandResult.UserAlreadyExists -> {
                         NativeAuthErrorV2(
                             errorType = SignUpErrorTypes.USER_ALREADY_EXISTS,

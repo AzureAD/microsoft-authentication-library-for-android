@@ -77,7 +77,6 @@ import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
-import com.microsoft.identity.nativeauth.statemachine.states.AttributesInvalidStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredStateV2
@@ -1176,7 +1175,6 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         assertNotImplemented(NewPasswordRequiredStateV2("correlation-id", scenario, config).submitNewPassword("password".toCharArray()))
         assertNotImplemented(SignInAfterResetPasswordStateV2("correlation-id", scenario, config).signIn())
         assertInvalidState(AttributesRequiredStateV2("correlation-id", scenario, config).submitAttributes(attributes))
-        assertInvalidState(AttributesInvalidStateV2("correlation-id", scenario, config).submitAttributes(attributes))
         assertInvalidState(MFARequiredStateV2("correlation-id", scenario, config).selectAuthMethod(authMethod))
         assertInvalidState(
             ResetPasswordMethodRequiredStateV2(
@@ -1457,7 +1455,6 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         is NativeAuthResultV2.NewPasswordRequired -> "newPassword"
         is NativeAuthResultV2.SignInAfterResetPasswordRequired -> "signInAfterResetPassword"
         is NativeAuthResultV2.AttributesRequired -> "attributes"
-        is NativeAuthResultV2.AttributesInvalid -> "attributesInvalid"
         is NativeAuthResultV2.MFARequired -> "mfa"
         is NativeAuthResultV2.MFAVerificationRequired -> "mfaVerification"
         is NativeAuthResultV2.StrongAuthRegistrationRequired -> "strongAuthRegistration"

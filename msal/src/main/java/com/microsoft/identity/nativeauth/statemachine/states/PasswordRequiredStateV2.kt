@@ -336,12 +336,7 @@ class PasswordRequiredStateV2 internal constructor(
                         attributeValidationDetails = result.attributeValidationDetails
                     )
                 } else {
-                    NativeAuthResultV2.AttributesInvalid(
-                        nextState = AttributesInvalidStateV2(result.continuationState, scenario, config),
-                        scenario = scenario,
-                        invalidAttributes = result.invalidAttributes,
-                        error = NativeAuthErrorV2.fromAttributeError(result, scenario)
-                    )
+                    NativeAuthErrorV2.fromAttributeError(result, scenario)
                 }
             }
             is NativeAuthV2CommandResult.UserAlreadyExists -> {

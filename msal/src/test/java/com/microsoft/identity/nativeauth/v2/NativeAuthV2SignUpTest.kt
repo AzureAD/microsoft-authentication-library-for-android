@@ -39,6 +39,7 @@ import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.controllers.CommandResult
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.exception.BaseException
+import com.microsoft.identity.common.java.exception.ConnectionError
 import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpV2StartCommandParameters
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitAttributesCommandParameters
@@ -75,7 +76,6 @@ import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
-import com.microsoft.identity.nativeauth.statemachine.states.AttributesInvalidStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.ExistingAccountCodeRequiredStateV2
@@ -106,6 +106,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.File
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
 
@@ -113,7 +114,7 @@ import kotlin.reflect.KClass
  * Parity coverage for Native Auth V2 sign-up. Every scenario is driven through mocked Common
  * command results, so the whole public sign-up surface — the [INativeAuthPublicClientApplication.signUpV2]
  * entry and each follow-up state ([CodeRequiredStateV2], [AttributesRequiredStateV2],
- * [AttributesInvalidStateV2], [PasswordRequiredStateV2], [SignInAfterSignUpStateV2]) — is exercised
+ * [PasswordRequiredStateV2], [SignInAfterSignUpStateV2]) — is exercised
  * without a service.
  *
  * The scenarios mirror the in-scope iOS V2 sign-up cases and the server traces in
@@ -188,7 +189,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun signUpV2RetainsRequiredAttributeDiagnosticsAlongsideRecoverableState() = runTest {
+    fun signUpV2RetainsRequiredAttributeDiagnosticsInError() = runTest {
         enqueueResult(
             NativeAuthV2CommandResult.AttributesInvalid(
                 correlationId, createContinuationState(), listOf("city"),
@@ -200,8 +201,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
             ),
             NativeAuthV2SignUpStartCommand::class
         )
-        val result = application.signUpV2(signUpParameters()) as NativeAuthResultV2.AttributesInvalid
-        val error = result.error!!
+        val error = application.signUpV2(signUpParameters()) as NativeAuthErrorV2
         assertTrue(error.isMissingRequiredAttributes())
         assertTrue(error.isInvalidAttributes())
         assertFalse(error.isInvalidPassword())
@@ -209,7 +209,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         assertEquals(listOf(1002027), error.errorCodes)
         assertEquals("attribute-trace", error.traceId)
         assertEquals("attribute-time", error.timestamp)
-        assertEquals(listOf("city"), result.invalidAttributes)
+        assertFalse(error.isSuccess())
     }
 
     @Test
@@ -292,7 +292,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun signUpV2SurfacesRetryableAttributesInvalid() = runTest {
+    fun signUpV2SurfacesAttributesInvalidError() = runTest {
         enqueueResult(
             NativeAuthV2CommandResult.AttributesInvalid(
                 correlationId,
@@ -307,11 +307,9 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
 
         val result = application.signUpV2(signUpParameters())
 
-        assertTrue(result is NativeAuthResultV2.AttributesInvalid)
-        assertEquals(
-            listOf("city"),
-            (result as NativeAuthResultV2.AttributesInvalid).invalidAttributes
-        )
+        assertTrue(result is NativeAuthErrorV2)
+        assertTrue((result as NativeAuthErrorV2).isInvalidAttributes())
+        assertFalse(result.isSuccess())
     }
 
     @Test
@@ -607,26 +605,24 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun submitCodePreservesRejectedRetainedAttributesAndAllowsRetry() = runTest {
+    fun submitCodeReturnsAttributeErrorWithServiceDiagnostics() = runTest {
         val state = codeRequiredState()
-        val retryState = createContinuationState()
+        val collectionState = createContinuationState()
         val details = listOf(mapOf(
             "code" to "attributeValidationFailed", "attributeIds" to listOf("displayName")))
         enqueueResult(
             NativeAuthV2CommandResult.AttributesInvalid(
-                correlationId, retryState, listOf("displayName"), "invalidRequest", "Attribute rejected",
+                correlationId, collectionState, listOf("displayName"), "invalidRequest", "Attribute rejected",
                 listOf(1002027), "attributeValidationError", details, "attribute-trace", "attribute-time"
             ),
             NativeAuthV2SignUpSubmitCodeCommand::class
         )
         val raw = state.submitCode("123456")
-        assertTrue(raw is NativeAuthResultV2.AttributesInvalid)
-        val result = raw as NativeAuthResultV2.AttributesInvalid
-        assertSame(retryState, result.nextState.continuationState)
-        assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, result.scenario)
-        assertEquals(listOf("displayName"), result.invalidAttributes)
-        val error = result.error!!
+        assertTrue(raw is NativeAuthErrorV2)
+        val error = raw as NativeAuthErrorV2
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, error.scenario)
         assertTrue(error.isInvalidAttributes())
+        assertFalse(error.isSuccess())
         assertEquals("invalidRequest", error.error)
         assertEquals("Attribute rejected", error.errorMessage)
         assertEquals(correlationId, error.correlationId)
@@ -635,14 +631,105 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         assertEquals(details, error.attributeValidationDetails)
         assertEquals("attribute-trace", error.traceId)
         assertEquals("attribute-time", error.timestamp)
-        enqueueResult(
-            NativeAuthV2CommandResult.SignInAfterSignUpRequired(correlationId, retryState),
-            NativeAuthV2SubmitAttributesCommand::class
-        ) { command ->
-            assertSame(retryState, (command.parameters as NativeAuthV2SubmitAttributesCommandParameters).continuationState)
+        verify(exactly = 0) {
+            CommandDispatcher.submitSilentReturningFuture(match { it is NativeAuthV2SubmitAttributesCommand })
         }
-        assertTrue(result.nextState.submitAttributes(UserAttributes.Builder().displayName("Corrected").build())
-            is NativeAuthResultV2.SignInAfterSignUpRequired)
+    }
+
+    @Test
+    fun attributeValidationFailuresReturnErrorsAcrossSignUpSteps() = runTest {
+        val details = listOf(mapOf(
+            "code" to "attributeValidationFailed", "attributeIds" to listOf("city")))
+        for ((commandClass, submit) in signUpAttributeSubmissionSteps()) {
+            enqueueResult(NativeAuthV2CommandResult.AttributesInvalid(
+                correlationId, createContinuationState(), listOf("city"), "invalidRequest",
+                "City rejected", errorCodes, "attributeValidationError", details,
+                "attribute-trace", "attribute-time"
+            ), commandClass)
+            val error = submit() as NativeAuthErrorV2
+            assertTrue(error.isInvalidAttributes())
+            assertFalse(error.isInvalidPassword())
+            assertFalse(error.isSuccess())
+            assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, error.scenario)
+            assertEquals(correlationId, error.correlationId)
+            assertEquals("invalidRequest", error.error)
+            assertEquals("City rejected", error.errorMessage)
+            assertEquals("attributeValidationError", error.subError)
+            assertEquals(errorCodes, error.errorCodes)
+            assertEquals(details, error.attributeValidationDetails)
+            assertEquals("attribute-trace", error.traceId)
+            assertEquals("attribute-time", error.timestamp)
+        }
+    }
+
+    @Test
+    fun attributeValidationFailureCallbackReturnsErrorWithoutState() = runTest {
+        val state = attributesRequiredState()
+        val details = listOf(mapOf(
+            "code" to "attributeValidationFailed", "attributeIds" to listOf("city")))
+        enqueueResult(NativeAuthV2CommandResult.AttributesInvalid(
+            correlationId, createContinuationState(), listOf("city"), "invalidRequest",
+            "City rejected", attributeValidationDetails = details
+        ), NativeAuthV2SubmitAttributesCommand::class)
+        val future = ResultFuture<NativeAuthResultV2>()
+        state.submitAttributes(UserAttributes.Builder().city("Invalid").build(),
+            object : AttributesRequiredStateV2.SubmitAttributesCallback {
+                override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
+                override fun onError(exception: BaseException) = future.setException(exception)
+            })
+        val error = future.get(10, TimeUnit.SECONDS) as NativeAuthErrorV2
+        assertTrue(error.isInvalidAttributes())
+        assertFalse(error.isSuccess())
+        assertEquals(details, error.attributeValidationDetails)
+    }
+
+    @Test
+    fun passwordPolicyFailuresFromAttributeSubmissionReturnInvalidPasswordAcrossSignUpSteps() = runTest {
+        val steps = signUpAttributeSubmissionSteps()
+        for (invalidNames in listOf(listOf("password"), listOf("password", "displayName"))) {
+            val details = listOf(mapOf(
+                "code" to "passwordPolicyViolation", "attributeIds" to listOf("password")))
+            for ((commandClass, submit) in steps) {
+                enqueueResult(
+                    NativeAuthV2CommandResult.AttributesInvalid(
+                        correlationId, createContinuationState(), invalidNames, "invalidRequest",
+                        "Password rejected", errorCodes, "attributeValidationError", details,
+                        "policy-trace", "policy-time"
+                    ), commandClass
+                )
+                val result = submit()
+                assertTrue(result.toString(), result is NativeAuthErrorV2)
+                val error = result as NativeAuthErrorV2
+                assertTrue(error.isInvalidPassword())
+                assertFalse(error.isSuccess())
+                assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, error.scenario)
+                assertEquals(correlationId, error.correlationId)
+                assertEquals("invalidRequest", error.error)
+                assertEquals("Password rejected", error.errorMessage)
+                assertEquals("attributeValidationError", error.subError)
+                assertEquals(details, error.attributeValidationDetails)
+                assertEquals(errorCodes, error.errorCodes)
+                assertEquals("policy-trace", error.traceId)
+                assertEquals("policy-time", error.timestamp)
+            }
+        }
+    }
+
+    @Test
+    fun attributeSubmissionTransportFailuresReturnNormalErrorsAcrossSignUpSteps() = runTest {
+        val steps = signUpAttributeSubmissionSteps()
+        val failure = ConnectionError.getClientException(IOException("Connection interrupted"))
+        for ((commandClass, submit) in steps) {
+            every {
+                CommandDispatcher.submitSilentReturningFuture(match { commandClass.java.isInstance(it) })
+            } throws failure
+            val error = submit() as NativeAuthErrorV2
+            assertEquals(ErrorTypes.CLIENT_EXCEPTION, error.errorType)
+            assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, error.scenario)
+            assertSame(failure, error.exception)
+            assertFalse(error.isInvalidPassword())
+            assertFalse(error.isSuccess())
+        }
     }
 
     @Test
@@ -750,7 +837,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun submitAttributesWithInvalidValueIsRetryableAttributesInvalid() = runTest {
+    fun submitAttributesWithInvalidValueReturnsAttributesInvalidError() = runTest {
         val state = attributesRequiredState()
         enqueueResult(
             NativeAuthV2CommandResult.AttributesInvalid(
@@ -766,11 +853,9 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
 
         val result = state.submitAttributes(UserAttributes.Builder().build())
 
-        assertTrue(result is NativeAuthResultV2.AttributesInvalid)
-        // The retryable state must accept another submit-attributes attempt against the same state.
-        assertTrue(
-            (result as NativeAuthResultV2.AttributesInvalid).nextState is AttributesInvalidStateV2
-        )
+        assertTrue(result is NativeAuthErrorV2)
+        assertTrue((result as NativeAuthErrorV2).isInvalidAttributes())
+        assertFalse(result.isSuccess())
     }
 
     @Test
@@ -824,19 +909,6 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         assertTrue(result.isInvalidAttributes())
     }
 
-    @Test
-    fun attributesInvalidStateAcceptsRetryThatCompletesSignUp() = runTest {
-        val invalidState = attributesInvalidState()
-        enqueueResult(
-            NativeAuthV2CommandResult.SignInAfterSignUpRequired(correlationId, createContinuationState()),
-            NativeAuthV2SubmitAttributesCommand::class
-        )
-
-        val result = invalidState.submitAttributes(UserAttributes.Builder().build())
-
-        assertTrue(result is NativeAuthResultV2.SignInAfterSignUpRequired)
-    }
-
     // -----------------------------------------------------------------------------------------
     // Deferred password (sign-up scenario)
     // -----------------------------------------------------------------------------------------
@@ -878,7 +950,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun submitPasswordWithNonPasswordValidationErrorReturnsAttributesInvalid() = runTest {
+    fun submitPasswordWithNonPasswordValidationErrorReturnsAttributesInvalidError() = runTest {
         val state = signUpPasswordRequiredState()
         enqueueResult(
             NativeAuthV2CommandResult.AttributesInvalid(
@@ -892,14 +964,13 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2SubmitAttributesCommand::class
         )
 
-        val result = state.submitPassword("Password123!".toCharArray()) as
-            NativeAuthResultV2.AttributesInvalid
-
-        assertEquals(listOf("displayName"), result.invalidAttributes)
+        val result = state.submitPassword("Password123!".toCharArray()) as NativeAuthErrorV2
+        assertTrue(result.isInvalidAttributes())
+        assertFalse(result.isInvalidPassword())
     }
 
     @Test
-    fun submitPasswordWithMixedValidationErrorsReturnsAttributesInvalid() = runTest {
+    fun submitPasswordWithMixedValidationErrorsReturnsAttributesInvalidError() = runTest {
         val state = signUpPasswordRequiredState()
         enqueueResult(
             NativeAuthV2CommandResult.AttributesInvalid(
@@ -913,10 +984,9 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2SubmitAttributesCommand::class
         )
 
-        val result = state.submitPassword("weak".toCharArray()) as
-            NativeAuthResultV2.AttributesInvalid
-
-        assertEquals(listOf("password", "displayName"), result.invalidAttributes)
+        val result = state.submitPassword("weak".toCharArray()) as NativeAuthErrorV2
+        assertTrue(result.isInvalidAttributes())
+        assertFalse(result.isInvalidPassword())
     }
 
     // -----------------------------------------------------------------------------------------
@@ -1178,21 +1248,6 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         return (application.signUpV2(signUpParameters()) as NativeAuthResultV2.AttributesRequired).nextState
     }
 
-    private suspend fun attributesInvalidState(): AttributesInvalidStateV2 {
-        enqueueResult(
-            NativeAuthV2CommandResult.AttributesInvalid(
-                correlationId,
-                createContinuationState(),
-                listOf("city"),
-                "attribute_validation_failed",
-                "AADSTS1002027: attribute validation failed.",
-                listOf(1002027)
-            ),
-            NativeAuthV2SignUpStartCommand::class
-        )
-        return (application.signUpV2(signUpParameters()) as NativeAuthResultV2.AttributesInvalid).nextState
-    }
-
     private suspend fun signUpPasswordRequiredState(): PasswordRequiredStateV2 {
         enqueueResult(
             NativeAuthV2CommandResult.PasswordRequired(correlationId, createContinuationState()),
@@ -1209,6 +1264,29 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         )
         return (codeRequiredState().submitCode("123456") as
             NativeAuthResultV2.SignInAfterSignUpRequired).nextState
+    }
+
+    private suspend fun signUpAttributeSubmissionSteps():
+        List<Pair<KClass<out BaseCommand<*>>, suspend () -> NativeAuthResultV2>> {
+        val code = codeRequiredState()
+        val required = attributesRequiredState()
+        val password = signUpPasswordRequiredState()
+        val collection = createContinuationState()
+        enqueueResult(NativeAuthV2CommandResult.StrongAuthRegistrationRequired(
+            correlationId, collection, listOf(NativeAuthV2AuthMethod("email-id", "email", null))),
+            NativeAuthV2SignUpStartCommand::class)
+        val registration = application.signUpV2(signUpParameters()) as NativeAuthResultV2.StrongAuthRegistrationRequired
+        enqueueResult(NativeAuthV2CommandResult.StrongAuthVerificationRequired(
+            correlationId, collection, 6, "***"), NativeAuthV2EnrollCommand::class)
+        val verification = registration.nextState.selectAuthMethod(registration.authMethods.single(), "user@contoso.com")
+            as NativeAuthResultV2.StrongAuthVerificationRequired
+        return listOf(
+            NativeAuthV2SignUpStartCommand::class to { application.signUpV2(signUpParameters()) },
+            NativeAuthV2SignUpSubmitCodeCommand::class to { code.submitCode("123456") },
+            NativeAuthV2SubmitAttributesCommand::class to { required.submitAttributes(UserAttributes.Builder().build()) },
+            NativeAuthV2SubmitAttributesCommand::class to { password.submitPassword("Password123!".toCharArray()) },
+            NativeAuthV2ActivateCommand::class to { verification.nextState.submitChallenge("123456") }
+        )
     }
 
     private fun enqueueResult(

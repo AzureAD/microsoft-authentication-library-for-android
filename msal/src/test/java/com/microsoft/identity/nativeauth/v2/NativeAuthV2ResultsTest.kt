@@ -29,7 +29,6 @@ import com.microsoft.identity.nativeauth.RequiredUserAttribute
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
-import com.microsoft.identity.nativeauth.statemachine.states.AttributesInvalidStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredStateV2
@@ -126,27 +125,6 @@ class NativeAuthV2ResultsTest {
         try {
             (result.requiredAttributes as MutableList<RequiredUserAttribute>).clear()
             org.junit.Assert.fail("Expected requiredAttributes to be unmodifiable")
-        } catch (_: UnsupportedOperationException) {
-            // Expected.
-        }
-    }
-
-    @Test
-    fun testAttributesInvalidExposesExpectedValues() {
-        val invalidAttributes = mutableListOf("city")
-        val result = NativeAuthResultV2.AttributesInvalid(
-            nextState = AttributesInvalidStateV2(correlationId, scenario, config),
-            scenario = scenario,
-            invalidAttributes = invalidAttributes
-        )
-        assertEquals(invalidAttributes, result.invalidAttributes)
-        assertEquals(scenario, result.scenario)
-
-        invalidAttributes.clear()
-        assertEquals(1, result.invalidAttributes.size)
-        try {
-            (result.invalidAttributes as MutableList<String>).clear()
-            org.junit.Assert.fail("Expected invalidAttributes to be unmodifiable")
         } catch (_: UnsupportedOperationException) {
             // Expected.
         }

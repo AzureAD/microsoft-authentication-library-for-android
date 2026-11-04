@@ -29,7 +29,6 @@ import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.RequiredUserAttribute
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
-import com.microsoft.identity.nativeauth.statemachine.states.AttributesInvalidStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.ExistingAccountCodeRequiredStateV2
@@ -181,22 +180,6 @@ interface NativeAuthResultV2 : Result {
         requiredAttributes: List<RequiredUserAttribute>
     ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2 {
         val requiredAttributes: List<RequiredUserAttribute> = Collections.unmodifiableList(ArrayList(requiredAttributes))
-    }
-
-    /**
-     * AttributesInvalid Result, which indicates the submitted attributes were rejected and must be corrected.
-     *
-     * @param nextState the current state with follow-on methods.
-     * @param invalidAttributes the names of the attributes that were rejected by the server.
-     */
-    class AttributesInvalid @JvmOverloads constructor(
-        override val nextState: AttributesInvalidStateV2,
-        override val scenario: NativeAuthFlowScenarioV2,
-        invalidAttributes: List<String>,
-        /** Shared error diagnostics and classifiers, while retaining the retry state. */
-        val error: com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2? = null
-    ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2 {
-        val invalidAttributes: List<String> = Collections.unmodifiableList(ArrayList(invalidAttributes))
     }
 
     /**
