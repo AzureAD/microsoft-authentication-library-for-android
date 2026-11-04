@@ -85,7 +85,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import java.util.concurrent.CountDownLatch
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResetPasswordStartCommand
-import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SelectResetPasswordMethodCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SelectAuthMethodCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResetPasswordSubmitCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitNewPasswordCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignUpStartCommand
@@ -94,12 +94,11 @@ import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2Su
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitAttributesCommandParameters
 import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.UserAttributes
-import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
-import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParametersV2
+import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParametersV2
 import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2
-import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordMethodRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.AuthMethodSelectionRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
-import com.microsoft.identity.nativeauth.statemachine.states.AttributesInvalidStateV2
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
@@ -462,7 +461,6 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
                 NativeAuthV2CommandResult.SignInAfterSignUpRequired(correlationId, state) to NativeAuthResultV2.SignInAfterSignUpRequired::class,
                 NativeAuthV2CommandResult.PasswordRequired(correlationId, state) to NativeAuthResultV2.PasswordRequired::class,
                 NativeAuthV2CommandResult.AttributesRequired(correlationId, state, emptyList()) to NativeAuthResultV2.AttributesRequired::class,
-                NativeAuthV2CommandResult.AttributesInvalid(correlationId, state, listOf("city"), "invalidRequest", "Invalid city") to NativeAuthResultV2.AttributesInvalid::class,
                 NativeAuthV2CommandResult.CodeRequired(correlationId, state, 8, "***", "email") to NativeAuthResultV2.CodeRequired::class,
                 NativeAuthV2CommandResult.StrongAuthRegistrationRequired(correlationId, state, emptyList()) to NativeAuthResultV2.StrongAuthRegistrationRequired::class
             )
@@ -479,6 +477,16 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
                 assertSame(state, next.continuationState)
                 assertEquals(scenario, next.scenario)
             }
+            enqueueResult(
+                NativeAuthV2CommandResult.AttributesInvalid(
+                    correlationId, state, listOf("city"), "invalidRequest", "Invalid city"),
+                NativeAuthV2ActivateCommand::class
+            )
+            val error = verification.submitChallenge("otp") as NativeAuthErrorV2
+            assertTrue(error.isInvalidAttributes())
+            assertFalse(error.isSuccess())
+            assertEquals(scenario, error.scenario)
+            assertEquals("Invalid city", error.errorMessage)
         }
     }
 
@@ -622,10 +630,10 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             application.signInV2(signInParameters())
         }
         check(NativeAuthFlowScenarioV2.SIGN_UP, NativeAuthV2SignUpStartCommand::class) {
-            application.signUpV2(NativeAuthSignUpParameters(username))
+            application.signUpV2(NativeAuthSignUpParametersV2(username))
         }
         check(NativeAuthFlowScenarioV2.RESET_PASSWORD, NativeAuthV2ResetPasswordStartCommand::class) {
-            application.resetPasswordV2(NativeAuthResetPasswordParameters(username))
+            application.resetPasswordV2(NativeAuthResetPasswordParametersV2(username))
         }
         for (scenario in listOf(NativeAuthFlowScenarioV2.SIGN_IN, NativeAuthFlowScenarioV2.SIGN_UP, NativeAuthFlowScenarioV2.RESET_PASSWORD)) {
             val code = CodeRequiredStateV2(state, scenario, config)
@@ -637,8 +645,8 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             check(scenario, commandClass) { code.submitCode("otp") }
             check(scenario, NativeAuthV2ResendCodeCommand::class) { code.resendCode() }
         }
-        check(NativeAuthFlowScenarioV2.RESET_PASSWORD, NativeAuthV2SelectResetPasswordMethodCommand::class) {
-            ResetPasswordMethodRequiredStateV2(state, listOf(method), config).selectAuthMethod(method)
+        check(NativeAuthFlowScenarioV2.RESET_PASSWORD, NativeAuthV2SelectAuthMethodCommand::class) {
+            AuthMethodSelectionRequiredStateV2(state, listOf(method), config).selectAuthMethod(method)
         }
         // Common also returns this result from password-update polling through the same command.
         check(NativeAuthFlowScenarioV2.RESET_PASSWORD, NativeAuthV2SubmitNewPasswordCommand::class) {
@@ -653,9 +661,6 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         check(NativeAuthFlowScenarioV2.SIGN_UP, NativeAuthV2SubmitAttributesCommand::class) {
             AttributesRequiredStateV2(state, NativeAuthFlowScenarioV2.SIGN_UP, config).submitAttributes(attributes)
         }
-        check(NativeAuthFlowScenarioV2.SIGN_UP, NativeAuthV2SubmitAttributesCommand::class) {
-            AttributesInvalidStateV2(state, NativeAuthFlowScenarioV2.SIGN_UP, config).submitAttributes(attributes)
-        }
         check(NativeAuthFlowScenarioV2.SIGN_IN, NativeAuthV2SelectMFAMethodCommand::class) {
             MFARequiredStateV2(state, listOf(method), NativeAuthFlowScenarioV2.SIGN_IN, config).selectAuthMethod(method)
         }
@@ -665,7 +670,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun activationResumesSignUpPasswordRecollectionThroughSubmitAttributes() = runTest {
+    fun activationResumesSignUpPasswordCollectionThroughSubmitAttributes() = runTest {
         val config = strongAuthRegistration().nextState.config
         val commonState = NativeAuthV2ContinuationStateTestFactory.create(
             correlationId = correlationId, entryRelation = NativeAuthV2LinkRelation.SIGN_UP,

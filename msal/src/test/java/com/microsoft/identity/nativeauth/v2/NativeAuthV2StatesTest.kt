@@ -37,18 +37,17 @@ import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
-import com.microsoft.identity.nativeauth.statemachine.states.AttributesInvalidStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.BaseState
 import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.ExistingAccountCodeRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.ExistingAccountPasswordRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.AuthMethodSelectionRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.NativeAuthBaseStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2
-import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordMethodRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterResetPasswordStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
@@ -169,6 +168,19 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
+    fun signUpCodeStateRetainsProfileAcrossParcelRestoration() {
+        val continuation = NativeAuthV2ContinuationStateTestFactory.create(
+            correlationId,
+            entryRelation = com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2LinkRelation.SIGN_UP,
+            scenario = com.microsoft.identity.common.java.nativeauth.providers.v2.NativeAuthV2FlowScenario.SIGN_UP
+        ).withPendingSignUpAttributes(mapOf("displayName" to "Original"))
+        val state = CodeRequiredStateV2(continuation, NativeAuthFlowScenarioV2.SIGN_UP, config)
+        val restored = assertParcelRoundTrip(state, CodeRequiredStateV2.CREATOR)
+        assertEquals(mapOf("displayName" to "Original"),
+            restored.continuationState?.pendingSignUpAttributesForSubmission())
+    }
+
+    @Test
     fun testStatesAreParcelable() {
         val existing = NativeAuthV2ContinuationStateTestFactory.create(
             correlationId,
@@ -177,6 +189,15 @@ class NativeAuthV2StatesTest {
             ExistingAccountCodeRequiredStateV2(existing, config), ExistingAccountCodeRequiredStateV2.CREATOR)
         val password = assertParcelRoundTrip(
             ExistingAccountPasswordRequiredStateV2(existing, config), ExistingAccountPasswordRequiredStateV2.CREATOR)
+        val methods = listOf(
+            com.microsoft.identity.nativeauth.AuthMethod("email", "oob", "***", "email"),
+            com.microsoft.identity.nativeauth.AuthMethod("password", "password", "", "password"))
+        val selection = assertParcelRoundTrip(
+            AuthMethodSelectionRequiredStateV2(existing, methods, config, NativeAuthFlowScenarioV2.SIGN_IN),
+            AuthMethodSelectionRequiredStateV2.CREATOR)
+        assertEquals(methods, selection.authMethods)
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, selection.scenario)
+        assertEquals(existing.flowScenario(), selection.continuationState?.flowScenario())
         assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, code.scenario)
         assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, password.scenario)
         assertEquals(existing.flowScenario(), code.continuationState?.flowScenario())
@@ -198,21 +219,17 @@ class NativeAuthV2StatesTest {
             AttributesRequiredStateV2.CREATOR
         )
         assertParcelRoundTrip(
-            AttributesInvalidStateV2(correlationId, scenario, config),
-            AttributesInvalidStateV2.CREATOR
-        )
-        assertParcelRoundTrip(
             MFARequiredStateV2(correlationId, scenario, config),
             MFARequiredStateV2.CREATOR
         )
         val restoredResetPasswordMethodState = assertParcelRoundTrip(
-            ResetPasswordMethodRequiredStateV2(
+            AuthMethodSelectionRequiredStateV2(
                 correlationId,
                 NativeAuthFlowScenarioV2.RESET_PASSWORD,
                 config,
                 authMethods = listOf(AuthMethod("sms-1", "sms", "+X XXX XXX 34", "sms"))
             ),
-            ResetPasswordMethodRequiredStateV2.CREATOR
+            AuthMethodSelectionRequiredStateV2.CREATOR
         )
         assertEquals("sms-1", restoredResetPasswordMethodState.authMethods.single().id)
         assertParcelRoundTrip(
@@ -267,10 +284,6 @@ class NativeAuthV2StatesTest {
                 AttributesRequiredStateV2.CREATOR
             ),
             assertParcelRoundTrip(
-                AttributesInvalidStateV2(continuationState, NativeAuthFlowScenarioV2.SIGN_UP, config),
-                AttributesInvalidStateV2.CREATOR
-            ),
-            assertParcelRoundTrip(
                 SignInAfterSignUpStateV2(continuationState, NativeAuthFlowScenarioV2.SIGN_UP, config),
                 SignInAfterSignUpStateV2.CREATOR
             ),
@@ -293,8 +306,8 @@ class NativeAuthV2StatesTest {
             MFARequiredStateV2.CREATOR
         )
         val restoredResetPasswordMethods = assertParcelRoundTrip(
-            ResetPasswordMethodRequiredStateV2(continuationState, methods, config),
-            ResetPasswordMethodRequiredStateV2.CREATOR
+            AuthMethodSelectionRequiredStateV2(continuationState, methods, config),
+            AuthMethodSelectionRequiredStateV2.CREATOR
         )
         listOf(restoredMfa, restoredResetPasswordMethods).forEach { restored ->
             assertEquals(listOf("scope"), restored.continuationState?.scopesForTokenRequest())
@@ -397,20 +410,6 @@ class NativeAuthV2StatesTest {
             AttributesRequiredStateV2(correlationId, scenario, config).submitAttributes(
                 attributes,
                 object : AttributesRequiredStateV2.SubmitAttributesCallback {
-                    override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
-                    override fun onError(exception: BaseException) = future.setException(exception)
-                }
-            )
-        }
-    }
-
-    @Test
-    fun testAttributesInvalidStateCallbackReturnsInvalidState() {
-        val attributes = UserAttributes.Builder().city("city").build()
-        assertCallbackInvalidState { future ->
-            AttributesInvalidStateV2(correlationId, scenario, config).submitAttributes(
-                attributes,
-                object : AttributesInvalidStateV2.SubmitAttributesCallback {
                     override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
                     override fun onError(exception: BaseException) = future.setException(exception)
                 }
@@ -547,15 +546,6 @@ class NativeAuthV2StatesTest {
                 }
             )
         }
-        assertCallbackRoutesToOnError { future, thrown ->
-            AttributesInvalidStateV2(correlationId, scenario, config).submitAttributes(
-                attributes,
-                object : AttributesInvalidStateV2.SubmitAttributesCallback {
-                    override fun onResult(result: NativeAuthResultV2): Unit = throw thrown
-                    override fun onError(exception: BaseException) = future.setException(exception)
-                }
-            )
-        }
         val authMethod = AuthMethod("id", "oob", null, "email")
         assertCallbackRoutesToOnError { future, thrown ->
             MFARequiredStateV2(correlationId, scenario, config).selectAuthMethod(
@@ -568,13 +558,13 @@ class NativeAuthV2StatesTest {
             )
         }
         assertCallbackRoutesToOnError { future, thrown ->
-            ResetPasswordMethodRequiredStateV2(
+            AuthMethodSelectionRequiredStateV2(
                 correlationId,
                 NativeAuthFlowScenarioV2.RESET_PASSWORD,
                 config
             ).selectAuthMethod(
                 authMethod,
-                object : ResetPasswordMethodRequiredStateV2.SelectAuthMethodCallback {
+                object : AuthMethodSelectionRequiredStateV2.SelectAuthMethodCallback {
                     override fun onResult(result: NativeAuthResultV2): Unit = throw thrown
                     override fun onError(exception: BaseException) = future.setException(exception)
                 }

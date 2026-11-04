@@ -2,6 +2,11 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+- [PATCH] Add AuthMethodSelectionRequired for password reset and existing-account sign-up with multiple supported methods.
+- [PATCH] Separate V1 and V2 password-reset parameters with NativeAuthResetPasswordParametersV2.
+- [PATCH] Native Auth V2 sign-up sends the username at start and retains profile attributes until collection.
+- [MAJOR] Add password-free NativeAuthSignUpParametersV2 and remove upfront password retention from V2 sign-up.
+- [MAJOR] Remove Native Auth V2 AttributesInvalidStateV2 and NativeAuthResultV2.AttributesInvalid.
 - [MAJOR] Native Auth V2 errors now use NativeAuthErrorV2. Replace operation-specific V2 error type checks with its classifiers; rejected sign-in passwords use isInvalidCredentials, not isInvalidPassword. V1 is unchanged (AB#3784695).
 - [MINOR] Native Auth V2 sign-in, sign-up and password-reset entries accept scopes and claims. Scope is also sent at token exchange; claims are sent only at entry. Null continuation scopes retain entry scopes, while explicit empty scopes request default OIDC scopes (AB#3784690).
 

@@ -285,6 +285,8 @@ class PasswordRequiredStateV2 internal constructor(
         val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
         coroutineContext.ensureActive()
         return when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitAttributesCommandResult>()) {
+            is NativeAuthV2CommandResult.AuthMethodSelectionRequired ->
+                result.toExistingAccountResult(config)
             is NativeAuthV2CommandResult.ExistingAccountCodeRequired ->
                 result.toExistingAccountResult(config)
             is NativeAuthV2CommandResult.ExistingAccountPasswordRequired ->
@@ -336,12 +338,7 @@ class PasswordRequiredStateV2 internal constructor(
                         attributeValidationDetails = result.attributeValidationDetails
                     )
                 } else {
-                    NativeAuthResultV2.AttributesInvalid(
-                        nextState = AttributesInvalidStateV2(result.continuationState, scenario, config),
-                        scenario = scenario,
-                        invalidAttributes = result.invalidAttributes,
-                        error = NativeAuthErrorV2.fromAttributeError(result, scenario)
-                    )
+                    NativeAuthErrorV2.fromAttributeError(result, scenario)
                 }
             }
             is NativeAuthV2CommandResult.UserAlreadyExists -> {

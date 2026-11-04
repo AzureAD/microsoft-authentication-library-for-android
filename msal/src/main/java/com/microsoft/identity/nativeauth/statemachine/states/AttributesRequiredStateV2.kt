@@ -120,7 +120,9 @@ class AttributesRequiredStateV2 internal constructor(
      * Supply them through the dedicated parameters and states exposed by the sign-up flow.
      *
      * @param attributes account attributes requested by the sign-up flow.
-     * @return the result of submitting the attributes.
+     * @return the next flow step, or [NativeAuthErrorV2] for rejected attributes. Use
+     * [NativeAuthErrorV2.isInvalidAttributes] and [NativeAuthErrorV2.isInvalidPassword] to
+     * classify validation failures; errors do not expose a new state.
      */
     suspend fun submitAttributes(attributes: UserAttributes): NativeAuthResultV2 {
         LogSession.logMethodCall(
@@ -128,173 +130,148 @@ class AttributesRequiredStateV2 internal constructor(
             correlationId = correlationId,
             methodName = "${TAG}.submitAttributes(attributes: UserAttributes)"
         )
-        return submitAttributesInternal(scenario, config, continuationState, correlationId, attributes)
+        val state = continuationState ?: return invalidState()
+        return withContext(Dispatchers.IO) {
+            try {
+                val parameters = CommandParametersAdapter.createNativeAuthV2SubmitAttributesCommandParameters(
+                    config,
+                    config.oAuth2TokenCache,
+                    attributes.toMap(),
+                    state
+                )
+                val command = NativeAuthV2SubmitAttributesCommand(
+                    parameters,
+                    NativeAuthV2FlowController(),
+                    PublicApiId.NATIVE_AUTH_V2_SIGN_UP_SUBMIT_ATTRIBUTES
+                )
+                ensureActive()
+                val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
+                ensureActive()
+                when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitAttributesCommandResult>()) {
+                    is NativeAuthV2CommandResult.AuthMethodSelectionRequired ->
+                        result.toExistingAccountResult(config)
+                    is NativeAuthV2CommandResult.ExistingAccountCodeRequired ->
+                        result.toExistingAccountResult(config)
+                    is NativeAuthV2CommandResult.ExistingAccountPasswordRequired ->
+                        result.toExistingAccountResult(config)
+                    is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
+                        result.toRegistrationResult(scenario, config)
+                    is NativeAuthV2CommandResult.CodeRequired -> {
+                        NativeAuthResultV2.CodeRequired(
+                            nextState = CodeRequiredStateV2(result.continuationState, scenario, config),
+                            scenario = scenario,
+                            codeLength = result.codeLength,
+                            sentTo = result.challengeTargetLabel,
+                            channel = result.challengeChannel
+                        )
+                    }
+                    is NativeAuthV2CommandResult.PasswordRequired -> {
+                        NativeAuthResultV2.PasswordRequired(
+                            nextState = PasswordRequiredStateV2(result.continuationState, scenario, config),
+                            scenario = scenario
+                        )
+                    }
+                    is NativeAuthV2CommandResult.AttributesRequired -> {
+                        NativeAuthResultV2.AttributesRequired(
+                            nextState = AttributesRequiredStateV2(result.continuationState, scenario, config),
+                            scenario = scenario,
+                            requiredAttributes = result.requiredAttributes.toListOfRequiredUserAttributeV2()
+                        )
+                    }
+                    is NativeAuthV2CommandResult.AttributesInvalid ->
+                        NativeAuthErrorV2.fromAttributeError(result, scenario)
+                    is NativeAuthV2CommandResult.SignInAfterSignUpRequired -> {
+                        NativeAuthResultV2.SignInAfterSignUpRequired(
+                            nextState = SignInAfterSignUpStateV2(result.continuationState, scenario, config),
+                            scenario = scenario
+                        )
+                    }
+                    is NativeAuthV2CommandResult.UserAlreadyExists -> {
+                        NativeAuthErrorV2(
+                            errorType = SignUpErrorTypes.USER_ALREADY_EXISTS,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
+                            errorCodes = result.errorCodes,
+                            subError = result.subError,
+                            attributeValidationDetails = result.attributeValidationDetails
+                        )
+                    }
+                    is SignUpCommandResult.InvalidAttributes -> {
+                        NativeAuthErrorV2(
+                            errorType = SignUpErrorTypes.INVALID_ATTRIBUTES,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario
+                        )
+                    }
+                    is NativeAuthV2CommandResult.NotImplemented -> {
+                        NativeAuthErrorV2(
+                            errorType = ErrorTypes.NOT_IMPLEMENTED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario
+                        )
+                    }
+                    is INativeAuthCommandResult.Redirect -> {
+                        NativeAuthErrorV2(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
+                            errorCodes = result.errorCodes,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario
+                        )
+                    }
+                    is INativeAuthCommandResult.APIError -> {
+                        NativeAuthErrorV2(
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            scenario = scenario,
+                            traceId = result.traceId,
+                            timestamp = result.timestamp,
+                            errorCodes = result.errorCodes,
+                            exception = result.exception,
+                            subError = result.subError,
+                            attributeValidationDetails = result.attributeValidationDetails
+                        )
+                    }
+                    else -> {
+                        Logger.warnWithObject(TAG, result.correlationId, "V2 submitAttributes received unsupported result: ", result)
+                        NativeAuthErrorV2(
+                            errorType = ErrorTypes.INVALID_STATE,
+                            errorMessage = "V2 submit attributes returned an unsupported result.",
+                            correlationId = result.correlationId,
+                            scenario = scenario
+                        )
+                    }
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Logger.error(TAG, correlationId, "Exception thrown in submitAttributes", e)
+                NativeAuthErrorV2(
+                    errorType = ErrorTypes.CLIENT_EXCEPTION,
+                    errorMessage = "MSAL client exception occurred in submitAttributes.",
+                    correlationId = correlationId,
+                    scenario = scenario,
+                    exception = e
+                )
+            }
+        }
     }
 
     companion object CREATOR : Parcelable.Creator<AttributesRequiredStateV2> {
         override fun createFromParcel(parcel: Parcel): AttributesRequiredStateV2 = AttributesRequiredStateV2(parcel)
 
         override fun newArray(size: Int): Array<AttributesRequiredStateV2?> = arrayOfNulls(size)
-    }
-}
-
-/**
- * Shared implementation of the submit-attributes step used by [AttributesRequiredStateV2] and
- * [AttributesInvalidStateV2]. Submits the app-collected attributes against [continuationState] and
- * maps the server response to the corresponding [NativeAuthResultV2].
- */
-internal suspend fun submitAttributesInternal(
-    scenario: NativeAuthFlowScenarioV2,
-    config: NativeAuthPublicClientApplicationConfiguration,
-    continuationState: NativeAuthV2ContinuationState?,
-    correlationId: String,
-    attributes: UserAttributes
-): NativeAuthResultV2 {
-    val TAG = "AttributesStateV2.submitAttributes"
-    val state = continuationState ?: return NativeAuthErrorV2(
-        errorType = ErrorTypes.INVALID_STATE,
-        errorMessage = "The continuation state is unavailable. Restart the flow.",
-        correlationId = correlationId,
-        scenario = scenario
-    )
-    return withContext(Dispatchers.IO) {
-        try {
-            val parameters = CommandParametersAdapter.createNativeAuthV2SubmitAttributesCommandParameters(
-                config,
-                config.oAuth2TokenCache,
-                attributes.toMap(),
-                state
-            )
-            val command = NativeAuthV2SubmitAttributesCommand(
-                parameters,
-                NativeAuthV2FlowController(),
-                PublicApiId.NATIVE_AUTH_V2_SIGN_UP_SUBMIT_ATTRIBUTES
-            )
-            ensureActive()
-            val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
-            ensureActive()
-            when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitAttributesCommandResult>()) {
-                is NativeAuthV2CommandResult.ExistingAccountCodeRequired ->
-                    result.toExistingAccountResult(config)
-                is NativeAuthV2CommandResult.ExistingAccountPasswordRequired ->
-                    result.toExistingAccountResult(config)
-                is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
-                    result.toRegistrationResult(scenario, config)
-                is NativeAuthV2CommandResult.CodeRequired -> {
-                    NativeAuthResultV2.CodeRequired(
-                        nextState = CodeRequiredStateV2(result.continuationState, scenario, config),
-                        scenario = scenario,
-                        codeLength = result.codeLength,
-                        sentTo = result.challengeTargetLabel,
-                        channel = result.challengeChannel
-                    )
-                }
-                is NativeAuthV2CommandResult.PasswordRequired -> {
-                    NativeAuthResultV2.PasswordRequired(
-                        nextState = PasswordRequiredStateV2(result.continuationState, scenario, config),
-                        scenario = scenario
-                    )
-                }
-                is NativeAuthV2CommandResult.AttributesRequired -> {
-                    NativeAuthResultV2.AttributesRequired(
-                        nextState = AttributesRequiredStateV2(result.continuationState, scenario, config),
-                        scenario = scenario,
-                        requiredAttributes = result.requiredAttributes.toListOfRequiredUserAttributeV2()
-                    )
-                }
-                is NativeAuthV2CommandResult.AttributesInvalid -> {
-                    NativeAuthResultV2.AttributesInvalid(
-                        nextState = AttributesInvalidStateV2(result.continuationState, scenario, config),
-                        scenario = scenario,
-                        invalidAttributes = result.invalidAttributes,
-                        error = NativeAuthErrorV2.fromAttributeError(result, scenario)
-                    )
-                }
-                is NativeAuthV2CommandResult.SignInAfterSignUpRequired -> {
-                    NativeAuthResultV2.SignInAfterSignUpRequired(
-                        nextState = SignInAfterSignUpStateV2(result.continuationState, scenario, config),
-                        scenario = scenario
-                    )
-                }
-                is NativeAuthV2CommandResult.UserAlreadyExists -> {
-                    NativeAuthErrorV2(
-                        errorType = SignUpErrorTypes.USER_ALREADY_EXISTS,
-                        error = result.error,
-                        errorMessage = result.errorDescription,
-                        correlationId = result.correlationId,
-                        scenario = scenario,
-                        traceId = result.traceId,
-                        timestamp = result.timestamp,
-                        errorCodes = result.errorCodes,
-                        subError = result.subError,
-                        attributeValidationDetails = result.attributeValidationDetails
-                    )
-                }
-                is SignUpCommandResult.InvalidAttributes -> {
-                    NativeAuthErrorV2(
-                        errorType = SignUpErrorTypes.INVALID_ATTRIBUTES,
-                        error = result.error,
-                        errorMessage = result.errorDescription,
-                        correlationId = result.correlationId,
-                        scenario = scenario
-                    )
-                }
-                is NativeAuthV2CommandResult.NotImplemented -> {
-                    NativeAuthErrorV2(
-                        errorType = ErrorTypes.NOT_IMPLEMENTED,
-                        error = result.error,
-                        errorMessage = result.errorDescription,
-                        correlationId = result.correlationId,
-                        scenario = scenario
-                    )
-                }
-                is INativeAuthCommandResult.Redirect -> {
-                    NativeAuthErrorV2(
-                        errorType = ErrorTypes.BROWSER_REQUIRED,
-                        traceId = result.traceId,
-                        timestamp = result.timestamp,
-                        errorCodes = result.errorCodes,
-                        error = result.error,
-                        errorMessage = result.errorDescription,
-                        correlationId = result.correlationId,
-                        scenario = scenario
-                    )
-                }
-                is INativeAuthCommandResult.APIError -> {
-                    NativeAuthErrorV2(
-                        error = result.error,
-                        errorMessage = result.errorDescription,
-                        correlationId = result.correlationId,
-                        scenario = scenario,
-                        traceId = result.traceId,
-                        timestamp = result.timestamp,
-                        errorCodes = result.errorCodes,
-                        exception = result.exception,
-                        subError = result.subError,
-                        attributeValidationDetails = result.attributeValidationDetails
-                    )
-                }
-                else -> {
-                    Logger.warnWithObject(TAG, result.correlationId, "V2 submitAttributes received unsupported result: ", result)
-                    NativeAuthErrorV2(
-                        errorType = ErrorTypes.INVALID_STATE,
-                        errorMessage = "V2 submit attributes returned an unsupported result.",
-                        correlationId = result.correlationId,
-                        scenario = scenario
-                    )
-                }
-            }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Logger.error(TAG, correlationId, "Exception thrown in submitAttributes", e)
-            NativeAuthErrorV2(
-                errorType = ErrorTypes.CLIENT_EXCEPTION,
-                errorMessage = "MSAL client exception occurred in submitAttributes.",
-                correlationId = correlationId,
-                scenario = scenario,
-                exception = e
-            )
-        }
     }
 }

@@ -73,8 +73,10 @@ import com.microsoft.identity.common.nativeauth.internal.commands.SignUpStartCom
 import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.common.nativeauth.internal.controllers.v2.NativeAuthV2FlowController
 import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParametersV2
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParametersV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccountError
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
@@ -90,13 +92,12 @@ import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStart
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
-import com.microsoft.identity.nativeauth.statemachine.states.AttributesInvalidStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState
 import com.microsoft.identity.nativeauth.statemachine.states.Callback
 import com.microsoft.identity.nativeauth.statemachine.states.RegisterStrongAuthState
 import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState
-import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordMethodRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.AuthMethodSelectionRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequiredState
@@ -856,18 +857,14 @@ class NativeAuthPublicClientApplication(
         }
     }
 
-    override suspend fun signUpV2(parameters: NativeAuthSignUpParameters): NativeAuthResultV2 {
+    override suspend fun signUpV2(parameters: NativeAuthSignUpParametersV2): NativeAuthResultV2 {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = null,
-            methodName = "${TAG}.signUpV2(parameters: NativeAuthSignUpParameters)"
+            methodName = "${TAG}.signUpV2(parameters: NativeAuthSignUpParametersV2)"
         )
         return withContext(Dispatchers.IO) {
             var correlationId = DiagnosticContext.INSTANCE.threadCorrelationId ?: "UNSET"
-            // Copied so the caller keeps ownership of its own buffer, while this copy is cleared
-            // below on every exit path, including cancellation. A password is never stored in a
-            // Parcelable state or in the opaque continuation state.
-            val passwordCopy = parameters.password?.copyOf()
             try {
                 // Kept inside the try so an already-signed-in account is surfaced through the V2
                 // result contract as a NativeAuthErrorV2, rather than escaping as a thrown
@@ -887,7 +884,6 @@ class NativeAuthPublicClientApplication(
                     nativeAuthConfig,
                     nativeAuthConfig.oAuth2TokenCache,
                     parameters.username,
-                    passwordCopy,
                     parameters.attributes?.toMap(),
                     parameters.scopes?.toList(),
                     parameters.claimsRequest
@@ -905,6 +901,8 @@ class NativeAuthPublicClientApplication(
                 ensureActive()
 
                 when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SignUpStartCommandResult>()) {
+                    is NativeAuthV2CommandResult.AuthMethodSelectionRequired ->
+                        result.toExistingAccountResult(nativeAuthConfig)
                     is NativeAuthV2CommandResult.ExistingAccountCodeRequired ->
                         result.toExistingAccountResult(nativeAuthConfig)
                     is NativeAuthV2CommandResult.ExistingAccountPasswordRequired ->
@@ -945,18 +943,8 @@ class NativeAuthPublicClientApplication(
                             requiredAttributes = result.requiredAttributes.toListOfRequiredUserAttributeV2()
                         )
                     }
-                    is NativeAuthV2CommandResult.AttributesInvalid -> {
-                        NativeAuthResultV2.AttributesInvalid(
-                            nextState = AttributesInvalidStateV2(
-                                continuationState = result.continuationState,
-                                scenario = NativeAuthFlowScenarioV2.SIGN_UP,
-                                config = nativeAuthConfig
-                            ),
-                            scenario = NativeAuthFlowScenarioV2.SIGN_UP,
-                            invalidAttributes = result.invalidAttributes,
-                            error = NativeAuthErrorV2.fromAttributeError(result, NativeAuthFlowScenarioV2.SIGN_UP)
-                        )
-                    }
+                    is NativeAuthV2CommandResult.AttributesInvalid ->
+                        NativeAuthErrorV2.fromAttributeError(result, NativeAuthFlowScenarioV2.SIGN_UP)
                     is NativeAuthV2CommandResult.UserAlreadyExists -> {
                         NativeAuthErrorV2(
                             errorType = SignUpErrorTypes.USER_ALREADY_EXISTS,
@@ -1053,21 +1041,18 @@ class NativeAuthPublicClientApplication(
                     scenario = NativeAuthFlowScenarioV2.SIGN_UP,
                     exception = e
                 )
-            } finally {
-                StringUtil.overwriteWithNull(passwordCopy)
             }
         }
     }
 
-    override fun signUpV2(parameters: NativeAuthSignUpParameters, callback: NativeAuthV2Callback) {
+    override fun signUpV2(parameters: NativeAuthSignUpParametersV2, callback: NativeAuthV2Callback) {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = null,
-            methodName = "${TAG}.signUpV2(parameters: NativeAuthSignUpParameters, callback: NativeAuthV2Callback)"
+            methodName = "${TAG}.signUpV2(parameters: NativeAuthSignUpParametersV2, callback: NativeAuthV2Callback)"
         )
-        val parametersSnapshot = NativeAuthSignUpParameters(parameters.username)
+        val parametersSnapshot = NativeAuthSignUpParametersV2(parameters.username)
         val snapshotError = try {
-            parametersSnapshot.password = parameters.password?.copyOf()
             parametersSnapshot.scopes = parameters.scopes?.toList()
             parametersSnapshot.claimsRequest = parameters.claimsRequest?.let { claims ->
                 ClaimsRequest.getClaimsRequestFromJsonString(ClaimsRequest.getJsonStringFromClaimsRequest(claims))
@@ -1077,10 +1062,8 @@ class NativeAuthPublicClientApplication(
             }
             null
         } catch (e: CancellationException) {
-            StringUtil.overwriteWithNull(parametersSnapshot.password)
             throw e
         } catch (e: Exception) {
-            StringUtil.overwriteWithNull(parametersSnapshot.password)
             val correlationId = DiagnosticContext.INSTANCE.threadCorrelationId ?: "UNSET"
             Logger.error(TAG, correlationId, "Exception thrown in signUpV2", e)
             NativeAuthErrorV2(
@@ -1091,7 +1074,7 @@ class NativeAuthPublicClientApplication(
                 exception = e
             )
         }
-        pcaScope.launchOwningPasswordSnapshot(parametersSnapshot.password) {
+        pcaScope.launch {
             try {
                 callback.onResult(snapshotError ?: signUpV2(parametersSnapshot))
             } catch (e: MsalException) {
@@ -1101,11 +1084,11 @@ class NativeAuthPublicClientApplication(
         }
     }
 
-    override suspend fun resetPasswordV2(parameters: NativeAuthResetPasswordParameters): NativeAuthResultV2 {
+    override suspend fun resetPasswordV2(parameters: NativeAuthResetPasswordParametersV2): NativeAuthResultV2 {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = null,
-            methodName = "${TAG}.resetPasswordV2(parameters: NativeAuthResetPasswordParameters)"
+            methodName = "${TAG}.resetPasswordV2(parameters: NativeAuthResetPasswordParametersV2)"
         )
         return withContext(Dispatchers.IO) {
             var correlationId = DiagnosticContext.INSTANCE.threadCorrelationId ?: "UNSET"
@@ -1159,9 +1142,9 @@ class NativeAuthPublicClientApplication(
                             channel = result.challengeChannel
                         )
                     }
-                    is NativeAuthV2CommandResult.ResetPasswordMethodRequired -> {
-                        NativeAuthResultV2.ResetPasswordMethodRequired(
-                            nextState = ResetPasswordMethodRequiredStateV2(
+                    is NativeAuthV2CommandResult.AuthMethodSelectionRequired -> {
+                        NativeAuthResultV2.AuthMethodSelectionRequired(
+                            nextState = AuthMethodSelectionRequiredStateV2(
                                 continuationState = result.continuationState,
                                 authMethods = result.authMethods.toListOfV2AuthMethods(),
                                 config = nativeAuthConfig
@@ -1279,13 +1262,13 @@ class NativeAuthPublicClientApplication(
         }
     }
 
-    override fun resetPasswordV2(parameters: NativeAuthResetPasswordParameters, callback: NativeAuthV2Callback) {
+    override fun resetPasswordV2(parameters: NativeAuthResetPasswordParametersV2, callback: NativeAuthV2Callback) {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = null,
-            methodName = "${TAG}.resetPasswordV2(parameters: NativeAuthResetPasswordParameters, callback: NativeAuthV2Callback)"
+            methodName = "${TAG}.resetPasswordV2(parameters: NativeAuthResetPasswordParametersV2, callback: NativeAuthV2Callback)"
         )
-        val parametersSnapshot = NativeAuthResetPasswordParameters(parameters.username)
+        val parametersSnapshot = NativeAuthResetPasswordParametersV2(parameters.username)
         val snapshotError = try {
             parametersSnapshot.scopes = parameters.scopes?.toList()
             parametersSnapshot.claimsRequest = parameters.claimsRequest?.let { claims ->

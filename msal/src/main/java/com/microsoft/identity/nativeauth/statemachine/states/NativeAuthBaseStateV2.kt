@@ -107,10 +107,7 @@ abstract class NativeAuthBaseStateV2 internal constructor(
             AttributesRequiredStateV2(result.continuationState, scenario, config), scenario,
             result.requiredAttributes.toListOfRequiredUserAttributeV2()
         )
-        is NativeAuthV2CommandResult.AttributesInvalid -> NativeAuthResultV2.AttributesInvalid(
-            AttributesInvalidStateV2(result.continuationState, scenario, config), scenario,
-            result.invalidAttributes, NativeAuthErrorV2.fromAttributeError(result, scenario)
-        )
+        is NativeAuthV2CommandResult.AttributesInvalid -> NativeAuthErrorV2.fromAttributeError(result, scenario)
         is NativeAuthV2CommandResult.CodeRequired -> NativeAuthResultV2.CodeRequired(
             CodeRequiredStateV2(result.continuationState, scenario, config), scenario,
             result.codeLength, result.challengeTargetLabel, result.challengeChannel
@@ -208,6 +205,15 @@ internal fun NativeAuthV2CommandResult.StrongAuthRegistrationRequired.toRegistra
     val state = StrongAuthRegistrationRequiredStateV2(correlationId, resultScenario, config, continuationState, methods)
     return NativeAuthResultV2.StrongAuthRegistrationRequired(state, resultScenario, state.authMethods)
 }
+
+/** Defers an existing-account challenge until the app selects a server-offered method. */
+internal fun NativeAuthV2CommandResult.AuthMethodSelectionRequired.toExistingAccountResult(
+    config: NativeAuthPublicClientApplicationConfiguration
+): NativeAuthResultV2.AuthMethodSelectionRequired = NativeAuthResultV2.AuthMethodSelectionRequired(
+    AuthMethodSelectionRequiredStateV2(
+        continuationState, authMethods.toListOfV2AuthMethods(), config, NativeAuthFlowScenarioV2.SIGN_IN
+    )
+)
 
 /** Exposes the existing-account transition independently of normal sign-up code collection. */
 internal fun NativeAuthV2CommandResult.ExistingAccountCodeRequired.toExistingAccountResult(
