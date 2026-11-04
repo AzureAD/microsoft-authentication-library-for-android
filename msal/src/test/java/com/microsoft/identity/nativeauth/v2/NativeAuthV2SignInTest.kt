@@ -42,6 +42,7 @@ import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2ResendCodeCommandParameters
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SelectAuthMethodCommandParameters
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SignInAfterSignUpCommandParameters
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitCodeCommandParameters
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitPasswordCommandParameters
@@ -102,7 +103,7 @@ import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredS
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
-import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParametersV2
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
@@ -152,7 +153,7 @@ import kotlin.time.Duration.Companion.seconds
  * V2-capable slice.
  *
  * The scenarios mirror the in-scope iOS V2 cases: email-code and password success, unknown user,
- * invalid entry and deferred passwords, invalid OTP recovery, MFA transitions, browser-required,
+ * rejected deferred passwords, invalid OTP recovery, MFA transitions, browser-required,
  * and the Android V1 existing-account rejection.
  */
 @ExperimentalCoroutinesApi
@@ -870,7 +871,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2SignInStartCommand::class
         )
 
-        val result = application.signInV2(NativeAuthSignInParameters(username))
+        val result = application.signInV2(NativeAuthSignInParametersV2(username))
 
         assertTrue(result is NativeAuthResultV2.CodeRequired)
         result as NativeAuthResultV2.CodeRequired
@@ -882,20 +883,139 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
+    fun signInV2MethodSelectionDefersChallengeAndReturnsOrdinarySignInStates() = runTest {
+        val scopes = listOf("User.Read", "offline_access")
+        val claims = """{"access_token":{"xms_cc":{"values":["cp1"]}}}"""
+        val state = NativeAuthV2ContinuationStateTestFactory.create(
+            correlationId = correlationId,
+            scopes = scopes,
+            entryRelation = NativeAuthV2LinkRelation.SIGN_IN,
+            scenario = NativeAuthV2FlowScenario.SIGN_IN,
+            claimsRequestJson = claims
+        )
+        val methods = listOf(
+            NativeAuthV2AuthMethod("email-id", "email", "***"),
+            NativeAuthV2AuthMethod("password-id", "password", null)
+        )
+        enqueueResult(
+            NativeAuthV2CommandResult.AuthMethodSelectionRequired(correlationId, state, methods),
+            NativeAuthV2SignInStartCommand::class
+        )
+        val selection = application.signInV2(signInParameters()) as NativeAuthResultV2.AuthMethodSelectionRequired
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, selection.scenario)
+        assertEquals(methods.map { it.id }, selection.authMethods.map { it.id })
+        assertSame(state, selection.nextState.continuationState)
+        verify(exactly = 0) {
+            CommandDispatcher.submitSilentReturningFuture(match { it is NativeAuthV2SelectAuthMethodCommand })
+        }
+
+        val restored = parcelRoundTrip(selection.nextState, AuthMethodSelectionRequiredStateV2.CREATOR)
+        assertFalse(restored.existingAccountSignIn)
+        restored.config.mergeConfiguration(selection.nextState.config)
+        restored.config.appContext = selection.nextState.config.appContext
+        restored.config.oAuth2TokenCache = selection.nextState.config.oAuth2TokenCache
+        enqueueResult(
+            NativeAuthV2CommandResult.ExistingAccountCodeRequired(correlationId, state, 6, "***", "email"),
+            NativeAuthV2SelectAuthMethodCommand::class
+        ) { command ->
+            val parameters = command.parameters as NativeAuthV2SelectAuthMethodCommandParameters
+            assertEquals(PublicApiId.NATIVE_AUTH_V2_SELECT_AUTH_METHOD, command.publicApiId)
+            assertEquals("email-id", parameters.methodId)
+            assertSame(restored.continuationState, parameters.continuationState)
+            assertEquals(scopes, parameters.scopes)
+            assertEquals(claims, parameters.claimsRequestJson)
+            assertEquals(correlationId, parameters.correlationId)
+        }
+        val email = restored.selectAuthMethod(
+            restored.authMethods.first().copy(challengeChannel = "password")
+        ) as NativeAuthResultV2.CodeRequired
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, email.scenario)
+        assertEquals(6, email.codeLength)
+        assertEquals("email", email.channel)
+        assertSame(state, email.nextState.continuationState)
+
+        enqueueResult(
+            NativeAuthV2CommandResult.ExistingAccountPasswordRequired(correlationId, state),
+            NativeAuthV2SelectAuthMethodCommand::class
+        ) { command ->
+            val parameters = command.parameters as NativeAuthV2SelectAuthMethodCommandParameters
+            assertEquals("password-id", parameters.methodId)
+            assertEquals(scopes, parameters.scopes)
+            assertEquals(claims, parameters.claimsRequestJson)
+            assertEquals(correlationId, parameters.correlationId)
+        }
+        val password = restored.selectAuthMethod(restored.authMethods.last()) as NativeAuthResultV2.PasswordRequired
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, password.scenario)
+        assertSame(state, password.nextState.continuationState)
+    }
+
+    @Test
+    fun signInV2MethodSelectionRejectsUnofferedMethodsAndSmsWithoutDispatch() = runTest {
+        enqueueResult(
+            NativeAuthV2CommandResult.AuthMethodSelectionRequired(
+                correlationId,
+                createContinuationState(),
+                listOf(
+                    NativeAuthV2AuthMethod("email-id", "email", "***"),
+                    NativeAuthV2AuthMethod("sms-id", "sms", "***1234")
+                )
+            ),
+            NativeAuthV2SignInStartCommand::class
+        )
+        val selection = application.signInV2(signInParameters()) as NativeAuthResultV2.AuthMethodSelectionRequired
+        val unoffered = selection.nextState.selectAuthMethod(
+            selection.authMethods.first().copy(id = "not-offered")
+        ) as NativeAuthErrorV2
+        assertEquals(ErrorTypes.INVALID_STATE, unoffered.errorType)
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, unoffered.scenario)
+        assertEquals(correlationId, unoffered.correlationId)
+
+        val unsupported = selection.nextState.selectAuthMethod(
+            selection.authMethods.last()
+        ) as NativeAuthErrorV2
+        assertTrue(unsupported.isNotImplemented())
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, unsupported.scenario)
+        assertEquals(correlationId, unsupported.correlationId)
+        verify(exactly = 0) {
+            CommandDispatcher.submitSilentReturningFuture(match { it is NativeAuthV2SelectAuthMethodCommand })
+        }
+    }
+
+    @Test
+    fun firstFactorMethodSelectionRejectsSignUpScenarioWithoutDispatch() = runTest {
+        val method = AuthMethod("email-id", "oob", "***", "email")
+        val state = AuthMethodSelectionRequiredStateV2(
+            continuationState = createContinuationState(),
+            authMethods = listOf(method),
+            config = application.configuration as NativeAuthPublicClientApplicationConfiguration,
+            scenario = NativeAuthFlowScenarioV2.SIGN_UP
+        )
+
+        val error = state.selectAuthMethod(method) as NativeAuthErrorV2
+
+        assertEquals(ErrorTypes.INVALID_STATE, error.errorType)
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, error.scenario)
+        assertEquals(correlationId, error.correlationId)
+        verify(exactly = 0) {
+            CommandDispatcher.submitSilentReturningFuture(match { it is NativeAuthV2SelectAuthMethodCommand })
+        }
+    }
+
+    @Test
     fun signInV2MapsPasswordRequiredWhenCommonSelectsPassword() = runTest {
         enqueueResult(
             NativeAuthV2CommandResult.PasswordRequired(correlationId, createContinuationState()),
             NativeAuthV2SignInStartCommand::class
         )
 
-        val result = application.signInV2(NativeAuthSignInParameters(username))
+        val result = application.signInV2(NativeAuthSignInParametersV2(username))
 
         assertTrue(result is NativeAuthResultV2.PasswordRequired)
         assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.scenario)
     }
 
     @Test
-    fun signInV2WithWrongEntryPasswordIsInvalidCredentials() = runTest {
+    fun signInV2PreservesCredentialErrorDiagnostics() = runTest {
         enqueueResult(
             NativeAuthV2CommandResult.InvalidCredentials(
                 correlationId,
@@ -909,7 +1029,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2SignInStartCommand::class
         )
 
-        val result = application.signInV2(signInParameters(password = "WrongPassword!".toCharArray()))
+        val result = application.signInV2(signInParameters())
 
         assertTrue(result is NativeAuthErrorV2)
         result as NativeAuthErrorV2
@@ -1023,49 +1143,18 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun signInV2ClearsTheOwnedPasswordCopyOnCompletionAndCancellationWhileLeavingTheCallersBufferIntact() = runTest(timeout = 60.seconds) {
-        var capturedOnCompletion: CharArray? = null
-        enqueueResult(
-            NativeAuthV2CommandResult.InvalidCredentials(
-                correlationId,
-                "invalid_grant",
-                "invalid",
-                "invalidUserNameOrPassword"
-            ),
-            NativeAuthV2SignInStartCommand::class
-        ) { command ->
-            capturedOnCompletion = (command.parameters as SignInV2StartCommandParameters).password
-        }
-
-        val callerPassword = "Password123!".toCharArray()
-        application.signInV2(signInParameters(password = callerPassword))
-
-        // The command must have received a distinct, owned copy -- never the caller's own array.
-        assertNotSame(callerPassword, capturedOnCompletion)
-        assertEquals("Password123!", String(callerPassword))
-        assertPasswordCleared(capturedOnCompletion!!)
-
-        var capturedOnCancellation: CharArray? = null
-        enqueueCancellation(NativeAuthV2SignInStartCommand::class) { command ->
-            capturedOnCancellation = (command.parameters as SignInV2StartCommandParameters).password
-        }
-        val secondCallerPassword = "Password123!".toCharArray()
-        try {
-            application.signInV2(signInParameters(password = secondCallerPassword))
-            fail("Expected CancellationException")
-        } catch (_: CancellationException) {
-            // Expected.
-        }
-
-        // The owned copy must be cleared even when the command is cancelled, while the caller's
-        // own buffer -- which it never handed over -- remains untouched.
-        assertEquals("Password123!", String(secondCallerPassword))
-        assertPasswordCleared(capturedOnCancellation!!)
+    fun signInV2ParametersAndCommandsDoNotExposePassword() {
+        listOf(NativeAuthSignInParametersV2::class.java, SignInV2StartCommandParameters::class.java)
+            .forEach { type ->
+                assertFalse(type.methods.any { it.name in setOf("getPassword", "setPassword") })
+                assertFalse(type.fields.any { it.name == "password" })
+            }
+        assertTrue(com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters::class.java
+            .methods.any { it.name == "setPassword" })
     }
 
     @Test
-    fun signInV2CallbackSnapshotsThePasswordSynchronouslyBeforeLaunch() = runTest {
-        var capturedPassword: CharArray? = null
+    fun signInV2CallbackSnapshotsScopesAndClaimsSynchronouslyBeforeLaunch() = runTest {
         var capturedScopes: List<String>? = null
         var capturedClaims: String? = null
         enqueueResult(
@@ -1073,34 +1162,26 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2SignInStartCommand::class
         ) { command ->
             val commandParameters = command.parameters as SignInV2StartCommandParameters
-            capturedPassword = commandParameters.password?.copyOf()
             capturedScopes = commandParameters.scopes
             capturedClaims = commandParameters.claimsRequestJson
         }
 
-        val callerPassword = "Password123!".toCharArray()
         val future = ResultFuture<NativeAuthResultV2>()
         val scopes = mutableListOf("User.Read")
         val claims = com.microsoft.identity.client.claims.ClaimsRequest().also { it.requestClaimInIdToken("auth_time", null) }
         val expectedClaims = com.microsoft.identity.client.claims.ClaimsRequest.getJsonStringFromClaimsRequest(claims)
         application.signInV2(
-            signInParameters(password = callerPassword, scopes = scopes).also { it.claimsRequest = claims },
+            signInParameters(scopes = scopes).also { it.claimsRequest = claims },
             object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
                 override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
                 override fun onError(exception: BaseException) = future.setException(exception)
             }
         )
-        // Mutate the caller's own buffer immediately after the call returns, before the launched
-        // coroutine has necessarily had a chance to run. If the snapshot were taken lazily (inside
-        // the coroutine body, as opposed to synchronously before launch), this mutation could race
-        // with -- and change -- what actually gets submitted to Common.
-        callerPassword.fill('X')
         scopes.clear()
         claims.requestClaimInIdToken("changed", null)
 
         future.get(10, TimeUnit.SECONDS)
 
-        assertEquals("Password123!", String(capturedPassword!!))
         assertEquals(listOf("User.Read"), capturedScopes)
         assertEquals(expectedClaims, capturedClaims)
     }
@@ -1156,7 +1237,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             emailCodeRequiredResult(),
             NativeAuthV2SignInStartCommand::class
         )
-        val suspendResult = application.signInV2(signInParameters(password = null))
+        val suspendResult = application.signInV2(signInParameters())
 
         enqueueResult(
             emailCodeRequiredResult(),
@@ -1164,7 +1245,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         )
         val future = ResultFuture<NativeAuthResultV2>()
         application.signInV2(
-            signInParameters(password = null),
+            signInParameters(),
             object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
                 override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
                 override fun onError(exception: BaseException) = future.setException(exception)
@@ -2057,11 +2138,9 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     // -----------------------------------------------------------------------------------------
 
     private fun signInParameters(
-        password: CharArray? = "Password123!".toCharArray(),
         scopes: List<String>? = null,
         username: String = this.username
-    ): NativeAuthSignInParameters = NativeAuthSignInParameters(username).also {
-        it.password = password
+    ): NativeAuthSignInParametersV2 = NativeAuthSignInParametersV2(username).also {
         it.scopes = scopes
     }
 
@@ -2082,7 +2161,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             emailCodeRequiredResult(),
             NativeAuthV2SignInStartCommand::class
         )
-        return (application.signInV2(signInParameters(password = null)) as
+        return (application.signInV2(signInParameters()) as
             NativeAuthResultV2.CodeRequired).nextState
     }
 
@@ -2091,7 +2170,7 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2CommandResult.PasswordRequired(correlationId, createContinuationState()),
             NativeAuthV2SignInStartCommand::class
         )
-        return (application.signInV2(signInParameters(password = null)) as
+        return (application.signInV2(signInParameters()) as
             NativeAuthResultV2.PasswordRequired).nextState
     }
 

@@ -29,7 +29,7 @@ import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailSe
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.parameters.NativeAuthGetAccessTokenParameters
-import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParametersV2
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
@@ -69,23 +69,6 @@ class SignInV2EmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest(
     private val defaultCapabilities = listOf("mfa_required", "registration_required")
 
     /**
-     * Sign in with a valid email and password supplied at the entry point, and receive tokens.
-     */
-    @Ignore("Native Auth V2 sign-in endpoints are not available on the E2E slice.")
-    @Test
-    fun testSuccessWithPasswordAtEntry() {
-        config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
-
-        runBlocking {
-            val param = NativeAuthSignInParameters(username = config.email)
-            param.password = getSafePassword().toCharArray()
-            val result = application.signInV2(param)
-            assertResult<NativeAuthResultV2.Complete>(result)
-        }
-    }
-
-    /**
      * Omit the password at the entry point, then submit it from the password-required state.
      */
     @Ignore("Native Auth V2 sign-in endpoints are not available on the E2E slice.")
@@ -95,7 +78,7 @@ class SignInV2EmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest(
         application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         runBlocking {
-            val result = application.signInV2(NativeAuthSignInParameters(username = config.email))
+            val result = application.signInV2(NativeAuthSignInParametersV2(username = config.email))
             assertResult<NativeAuthResultV2.PasswordRequired>(result)
 
             val submitResult = (result as NativeAuthResultV2.PasswordRequired)
@@ -114,8 +97,7 @@ class SignInV2EmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest(
         application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         runBlocking {
-            val param = NativeAuthSignInParameters(username = INVALID_EMAIL)
-            param.password = getSafePassword().toCharArray()
+            val param = NativeAuthSignInParametersV2(username = INVALID_EMAIL)
             val result = application.signInV2(param)
             assertTrue(result is NativeAuthErrorV2)
             assertTrue((result as NativeAuthErrorV2).isUserNotFound())
@@ -123,26 +105,8 @@ class SignInV2EmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest(
     }
 
     /**
-     * A wrong password supplied at the entry point is invalid credentials, matching MSAL iOS V2.
-     */
-    @Ignore("Native Auth V2 sign-in endpoints are not available on the E2E slice.")
-    @Test
-    fun testErrorEntryPasswordIsInvalidCredentials() {
-        config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
-
-        runBlocking {
-            val param = NativeAuthSignInParameters(username = config.email)
-            param.password = INVALID_PASSWORD.toCharArray()
-            val result = application.signInV2(param)
-            assertTrue(result is NativeAuthErrorV2)
-            assertTrue((result as NativeAuthErrorV2).isInvalidCredentials())
-        }
-    }
-
-    /**
-     * A wrong password submitted from the password-required state is an invalid password, not
-     * invalid credentials, matching MSAL iOS V2. The caller retries on the state it already holds.
+     * A wrong password submitted from the password-required state is invalid credentials, not
+     * a password-policy violation. The caller retries on the state it already holds.
      */
     @Ignore("Native Auth V2 sign-in endpoints are not available on the E2E slice.")
     @Test
@@ -151,7 +115,7 @@ class SignInV2EmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest(
         application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         runBlocking {
-            val result = application.signInV2(NativeAuthSignInParameters(username = config.email))
+            val result = application.signInV2(NativeAuthSignInParametersV2(username = config.email))
             assertResult<NativeAuthResultV2.PasswordRequired>(result)
             val passwordState = (result as NativeAuthResultV2.PasswordRequired).nextState
 
@@ -184,10 +148,12 @@ class SignInV2EmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest(
                 val scopeA = resources[0].scopes[0]
                 val scopeB = resources[0].scopes[1]
 
-                val param = NativeAuthSignInParameters(username = username)
-                param.password = getSafePassword().toCharArray()
+                val param = NativeAuthSignInParametersV2(username = username)
                 param.scopes = listOf(scopeA, scopeB)
-                val result = application.signInV2(param)
+                val start = application.signInV2(param)
+                assertResult<NativeAuthResultV2.PasswordRequired>(start)
+                val result = (start as NativeAuthResultV2.PasswordRequired)
+                    .nextState.submitPassword(getSafePassword().toCharArray())
                 assertResult<NativeAuthResultV2.MFARequired>(result)
 
                 val mfaState = (result as NativeAuthResultV2.MFARequired).nextState
@@ -234,9 +200,11 @@ class SignInV2EmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest(
         application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         runBlocking {
-            val param = NativeAuthSignInParameters(username = config.email)
-            param.password = getSafePassword().toCharArray()
-            val result = application.signInV2(param)
+            val param = NativeAuthSignInParametersV2(username = config.email)
+            val start = application.signInV2(param)
+            assertResult<NativeAuthResultV2.PasswordRequired>(start)
+            val result = (start as NativeAuthResultV2.PasswordRequired)
+                .nextState.submitPassword(getSafePassword().toCharArray())
             assertResult<NativeAuthResultV2.MFARequired>(result)
 
             val mfaState = (result as NativeAuthResultV2.MFARequired).nextState
@@ -266,12 +234,13 @@ class SignInV2EmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest(
         application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         runBlocking {
-            val first = NativeAuthSignInParameters(username = config.email)
-            first.password = getSafePassword().toCharArray()
-            assertResult<NativeAuthResultV2.Complete>(application.signInV2(first))
+            val first = NativeAuthSignInParametersV2(username = config.email)
+            val start = application.signInV2(first)
+            assertResult<NativeAuthResultV2.PasswordRequired>(start)
+            assertResult<NativeAuthResultV2.Complete>((start as NativeAuthResultV2.PasswordRequired)
+                .nextState.submitPassword(getSafePassword().toCharArray()))
 
-            val second = NativeAuthSignInParameters(username = config.email)
-            second.password = getSafePassword().toCharArray()
+            val second = NativeAuthSignInParametersV2(username = config.email)
             val result = application.signInV2(second)
 
             assertTrue(result is NativeAuthErrorV2)

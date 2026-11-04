@@ -57,7 +57,6 @@ import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.Nati
 import com.microsoft.identity.common.java.result.FinalizableResultFuture
 import com.microsoft.identity.common.java.result.ILocalAuthenticationResult
 import com.microsoft.identity.common.java.util.ResultFuture
-import com.microsoft.identity.common.java.util.StringUtil
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResendCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResetPasswordSubmitCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResetPasswordStartCommand
@@ -72,11 +71,11 @@ import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfig
 import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParametersV2
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParametersV2
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParametersV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
-import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
@@ -188,7 +187,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             }
             val result = INativeAuthCommandResult.APIError("test_stop", "test stop", correlationId = correlationId)
             enqueueResult(result, com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInStartCommand::class, ::capture)
-            application.signInV2(NativeAuthSignInParameters(username).also {
+            application.signInV2(NativeAuthSignInParametersV2(username).also {
                 it.scopes = scopes
                 it.claimsRequest = claims
             })
@@ -279,20 +278,18 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun signInCallbackClearsItsPasswordSnapshotAfterDeliveringInvalidCredentials() {
+    fun signInCallbackSnapshotsScopesBeforeDeliveringPasswordRequired() {
         val pca = spyk(application as NativeAuthPublicClientApplication)
-        val password = "Password123!".toCharArray()
-        val snapshot = slot<NativeAuthSignInParameters>()
-        val expectedResult = NativeAuthErrorV2(
-            errorType = SignInErrorTypes.INVALID_CREDENTIALS,
-            errorMessage = "Invalid credentials",
-            correlationId = correlationId,
-            scenario = NativeAuthFlowScenarioV2.SIGN_IN
+        val scopes = mutableListOf("User.Read")
+        val parameters = NativeAuthSignInParametersV2(username).also { it.scopes = scopes }
+        val snapshot = slot<NativeAuthSignInParametersV2>()
+        val expectedResult = NativeAuthResultV2.PasswordRequired(
+            mockk<PasswordRequiredStateV2>(),
+            NativeAuthFlowScenarioV2.SIGN_IN
         )
         val results = mutableListOf<NativeAuthResultV2>()
-        // Stub the IO-bound suspend operation, not the callback's snapshot or completion cleanup.
         coEvery { pca.signInV2(capture(snapshot)) } coAnswers {
-            assertEquals("Password123!", String(requireNotNull(snapshot.captured.password)))
+            assertEquals(listOf("User.Read"), snapshot.captured.scopes)
             expectedResult
         }
         // Callback entry points read the backing field directly, bypassing the companion getter.
@@ -302,7 +299,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             runTest {
                 every { scope.coroutineContext } returns coroutineContext
                 pca.signInV2(
-                    NativeAuthSignInParameters(username).also { it.password = password },
+                    parameters,
                     object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
                         override fun onResult(result: NativeAuthResultV2) { results.add(result) }
                         override fun onError(exception: BaseException) { fail("Unexpected onError: $exception") }
@@ -310,16 +307,16 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
                 )
                 assertFalse(snapshot.isCaptured)
                 assertTrue(results.isEmpty())
-                assertEquals("Password123!", String(password))
                 // The callback cannot run until the scheduler advances, so this mutation precedes it.
-                password.fill('X')
+                scopes.clear()
+                parameters.scopes = null
                 testScheduler.runCurrent()
 
-                coVerify(exactly = 1) { pca.signInV2(any<NativeAuthSignInParameters>()) }
+                coVerify(exactly = 1) { pca.signInV2(any<NativeAuthSignInParametersV2>()) }
                 assertEquals(listOf(expectedResult), results)
-                assertNotSame(password, snapshot.captured.password)
-                assertArrayEquals(CharArray(password.size), snapshot.captured.password)
-                assertArrayEquals(CharArray(password.size) { 'X' }, password)
+                assertNotSame(parameters, snapshot.captured)
+                assertEquals(username, snapshot.captured.username)
+                assertEquals(listOf("User.Read"), snapshot.captured.scopes)
             }
         } finally {
             unmockkObject(scope)
@@ -376,45 +373,27 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun callbackSnapshotCancellationIsRethrownAndClearsOnlyOwnedPasswords() {
+    fun callbackSnapshotCancellationIsRethrownWithoutDeliveringAResult() {
         val cancellation = CancellationException("snapshot cancelled")
         val scopes = object : AbstractList<String>() {
             override val size: Int get() = throw cancellation
             override fun get(index: Int): String = throw cancellation
         }
-        val clearedPasswords = mutableListOf<CharArray>()
-        mockkStatic(StringUtil::class)
-        try {
-            every { StringUtil.overwriteWithNull(any()) } answers {
-                firstArg<CharArray?>()?.let { clearedPasswords.add(it) }
-                callOriginal()
+        listOf(
+            NativeAuthFlowScenarioV2.SIGN_IN,
+            NativeAuthFlowScenarioV2.SIGN_UP,
+            NativeAuthFlowScenarioV2.RESET_PASSWORD
+        ).forEach { scenario ->
+            val callback = object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
+                override fun onResult(result: NativeAuthResultV2) { fail("Cancellation must not deliver a result") }
+                override fun onError(exception: BaseException) { fail("Cancellation must not deliver an error") }
             }
-            listOf(
-                NativeAuthFlowScenarioV2.SIGN_IN,
-                NativeAuthFlowScenarioV2.SIGN_UP,
-                NativeAuthFlowScenarioV2.RESET_PASSWORD
-            ).forEach { scenario ->
-                clearedPasswords.clear()
-                val password = "Password123!".toCharArray()
-                val callback = object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
-                    override fun onResult(result: NativeAuthResultV2) { fail("Cancellation must not deliver a result") }
-                    override fun onError(exception: BaseException) { fail("Cancellation must not deliver an error") }
-                }
-                try {
-                    invokeCallbackEntry(scenario, password, null, scopes, callback)
-                    fail("Expected CancellationException")
-                } catch (e: CancellationException) {
-                    assertSame(cancellation, e)
-                }
-                assertEquals("Password123!", String(password))
-                assertEquals(if (scenario == NativeAuthFlowScenarioV2.SIGN_IN) 1 else 0, clearedPasswords.size)
-                clearedPasswords.forEach {
-                    assertTrue(it !== password)
-                    assertTrue(it.all { char -> char == '\u0000' })
-                }
+            try {
+                invokeCallbackEntry(scenario, null, scopes, callback)
+                fail("Expected CancellationException")
+            } catch (e: CancellationException) {
+                assertSame(cancellation, e)
             }
-        } finally {
-            unmockkStatic(StringUtil::class)
         }
     }
 
@@ -431,22 +410,20 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
             NativeAuthFlowScenarioV2.RESET_PASSWORD
         ).forEach { scenario ->
             assertRoutesToOnError { future ->
-                invokeCallbackEntry(scenario, "Password123!".toCharArray(), claims, null, throwingCallback(future))
+                invokeCallbackEntry(scenario, claims, null, throwingCallback(future))
             }
         }
     }
 
     private fun invokeCallbackEntry(
         scenario: NativeAuthFlowScenarioV2,
-        password: CharArray,
         claims: ClaimsRequest?,
         scopes: List<String>?,
         callback: NativeAuthPublicClientApplication.NativeAuthV2Callback
     ) {
         when (scenario) {
             NativeAuthFlowScenarioV2.SIGN_IN -> application.signInV2(
-                NativeAuthSignInParameters(username).also {
-                    it.password = password
+                NativeAuthSignInParametersV2(username).also {
                     it.claimsRequest = claims
                     it.scopes = scopes
                 }, callback
@@ -1192,7 +1169,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     @Test
     fun signInV2RoutesExceptionToOnError() {
         assertRoutesToOnError { future ->
-            application.signInV2(NativeAuthSignInParameters(username = username), throwingCallback(future))
+            application.signInV2(NativeAuthSignInParametersV2(username = username), throwingCallback(future))
         }
     }
 

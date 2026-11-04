@@ -55,7 +55,7 @@ import kotlinx.coroutines.withContext
 import java.util.Collections
 
 /**
- * Selects a first-factor method for password reset or an existing account found during sign-up.
+ * Selects a first-factor method for sign-in, password reset, or an existing account found during sign-up.
  *
  * No challenge is sent until the app explicitly selects one of [authMethods].
  */
@@ -64,7 +64,8 @@ class AuthMethodSelectionRequiredStateV2 internal constructor(
     scenario: NativeAuthFlowScenarioV2,
     config: NativeAuthPublicClientApplicationConfiguration,
     continuationState: NativeAuthV2ContinuationState? = null,
-    authMethods: List<AuthMethod> = emptyList()
+    authMethods: List<AuthMethod> = emptyList(),
+    internal val existingAccountSignIn: Boolean = false
 ) : NativeAuthBaseStateV2(correlationId, scenario, config, continuationState) {
     private val TAG: String = AuthMethodSelectionRequiredStateV2::class.java.simpleName
     val authMethods: List<AuthMethod> = Collections.unmodifiableList(ArrayList(authMethods))
@@ -73,13 +74,15 @@ class AuthMethodSelectionRequiredStateV2 internal constructor(
         continuationState: NativeAuthV2ContinuationState,
         authMethods: List<AuthMethod>,
         config: NativeAuthPublicClientApplicationConfiguration,
-        scenario: NativeAuthFlowScenarioV2 = NativeAuthFlowScenarioV2.RESET_PASSWORD
+        scenario: NativeAuthFlowScenarioV2 = NativeAuthFlowScenarioV2.RESET_PASSWORD,
+        existingAccountSignIn: Boolean = false
     ) : this(
         correlationId = continuationState.correlationId,
         scenario = scenario,
         config = config,
         continuationState = continuationState,
-        authMethods = authMethods
+        authMethods = authMethods,
+        existingAccountSignIn = existingAccountSignIn
     )
 
     private constructor(parcel: Parcel) : this(
@@ -90,12 +93,14 @@ class AuthMethodSelectionRequiredStateV2 internal constructor(
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>()
             as NativeAuthPublicClientApplicationConfiguration,
         continuationState = parcel.serializable<NativeAuthV2ContinuationState>(),
-        authMethods = parcel.createTypedArrayList(AuthMethod.CREATOR) ?: emptyList()
+        authMethods = parcel.createTypedArrayList(AuthMethod.CREATOR) ?: emptyList(),
+        existingAccountSignIn = parcel.readInt() != 0
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         super.writeToParcel(parcel, flags)
         parcel.writeTypedList(authMethods)
+        parcel.writeInt(if (existingAccountSignIn) 1 else 0)
     }
 
     interface SelectAuthMethodCallback : Callback<NativeAuthResultV2>
@@ -195,9 +200,18 @@ class AuthMethodSelectionRequiredStateV2 internal constructor(
                     is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
                         result.toRegistrationResult(scenario, config)
                     is NativeAuthV2CommandResult.ExistingAccountCodeRequired ->
-                        result.toExistingAccountResult(config)
+                        if (existingAccountSignIn) result.toExistingAccountResult(config) else {
+                            NativeAuthResultV2.CodeRequired(
+                                CodeRequiredStateV2(result.continuationState, scenario, config),
+                                scenario, result.codeLength, result.challengeTargetLabel, result.challengeChannel
+                            )
+                        }
                     is NativeAuthV2CommandResult.ExistingAccountPasswordRequired ->
-                        result.toExistingAccountResult(config)
+                        if (existingAccountSignIn) result.toExistingAccountResult(config) else {
+                            NativeAuthResultV2.PasswordRequired(
+                                PasswordRequiredStateV2(result.continuationState, scenario, config), scenario
+                            )
+                        }
                     is NativeAuthV2CommandResult.CodeRequired -> NativeAuthResultV2.CodeRequired(
                         nextState = CodeRequiredStateV2(
                             continuationState = result.continuationState,

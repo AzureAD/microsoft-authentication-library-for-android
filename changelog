@@ -2,6 +2,8 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+- [MAJOR] Use password-free NativeAuthSignInParametersV2 with signInV2; supply passwords through PasswordRequiredStateV2.submitPassword. V1 sign-in is unchanged.
+- [PATCH] Return AuthMethodSelectionRequired when Native Auth V2 sign-in offers multiple supported first-factor methods instead of choosing one automatically.
 - [PATCH] Add AuthMethodSelectionRequired for password reset and existing-account sign-up with multiple supported methods.
 - [PATCH] Separate V1 and V2 password-reset parameters with NativeAuthResetPasswordParametersV2.
 - [PATCH] Native Auth V2 sign-up sends the username at start and retains profile attributes until collection.
