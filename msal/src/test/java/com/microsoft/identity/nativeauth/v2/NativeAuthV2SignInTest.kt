@@ -42,6 +42,7 @@ import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2ResendCodeCommandParameters
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SelectAuthMethodCommandParameters
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SignInAfterSignUpCommandParameters
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitCodeCommandParameters
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitPasswordCommandParameters
@@ -883,7 +884,15 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
 
     @Test
     fun signInV2MethodSelectionDefersChallengeAndReturnsOrdinarySignInStates() = runTest {
-        val state = createContinuationState()
+        val scopes = listOf("User.Read", "offline_access")
+        val claims = """{"access_token":{"xms_cc":{"values":["cp1"]}}}"""
+        val state = NativeAuthV2ContinuationStateTestFactory.create(
+            correlationId = correlationId,
+            scopes = scopes,
+            entryRelation = NativeAuthV2LinkRelation.SIGN_IN,
+            scenario = NativeAuthV2FlowScenario.SIGN_IN,
+            claimsRequestJson = claims
+        )
         val methods = listOf(
             NativeAuthV2AuthMethod("email-id", "email", "***"),
             NativeAuthV2AuthMethod("password-id", "password", null)
@@ -908,17 +917,88 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
         enqueueResult(
             NativeAuthV2CommandResult.ExistingAccountCodeRequired(correlationId, state, 6, "***", "email"),
             NativeAuthV2SelectAuthMethodCommand::class
-        )
-        val email = restored.selectAuthMethod(restored.authMethods.first()) as NativeAuthResultV2.CodeRequired
+        ) { command ->
+            val parameters = command.parameters as NativeAuthV2SelectAuthMethodCommandParameters
+            assertEquals(PublicApiId.NATIVE_AUTH_V2_SELECT_AUTH_METHOD, command.publicApiId)
+            assertEquals("email-id", parameters.methodId)
+            assertSame(restored.continuationState, parameters.continuationState)
+            assertEquals(scopes, parameters.scopes)
+            assertEquals(claims, parameters.claimsRequestJson)
+            assertEquals(correlationId, parameters.correlationId)
+        }
+        val email = restored.selectAuthMethod(
+            restored.authMethods.first().copy(challengeChannel = "password")
+        ) as NativeAuthResultV2.CodeRequired
         assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, email.scenario)
         assertEquals(6, email.codeLength)
+        assertEquals("email", email.channel)
+        assertSame(state, email.nextState.continuationState)
 
         enqueueResult(
             NativeAuthV2CommandResult.ExistingAccountPasswordRequired(correlationId, state),
             NativeAuthV2SelectAuthMethodCommand::class
-        )
+        ) { command ->
+            val parameters = command.parameters as NativeAuthV2SelectAuthMethodCommandParameters
+            assertEquals("password-id", parameters.methodId)
+            assertEquals(scopes, parameters.scopes)
+            assertEquals(claims, parameters.claimsRequestJson)
+            assertEquals(correlationId, parameters.correlationId)
+        }
         val password = restored.selectAuthMethod(restored.authMethods.last()) as NativeAuthResultV2.PasswordRequired
         assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, password.scenario)
+        assertSame(state, password.nextState.continuationState)
+    }
+
+    @Test
+    fun signInV2MethodSelectionRejectsUnofferedMethodsAndSmsWithoutDispatch() = runTest {
+        enqueueResult(
+            NativeAuthV2CommandResult.AuthMethodSelectionRequired(
+                correlationId,
+                createContinuationState(),
+                listOf(
+                    NativeAuthV2AuthMethod("email-id", "email", "***"),
+                    NativeAuthV2AuthMethod("sms-id", "sms", "***1234")
+                )
+            ),
+            NativeAuthV2SignInStartCommand::class
+        )
+        val selection = application.signInV2(signInParameters()) as NativeAuthResultV2.AuthMethodSelectionRequired
+        val unoffered = selection.nextState.selectAuthMethod(
+            selection.authMethods.first().copy(id = "not-offered")
+        ) as NativeAuthErrorV2
+        assertEquals(ErrorTypes.INVALID_STATE, unoffered.errorType)
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, unoffered.scenario)
+        assertEquals(correlationId, unoffered.correlationId)
+
+        val unsupported = selection.nextState.selectAuthMethod(
+            selection.authMethods.last()
+        ) as NativeAuthErrorV2
+        assertTrue(unsupported.isNotImplemented())
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, unsupported.scenario)
+        assertEquals(correlationId, unsupported.correlationId)
+        verify(exactly = 0) {
+            CommandDispatcher.submitSilentReturningFuture(match { it is NativeAuthV2SelectAuthMethodCommand })
+        }
+    }
+
+    @Test
+    fun firstFactorMethodSelectionRejectsSignUpScenarioWithoutDispatch() = runTest {
+        val method = AuthMethod("email-id", "oob", "***", "email")
+        val state = AuthMethodSelectionRequiredStateV2(
+            continuationState = createContinuationState(),
+            authMethods = listOf(method),
+            config = application.configuration as NativeAuthPublicClientApplicationConfiguration,
+            scenario = NativeAuthFlowScenarioV2.SIGN_UP
+        )
+
+        val error = state.selectAuthMethod(method) as NativeAuthErrorV2
+
+        assertEquals(ErrorTypes.INVALID_STATE, error.errorType)
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, error.scenario)
+        assertEquals(correlationId, error.correlationId)
+        verify(exactly = 0) {
+            CommandDispatcher.submitSilentReturningFuture(match { it is NativeAuthV2SelectAuthMethodCommand })
+        }
     }
 
     @Test
