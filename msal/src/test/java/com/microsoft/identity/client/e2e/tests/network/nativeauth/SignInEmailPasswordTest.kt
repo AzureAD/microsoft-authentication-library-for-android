@@ -23,6 +23,7 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
+import com.microsoft.identity.client.e2e.categories.ScheduledNativeAuthE2E
 import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
@@ -39,7 +40,9 @@ import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.experimental.categories.Category
 
+@Category(ScheduledNativeAuthE2E::class)
 class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     lateinit var application: INativeAuthPublicClientApplication
