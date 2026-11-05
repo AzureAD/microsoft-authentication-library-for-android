@@ -43,6 +43,7 @@ import com.microsoft.identity.common.java.exception.ConnectionError
 import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpV2StartCommandParameters
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SelectAuthMethodCommandParameters
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SignInAfterSignUpCommandParameters
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitAttributesCommandParameters
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
@@ -995,6 +996,55 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     // -----------------------------------------------------------------------------------------
     // Sign-in after sign-up
     // -----------------------------------------------------------------------------------------
+
+    @Test
+    fun signInAfterSignUpHasNoParameterOverloads() {
+        val methods = SignInAfterSignUpStateV2::class.java.declaredMethods
+        assertFalse(methods.any { it.name == "signInWithParameters" })
+        val signInMethods = methods.filter { it.name == "signIn" }
+        assertEquals(2, signInMethods.size)
+        assertTrue(signInMethods.all { it.parameterCount == 1 })
+    }
+
+    @Test
+    fun signInAfterSignUpRetainsEntryScopesAndClaimsForBothOverloads() = runTest {
+        for (scopes in listOf(emptyList(), listOf("User.Read", "offline_access"))) {
+            for (claims in listOf(null, """{"access_token":{"xms_cc":{"values":["cp1"]}}}""")) {
+                val state = NativeAuthV2ContinuationStateTestFactory.create(
+                    correlationId = correlationId,
+                    scopes = scopes,
+                    entryRelation = NativeAuthV2LinkRelation.SIGN_UP,
+                    scenario = NativeAuthV2FlowScenario.SIGN_UP,
+                    claimsRequestJson = claims
+                )
+                enqueueResult(
+                    NativeAuthV2CommandResult.SignInAfterSignUpRequired(correlationId, state),
+                    NativeAuthV2SignUpSubmitCodeCommand::class
+                )
+                val signInState = (codeRequiredState().submitCode("123456") as
+                    NativeAuthResultV2.SignInAfterSignUpRequired).nextState
+                enqueueResult(
+                    INativeAuthCommandResult.Redirect(correlationId, "browser"),
+                    NativeAuthV2SignInAfterSignUpCommand::class
+                ) { command ->
+                    val parameters = command.parameters as NativeAuthV2SignInAfterSignUpCommandParameters
+                    assertSame(state, parameters.continuationState)
+                    assertEquals(scopes, parameters.scopes)
+                    assertEquals(claims, parameters.claimsRequestJson)
+                    assertEquals(correlationId, parameters.correlationId)
+                }
+
+                assertTrue((signInState.signIn() as NativeAuthErrorV2).isBrowserRequired())
+
+                val future = ResultFuture<NativeAuthResultV2>()
+                signInState.signIn(object : SignInAfterSignUpStateV2.SignInCallback {
+                    override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
+                    override fun onError(exception: BaseException) = future.setException(exception)
+                })
+                assertTrue((future.get(30, TimeUnit.SECONDS) as NativeAuthErrorV2).isBrowserRequired())
+            }
+        }
+    }
 
     @Test
     fun signInAfterSignUpCompletesAndReturnsAccount() = runTest {

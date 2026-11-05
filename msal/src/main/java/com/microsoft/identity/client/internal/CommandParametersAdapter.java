@@ -1267,20 +1267,14 @@ public class CommandParametersAdapter {
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param continuationState opaque continuation state from the completed sign-up flow
-     * @param scopes (Optional) scopes to request for the resulting access token
-     * @param claimsRequest (Optional) claims request to send with the token request
      * @return Command parameter object
      */
     public static NativeAuthV2SignInAfterSignUpCommandParameters createNativeAuthV2SignInAfterSignUpCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull final NativeAuthV2ContinuationState continuationState,
-            @Nullable final List<String> scopes,
-            @Nullable final ClaimsRequest claimsRequest) throws ClientException {
+            @NonNull final NativeAuthV2ContinuationState continuationState) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
-
-        final String claimsRequestJson = ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest);
 
         final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
                 AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
@@ -1305,8 +1299,8 @@ public class CommandParametersAdapter {
                         .challengeType(configuration.getChallengeTypes())
                         .requestInterceptor(configuration.getRequestInterceptor())
                         .continuationState(continuationState)
-                        .scopes(scopes)
-                        .claimsRequestJson(claimsRequestJson)
+                        .scopes(continuationState.scopesForTokenRequest())
+                        .claimsRequestJson(continuationState.claimsRequestJsonForTokenRequest())
                         .correlationId(continuationState.getCorrelationId())
                         .build();
 

@@ -968,22 +968,19 @@ public class CommandParametersTest {
         final NativeAuthPublicClientApplicationConfiguration configuration = getNativeAuthConfiguration(NATIVE_AUTH_CONFIG_FILE);
         final OAuth2TokenCache tokenCache = getCache();
         final String correlationId = "00000000-0000-0000-0000-000000000023";
-        final NativeAuthV2ContinuationState continuationState =
-                getNativeAuthV2ContinuationState(correlationId, Collections.emptyList(), null);
-
         final List<String> scopes = Arrays.asList("api://scope/read", "offline_access");
         final ClaimsRequest claimsRequest = getAccessTokenClaimsRequest("xms_cc", "cp1");
+        final NativeAuthV2ContinuationState continuationState =
+                getNativeAuthV2ContinuationState(correlationId, scopes,
+                        ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest));
 
         final NativeAuthV2SignInAfterSignUpCommandParameters commandParameters =
                 CommandParametersAdapter.createNativeAuthV2SignInAfterSignUpCommandParameters(
                         configuration,
                         tokenCache,
-                        continuationState,
-                        scopes,
-                        claimsRequest
+                        continuationState
                 );
 
-        // Sign-in-after-sign-up is the sole source of scopes and claims for the sign-up flow.
         Assert.assertEquals(scopes, commandParameters.scopes);
         Assert.assertEquals(
                 ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest),
