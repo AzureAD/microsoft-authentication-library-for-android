@@ -1,5 +1,9 @@
 # GitHub Copilot Instructions for MSAL Android
 
+For contributor setup, tooling discovery, and build/test verification, start with
+[the root agent entry point](../AGENTS.md). The API, customer-support, and review
+rules below remain authoritative for their respective scenarios.
+
 > **🤖 AI AGENTS: THIS IS YOUR PRIMARY SOURCE OF TRUTH**
 > 
 > **ALWAYS reference this file** when handling ANY prompt related to MSAL Android, including:
