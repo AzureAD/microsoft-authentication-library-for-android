@@ -116,7 +116,7 @@ class StrongAuthVerificationRequiredStateV2 internal constructor(
         return withContext(Dispatchers.IO) {
             try {
                 val carrier = CommandParametersAdapter.createNativeAuthV2SignInAfterSignUpCommandParameters(
-                    config, config.oAuth2TokenCache, state, null, null
+                    config, config.oAuth2TokenCache, state
                 )
                 val command = NativeAuthV2ActivateCommand(
                     NativeAuthV2ActivateCommandParameters(carrier, state, challenge),

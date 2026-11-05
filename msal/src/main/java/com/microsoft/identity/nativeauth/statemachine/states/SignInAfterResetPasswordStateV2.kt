@@ -40,7 +40,6 @@ import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2Si
 import com.microsoft.identity.common.nativeauth.internal.controllers.v2.NativeAuthV2FlowController
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
-import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInContinuationParameters
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
@@ -104,30 +103,6 @@ class SignInAfterResetPasswordStateV2 internal constructor(
     }
 
     /**
-     * Explicit app-invoked sign-in step following a completed password reset flow, callback variant.
-     *
-     * @param parameters parameters used for the sign-in-after-reset-password operation. Scopes and
-     * claims supplied here take precedence over any supplied at the start of the reset flow.
-     * @param callback [SignInCallback] to receive the result on.
-     */
-    @JvmName("signInWithParameters")
-    fun signIn(parameters: NativeAuthSignInContinuationParameters, callback: SignInCallback) {
-        LogSession.logMethodCall(
-            tag = TAG,
-            correlationId = correlationId,
-            methodName = "${TAG}.signIn(parameters: NativeAuthSignInContinuationParameters, callback: SignInCallback)"
-        )
-        NativeAuthPublicClientApplication.pcaScope.launch {
-            try {
-                callback.onResult(signIn(parameters))
-            } catch (e: MsalException) {
-                Logger.error(TAG, "Exception thrown in signIn", e)
-                callback.onError(e)
-            }
-        }
-    }
-
-    /**
      * Explicit app-invoked sign-in step following a completed password reset flow.
      */
     suspend fun signIn(): NativeAuthResultV2 {
@@ -136,36 +111,13 @@ class SignInAfterResetPasswordStateV2 internal constructor(
             correlationId = correlationId,
             methodName = "${TAG}.signIn()"
         )
-        return internalSignIn(null)
-    }
-
-    /**
-     * Explicit app-invoked sign-in step following a completed password reset flow, Kotlin coroutines
-     * variant.
-     *
-     * @param parameters parameters used for the sign-in-after-reset-password operation. Scopes and
-     * claims supplied here take precedence over any supplied at the start of the reset flow.
-     */
-    @JvmName("signInWithParameters")
-    suspend fun signIn(parameters: NativeAuthSignInContinuationParameters): NativeAuthResultV2 {
-        LogSession.logMethodCall(
-            tag = TAG,
-            correlationId = correlationId,
-            methodName = "${TAG}.signIn(parameters: NativeAuthSignInContinuationParameters)"
-        )
-        return internalSignIn(parameters)
-    }
-
-    private suspend fun internalSignIn(signInParameters: NativeAuthSignInContinuationParameters?): NativeAuthResultV2 {
         val state = continuationState ?: return notImplemented()
         return withContext(Dispatchers.IO) {
             try {
                 val parameters = CommandParametersAdapter.createNativeAuthV2SignInAfterResetPasswordCommandParameters(
                     config,
                     config.oAuth2TokenCache,
-                    state,
-                    signInParameters?.scopes,
-                    signInParameters?.claimsRequest
+                    state
                 )
                 val command = NativeAuthV2SignInAfterResetPasswordCommand(
                     parameters,

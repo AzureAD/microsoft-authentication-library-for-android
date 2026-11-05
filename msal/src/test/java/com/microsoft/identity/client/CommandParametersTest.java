@@ -858,9 +858,7 @@ public class CommandParametersTest {
                 );
 
         Assert.assertSame(continuationState, commandParameters.continuationState);
-        // The reset-password flow requests no scopes or claims at its start, so when the app
-        // supplies none at this step there are none to send.
-        Assert.assertNull(commandParameters.scopes);
+        Assert.assertEquals(Collections.emptyList(), commandParameters.scopes);
         Assert.assertNull(commandParameters.claimsRequestJson);
         Assert.assertEquals(configuration.getChallengeTypes(), commandParameters.challengeType);
         Assert.assertEquals(correlationId, commandParameters.getCorrelationId());
@@ -868,31 +866,25 @@ public class CommandParametersTest {
     }
 
     @Test
-    public void testCreateNativeAuthV2SignInAfterResetPasswordCommandParameters_UsesSuppliedScopesAndClaims() throws ClientException {
+    public void testCreateNativeAuthV2SignInAfterResetPasswordCommandParameters_DoesNotForwardContinuationScopesAndClaims() throws ClientException {
         final NativeAuthPublicClientApplicationConfiguration configuration = getNativeAuthConfiguration(NATIVE_AUTH_CONFIG_FILE);
         final OAuth2TokenCache tokenCache = getCache();
         final String correlationId = "00000000-0000-0000-0000-000000000006";
-        final NativeAuthV2ContinuationState continuationState =
-                getNativeAuthV2ContinuationState(correlationId, Collections.emptyList(), null);
-
         final List<String> scopes = Arrays.asList("api://scope/read", "offline_access");
         final ClaimsRequest claimsRequest = getAccessTokenClaimsRequest("xms_cc", "cp1");
+        final NativeAuthV2ContinuationState continuationState =
+                getNativeAuthV2ContinuationState(correlationId, scopes,
+                        ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest));
 
         final NativeAuthV2SignInAfterResetPasswordCommandParameters commandParameters =
                 CommandParametersAdapter.createNativeAuthV2SignInAfterResetPasswordCommandParameters(
                         configuration,
                         tokenCache,
-                        continuationState,
-                        scopes,
-                        claimsRequest
+                        continuationState
                 );
 
-        // This step is the sole source of scopes and claims for the reset-password flow.
-        Assert.assertEquals(scopes, commandParameters.scopes);
-        Assert.assertEquals(
-                ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest),
-                commandParameters.claimsRequestJson
-        );
+        Assert.assertEquals(Collections.emptyList(), commandParameters.scopes);
+        Assert.assertNull(commandParameters.claimsRequestJson);
         Assert.assertSame(continuationState, commandParameters.continuationState);
         Assert.assertEquals(correlationId, commandParameters.getCorrelationId());
     }
@@ -968,27 +960,21 @@ public class CommandParametersTest {
         final NativeAuthPublicClientApplicationConfiguration configuration = getNativeAuthConfiguration(NATIVE_AUTH_CONFIG_FILE);
         final OAuth2TokenCache tokenCache = getCache();
         final String correlationId = "00000000-0000-0000-0000-000000000023";
-        final NativeAuthV2ContinuationState continuationState =
-                getNativeAuthV2ContinuationState(correlationId, Collections.emptyList(), null);
-
         final List<String> scopes = Arrays.asList("api://scope/read", "offline_access");
         final ClaimsRequest claimsRequest = getAccessTokenClaimsRequest("xms_cc", "cp1");
+        final NativeAuthV2ContinuationState continuationState =
+                getNativeAuthV2ContinuationState(correlationId, scopes,
+                        ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest));
 
         final NativeAuthV2SignInAfterSignUpCommandParameters commandParameters =
                 CommandParametersAdapter.createNativeAuthV2SignInAfterSignUpCommandParameters(
                         configuration,
                         tokenCache,
-                        continuationState,
-                        scopes,
-                        claimsRequest
+                        continuationState
                 );
 
-        // Sign-in-after-sign-up is the sole source of scopes and claims for the sign-up flow.
-        Assert.assertEquals(scopes, commandParameters.scopes);
-        Assert.assertEquals(
-                ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest),
-                commandParameters.claimsRequestJson
-        );
+        Assert.assertEquals(Collections.emptyList(), commandParameters.scopes);
+        Assert.assertNull(commandParameters.claimsRequestJson);
         Assert.assertSame(continuationState, commandParameters.continuationState);
         Assert.assertEquals(correlationId, commandParameters.getCorrelationId());
         Assert.assertSame(tokenCache, commandParameters.getOAuth2TokenCache());
