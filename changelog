@@ -18,6 +18,10 @@ Version 8.7.0-RC1
 - [PATCH] Remove Native Auth V2 AttributesInvalidStateV2 and NativeAuthResultV2.AttributesInvalid.
 - [PATCH] Native Auth V2 errors now use NativeAuthErrorV2. Replace operation-specific V2 error type checks with its classifiers; rejected sign-in passwords use isInvalidCredentials, not isInvalidPassword. V1 is unchanged (AB#3784695).
 - [PATCH] Native Auth V2 sign-in, sign-up and password-reset entries accept scopes and claims. Scope is also sent at token exchange; claims are sent only at entry. Null continuation scopes retain entry scopes, while explicit empty scopes request default OIDC scopes (AB#3784690).
+- [PATCH] Update Native Auth V2 error mapping and MFA routing, Fixes AB#3808200 (#2639)
+- [PATCH] Remove password from sign-in parameters, Fixes AB#3808198 (#2638)
+- [PATCH] Update Native Auth V2 sign-up, method selection, and parameters, Fixes AB#3803937 (#2630)
+- [MINOR] Implement Native Auth V2 JIT registration states, Fixes AB#3797292 (#2629)
 
 Version 8.6.0
 ----------
