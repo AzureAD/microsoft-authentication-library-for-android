@@ -1116,6 +1116,79 @@ class NativeAuthV2SignInTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
+    fun signInV2PreservesTypedStartErrorsAndDiagnostics() = runTest {
+        val results = listOf(
+            INativeAuthCommandResult.InvalidUsername(
+                correlationId = correlationId, error = "invalid_username",
+                errorDescription = "Username rejected.", errorCodes = errorCodes
+            ) to ErrorTypes.INVALID_USERNAME,
+            NativeAuthV2CommandResult.NotImplemented(
+                correlationId, "unsupported_challenge_method", "Method unavailable."
+            ) to ErrorTypes.NOT_IMPLEMENTED,
+            INativeAuthCommandResult.Redirect(
+                correlationId = correlationId, redirectReason = "Use browser.",
+                errorCodes = errorCodes, traceId = "trace", timestamp = "time"
+            ) to ErrorTypes.BROWSER_REQUIRED
+        )
+        for ((commandResult, expectedType) in results) {
+            enqueueResult(commandResult, NativeAuthV2SignInStartCommand::class)
+
+            val error = application.signInV2(signInParameters()) as NativeAuthErrorV2
+
+            assertEquals(expectedType, error.errorType)
+            assertEquals(correlationId, error.correlationId)
+            assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, error.scenario)
+            if (commandResult is INativeAuthCommandResult.InvalidUsername) {
+                assertEquals(commandResult.error, error.error)
+                assertEquals(commandResult.errorDescription, error.errorMessage)
+                assertEquals(errorCodes, error.errorCodes)
+                assertNull(error.traceId)
+                assertNull(error.timestamp)
+            } else if (commandResult is INativeAuthCommandResult.Redirect) {
+                assertEquals(commandResult.error, error.error)
+                assertEquals(commandResult.errorDescription, error.errorMessage)
+                assertEquals(errorCodes, error.errorCodes)
+                assertEquals("trace", error.traceId)
+                assertEquals("time", error.timestamp)
+            } else {
+                assertEquals("unsupported_challenge_method", error.error)
+                assertEquals("Method unavailable.", error.errorMessage)
+            }
+        }
+    }
+
+    @Test
+    fun signInV2MapsInlineCompletionAndRejectsMissingAuthenticationResult() = runTest {
+        val localResult = mockk<ILocalAuthenticationResult>()
+        val authenticationResult = mockk<IAuthenticationResult>()
+        every { authenticationResult.account } returns mockk<IAccount>()
+        mockkStatic(AuthenticationResultAdapter::class)
+        try {
+            every { AuthenticationResultAdapter.adapt(localResult) } returns authenticationResult
+            enqueueResult(
+                NativeAuthV2CommandResult.Complete(correlationId, localResult, null, null),
+                NativeAuthV2SignInStartCommand::class
+            )
+            val complete = application.signInV2(signInParameters()) as NativeAuthResultV2.Complete
+            assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, complete.scenario)
+            assertEquals(correlationId, complete.resultValue.correlationId)
+            enqueueResult(
+                NativeAuthV2CommandResult.Complete(correlationId, null, null, null),
+                NativeAuthV2SignInStartCommand::class
+            )
+
+            val error = application.signInV2(signInParameters()) as NativeAuthErrorV2
+
+            assertTrue(error.isGeneralError())
+            assertEquals(correlationId, error.correlationId)
+            assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, error.scenario)
+            assertEquals("Sign in completed but no authentication result was returned.", error.errorMessage)
+        } finally {
+            unmockkStatic(AuthenticationResultAdapter::class)
+        }
+    }
+
+    @Test
     fun signInV2MapsUnsupportedStartResultToInvalidState() = runTest {
         val unsupportedResult = mockk<NativeAuthV2SignInStartCommandResult>()
         every { unsupportedResult.correlationId } returns correlationId
