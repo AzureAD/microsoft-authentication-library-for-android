@@ -2,6 +2,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+- [PATCH] Replace Native Auth V2 MFARequiredStateV2 and MFARequired results with AuthMethodSelectionRequired.
 - [PATCH] Remove Native Auth V2 isInvalidCredentials; rejected passwords submitted through PasswordRequiredStateV2 use isInvalidPassword. isInvalidUsername now reflects local validation only. V1 is unchanged.
 - [PATCH] Classify Native Auth V2 user-not-found and password-validation errors from structured service fields, and require invalid_grant/web_redirect_required for service-requested browser fallback.
 - [PATCH] Native Auth V2 MFA/enrollment code failures use isInvalidChallenge instead of isInvalidCode. Remove isUserAlreadyExists, isAuthMethodBlocked, and isVerificationContactBlocked; inspect raw diagnostics on general errors instead. V1 is unchanged.

@@ -1081,9 +1081,9 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         val email = selection.nextState.selectAuthMethod(
             selection.authMethods.first().copy(challengeChannel = "password", loginHint = "changed"))
             as NativeAuthResultV2.ExistingAccountCodeRequired
-        enqueueResult(NativeAuthV2CommandResult.MFARequired(
+        enqueueResult(NativeAuthV2CommandResult.AuthMethodSelectionRequired(
             correlationId, state, emptyList()), NativeAuthV2SignInSubmitCodeCommand::class)
-        assertTrue(email.nextState.submitCode("123456") is NativeAuthResultV2.MFARequired)
+        assertTrue(email.nextState.submitCode("123456") is NativeAuthResultV2.AuthMethodSelectionRequired)
 
         enqueueResult(NativeAuthV2CommandResult.ExistingAccountPasswordRequired(
             correlationId, state), NativeAuthV2SelectAuthMethodCommand::class) {
@@ -1091,9 +1091,9 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         }
         val password = selection.nextState.selectAuthMethod(selection.authMethods.last())
             as NativeAuthResultV2.ExistingAccountPasswordRequired
-        enqueueResult(NativeAuthV2CommandResult.MFARequired(
+        enqueueResult(NativeAuthV2CommandResult.AuthMethodSelectionRequired(
             correlationId, state, emptyList()), NativeAuthV2SubmitPasswordCommand::class)
-        assertTrue(password.nextState.submitPassword("current-password".toCharArray()) is NativeAuthResultV2.MFARequired)
+        assertTrue(password.nextState.submitPassword("current-password".toCharArray()) is NativeAuthResultV2.AuthMethodSelectionRequired)
     }
 
     @Test
@@ -1109,11 +1109,15 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         verify(exactly = 0) {
             CommandDispatcher.submitSilentReturningFuture(match { it is NativeAuthV2SelectAuthMethodCommand })
         }
-        enqueueResult(NativeAuthV2CommandResult.ExistingAccountPasswordRequired(correlationId, state),
+        enqueueResult(INativeAuthCommandResult.APIError(
+            error = "invalid_state", errorDescription = "The requested authentication method is no longer available.",
+            correlationId = correlationId),
             NativeAuthV2SelectAuthMethodCommand::class)
         assertEquals(ErrorTypes.INVALID_STATE,
             (selection.selectAuthMethod(selection.authMethods.first()) as NativeAuthErrorV2).errorType)
-        enqueueResult(NativeAuthV2CommandResult.ExistingAccountCodeRequired(correlationId, state, 6, "***", "email"),
+        enqueueResult(INativeAuthCommandResult.APIError(
+            error = "invalid_state", errorDescription = "The requested authentication method is no longer available.",
+            correlationId = correlationId),
             NativeAuthV2SelectAuthMethodCommand::class)
         assertEquals(ErrorTypes.INVALID_STATE,
             (selection.selectAuthMethod(selection.authMethods.last()) as NativeAuthErrorV2).errorType)
@@ -1167,9 +1171,9 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         val incorrectCode = resent.nextState.submitCode("wrong") as NativeAuthErrorV2
         assertTrue(incorrectCode.isInvalidCode())
         assertFalse(incorrectCode.isInvalidChallenge())
-        enqueueResult(NativeAuthV2CommandResult.MFARequired(
+        enqueueResult(NativeAuthV2CommandResult.AuthMethodSelectionRequired(
             correlationId, state, emptyList()), NativeAuthV2SignInSubmitCodeCommand::class)
-        val mfa = resent.nextState.submitCode("12345678") as NativeAuthResultV2.MFARequired
+        val mfa = resent.nextState.submitCode("12345678") as NativeAuthResultV2.AuthMethodSelectionRequired
         assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, mfa.scenario)
         assertSame(state, mfa.nextState.continuationState)
         verify(exactly = 0) {
@@ -1192,9 +1196,9 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
             correlationId, "invalid_credentials", "Retry", "invalid_password"), NativeAuthV2SubmitPasswordCommand::class)
         assertTrue(existing.nextState.submitPassword(password) is NativeAuthErrorV2)
         assertEquals("Current-password!", String(password))
-        enqueueResult(NativeAuthV2CommandResult.MFARequired(
+        enqueueResult(NativeAuthV2CommandResult.AuthMethodSelectionRequired(
             correlationId, state, emptyList()), NativeAuthV2SubmitPasswordCommand::class)
-        assertTrue(existing.nextState.submitPassword(password) is NativeAuthResultV2.MFARequired)
+        assertTrue(existing.nextState.submitPassword(password) is NativeAuthResultV2.AuthMethodSelectionRequired)
         verify(exactly = 0) {
             CommandDispatcher.submitSilentReturningFuture(match { it is NativeAuthV2SubmitAttributesCommand })
         }
@@ -1264,9 +1268,9 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
                 ) as NativeAuthResultV2.StrongAuthVerificationRequired
                 assertEquals(expectedScenario, verification.scenario)
                 assertEquals(expectedScenario, verification.nextState.scenario)
-                enqueueResult(NativeAuthV2CommandResult.MFARequired(
+                enqueueResult(NativeAuthV2CommandResult.AuthMethodSelectionRequired(
                     correlationId, continuation, emptyList()), NativeAuthV2ActivateCommand::class)
-                val resumed = verification.nextState.submitChallenge("123456") as NativeAuthResultV2.MFARequired
+                val resumed = verification.nextState.submitChallenge("123456") as NativeAuthResultV2.AuthMethodSelectionRequired
                 assertEquals(expectedScenario, resumed.scenario)
                 assertEquals(expectedScenario, resumed.nextState.scenario)
             }
@@ -1287,7 +1291,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
             fail("Expected cancellation")
         } catch (_: CancellationException) {
         }
-        enqueueResult(NativeAuthV2CommandResult.MFARequired(
+        enqueueResult(NativeAuthV2CommandResult.AuthMethodSelectionRequired(
             correlationId, state, emptyList()), NativeAuthV2SubmitPasswordCommand::class)
         val future = ResultFuture<NativeAuthResultV2>()
         password.submitPassword("password".toCharArray(),
@@ -1295,7 +1299,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
                 override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
                 override fun onError(exception: BaseException) = fail(exception.message)
             })
-        assertTrue(future.get(30, TimeUnit.SECONDS) is NativeAuthResultV2.MFARequired)
+        assertTrue(future.get(30, TimeUnit.SECONDS) is NativeAuthResultV2.AuthMethodSelectionRequired)
         enqueueResult(NativeAuthV2CommandResult.ExistingAccountCodeRequired(
             correlationId, state, 6, "***", "email"), NativeAuthV2SignUpStartCommand::class)
         val code = (application.signUpV2(signUpParameters()) as
@@ -1306,14 +1310,14 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
             fail("Expected cancellation")
         } catch (_: CancellationException) {
         }
-        enqueueResult(NativeAuthV2CommandResult.MFARequired(
+        enqueueResult(NativeAuthV2CommandResult.AuthMethodSelectionRequired(
             correlationId, state, emptyList()), NativeAuthV2SignInSubmitCodeCommand::class)
         val codeFuture = ResultFuture<NativeAuthResultV2>()
         code.submitCode("123456", object : ExistingAccountCodeRequiredStateV2.SubmitCodeCallback {
             override fun onResult(result: NativeAuthResultV2) = codeFuture.setResult(result)
             override fun onError(exception: BaseException) = fail(exception.message)
         })
-        assertTrue(codeFuture.get(30, TimeUnit.SECONDS) is NativeAuthResultV2.MFARequired)
+        assertTrue(codeFuture.get(30, TimeUnit.SECONDS) is NativeAuthResultV2.AuthMethodSelectionRequired)
     }
 
     private fun signUpParameters(

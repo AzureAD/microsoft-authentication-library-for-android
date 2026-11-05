@@ -80,7 +80,6 @@ import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
-import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.NativeAuthBaseStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2
@@ -571,14 +570,21 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun resetPasswordMethodSelectionRejectsUnsupportedChannel() = runTest {
+    fun resetPasswordMethodSelectionMapsUnsupportedChannelFromCommon() = runTest {
         val method = AuthMethod("voice-1", "oob", "+X XXX XXX 34", "voice")
         val state = AuthMethodSelectionRequiredStateV2(
             continuationState = createContinuationState(),
             authMethods = listOf(method),
-            config = NativeAuthPublicClientApplicationConfiguration()
+            config = application.configuration as NativeAuthPublicClientApplicationConfiguration
         )
 
+        enqueueResult(
+            NativeAuthV2CommandResult.NotImplemented(
+                correlationId, "unsupported_challenge_method",
+                "The authentication method is not supported for this flow."
+            ),
+            NativeAuthV2SelectAuthMethodCommand::class
+        )
         val result = state.selectAuthMethod(method)
 
         assertTrue(result is NativeAuthErrorV2)
@@ -1259,7 +1265,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         assertNotImplemented(NewPasswordRequiredStateV2("correlation-id", scenario, config).submitNewPassword("password".toCharArray()))
         assertNotImplemented(SignInAfterResetPasswordStateV2("correlation-id", scenario, config).signIn())
         assertInvalidState(AttributesRequiredStateV2("correlation-id", scenario, config).submitAttributes(attributes))
-        assertInvalidState(MFARequiredStateV2("correlation-id", scenario, config).selectAuthMethod(authMethod))
+        assertInvalidState(AuthMethodSelectionRequiredStateV2("correlation-id", scenario, config).selectAuthMethod(authMethod))
         assertInvalidState(
             AuthMethodSelectionRequiredStateV2(
                 "correlation-id",
@@ -1534,12 +1540,11 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     private fun exhaustiveWhen(result: NativeAuthResultV2): String = when (result) {
         is NativeAuthResultV2.Complete -> "complete"
         is NativeAuthResultV2.CodeRequired -> "code"
-        is NativeAuthResultV2.AuthMethodSelectionRequired -> "resetPasswordMethod"
+        is NativeAuthResultV2.AuthMethodSelectionRequired -> "authMethodSelection"
         is NativeAuthResultV2.PasswordRequired -> "password"
         is NativeAuthResultV2.NewPasswordRequired -> "newPassword"
         is NativeAuthResultV2.SignInAfterResetPasswordRequired -> "signInAfterResetPassword"
         is NativeAuthResultV2.AttributesRequired -> "attributes"
-        is NativeAuthResultV2.MFARequired -> "mfa"
         is NativeAuthResultV2.MFAVerificationRequired -> "mfaVerification"
         is NativeAuthResultV2.StrongAuthRegistrationRequired -> "strongAuthRegistration"
         is NativeAuthResultV2.StrongAuthVerificationRequired -> "strongAuthVerification"

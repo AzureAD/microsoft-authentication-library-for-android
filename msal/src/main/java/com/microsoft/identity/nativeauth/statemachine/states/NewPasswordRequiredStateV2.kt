@@ -156,15 +156,11 @@ class NewPasswordRequiredStateV2 internal constructor(
                 when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitNewPasswordCommandResult>()) {
                     is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
                         result.toRegistrationResult(scenario, config)
-                    is NativeAuthV2CommandResult.MFARequired -> {
-                        NativeAuthResultV2.MFARequired(
-                            nextState = MFARequiredStateV2(
-                                result.continuationState, result.authMethods.toListOfV2AuthMethods(),
-                                scenario, config
-                            ),
-                            scenario = scenario
+                    is NativeAuthV2CommandResult.AuthMethodSelectionRequired -> NativeAuthResultV2.AuthMethodSelectionRequired(
+                        AuthMethodSelectionRequiredStateV2(
+                            result.continuationState, result.authMethods.toListOfV2AuthMethods(), config, scenario
                         )
-                    }
+                    )
                     is NativeAuthV2CommandResult.Complete -> {
                         mapCompleteResult(result)
                     }
