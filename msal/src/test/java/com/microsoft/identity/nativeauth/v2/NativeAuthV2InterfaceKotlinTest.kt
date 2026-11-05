@@ -43,6 +43,7 @@ import com.microsoft.identity.common.java.controllers.CommandResult
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.logging.DiagnosticContext
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SignInAfterResetPasswordCommandParameters
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2ResendCodeCommandResult
@@ -981,6 +982,48 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
+    fun signInAfterResetPasswordHasNoParameterOverloads() {
+        val methods = SignInAfterResetPasswordStateV2::class.java.declaredMethods
+        assertFalse(methods.any { it.name == "signInWithParameters" })
+        val signInMethods = methods.filter { it.name == "signIn" }
+        assertEquals(2, signInMethods.size)
+        assertTrue(signInMethods.all { it.parameterCount == 1 })
+    }
+
+    @Test
+    fun signInAfterResetPasswordPassesEmptyScopesAndNoClaimsForBothOverloads() = runTest {
+        for (scopes in listOf(emptyList(), listOf("User.Read", "offline_access"))) {
+            for (claims in listOf(null, """{"access_token":{"xms_cc":{"values":["cp1"]}}}""")) {
+                val state = NativeAuthV2ContinuationStateTestFactory.create(
+                    correlationId = correlationId,
+                    scopes = scopes,
+                    claimsRequestJson = claims
+                )
+                val signInState = signInAfterResetState(state)
+                enqueueResult(
+                    INativeAuthCommandResult.Redirect(correlationId, "browser"),
+                    NativeAuthV2SignInAfterResetPasswordCommand::class
+                ) { command ->
+                    val parameters = command.parameters as NativeAuthV2SignInAfterResetPasswordCommandParameters
+                    assertSame(state, parameters.continuationState)
+                    assertEquals(emptyList<String>(), parameters.scopes)
+                    assertEquals(null, parameters.claimsRequestJson)
+                    assertEquals(correlationId, parameters.correlationId)
+                }
+
+                assertTrue((signInState.signIn() as NativeAuthErrorV2).isBrowserRequired())
+
+                val future = ResultFuture<NativeAuthResultV2>()
+                signInState.signIn(object : SignInAfterResetPasswordStateV2.SignInCallback {
+                    override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
+                    override fun onError(exception: BaseException) = future.setException(exception)
+                })
+                assertTrue((future.get(30, TimeUnit.SECONDS) as NativeAuthErrorV2).isBrowserRequired())
+            }
+        }
+    }
+
+    @Test
     fun submitNewPasswordMapsAllResultKinds() = runTest {
         val codeState = codeRequiredState()
         enqueueResult(
@@ -1399,7 +1442,9 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         }
     }
 
-    private suspend fun signInAfterResetState(): SignInAfterResetPasswordStateV2 {
+    private suspend fun signInAfterResetState(
+        continuationState: NativeAuthV2ContinuationState = createContinuationState()
+    ): SignInAfterResetPasswordStateV2 {
         val codeState = codeRequiredState()
         enqueueResult(
             NativeAuthV2CommandResult.NewPasswordRequired(correlationId, createContinuationState()),
@@ -1410,7 +1455,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
         enqueueResult(
             NativeAuthV2CommandResult.SignInAfterResetPasswordRequired(
                 correlationId,
-                createContinuationState()
+                continuationState
             ),
             NativeAuthV2SubmitNewPasswordCommand::class
         )

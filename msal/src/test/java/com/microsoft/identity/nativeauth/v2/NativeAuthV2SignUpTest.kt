@@ -1007,7 +1007,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun signInAfterSignUpRetainsEntryScopesAndClaimsForBothOverloads() = runTest {
+    fun signInAfterSignUpPassesEmptyScopesAndNoClaimsForBothOverloads() = runTest {
         for (scopes in listOf(emptyList(), listOf("User.Read", "offline_access"))) {
             for (claims in listOf(null, """{"access_token":{"xms_cc":{"values":["cp1"]}}}""")) {
                 val state = NativeAuthV2ContinuationStateTestFactory.create(
@@ -1029,8 +1029,8 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
                 ) { command ->
                     val parameters = command.parameters as NativeAuthV2SignInAfterSignUpCommandParameters
                     assertSame(state, parameters.continuationState)
-                    assertEquals(scopes, parameters.scopes)
-                    assertEquals(claims, parameters.claimsRequestJson)
+                    assertEquals(emptyList<String>(), parameters.scopes)
+                    assertEquals(null, parameters.claimsRequestJson)
                     assertEquals(correlationId, parameters.correlationId)
                 }
 
