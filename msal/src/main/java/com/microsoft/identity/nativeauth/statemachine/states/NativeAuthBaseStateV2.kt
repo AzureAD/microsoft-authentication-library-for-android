@@ -87,8 +87,10 @@ abstract class NativeAuthBaseStateV2 internal constructor(
                 ), scenario, result.codeLength, result.challengeTargetLabel, selectedChannel
             )
         is NativeAuthV2CommandResult.Complete -> mapCompleteResult(result)
-        is NativeAuthV2CommandResult.MFARequired -> NativeAuthResultV2.MFARequired(
-            MFARequiredStateV2(result.continuationState, result.authMethods.toListOfV2AuthMethods(), scenario, config), scenario
+        is NativeAuthV2CommandResult.AuthMethodSelectionRequired -> NativeAuthResultV2.AuthMethodSelectionRequired(
+            AuthMethodSelectionRequiredStateV2(
+                result.continuationState, result.authMethods.toListOfV2AuthMethods(), config, scenario
+            )
         )
         is NativeAuthV2CommandResult.NewPasswordRequired -> NativeAuthResultV2.NewPasswordRequired(
             NewPasswordRequiredStateV2(result.continuationState, scenario, config), scenario

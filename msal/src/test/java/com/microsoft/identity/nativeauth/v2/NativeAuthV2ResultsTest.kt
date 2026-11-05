@@ -31,7 +31,6 @@ import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
-import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2
@@ -131,15 +130,15 @@ class NativeAuthV2ResultsTest {
     }
 
     @Test
-    fun testMFARequiredExposesExpectedValues() {
+    fun testMfaAuthMethodSelectionRequiredExposesExpectedValues() {
         val authMethods = mutableListOf(AuthMethod("id", "oob", "user@email.com", "email"))
-        val nextState = MFARequiredStateV2(
+        val nextState = AuthMethodSelectionRequiredStateV2(
             correlationId,
             scenario,
             config,
             authMethods = authMethods
         )
-        val result = NativeAuthResultV2.MFARequired(
+        val result = NativeAuthResultV2.AuthMethodSelectionRequired(
             nextState = nextState,
             scenario = scenario
         )
