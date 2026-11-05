@@ -130,7 +130,7 @@ It's simplest to create your configuration file as a "raw" resource file in your
 
 ### Step 4: Create an MSAL PublicClientApplication and use MSAL APIs
 
-Android applications communicate with the MSAL library through the PublicSlientApplication class (PCA for short). There are two modes for MSAL applications:
+Android applications communicate with the MSAL library through the PublicClientApplication class (PCA for short). There are two modes for MSAL applications:
 
 1. **Multiple Account Mode** (Default): Allows multiple accounts to be used within the same application
 2. **Single Account Mode**: Restricts the application to use only one account at a time
