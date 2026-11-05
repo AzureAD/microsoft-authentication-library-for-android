@@ -48,8 +48,12 @@ on macOS/Linux use `./gradlew` with equivalent JDK, SDK, and feed configuration.
    Provision `ENV_VSTS_MVN_CRED_USERNAME` and `ENV_VSTS_MVN_CRED_ACCESSTOKEN`
    through approved local secret handling before Gradle runs. Do not commit
    tokens, print them, or change feed/repository configuration to bypass access.
-5. Lab/network tests need approved test accounts, a lab certificate, and
-   applicable Native Auth/mock-service configuration. CI uses variable groups
+5. The default JVM suite includes Native Auth tests backed by the mock service,
+   even without `-Plabtest`. Obtain approved access and configure `mockApiUrl`
+   in user-level Gradle properties outside the checkout before running the
+   unfiltered JVM or coverage commands below. Lab/network tests additionally
+   need approved test accounts, a lab certificate, and applicable Native Auth
+   configuration. CI uses variable groups
    and [Common's certificate setup](common/azure-pipelines/templates/steps/automation-cert.yml).
    Request approved access; keep local certificates and private config outside
    the checkout. Credential provisioning or costly/device runs need approval.
