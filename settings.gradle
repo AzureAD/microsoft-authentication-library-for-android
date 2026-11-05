@@ -15,7 +15,7 @@ pluginManagement {
         }
     }
 }
-include ':msal', ':common', ':keyvault', ':labapi', ':testutils', ':pop-benchmarker',
+include ':msal', ':mfa', ':common', ':keyvault', ':labapi', ':testutils', ':pop-benchmarker',
         ':package-inspector', ':msalautomationapp', ':uiautomationutilities', ':common4j',
         ':LabApiUtilities'
 
