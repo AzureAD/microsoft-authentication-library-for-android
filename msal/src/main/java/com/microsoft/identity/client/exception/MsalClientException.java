@@ -55,6 +55,16 @@ import com.microsoft.identity.common.java.exception.ErrorStrings;
 public final class MsalClientException extends MsalException {
 
     /**
+     * The ID token's signed {@code xms_agvt} target receipt is missing, malformed, duplicated or
+     * does not exactly match explicit {@code target-*} properties requested for
+     * {@code id_token.xms_agvs}. Target identity comparison ignores case, order and outcome sign;
+     * a sign is still required on every receipt entry. This check does not authorize API access
+     * or interpret age-assurance status, and access-token-only targets do not activate it.
+     */
+    public static final String AGE_ASSURANCE_TARGET_MISMATCH =
+            ClientException.AGE_ASSURANCE_TARGET_MISMATCH;
+
+    /**
      * The parameter provided by the user is invalid.
      * */
     public static final String INVALID_PARAMETER = "invalid_parameter";
