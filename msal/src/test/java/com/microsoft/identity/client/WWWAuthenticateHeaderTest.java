@@ -34,10 +34,10 @@ public class WWWAuthenticateHeaderTest {
 
     @Test
     public void testAdditionalPropertiesSurviveClaimsChallenge() {
-        final String json = "{\"id_token\":{\"xms_agvs\":{\"essential\":true,"
-                + "\"additionalProperties\":[\"target-mc\",\"target-sm\"]}},"
-                + "\"access_token\":{\"xms_agvs\":{\"essential\":false,"
-                + "\"additionalProperties\":[\"target-other\"]}}}";
+        final String json = "{\"id_token\":{\"custom_claim\":{\"essential\":true,"
+                + "\"additionalProperties\":[\"property-one\",\"property-two\"]}},"
+                + "\"access_token\":{\"custom_claim\":{\"essential\":false,"
+                + "\"additionalProperties\":[\"property-other\"]}}}";
         final ClaimsRequest request = WWWAuthenticateHeader
                 .getClaimsRequestFromWWWAuthenticateHeaderValue("Bearer claims='" + json + "'");
         Assert.assertEquals(JsonParser.parseString(json),

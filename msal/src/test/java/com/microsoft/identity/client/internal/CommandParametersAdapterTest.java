@@ -41,18 +41,18 @@ public class CommandParametersAdapterTest {
 
     @Test
     public void testClientCapabilitiesMergePreservesAdditionalProperties() {
-        final String json = "{\"id_token\":{\"xms_agvs\":{\"essential\":true,"
-                + "\"additionalProperties\":[\"target-mc\"]}},"
-                + "\"access_token\":{\"xms_agvs\":{\"essential\":false,\"value\":\"one\","
-                + "\"values\":[\"two\"],\"additionalProperties\":[\"target-sm\"]}}}";
+        final String json = "{\"id_token\":{\"custom_claim\":{\"essential\":true,"
+                + "\"additionalProperties\":[\"property-one\"]}},"
+                + "\"access_token\":{\"custom_claim\":{\"essential\":false,\"value\":\"one\","
+                + "\"values\":[\"two\"],\"additionalProperties\":[\"property-two\"]}}}";
         final ClaimsRequest result = CommandParametersAdapter.addClientCapabilitiesToClaimsRequest(
                 ClaimsRequest.getClaimsRequestFromJsonString(json), "cp1");
         final JsonObject serialized = JsonParser.parseString(
                 ClaimsRequest.getJsonStringFromClaimsRequest(result)).getAsJsonObject();
         final JsonObject original = JsonParser.parseString(json).getAsJsonObject();
         assertEquals(original.get("id_token"), serialized.get("id_token"));
-        assertEquals(original.getAsJsonObject("access_token").get("xms_agvs"),
-                serialized.getAsJsonObject("access_token").get("xms_agvs"));
+        assertEquals(original.getAsJsonObject("access_token").get("custom_claim"),
+                serialized.getAsJsonObject("access_token").get("custom_claim"));
         assertTrue(serialized.getAsJsonObject("access_token")
                 .has(CommandParametersAdapter.CLIENT_CAPABILITIES_CLAIM));
     }
