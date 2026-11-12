@@ -60,6 +60,8 @@ public final class MsalClientException extends MsalException {
      * {@code id_token.xms_agvs}. Target identity comparison ignores case, order and outcome sign;
      * a sign is still required on every receipt entry. This check does not authorize API access
      * or interpret age-assurance status, and access-token-only targets do not activate it.
+     * A matching negative entry is a valid receipt, not adult authorization. Missing or invalid
+     * receipts are rejected even when the returned age-assurance status is unknown (TU0).
      */
     public static final String AGE_ASSURANCE_TARGET_MISMATCH =
             ClientException.AGE_ASSURANCE_TARGET_MISMATCH;
