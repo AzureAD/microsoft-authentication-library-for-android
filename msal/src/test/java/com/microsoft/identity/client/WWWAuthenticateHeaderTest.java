@@ -28,8 +28,21 @@ import com.microsoft.identity.client.claims.WWWAuthenticateHeader;
 import junit.framework.Assert;
 
 import org.junit.Test;
+import com.google.gson.JsonParser;
 
 public class WWWAuthenticateHeaderTest {
+
+    @Test
+    public void testAdditionalPropertiesSurviveClaimsChallenge() {
+        final String json = "{\"id_token\":{\"custom_claim\":{\"essential\":true,"
+                + "\"additionalProperties\":[\"property-one\",\"property-two\"]}},"
+                + "\"access_token\":{\"custom_claim\":{\"essential\":false,"
+                + "\"additionalProperties\":[\"property-other\"]}}}";
+        final ClaimsRequest request = WWWAuthenticateHeader
+                .getClaimsRequestFromWWWAuthenticateHeaderValue("Bearer claims='" + json + "'");
+        Assert.assertEquals(JsonParser.parseString(json),
+                JsonParser.parseString(ClaimsRequest.getJsonStringFromClaimsRequest(request)));
+    }
 
     public final static String HEADER_SINGLE_QUOTE = "realm='', claims='{\"access_token\":{\"device_id\":null}}', realm=''";
     public final static String HEADER_DOUBLE_QUOTE = "realm=\"\", claims=\"{\"access_token\":{\"device_id\":null}}\", realm=\"\"";

@@ -24,6 +24,12 @@ package com.microsoft.identity.client;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
+import com.google.gson.JsonParser;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import junit.framework.Assert;
 
@@ -100,6 +106,48 @@ public class ClaimsRequestTest {
 
     }
 
+    @Test
+    public void testAdditionalPropertiesRoundTripForIdAndAccessTokens() {
+        for (final String token : Arrays.asList("id_token", "access_token")) {
+            final String json = "{\"" + token + "\":{\"custom_claim\":{\"essential\":true,"
+                    + "\"value\":\"one\",\"values\":[\"two\",\"three\"],"
+                    + "\"additionalProperties\":[\"property-one\",\"property-two\"]}}}";
+            final ClaimsRequest parsed = ClaimsRequest.getClaimsRequestFromJsonString(json);
+            Assert.assertEquals(JsonParser.parseString(json),
+                    JsonParser.parseString(ClaimsRequest.getJsonStringFromClaimsRequest(parsed)));
+        }
+    }
+
+    @Test
+    public void testTypedAdditionalPropertiesAndDefensiveCopy() {
+        final RequestedClaimAdditionalInformation info = new RequestedClaimAdditionalInformation();
+        final List<String> properties = new ArrayList<>(Arrays.asList("property-one", "property-two"));
+        info.setAdditionalProperties(properties);
+        properties.clear();
+        final ClaimsRequest request = new ClaimsRequest();
+        request.requestClaimInIdToken("custom_claim", info);
+        final ClaimsRequest reconstructed = ClaimsRequest.getClaimsRequestFromJsonString(
+                ClaimsRequest.getJsonStringFromClaimsRequest(request));
+        Assert.assertEquals(request, reconstructed);
+        Assert.assertEquals(request.hashCode(), reconstructed.hashCode());
+        Assert.assertEquals(Arrays.asList("property-one", "property-two"),
+                reconstructed.getIdTokenClaimsRequested().get(0)
+                        .getAdditionalInformation().getAdditionalProperties());
+        info.setAdditionalProperties(Collections.singletonList("property-other"));
+        Assert.assertFalse(request.equals(reconstructed));
+    }
+
+    @Test
+    public void testEmptyAndAbsentAdditionalPropertiesRemainDistinct() {
+        final RequestedClaimAdditionalInformation info = new RequestedClaimAdditionalInformation();
+        final ClaimsRequest request = new ClaimsRequest();
+        request.requestClaimInIdToken("custom_claim", info);
+        Assert.assertEquals("{\"id_token\":{\"custom_claim\":{\"essential\":false}}}",
+                ClaimsRequest.getJsonStringFromClaimsRequest(request));
+        info.setAdditionalProperties(Collections.<String>emptyList());
+        Assert.assertEquals("{\"id_token\":{\"custom_claim\":{\"essential\":false,\"additionalProperties\":[]}}}",
+                ClaimsRequest.getJsonStringFromClaimsRequest(request));
+    }
 
 
 }
