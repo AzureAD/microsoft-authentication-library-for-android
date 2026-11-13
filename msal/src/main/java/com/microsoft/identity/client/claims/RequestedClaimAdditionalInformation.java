@@ -24,7 +24,10 @@ package com.microsoft.identity.client.claims;
 
 import com.google.gson.annotations.SerializedName;
 
+import androidx.annotation.Nullable;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -38,6 +41,7 @@ public class RequestedClaimAdditionalInformation {
         static final String ESSENTIAL = "essential";
         static final String VALUES = "values";
         static final String VALUE = "value";
+        static final String ADDITIONAL_PROPERTIES = "additionalProperties";
     }
 
     @SerializedName(SerializedNames.ESSENTIAL)
@@ -45,6 +49,9 @@ public class RequestedClaimAdditionalInformation {
 
     @SerializedName(SerializedNames.VALUES)
     private List<Object> mValues = new ArrayList<>();
+
+    @SerializedName(SerializedNames.ADDITIONAL_PROPERTIES)
+    private List<String> mAdditionalProperties;
 
     //CHECKSTYLE:OFF
     // This method is generated. Checkstyle and/or PMD has been disabled.
@@ -61,6 +68,8 @@ public class RequestedClaimAdditionalInformation {
         if (mEssential != null ? !mEssential.equals(that.mEssential) : that.mEssential != null)
             return false;
         if (mValues != null ? !mValues.equals(that.mValues) : that.mValues != null) return false;
+        if (mAdditionalProperties != null ? !mAdditionalProperties.equals(that.mAdditionalProperties) : that.mAdditionalProperties != null)
+            return false;
         return mValue != null ? mValue.equals(that.mValue) : that.mValue == null;
     }
     //CHECKSTYLE:ON
@@ -75,6 +84,7 @@ public class RequestedClaimAdditionalInformation {
         int result = mEssential != null ? mEssential.hashCode() : 0;
         result = 31 * result + (mValues != null ? mValues.hashCode() : 0);
         result = 31 * result + (mValue != null ? mValue.hashCode() : 0);
+        result = 31 * result + (mAdditionalProperties != null ? mAdditionalProperties.hashCode() : 0);
         return result;
     }
     //CHECKSTYLE:ON
@@ -103,4 +113,23 @@ public class RequestedClaimAdditionalInformation {
     }
 
     public void setValues(List<Object> values) { mValues = values;}
+
+    /**
+     * Gets the additional string properties requested for this claim, or null when absent.
+     * The returned list is read-only.
+     */
+    @Nullable
+    public List<String> getAdditionalProperties() {
+        return mAdditionalProperties == null ? null : Collections.unmodifiableList(mAdditionalProperties);
+    }
+
+    /**
+     * Sets additional string properties for this claim. A null value omits the member;
+     * an empty list is serialized as an empty array. The list is copied.
+     *
+     * @param additionalProperties additional properties, or null to omit them
+     */
+    public void setAdditionalProperties(@Nullable final List<String> additionalProperties) {
+        mAdditionalProperties = additionalProperties == null ? null : new ArrayList<>(additionalProperties);
+    }
 }
