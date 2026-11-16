@@ -36,13 +36,11 @@ import com.microsoft.identity.common.java.util.ResultFuture;
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication;
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication;
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration;
-import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters;
-import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters;
-import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters;
+import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParametersV2;
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParametersV2;
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParametersV2;
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2;
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2;
-import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorV2;
-import com.microsoft.identity.nativeauth.statemachine.errors.SignUpErrorV2;
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2;
 import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredStateV2;
 import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterResetPasswordStateV2;
@@ -95,11 +93,21 @@ public class NativeAuthV2InterfaceJavaTest extends PublicClientApplicationAbstra
         // A blank username is rejected before any command is dispatched, so this exercises the
         // Java callback surface of the now-implemented signInV2 without needing a service.
         final ResultFuture<NativeAuthResultV2> future = new ResultFuture<>();
-        application.signInV2(new NativeAuthSignInParameters(" "), newCallback(future));
+        application.signInV2(new NativeAuthSignInParametersV2(" "), newCallback(future));
         final NativeAuthResultV2 result = future.get(30, TimeUnit.SECONDS);
-        assertTrue(result instanceof SignInErrorV2);
-        assertTrue(((SignInErrorV2) result).isInvalidUsername());
+        assertTrue(result instanceof NativeAuthErrorV2);
+        assertTrue(((NativeAuthErrorV2) result).isInvalidUsername());
         assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.getScenario());
+    }
+
+    @Test
+    public void resetPasswordV2RejectsBlankUsername() throws ExecutionException, InterruptedException, TimeoutException {
+        final ResultFuture<NativeAuthResultV2> future = new ResultFuture<>();
+        application.resetPasswordV2(new NativeAuthResetPasswordParametersV2(" "), newCallback(future));
+        final NativeAuthResultV2 result = future.get(30, TimeUnit.SECONDS);
+        assertTrue(result instanceof NativeAuthErrorV2);
+        assertTrue(((NativeAuthErrorV2) result).isInvalidUsername());
+        assertEquals(NativeAuthFlowScenarioV2.RESET_PASSWORD, result.getScenario());
     }
 
     @Test
@@ -107,10 +115,10 @@ public class NativeAuthV2InterfaceJavaTest extends PublicClientApplicationAbstra
         // A blank username is rejected before any command is dispatched, so this exercises the
         // Java callback surface of the now-implemented signUpV2 without needing a service.
         final ResultFuture<NativeAuthResultV2> future = new ResultFuture<>();
-        application.signUpV2(new NativeAuthSignUpParameters(" "), newCallback(future));
+        application.signUpV2(new NativeAuthSignUpParametersV2(" "), newCallback(future));
         final NativeAuthResultV2 result = future.get(30, TimeUnit.SECONDS);
-        assertTrue(result instanceof SignUpErrorV2);
-        assertTrue(((SignUpErrorV2) result).isInvalidUsername());
+        assertTrue(result instanceof NativeAuthErrorV2);
+        assertTrue(((NativeAuthErrorV2) result).isInvalidUsername());
         assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, result.getScenario());
     }
 
@@ -163,9 +171,18 @@ public class NativeAuthV2InterfaceJavaTest extends PublicClientApplicationAbstra
     }
 
     @Test
+    public void invalidAttributesClassifierIsCallableFromJava() {
+        final NativeAuthErrorV2 error = new NativeAuthErrorV2(
+                "invalid_attributes", "invalidRequest", "Invalid attributes",
+                "correlation-id", NativeAuthFlowScenarioV2.SIGN_UP);
+        assertTrue(error.isInvalidAttributes());
+        assertFalse(error.isSuccess());
+    }
+
+    @Test
     public void resultDefaultImplsDelegateToBaseResult() throws ExecutionException, InterruptedException, TimeoutException {
         final ResultFuture<NativeAuthResultV2> future = new ResultFuture<>();
-        application.signUpV2(new NativeAuthSignUpParameters(username), newCallback(future));
+        application.signUpV2(new NativeAuthSignUpParametersV2(username), newCallback(future));
         final NativeAuthResultV2 result = future.get(30, TimeUnit.SECONDS);
         assertFalse(NativeAuthResultV2.DefaultImpls.isSuccess(result));
         assertFalse(NativeAuthResultV2.DefaultImpls.isComplete(result));

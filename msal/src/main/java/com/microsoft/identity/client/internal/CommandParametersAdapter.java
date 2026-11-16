@@ -67,7 +67,7 @@ import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFAChal
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFASubmitChallengeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2ResendCodeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SelectMFAMethodCommandParameters;
-import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SelectResetPasswordMethodCommandParameters;
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SelectAuthMethodCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SignInAfterResetPasswordCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SignInAfterSignUpCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitAttributesCommandParameters;
@@ -1077,9 +1077,7 @@ public class CommandParametersAdapter {
     /**
      * Creates command parameter for [NativeAuthV2ResetPasswordStartCommand] of Native Auth.
      *
-     * No scopes are supplied at the start of a reset-password flow. Matching MSAL iOS/macOS, the
-     * scopes for the resulting access token are supplied at the sign-in-after-reset-password step
-     * instead, since no token is issued until then.
+     * Scopes and claims are supplied at V2 authorize-challenge entry.
      *
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
@@ -1090,6 +1088,16 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String username) throws ClientException {
+        return createResetPasswordV2StartCommandParameters(configuration, tokenCache, username, null, null);
+    }
+
+    /** Creates V2 reset entry parameters with optional scopes and claims. */
+    public static ResetPasswordV2StartCommandParameters createResetPasswordV2StartCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final String username,
+            @Nullable final List<String> scopes,
+            @Nullable final ClaimsRequest claimsRequest) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
@@ -1100,6 +1108,8 @@ public class CommandParametersAdapter {
 
         final ResetPasswordV2StartCommandParameters commandParameters =
                 ResetPasswordV2StartCommandParameters.builder()
+                        .scopes(scopes == null ? null : new ArrayList<>(scopes))
+                        .claimsRequestJson(ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest))
                         .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
                         .applicationName(configuration.getAppContext().getPackageName())
                         .applicationVersion(getPackageVersion(configuration.getAppContext()))
@@ -1139,8 +1149,18 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String username,
-            @Nullable final char[] password,
             @Nullable final Map<String, String> attributes) throws ClientException {
+        return createSignUpV2StartCommandParameters(configuration, tokenCache, username, attributes, null, null);
+    }
+
+    /** Creates V2 sign-up entry parameters with optional scopes and claims. */
+    public static SignUpV2StartCommandParameters createSignUpV2StartCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final String username,
+            @Nullable final Map<String, String> attributes,
+            @Nullable final List<String> scopes,
+            @Nullable final ClaimsRequest claimsRequest) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
@@ -1151,6 +1171,8 @@ public class CommandParametersAdapter {
 
         final SignUpV2StartCommandParameters commandParameters =
                 SignUpV2StartCommandParameters.builder()
+                        .scopes(scopes == null ? null : new ArrayList<>(scopes))
+                        .claimsRequestJson(ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest))
                         .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
                         .applicationName(configuration.getAppContext().getPackageName())
                         .applicationVersion(getPackageVersion(configuration.getAppContext()))
@@ -1168,7 +1190,6 @@ public class CommandParametersAdapter {
                         .requestInterceptor(configuration.getRequestInterceptor())
                         .capabilities(configuration.getCapabilities())
                         .username(username)
-                        .password(password)
                         .attributes(attributes)
                         .correlationId(DiagnosticContext.INSTANCE.getThreadCorrelationId())
                         .build();
@@ -1515,8 +1536,6 @@ public class CommandParametersAdapter {
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param username username of the account signing in
-     * @param password (Optional) password to submit for the password first factor. The caller's
-     *                 array is passed through unchanged so the same buffer can be cleared later.
      * @param scopes (Optional) scopes to request for the resulting access token
      * @param claimsRequest (Optional) claims request to send with the token request
      * @return Command parameter object
@@ -1525,7 +1544,6 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String username,
-            @Nullable final char[] password,
             @Nullable final List<String> scopes,
             @Nullable final ClaimsRequest claimsRequest) throws ClientException {
 
@@ -1557,7 +1575,6 @@ public class CommandParametersAdapter {
                         .requestInterceptor(configuration.getRequestInterceptor())
                         .capabilities(configuration.getCapabilities())
                         .username(username)
-                        .password(password)
                         .scopes(scopes)
                         .claimsRequestJson(claimsRequestJson)
                         .correlationId(DiagnosticContext.INSTANCE.getThreadCorrelationId())
@@ -1667,27 +1684,23 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameters for selecting a V2 reset-password first-factor method.
+     * Creates parameters for a first-factor method selected during password reset or after V2 sign-up.
      *
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param methodId server-issued ID of the authentication method the app selected
-     * @param continuationState opaque continuation state from the reset-password start response
-     * @return Command parameter object
+     * @param continuationState opaque continuation state carrying the method links
+     * @return Command parameter object preserving scopes, claims and correlation ID
      */
-    public static NativeAuthV2SelectResetPasswordMethodCommandParameters createNativeAuthV2SelectResetPasswordMethodCommandParameters(
+    public static NativeAuthV2SelectAuthMethodCommandParameters createNativeAuthV2SelectAuthMethodCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String methodId,
             @NonNull final NativeAuthV2ContinuationState continuationState) throws ClientException {
-
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
         final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
-                AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
-                null
-        );
-
-        return NativeAuthV2SelectResetPasswordMethodCommandParameters.builder()
+                AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()), null);
+        return NativeAuthV2SelectAuthMethodCommandParameters.builder()
                 .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
                 .applicationName(configuration.getAppContext().getPackageName())
                 .applicationVersion(getPackageVersion(configuration.getAppContext()))

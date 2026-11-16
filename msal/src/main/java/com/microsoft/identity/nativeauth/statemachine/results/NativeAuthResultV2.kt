@@ -29,14 +29,15 @@ import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.RequiredUserAttribute
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
-import com.microsoft.identity.nativeauth.statemachine.states.AttributesInvalidStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.ExistingAccountCodeRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.ExistingAccountPasswordRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.AuthMethodSelectionRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2
-import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordMethodRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterResetPasswordStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthRegistrationRequiredStateV2
@@ -47,6 +48,28 @@ import java.util.Collections
  * NativeAuthResultV2 is the single unified result for the Native Auth V2 surface.
  */
 interface NativeAuthResultV2 : Result {
+    /**
+     * Sign-up found an existing account and sent an email code to sign it in.
+     * Unlike [CodeRequired], this is not new-account verification; [scenario] is sign-in.
+     */
+    class ExistingAccountCodeRequired(
+        override val nextState: ExistingAccountCodeRequiredStateV2,
+        val codeLength: Int,
+        val sentTo: String,
+        val channel: String
+    ) : Result.SuccessResult(nextState), NativeAuthResultV2 {
+        override val scenario: NativeAuthFlowScenarioV2 = NativeAuthFlowScenarioV2.SIGN_IN
+    }
+
+    /**
+     * Sign-up found an existing account and requires its current password to sign in.
+     * Unlike [PasswordRequired], this is not password creation; [scenario] is sign-in.
+     */
+    class ExistingAccountPasswordRequired(
+        override val nextState: ExistingAccountPasswordRequiredStateV2
+    ) : Result.SuccessResult(nextState), NativeAuthResultV2 {
+        override val scenario: NativeAuthFlowScenarioV2 = NativeAuthFlowScenarioV2.SIGN_IN
+    }
 
     /**
      * Identifies which part of the Native Auth V2 surface produced this result.
@@ -82,17 +105,17 @@ interface NativeAuthResultV2 : Result {
     ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2
 
     /**
-     * ResetPasswordMethodRequired Result, which indicates that password reset can continue with
-     * more than one verification method and the user must select one before a code is sent.
+     * Sign-in, password reset, or an existing account found during sign-up offers multiple supported methods.
+     * The app must select one before a challenge is sent.
      *
      * @param nextState the current state with follow-on methods.
      */
-    class ResetPasswordMethodRequired(
-        override val nextState: ResetPasswordMethodRequiredStateV2,
-        override val scenario: NativeAuthFlowScenarioV2
+    class AuthMethodSelectionRequired(
+        override val nextState: AuthMethodSelectionRequiredStateV2,
+        override val scenario: NativeAuthFlowScenarioV2 = nextState.scenario
     ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2 {
         /**
-         * The reset-password verification methods available to the user.
+         * The authentication methods available to the user.
          */
         val authMethods: List<AuthMethod>
             get() = nextState.authMethods
@@ -159,20 +182,6 @@ interface NativeAuthResultV2 : Result {
     }
 
     /**
-     * AttributesInvalid Result, which indicates the submitted attributes were rejected and must be corrected.
-     *
-     * @param nextState the current state with follow-on methods.
-     * @param invalidAttributes the names of the attributes that were rejected by the server.
-     */
-    class AttributesInvalid(
-        override val nextState: AttributesInvalidStateV2,
-        override val scenario: NativeAuthFlowScenarioV2,
-        invalidAttributes: List<String>
-    ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2 {
-        val invalidAttributes: List<String> = Collections.unmodifiableList(ArrayList(invalidAttributes))
-    }
-
-    /**
      * MFARequired Result, which indicates multi-factor authentication is required and the user must
      * select an authentication method.
      *
@@ -221,11 +230,11 @@ interface NativeAuthResultV2 : Result {
 
     /**
      * StrongAuthVerificationRequired Result, which indicates a strong-authentication challenge
-     * was sent and the user must enter the verification code.
+     * was sent or resent and the user must enter the activation code.
      *
-     * @param nextState the current state with follow-on methods.
-     * @param codeLength the length of the code required by the server.
-     * @param sentTo the email/phone number the code was sent to.
+     * @param nextState the refreshed state to use for subsequent submission or resend.
+     * @param codeLength the positive integer code length required by the server.
+     * @param sentTo the service-supplied contact hint, or an empty string when absent.
      * @param channel the channel (email/phone) the code was sent through.
      */
     class StrongAuthVerificationRequired(

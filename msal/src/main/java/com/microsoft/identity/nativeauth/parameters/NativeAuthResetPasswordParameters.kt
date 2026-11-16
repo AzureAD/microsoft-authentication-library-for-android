@@ -24,7 +24,7 @@
 package com.microsoft.identity.nativeauth.parameters
 
 /**
- * Encapsulates the parameters passed to the resetPassword methods of NativeAuthPublicClientApplication.
+ * Parameters for Native Auth V1 password reset.
  *
  * @param username username of the account whose password will be reset.
  */

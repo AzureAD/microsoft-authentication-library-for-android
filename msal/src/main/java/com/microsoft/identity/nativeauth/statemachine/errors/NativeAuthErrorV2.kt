@@ -27,14 +27,12 @@ import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 
 /**
- * NativeAuthErrorV2 is the base error type for the Native Auth V2 surface. All V2 errors are a
+ * The shared error type for every Native Auth V2 operation. All V2 errors are a
  * [NativeAuthResultV2], so any V2 state method or entry point that returns a result can also
  * return an error.
  *
- * This base type is returned directly for flow-level errors that are not specific to a single
- * operation (for example [isNotImplemented]). Operation-specific errors are represented by the
- * dedicated subclasses (e.g. [SignInErrorV2], [SubmitCodeErrorV2]), each exposing only the
- * utility methods relevant to that operation, mirroring the Native Auth V1 error surface.
+ * Use the classifiers to handle known failures. Raw service diagnostics are retained, including
+ * unknown errors. Migrate operation-specific V2 error checks to this type; V1 is unchanged.
  *
  * @param errorType the error type value of the error that occurred.
  * @param error the error returned by the authentication server.
@@ -43,15 +41,23 @@ import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
  * @param scenario identifies which part of the Native Auth V2 surface produced this error.
  * @param errorCodes a list of specific error codes returned by the authentication server.
  * @param exception an internal unexpected exception that happened.
+ * @param subError the unmodified service suberror.
+ * @param attributeValidationDetails service validation details, runtime-checked by classifiers.
+ * @param traceId the unmodified service trace identifier, when available.
+ * @param timestamp the unmodified service timestamp, when available.
  */
-open class NativeAuthErrorV2(
+class NativeAuthErrorV2 @JvmOverloads constructor(
     override val errorType: String? = null,
     override val error: String? = null,
     override val errorMessage: String?,
     override val correlationId: String,
     override val scenario: NativeAuthFlowScenarioV2,
     override val errorCodes: List<Int>? = null,
-    override var exception: Exception? = null
+    override var exception: Exception? = null,
+    val subError: String? = null,
+    val attributeValidationDetails: Any? = null,
+    val traceId: String? = null,
+    val timestamp: String? = null
 ) : NativeAuthResultV2,
     BrowserRequiredError,
     Error(
@@ -67,4 +73,79 @@ open class NativeAuthErrorV2(
      * Returns true if the requested Native Auth V2 flow or step is not implemented yet.
      */
     fun isNotImplemented(): Boolean = this.errorType == ErrorTypes.NOT_IMPLEMENTED
+
+    /** Whether the username failed local SDK validation. */
+    fun isInvalidUsername(): Boolean = errorType == ErrorTypes.INVALID_USERNAME
+
+    /** Whether the account does not exist. */
+    fun isUserNotFound(): Boolean = errorType == ErrorTypes.USER_NOT_FOUND ||
+        (error == "invalidRequest" && subError == "userNotFound")
+
+    /** Whether a first-factor one-time code was rejected; MFA and enrollment use [isInvalidChallenge]. */
+    fun isInvalidCode(): Boolean = errorType == ErrorTypes.INVALID_CODE ||
+        (errorType != ErrorTypes.INVALID_CHALLENGE &&
+            error == "invalidGrant" && subError == "invalidOneTimeCode")
+
+    /** Whether a submitted sign-in password was rejected or a new password failed service validation. */
+    fun isInvalidPassword(): Boolean = errorType == ErrorTypes.INVALID_PASSWORD ||
+        (error == "invalidRequest" && (subError in PASSWORD_POLICY_SUBERRORS ||
+            (subError == "attributeValidationError" && validationDetails().any { detail ->
+                (detail["attributeIds"] as? List<*>)?.contains("password") == true
+            })))
+
+    /** Whether the request omitted required attributes. */
+    fun isMissingRequiredAttributes(): Boolean =
+        validationDetails().any { it["code"] == "attributeRequired" }
+
+    /** Whether submitted attributes failed service validation. */
+    fun isInvalidAttributes(): Boolean = errorType == SignUpErrorTypes.INVALID_ATTRIBUTES ||
+        subError == "attributeValidationError" || isMissingRequiredAttributes()
+
+    /** Whether an MFA or strong-auth registration code was rejected. */
+    fun isInvalidChallenge(): Boolean = errorType == ErrorTypes.INVALID_CHALLENGE
+
+    /** Whether the SDK or the exact OAuth error/suberror pair requires browser authentication. */
+    override fun isBrowserRequired(): Boolean = errorType == ErrorTypes.BROWSER_REQUIRED ||
+        (error == "invalid_grant" && subError == "web_redirect_required")
+
+    /** Whether caller input is invalid. */
+    fun isInvalidInput(): Boolean = errorType == ErrorTypes.INVALID_INPUT ||
+        (errorType == ErrorTypes.CLIENT_EXCEPTION && exception is IllegalArgumentException)
+
+    /** Whether the requested authentication mechanism is unsupported. */
+    fun isAuthNotSupported(): Boolean = errorType == SignUpErrorTypes.AUTH_NOT_SUPPORTED
+
+    /** Whether password reset failed after credential validation. */
+    fun isPasswordResetFailed(): Boolean = errorType == ResetPasswordErrorTypes.PASSWORD_RESET_FAILED
+
+    /** Whether no stable classifier describes this error; raw diagnostics remain available. */
+    fun isGeneralError(): Boolean = !(isInvalidUsername() || isUserNotFound() ||
+        isInvalidCode() || isInvalidPassword() ||
+        isMissingRequiredAttributes() || isInvalidAttributes() || isInvalidChallenge() ||
+        isInvalidInput() || isAuthNotSupported() || isPasswordResetFailed() ||
+        isBrowserRequired() || isNotImplemented())
+
+    private fun validationDetails(): List<Map<*, *>> =
+        (attributeValidationDetails as? List<*>)?.mapNotNull { it as? Map<*, *> }.orEmpty()
+
+    companion object {
+        internal fun fromAttributeError(
+            result: com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult.AttributesInvalid,
+            scenario: NativeAuthFlowScenarioV2
+        ): NativeAuthErrorV2 = NativeAuthErrorV2(
+            errorType = SignUpErrorTypes.INVALID_ATTRIBUTES,
+            error = result.error,
+            errorMessage = result.errorDescription,
+            correlationId = result.correlationId,
+            scenario = scenario,
+            traceId = result.traceId,
+            timestamp = result.timestamp,
+            errorCodes = result.errorCodes,
+            subError = result.subError,
+            attributeValidationDetails = result.attributeValidationDetails
+        )
+
+        private val PASSWORD_POLICY_SUBERRORS = setOf("passwordTooWeak", "passwordTooShort",
+            "passwordTooLong", "passwordIsInvalid", "passwordRecentlyUsed", "passwordBanned")
+    }
 }

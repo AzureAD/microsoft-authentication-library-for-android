@@ -659,7 +659,6 @@ public class CommandParametersTest {
                 final NativeAuthPublicClientApplicationConfiguration configuration = getNativeAuthConfiguration(NATIVE_AUTH_CONFIG_FILE);
                 final OAuth2TokenCache tokenCache = getCache();
                 final String username = "username@example.com";
-                final char[] password = "Password123!".toCharArray();
                 final List<String> scopes = Arrays.asList("api://scope/read", "offline_access");
                 final ClaimsRequest claimsRequest = getAccessTokenClaimsRequest("xms_cc", "cp1");
 
@@ -668,13 +667,11 @@ public class CommandParametersTest {
                                 configuration,
                                 tokenCache,
                                 username,
-                                password,
                                 scopes,
                                 claimsRequest
                         );
 
                 Assert.assertEquals(username, commandParameters.username);
-                Assert.assertSame(password, commandParameters.password);
                 Assert.assertEquals(scopes, commandParameters.scopes);
                 Assert.assertEquals(
                         ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest),
@@ -911,7 +908,6 @@ public class CommandParametersTest {
             final NativeAuthPublicClientApplicationConfiguration configuration = getNativeAuthConfiguration(NATIVE_AUTH_CONFIG_FILE);
             final OAuth2TokenCache tokenCache = getCache();
             final String username = "username@example.com";
-            final char[] password = "Password123!".toCharArray();
             final Map<String, String> attributes = new HashMap<>();
             attributes.put("city", "Redmond");
 
@@ -920,12 +916,10 @@ public class CommandParametersTest {
                             configuration,
                             tokenCache,
                             username,
-                            password,
                             attributes
                     );
 
             Assert.assertEquals(username, commandParameters.username);
-            Assert.assertSame(password, commandParameters.password);
             Assert.assertSame(attributes, commandParameters.attributes);
             // Sign-up requests no scopes or claims at its start; they are supplied at the
             // sign-in-after-sign-up step instead, matching the reset-password flow and MSAL iOS.

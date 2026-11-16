@@ -32,11 +32,11 @@ import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
-import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SelectResetPasswordMethodCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SelectAuthMethodCommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.NativeAuthConstants
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
-import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SelectResetPasswordMethodCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SelectAuthMethodCommand
 import com.microsoft.identity.common.nativeauth.internal.controllers.v2.NativeAuthV2FlowController
 import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
@@ -44,7 +44,6 @@ import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfig
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
-import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.utils.getCancellable
 import com.microsoft.identity.nativeauth.utils.serializable
@@ -56,30 +55,34 @@ import kotlinx.coroutines.withContext
 import java.util.Collections
 
 /**
- * State that requires the user to select an email or SMS verification method for password reset.
+ * Selects a first-factor method for sign-in, password reset, or an existing account found during sign-up.
  *
  * No challenge is sent until the app explicitly selects one of [authMethods].
  */
-class ResetPasswordMethodRequiredStateV2 internal constructor(
+class AuthMethodSelectionRequiredStateV2 internal constructor(
     correlationId: String,
     scenario: NativeAuthFlowScenarioV2,
     config: NativeAuthPublicClientApplicationConfiguration,
     continuationState: NativeAuthV2ContinuationState? = null,
-    authMethods: List<AuthMethod> = emptyList()
+    authMethods: List<AuthMethod> = emptyList(),
+    internal val existingAccountSignIn: Boolean = false
 ) : NativeAuthBaseStateV2(correlationId, scenario, config, continuationState) {
-    private val TAG: String = ResetPasswordMethodRequiredStateV2::class.java.simpleName
+    private val TAG: String = AuthMethodSelectionRequiredStateV2::class.java.simpleName
     val authMethods: List<AuthMethod> = Collections.unmodifiableList(ArrayList(authMethods))
 
     internal constructor(
         continuationState: NativeAuthV2ContinuationState,
         authMethods: List<AuthMethod>,
-        config: NativeAuthPublicClientApplicationConfiguration
+        config: NativeAuthPublicClientApplicationConfiguration,
+        scenario: NativeAuthFlowScenarioV2 = NativeAuthFlowScenarioV2.RESET_PASSWORD,
+        existingAccountSignIn: Boolean = false
     ) : this(
         correlationId = continuationState.correlationId,
-        scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
+        scenario = scenario,
         config = config,
         continuationState = continuationState,
-        authMethods = authMethods
+        authMethods = authMethods,
+        existingAccountSignIn = existingAccountSignIn
     )
 
     private constructor(parcel: Parcel) : this(
@@ -90,18 +93,20 @@ class ResetPasswordMethodRequiredStateV2 internal constructor(
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>()
             as NativeAuthPublicClientApplicationConfiguration,
         continuationState = parcel.serializable<NativeAuthV2ContinuationState>(),
-        authMethods = parcel.createTypedArrayList(AuthMethod.CREATOR) ?: emptyList()
+        authMethods = parcel.createTypedArrayList(AuthMethod.CREATOR) ?: emptyList(),
+        existingAccountSignIn = parcel.readInt() != 0
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         super.writeToParcel(parcel, flags)
         parcel.writeTypedList(authMethods)
+        parcel.writeInt(if (existingAccountSignIn) 1 else 0)
     }
 
     interface SelectAuthMethodCallback : Callback<NativeAuthResultV2>
 
     /**
-     * Sends a verification code using the selected method; callback variant.
+     * Challenges the selected method; callback variant.
      */
     fun selectAuthMethod(method: AuthMethod, callback: SelectAuthMethodCallback) {
         LogSession.logMethodCall(
@@ -120,7 +125,7 @@ class ResetPasswordMethodRequiredStateV2 internal constructor(
     }
 
     /**
-     * Sends a verification code using the selected method; Kotlin coroutines variant.
+     * Challenges the selected method; Kotlin coroutines variant.
      */
     suspend fun selectAuthMethod(method: AuthMethod): NativeAuthResultV2 {
         LogSession.logMethodCall(
@@ -129,8 +134,12 @@ class ResetPasswordMethodRequiredStateV2 internal constructor(
             methodName = "${TAG}.selectAuthMethod(method: AuthMethod)"
         )
         val state = continuationState ?: return invalidState()
+        if (scenario != NativeAuthFlowScenarioV2.RESET_PASSWORD && scenario != NativeAuthFlowScenarioV2.SIGN_IN) {
+            Logger.warn(TAG, correlationId, "Unsupported flow for authentication method selection.")
+            return invalidState()
+        }
         val offeredMethod = authMethods.firstOrNull { it.id == method.id }
-            ?: return ResetPasswordErrorV2(
+            ?: return NativeAuthErrorV2(
                 errorType = ErrorTypes.INVALID_STATE,
                 errorMessage = "The selected authentication method is not one of the methods the server offered.",
                 correlationId = correlationId,
@@ -142,13 +151,15 @@ class ResetPasswordMethodRequiredStateV2 internal constructor(
                 ignoreCase = true
             ) &&
             !offeredMethod.challengeChannel.equals(
-                NativeAuthConstants.ChallengeChannel.SMS,
+                if (scenario == NativeAuthFlowScenarioV2.RESET_PASSWORD) {
+                    NativeAuthConstants.ChallengeChannel.SMS
+                } else "password",
                 ignoreCase = true
             )
         ) {
             return NativeAuthErrorV2(
                 errorType = ErrorTypes.NOT_IMPLEMENTED,
-                errorMessage = "Only email and SMS authentication methods are supported for password reset.",
+                errorMessage = "The authentication method is not supported for this flow.",
                 correlationId = correlationId,
                 scenario = scenario
             )
@@ -157,23 +168,50 @@ class ResetPasswordMethodRequiredStateV2 internal constructor(
         return withContext(Dispatchers.IO) {
             try {
                 val parameters =
-                    CommandParametersAdapter.createNativeAuthV2SelectResetPasswordMethodCommandParameters(
+                    CommandParametersAdapter.createNativeAuthV2SelectAuthMethodCommandParameters(
                         config,
                         config.oAuth2TokenCache,
                         offeredMethod.id,
                         state
                     )
-                val command = NativeAuthV2SelectResetPasswordMethodCommand(
+                val command = NativeAuthV2SelectAuthMethodCommand(
                     parameters,
                     NativeAuthV2FlowController(),
-                    PublicApiId.NATIVE_AUTH_V2_RESET_PASSWORD_SELECT_METHOD
+                    PublicApiId.NATIVE_AUTH_V2_SELECT_AUTH_METHOD
                 )
                 ensureActive()
                 val rawCommandResult =
                     CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
                 ensureActive()
-                when (val result =
-                    rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SelectResetPasswordMethodCommandResult>()) {
+                val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SelectAuthMethodCommandResult>()
+                if ((result is NativeAuthV2CommandResult.ExistingAccountCodeRequired &&
+                        !offeredMethod.challengeChannel.equals(NativeAuthConstants.ChallengeChannel.EMAIL, true)) ||
+                    (result is NativeAuthV2CommandResult.ExistingAccountPasswordRequired &&
+                        !offeredMethod.challengeChannel.equals("password", true))) {
+                    Logger.warn(TAG, correlationId, "Challenge does not match the selected authentication method.")
+                    return@withContext NativeAuthErrorV2(
+                        errorType = ErrorTypes.INVALID_STATE,
+                        errorMessage = "The server challenge does not match the selected authentication method.",
+                        correlationId = result.correlationId,
+                        scenario = scenario
+                    )
+                }
+                when (result) {
+                    is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
+                        result.toRegistrationResult(scenario, config)
+                    is NativeAuthV2CommandResult.ExistingAccountCodeRequired ->
+                        if (existingAccountSignIn) result.toExistingAccountResult(config) else {
+                            NativeAuthResultV2.CodeRequired(
+                                CodeRequiredStateV2(result.continuationState, scenario, config),
+                                scenario, result.codeLength, result.challengeTargetLabel, result.challengeChannel
+                            )
+                        }
+                    is NativeAuthV2CommandResult.ExistingAccountPasswordRequired ->
+                        if (existingAccountSignIn) result.toExistingAccountResult(config) else {
+                            NativeAuthResultV2.PasswordRequired(
+                                PasswordRequiredStateV2(result.continuationState, scenario, config), scenario
+                            )
+                        }
                     is NativeAuthV2CommandResult.CodeRequired -> NativeAuthResultV2.CodeRequired(
                         nextState = CodeRequiredStateV2(
                             continuationState = result.continuationState,
@@ -192,31 +230,38 @@ class ResetPasswordMethodRequiredStateV2 internal constructor(
                         correlationId = result.correlationId,
                         scenario = scenario
                     )
-                    is INativeAuthCommandResult.Redirect -> ResetPasswordErrorV2(
+                    is INativeAuthCommandResult.Redirect -> NativeAuthErrorV2(
                         errorType = ErrorTypes.BROWSER_REQUIRED,
+                        traceId = result.traceId,
+                        timestamp = result.timestamp,
+                        errorCodes = result.errorCodes,
                         error = result.error,
                         errorMessage = result.errorDescription,
                         correlationId = result.correlationId,
                         scenario = scenario
                     )
-                    is INativeAuthCommandResult.APIError -> ResetPasswordErrorV2(
+                    is INativeAuthCommandResult.APIError -> NativeAuthErrorV2(
                         error = result.error,
                         errorMessage = result.errorDescription,
                         correlationId = result.correlationId,
                         scenario = scenario,
+                        traceId = result.traceId,
+                        timestamp = result.timestamp,
                         errorCodes = result.errorCodes,
-                        exception = result.exception
+                        exception = result.exception,
+                        subError = result.subError,
+                        attributeValidationDetails = result.attributeValidationDetails
                     )
                     else -> {
                         Logger.warnWithObject(
                             TAG,
                             result.correlationId,
-                            "V2 selectResetPasswordMethod received unsupported result: ",
+                            "V2 selectAuthMethod received unsupported result: ",
                             result
                         )
-                        ResetPasswordErrorV2(
+                        NativeAuthErrorV2(
                             errorType = ErrorTypes.INVALID_STATE,
-                            errorMessage = "V2 reset password method selection returned an unsupported result.",
+                            errorMessage = "V2 authentication method selection returned an unsupported result.",
                             correlationId = result.correlationId,
                             scenario = scenario
                         )
@@ -226,7 +271,7 @@ class ResetPasswordMethodRequiredStateV2 internal constructor(
                 throw e
             } catch (e: Exception) {
                 Logger.error(TAG, correlationId, "Exception thrown in selectAuthMethod", e)
-                ResetPasswordErrorV2(
+                NativeAuthErrorV2(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in selectAuthMethod.",
                     correlationId = correlationId,
@@ -237,11 +282,11 @@ class ResetPasswordMethodRequiredStateV2 internal constructor(
         }
     }
 
-    companion object CREATOR : Parcelable.Creator<ResetPasswordMethodRequiredStateV2> {
-        override fun createFromParcel(parcel: Parcel): ResetPasswordMethodRequiredStateV2 =
-            ResetPasswordMethodRequiredStateV2(parcel)
+    companion object CREATOR : Parcelable.Creator<AuthMethodSelectionRequiredStateV2> {
+        override fun createFromParcel(parcel: Parcel): AuthMethodSelectionRequiredStateV2 =
+            AuthMethodSelectionRequiredStateV2(parcel)
 
-        override fun newArray(size: Int): Array<ResetPasswordMethodRequiredStateV2?> =
+        override fun newArray(size: Int): Array<AuthMethodSelectionRequiredStateV2?> =
             arrayOfNulls(size)
     }
 }

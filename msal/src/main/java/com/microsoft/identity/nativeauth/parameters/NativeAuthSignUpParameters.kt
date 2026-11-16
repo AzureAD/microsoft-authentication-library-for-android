@@ -24,9 +24,10 @@
 package com.microsoft.identity.nativeauth.parameters
 
 import com.microsoft.identity.nativeauth.UserAttributes
+import com.microsoft.identity.client.claims.ClaimsRequest
 
 /**
- * Encapsulates the parameters passed to the signUp methods of NativeAuthPublicClientApplication
+ * Encapsulates the parameters passed to the V1 signUp methods of NativeAuthPublicClientApplication.
  */
 class NativeAuthSignUpParameters(
     /**
@@ -47,4 +48,10 @@ class NativeAuthSignUpParameters(
      * Supply them through the dedicated [username] and [password] properties instead.
      */
     var attributes: UserAttributes? = null
+
+    /** Ignored by V1. V2 scopes belong to [NativeAuthSignUpParametersV2]. */
+    var scopes: List<String>? = null
+
+    /** Ignored by V1. V2 claims belong to [NativeAuthSignUpParametersV2]. */
+    var claimsRequest: ClaimsRequest? = null
 }
