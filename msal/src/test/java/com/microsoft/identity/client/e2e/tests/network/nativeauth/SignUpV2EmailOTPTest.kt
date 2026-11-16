@@ -249,7 +249,7 @@ class SignUpV2EmailOTPTest : SignUpV2EmailAbstractTest() {
     }
 
     @Test
-    fun iosParity_otpAttributesSuppliedUpfront() {
+    fun otpAttributesSuppliedUpfront() {
         val application = createApplication(
             ConfigType.SIGN_UP_OTP_ATTRIBUTES,
             OTP_ATTRIBUTES_CLIENT_ID
@@ -276,7 +276,7 @@ class SignUpV2EmailOTPTest : SignUpV2EmailAbstractTest() {
     }
 
     @Test
-    fun iosParity_otpAttributesSubmittedAfterVerification() {
+    fun otpAttributesSubmittedAfterVerification() {
         val application = createApplication(
             ConfigType.SIGN_UP_OTP_ATTRIBUTES,
             OTP_ATTRIBUTES_CLIENT_ID
@@ -308,7 +308,7 @@ class SignUpV2EmailOTPTest : SignUpV2EmailAbstractTest() {
             "currently returns code-required."
     )
     @Test
-    fun v1Parity_existingOtpAccountIsRejected() {
+    fun existingOtpAccountIsRejected() {
         application = createApplication()
 
         retryOperation(maxRetries = 1) {
@@ -327,7 +327,7 @@ class SignUpV2EmailOTPTest : SignUpV2EmailAbstractTest() {
             "currently returns code-required."
     )
     @Test
-    fun v1Parity_existingPasswordAccountIsRejected() {
+    fun existingPasswordAccountIsRejected() {
         application = createApplication()
         val passwordApplication = createApplication(
             ConfigType.SIGN_UP_PASSWORD,

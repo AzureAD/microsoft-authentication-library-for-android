@@ -45,7 +45,7 @@ import org.junit.Test
 import java.util.UUID
 
 /**
- * Enabled iOS V2 SSPR parity, using disposable accounts so password changes cannot
+ * Native Auth V2 SSPR coverage, using disposable accounts so password changes cannot
  * invalidate shared lab credentials or race another pipeline's password reset.
  */
 class SSPRV2Test : NativeAuthPublicClientApplicationAbstractTest() {
@@ -62,7 +62,7 @@ class SSPRV2Test : NativeAuthPublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun iosParity_resetPasswordAndExplicitSignInSucceeds() {
+    fun resetPasswordAndExplicitSignInSucceeds() {
         retryOperation(maxRetries = 1) {
             runBlocking {
                 val email = createPasswordAccount()
@@ -74,7 +74,7 @@ class SSPRV2Test : NativeAuthPublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun iosParity_invalidThenValidCodeCompletesReset() {
+    fun invalidThenValidCodeCompletesReset() {
         retryOperation(maxRetries = 1) {
             runBlocking {
                 val email = createPasswordAccount()
@@ -89,7 +89,7 @@ class SSPRV2Test : NativeAuthPublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun iosParity_newPasswordComplexityIsEnforced() {
+    fun newPasswordComplexityIsEnforced() {
         retryOperation(maxRetries = 1) {
             runBlocking {
                 val email = createPasswordAccount()
@@ -107,7 +107,7 @@ class SSPRV2Test : NativeAuthPublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun iosParity_resendCodeReachesNewPasswordRequired() {
+    fun resendCodeReachesNewPasswordRequired() {
         retryOperation(maxRetries = 1) {
             runBlocking {
                 val email = createPasswordAccount()
@@ -122,7 +122,7 @@ class SSPRV2Test : NativeAuthPublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun iosParity_unregisteredEmailIsUserNotFound() {
+    fun unregisteredEmailIsUserNotFound() {
         runBlocking {
             val result = application.resetPasswordV2(
                 NativeAuthResetPasswordParameters(

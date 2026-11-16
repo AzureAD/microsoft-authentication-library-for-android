@@ -199,7 +199,7 @@ class SignUpV2EmailPasswordTest : SignUpV2EmailAbstractTest() {
     }
 
     @Test
-    fun iosParity_passwordAttributesSuppliedUpfront() {
+    fun passwordAttributesSuppliedUpfront() {
         val application = createApplication(
             ConfigType.SIGN_UP_PASSWORD_ATTRIBUTES,
             PASSWORD_ATTRIBUTES_CLIENT_ID
@@ -232,7 +232,7 @@ class SignUpV2EmailPasswordTest : SignUpV2EmailAbstractTest() {
     }
 
     @Test
-    fun iosParity_passwordAttributesSubmittedAfterVerification() {
+    fun passwordAttributesSubmittedAfterVerification() {
         val application = createApplication(
             ConfigType.SIGN_UP_PASSWORD_ATTRIBUTES,
             PASSWORD_ATTRIBUTES_CLIENT_ID
@@ -265,7 +265,7 @@ class SignUpV2EmailPasswordTest : SignUpV2EmailAbstractTest() {
     }
 
     @Test
-    fun iosParity_suppliedPasswordResendWithReturnedState() {
+    fun suppliedPasswordResendWithReturnedState() {
         application = createApplication()
         retryOperation(maxRetries = 1) {
             runBlocking {
@@ -299,7 +299,7 @@ class SignUpV2EmailPasswordTest : SignUpV2EmailAbstractTest() {
             "currently returns code-required."
     )
     @Test
-    fun v1Parity_existingPasswordAccountIsRejected() {
+    fun existingPasswordAccountIsRejected() {
         application = createApplication()
 
         retryOperation(maxRetries = 1) {
