@@ -1,0 +1,70 @@
+name: changelog_label_check_$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger: none
+
+pr:
+  autoCancel: true
+  branches:
+    include:
+      - '*'
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - checkout: self
+    fetchDepth: 1
+    persistCredentials: true
+
+  - pwsh: |
+      $ErrorActionPreference = 'Stop'
+
+      $prNumber = $env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER
+      if (-not $prNumber) {
+        Write-Host "##vso[task.logissue type=error]This validation must run in the context of a pull request."
+        exit 1
+      }
+
+      $repositoryUri = [Uri]$env:BUILD_REPOSITORY_URI
+      $repository = $repositoryUri.AbsolutePath.Trim('/') -replace '\.git$', ''
+      $apiBase = if ($repositoryUri.Host -eq 'github.com') {
+        'https://api.github.com'
+      } else {
+        "$($repositoryUri.Scheme)://$($repositoryUri.Host)/api/v3"
+      }
+      $headers = @{
+        Accept = 'application/vnd.github+json'
+        'User-Agent' = 'azure-pipelines-changelog-label-validator'
+      }
+
+      $authLine = @(git config --get-regexp '^http\..*\.extraheader$') |
+        Where-Object { $_ -match 'AUTHORIZATION:' } | Select-Object -First 1
+      if ($authLine) {
+        $headers.Authorization = ($authLine -replace '^\S+\s+AUTHORIZATION:\s*', '').Trim()
+      }
+
+      try {
+        $pullRequest = Invoke-RestMethod -Method Get `
+          -Uri "$apiBase/repos/$repository/pulls/$prNumber" -Headers $headers
+      } catch {
+        Write-Host "##vso[task.logissue type=error]Could not read labels for pull request #$prNumber ($($_.Exception.Message))."
+        exit 1
+      }
+
+      $requiredLabels = @(
+        'changelog:major'
+        'changelog:minor'
+        'changelog:patch'
+        'changelog:none'
+      )
+      $labels = @($pullRequest.labels | ForEach-Object { $_.name })
+      $matchingLabels = @($requiredLabels | Where-Object { $labels -contains $_ })
+
+      if ($matchingLabels.Count -eq 0) {
+        $acceptedLabels = $requiredLabels -join ', '
+        Write-Host "##vso[task.logissue type=error]Pull request #$prNumber must have one of these labels: $acceptedLabels."
+        exit 1
+      }
+
+      Write-Host "##[section]Changelog label check passed: $($matchingLabels -join ', ')."
+    displayName: Validate changelog label

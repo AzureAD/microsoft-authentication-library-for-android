@@ -1,0 +1,1555 @@
+//  Copyright (c) Microsoft Corporation.
+//  All rights reserved.
+//
+//  This code is licensed under the MIT License.
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files(the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions :
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
+package com.microsoft.identity.nativeauth.v2
+
+import android.content.Context
+import android.os.Bundle
+import android.os.Parcel
+import androidx.test.core.app.ApplicationProvider
+import com.microsoft.identity.client.PublicClientApplication
+import com.microsoft.identity.client.AuthenticationResultAdapter
+import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
+import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest
+import com.microsoft.identity.client.exception.MsalClientException
+import com.microsoft.identity.client.exception.MsalException
+import com.microsoft.identity.client.IAccount
+import com.microsoft.identity.client.IAuthenticationResult
+import com.microsoft.identity.client.claims.ClaimsRequest
+import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation
+import com.microsoft.identity.common.java.commands.BaseCommand
+import com.microsoft.identity.common.java.commands.ICommandResult
+import com.microsoft.identity.common.java.controllers.CommandDispatcher
+import com.microsoft.identity.common.java.controllers.CommandResult
+import com.microsoft.identity.common.java.eststelemetry.PublicApiId
+import com.microsoft.identity.common.java.exception.BaseException
+import com.microsoft.identity.common.java.logging.DiagnosticContext
+import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2ResendCodeCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2ResetPasswordStartCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2ResetPasswordSubmitCodeCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SelectAuthMethodCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SignInAfterResetPasswordCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SubmitNewPasswordCommandResult
+import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2AuthMethod
+import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
+import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationStateTestFactory
+import com.microsoft.identity.common.java.result.FinalizableResultFuture
+import com.microsoft.identity.common.java.result.ILocalAuthenticationResult
+import com.microsoft.identity.common.java.util.ResultFuture
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResendCodeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResetPasswordSubmitCodeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2ResetPasswordStartCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SelectAuthMethodCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInAfterResetPasswordCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignUpStartCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitNewPasswordCommand
+import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.AuthMethod
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
+import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParametersV2
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParametersV2
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParametersV2
+import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
+import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
+import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
+import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
+import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.NativeAuthBaseStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.AuthMethodSelectionRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterResetPasswordStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthRegistrationRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.StrongAuthVerificationRequiredStateV2
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeoutOrNull
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.mockkStatic
+import io.mockk.slot
+import io.mockk.spyk
+import io.mockk.unmockkObject
+import io.mockk.unmockkStatic
+import io.mockk.verify
+import org.junit.After
+import org.junit.Assert.assertArrayEquals
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertNotSame
+import org.junit.Assert.fail
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import java.io.File
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.TimeUnit
+import kotlin.reflect.KClass
+
+@ExperimentalCoroutinesApi
+@RunWith(RobolectricTestRunner::class)
+@Config(shadows = [ShadowAndroidSdkStorageEncryptionManager::class])
+class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
+
+    private lateinit var context: Context
+    private lateinit var application: INativeAuthPublicClientApplication
+    private val username = "user@email.com"
+
+    @Test
+    fun resetPasswordParametersExposeOnlyPropertiesUsedByTheirVersion() {
+        val expectedAccessors = mapOf(
+            NativeAuthResetPasswordParameters::class.java to setOf("getUsername"),
+            NativeAuthResetPasswordParametersV2::class.java to setOf(
+                "getUsername", "getScopes", "setScopes", "getClaimsRequest", "setClaimsRequest"
+            )
+        )
+        expectedAccessors.forEach { (type, accessors) ->
+            assertEquals(
+                type.simpleName,
+                accessors,
+                type.methods.filter { it.declaringClass != Any::class.java }.map { it.name }.toSet()
+            )
+        }
+    }
+
+    @Test
+    fun resetPasswordV2OverloadsAcceptOnlyV2Parameters() {
+        listOf(INativeAuthPublicClientApplication::class.java, NativeAuthPublicClientApplication::class.java)
+            .forEach { type ->
+                val overloads = type.methods.filter { it.name == "resetPasswordV2" }
+                assertEquals(2, overloads.size)
+                overloads.forEach {
+                    assertEquals(NativeAuthResetPasswordParametersV2::class.java, it.parameterTypes.first())
+                }
+            }
+    }
+
+    @Test
+    fun allV2EntriesPropagateNullableScopesAndTypedClaimsThroughAdapters() = runTest {
+        val claims = com.microsoft.identity.client.claims.ClaimsRequest().also {
+            it.requestClaimInIdToken("auth_time", null)
+        }
+        val expectedClaims = com.microsoft.identity.client.claims.ClaimsRequest.getJsonStringFromClaimsRequest(claims)
+        listOf<List<String>?>(null, emptyList(), listOf("User.Read")).forEach { scopes ->
+            var captured: com.microsoft.identity.common.java.nativeauth.commands.parameters.BaseSignInTokenCommandParameters? = null
+            fun capture(command: BaseCommand<*>) {
+                captured = command.parameters as com.microsoft.identity.common.java.nativeauth.commands.parameters.BaseSignInTokenCommandParameters
+            }
+            fun assertCaptured() {
+                assertTrue(captured != null)
+                assertEquals(scopes, captured?.scopes)
+                assertEquals(expectedClaims, captured?.claimsRequestJson)
+                captured = null
+            }
+            val result = INativeAuthCommandResult.APIError("test_stop", "test stop", correlationId = correlationId)
+            enqueueResult(result, com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInStartCommand::class, ::capture)
+            application.signInV2(NativeAuthSignInParametersV2(username).also {
+                it.scopes = scopes
+                it.claimsRequest = claims
+            })
+            assertCaptured()
+            enqueueResult(result, NativeAuthV2SignUpStartCommand::class, ::capture)
+            application.signUpV2(NativeAuthSignUpParametersV2(username).also {
+                it.scopes = scopes
+                it.claimsRequest = claims
+            })
+            assertCaptured()
+            enqueueResult(result, NativeAuthV2ResetPasswordStartCommand::class, ::capture)
+            application.resetPasswordV2(NativeAuthResetPasswordParametersV2(username).also {
+                it.scopes = scopes
+                it.claimsRequest = claims
+            })
+            assertCaptured()
+        }
+    }
+
+    @Test
+    fun separateEntryParametersPreserveV1CommandInputsAndErrors() = runTest {
+        val claims = com.microsoft.identity.client.claims.ClaimsRequest().also { it.requestClaimInIdToken("auth_time", null) }
+        val password = "Password123!".toCharArray()
+        var signInInputs: com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInStartCommandParameters? = null
+        var signUpInputs: com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpStartCommandParameters? = null
+        var resetInputs: com.microsoft.identity.common.java.nativeauth.commands.parameters.ResetPasswordStartCommandParameters? = null
+        val result = INativeAuthCommandResult.APIError("test_stop", "test stop", correlationId = correlationId)
+        enqueueResult(result, com.microsoft.identity.common.nativeauth.internal.commands.SignInStartCommand::class) {
+            signInInputs = it.parameters as com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInStartCommandParameters
+            assertTrue(password.contentEquals(signInInputs?.password))
+        }
+        enqueueResult(result, com.microsoft.identity.common.nativeauth.internal.commands.SignUpStartCommand::class) {
+            signUpInputs = it.parameters as com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpStartCommandParameters
+        }
+        enqueueResult(result, com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordStartCommand::class) {
+            resetInputs = it.parameters as com.microsoft.identity.common.java.nativeauth.commands.parameters.ResetPasswordStartCommandParameters
+        }
+        val signIn = application.signIn(NativeAuthSignInParameters(username).also {
+            it.password = password
+            it.scopes = listOf("User.Read")
+            it.claimsRequest = claims
+        })
+        val signUp = application.signUp(NativeAuthSignUpParameters(username))
+        val reset = application.resetPassword(NativeAuthResetPasswordParameters(username))
+        assertTrue(signIn is com.microsoft.identity.nativeauth.statemachine.errors.SignInError)
+        assertTrue(signUp is com.microsoft.identity.nativeauth.statemachine.errors.SignUpError)
+        assertTrue(reset is com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError)
+        assertEquals(username, signInInputs?.username)
+        assertEquals(listOf("User.Read"), signInInputs?.scopes)
+        assertEquals(ClaimsRequest.getJsonStringFromClaimsRequest(claims), signInInputs?.claimsRequestJson)
+        assertEquals(username, signUpInputs?.username)
+        assertEquals(null, signUpInputs?.userAttributes)
+        assertEquals(null, signUpInputs?.password)
+        assertEquals(username, resetInputs?.username)
+        assertEquals("test_stop", (reset as com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError).error)
+    }
+
+    @Test
+    fun resetPasswordCallbackSnapshotsScopesAndMutableClaimsBeforeLaunch() = runTest {
+        val scopes = mutableListOf("User.Read")
+        val claims = com.microsoft.identity.client.claims.ClaimsRequest().also {
+            it.requestClaimInIdToken("auth_time", null)
+        }
+        val expectedClaims = com.microsoft.identity.client.claims.ClaimsRequest.getJsonStringFromClaimsRequest(claims)
+        var captured: com.microsoft.identity.common.java.nativeauth.commands.parameters.BaseSignInTokenCommandParameters? = null
+        enqueueResult(
+            INativeAuthCommandResult.APIError("test_stop", "test stop", correlationId = correlationId),
+            NativeAuthV2ResetPasswordStartCommand::class
+        ) { command ->
+            captured = command.parameters as com.microsoft.identity.common.java.nativeauth.commands.parameters.BaseSignInTokenCommandParameters
+        }
+        val parameters = NativeAuthResetPasswordParametersV2(username).also {
+            it.scopes = scopes
+            it.claimsRequest = claims
+        }
+        val future = ResultFuture<NativeAuthResultV2>()
+        application.resetPasswordV2(parameters, object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
+            override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
+            override fun onError(exception: BaseException) = future.setException(exception)
+        })
+        scopes.clear()
+        claims.requestClaimInIdToken("changed", null)
+        parameters.claimsRequest = null
+        assertTrue(future.get(30, TimeUnit.SECONDS) is NativeAuthErrorV2)
+        assertTrue(captured != null)
+        assertEquals(listOf("User.Read"), captured?.scopes)
+        assertEquals(expectedClaims, captured?.claimsRequestJson)
+    }
+
+    @Test
+    fun signInCallbackSnapshotsScopesBeforeDeliveringPasswordRequired() {
+        val pca = spyk(application as NativeAuthPublicClientApplication)
+        val scopes = mutableListOf("User.Read")
+        val parameters = NativeAuthSignInParametersV2(username).also { it.scopes = scopes }
+        val snapshot = slot<NativeAuthSignInParametersV2>()
+        val expectedResult = NativeAuthResultV2.PasswordRequired(
+            mockk<PasswordRequiredStateV2>(),
+            NativeAuthFlowScenarioV2.SIGN_IN
+        )
+        val results = mutableListOf<NativeAuthResultV2>()
+        coEvery { pca.signInV2(capture(snapshot)) } coAnswers {
+            assertEquals(listOf("User.Read"), snapshot.captured.scopes)
+            expectedResult
+        }
+        // Callback entry points read the backing field directly, bypassing the companion getter.
+        val scope = NativeAuthPublicClientApplication.pcaScope
+        mockkObject(scope)
+        try {
+            runTest {
+                every { scope.coroutineContext } returns coroutineContext
+                pca.signInV2(
+                    parameters,
+                    object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
+                        override fun onResult(result: NativeAuthResultV2) { results.add(result) }
+                        override fun onError(exception: BaseException) { fail("Unexpected onError: $exception") }
+                    }
+                )
+                assertFalse(snapshot.isCaptured)
+                assertTrue(results.isEmpty())
+                // The callback cannot run until the scheduler advances, so this mutation precedes it.
+                scopes.clear()
+                parameters.scopes = null
+                testScheduler.runCurrent()
+
+                coVerify(exactly = 1) { pca.signInV2(any<NativeAuthSignInParametersV2>()) }
+                assertEquals(listOf(expectedResult), results)
+                assertNotSame(parameters, snapshot.captured)
+                assertEquals(username, snapshot.captured.username)
+                assertEquals(listOf("User.Read"), snapshot.captured.scopes)
+            }
+        } finally {
+            unmockkObject(scope)
+        }
+    }
+
+    @Test
+    fun signUpCallbackSnapshotsScopesBeforeDeliveringCodeRequired() {
+        val pca = spyk(application as NativeAuthPublicClientApplication)
+        val scopes = mutableListOf("User.Read")
+        val parameters = NativeAuthSignUpParametersV2(username).also { it.scopes = scopes }
+        val snapshot = slot<NativeAuthSignUpParametersV2>()
+        val expectedResult = NativeAuthResultV2.CodeRequired(
+            nextState = mockk<CodeRequiredStateV2>(),
+            scenario = NativeAuthFlowScenarioV2.SIGN_UP,
+            codeLength = 6,
+            sentTo = "a***@example.com",
+            channel = "email"
+        )
+        val results = mutableListOf<NativeAuthResultV2>()
+        coEvery { pca.signUpV2(capture(snapshot)) } coAnswers {
+            assertEquals(listOf("User.Read"), snapshot.captured.scopes)
+            expectedResult
+        }
+        val scope = NativeAuthPublicClientApplication.pcaScope
+        mockkObject(scope)
+        try {
+            runTest {
+                every { scope.coroutineContext } returns coroutineContext
+                pca.signUpV2(
+                    parameters,
+                    object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
+                        override fun onResult(result: NativeAuthResultV2) { results.add(result) }
+                        override fun onError(exception: BaseException) { fail("Unexpected onError: $exception") }
+                    }
+                )
+                assertFalse(snapshot.isCaptured)
+                assertTrue(results.isEmpty())
+                scopes.clear()
+                parameters.scopes = null
+                testScheduler.runCurrent()
+
+                coVerify(exactly = 1) { pca.signUpV2(any<NativeAuthSignUpParametersV2>()) }
+                assertEquals(listOf(expectedResult), results)
+                assertNotSame(parameters, snapshot.captured)
+                assertEquals(username, snapshot.captured.username)
+                assertEquals(listOf("User.Read"), snapshot.captured.scopes)
+                assertTrue(scopes.isEmpty())
+                assertEquals(null, parameters.scopes)
+            }
+        } finally {
+            unmockkObject(scope)
+        }
+    }
+
+    @Test
+    fun callbackSnapshotCancellationIsRethrownWithoutDeliveringAResult() {
+        val cancellation = CancellationException("snapshot cancelled")
+        val scopes = object : AbstractList<String>() {
+            override val size: Int get() = throw cancellation
+            override fun get(index: Int): String = throw cancellation
+        }
+        listOf(
+            NativeAuthFlowScenarioV2.SIGN_IN,
+            NativeAuthFlowScenarioV2.SIGN_UP,
+            NativeAuthFlowScenarioV2.RESET_PASSWORD
+        ).forEach { scenario ->
+            val callback = object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
+                override fun onResult(result: NativeAuthResultV2) { fail("Cancellation must not deliver a result") }
+                override fun onError(exception: BaseException) { fail("Cancellation must not deliver an error") }
+            }
+            try {
+                invokeCallbackEntry(scenario, null, scopes, callback)
+                fail("Expected CancellationException")
+            } catch (e: CancellationException) {
+                assertSame(cancellation, e)
+            }
+        }
+    }
+
+    @Test
+    fun callbackSnapshotFailuresPreserveCallbackExceptionRouting() {
+        val claims = ClaimsRequest().also {
+            it.requestClaimInIdToken("auth_time", RequestedClaimAdditionalInformation().also { info ->
+                info.setValues(null)
+            })
+        }
+        listOf(
+            NativeAuthFlowScenarioV2.SIGN_IN,
+            NativeAuthFlowScenarioV2.SIGN_UP,
+            NativeAuthFlowScenarioV2.RESET_PASSWORD
+        ).forEach { scenario ->
+            assertRoutesToOnError { future ->
+                invokeCallbackEntry(scenario, claims, null, throwingCallback(future))
+            }
+        }
+    }
+
+    private fun invokeCallbackEntry(
+        scenario: NativeAuthFlowScenarioV2,
+        claims: ClaimsRequest?,
+        scopes: List<String>?,
+        callback: NativeAuthPublicClientApplication.NativeAuthV2Callback
+    ) {
+        when (scenario) {
+            NativeAuthFlowScenarioV2.SIGN_IN -> application.signInV2(
+                NativeAuthSignInParametersV2(username).also {
+                    it.claimsRequest = claims
+                    it.scopes = scopes
+                }, callback
+            )
+            NativeAuthFlowScenarioV2.SIGN_UP -> application.signUpV2(
+                NativeAuthSignUpParametersV2(username).also {
+                    it.claimsRequest = claims
+                    it.scopes = scopes
+                }, callback
+            )
+            NativeAuthFlowScenarioV2.RESET_PASSWORD -> application.resetPasswordV2(
+                NativeAuthResetPasswordParametersV2(username).also {
+                    it.claimsRequest = claims
+                    it.scopes = scopes
+                }, callback
+            )
+            else -> fail("Unexpected entry scenario: $scenario")
+        }
+    }
+
+    override fun getConfigFilePath() = "src/test/res/raw/native_auth_native_only_test_config.json"
+
+    @Before
+    override fun setup() {
+        context = ApplicationProvider.getApplicationContext()
+        val configFile = File(getConfigFilePath())
+        try {
+            application = PublicClientApplication.createNativeAuthPublicClientApplication(context, configFile)
+        } catch (e: MsalException) {
+            fail(e.message)
+        }
+        CommandDispatcher.getSilentExecutorPoolSize()
+        mockkStatic(CommandDispatcher::class)
+    }
+
+    @After
+    fun tearDown() {
+        unmockkStatic(CommandDispatcher::class)
+    }
+
+    @Test
+    fun signUpV2MapsCodeRequiredWithoutNetwork() = runTest {
+        val continuationState = createContinuationState()
+        enqueueResult(
+            NativeAuthV2CommandResult.CodeRequired(
+                correlationId = correlationId,
+                continuationState = continuationState,
+                codeLength = 6,
+                challengeTargetLabel = "a***@example.com",
+                challengeChannel = "email"
+            ),
+            NativeAuthV2SignUpStartCommand::class
+        )
+
+        val result = application.signUpV2(NativeAuthSignUpParametersV2(username = username))
+
+        assertTrue(result is NativeAuthResultV2.CodeRequired)
+        result as NativeAuthResultV2.CodeRequired
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_UP, result.scenario)
+        assertEquals(6, result.codeLength)
+        assertEquals("a***@example.com", result.sentTo)
+    }
+
+    @Test
+    fun resetPasswordV2MapsCodeRequiredWithoutNetwork() = runTest {
+        val continuationState = createContinuationState()
+        enqueueResult(
+            NativeAuthV2CommandResult.CodeRequired(
+                correlationId = correlationId,
+                continuationState = continuationState,
+                codeLength = 6,
+                challengeTargetLabel = "a***@example.com",
+                challengeChannel = "email"
+            ),
+            NativeAuthV2ResetPasswordStartCommand::class
+        )
+
+        val result = application.resetPasswordV2(NativeAuthResetPasswordParametersV2(username = username))
+
+        assertTrue(result is NativeAuthResultV2.CodeRequired)
+        result as NativeAuthResultV2.CodeRequired
+        assertEquals(6, result.codeLength)
+        assertEquals("a***@example.com", result.sentTo)
+        assertEquals("email", result.channel)
+        assertEquals(correlationId, result.nextState.correlationId)
+    }
+
+    @Test
+    fun resetPasswordV2MapsMethodSelectionAndSmsChallengeWithoutNetwork() = runTest {
+        val selectionState = createContinuationState()
+        enqueueResult(
+            NativeAuthV2CommandResult.AuthMethodSelectionRequired(
+                correlationId = correlationId,
+                continuationState = selectionState,
+                authMethods = listOf(
+                    NativeAuthV2AuthMethod("email-1", "email", "a***@example.com"),
+                    NativeAuthV2AuthMethod("sms-1", "sms", "+X XXX XXX 34")
+                )
+            ),
+            NativeAuthV2ResetPasswordStartCommand::class
+        )
+
+        val required = application.resetPasswordV2(
+            NativeAuthResetPasswordParametersV2(username = username)
+        ) as NativeAuthResultV2.AuthMethodSelectionRequired
+
+        assertEquals(listOf("email", "sms"), required.authMethods.map { it.challengeChannel })
+        val smsMethod = required.authMethods.single { it.challengeChannel == "sms" }
+
+        enqueueResult(
+            NativeAuthV2CommandResult.CodeRequired(
+                correlationId = correlationId,
+                continuationState = createContinuationState(),
+                codeLength = 6,
+                challengeTargetLabel = "+X XXX XXX 34",
+                challengeChannel = "sms"
+            ),
+            NativeAuthV2SelectAuthMethodCommand::class
+        )
+
+        val codeRequired = required.nextState.selectAuthMethod(smsMethod)
+
+        assertTrue(codeRequired is NativeAuthResultV2.CodeRequired)
+        codeRequired as NativeAuthResultV2.CodeRequired
+        assertEquals(NativeAuthFlowScenarioV2.RESET_PASSWORD, codeRequired.scenario)
+        assertEquals(6, codeRequired.codeLength)
+        assertEquals("+X XXX XXX 34", codeRequired.sentTo)
+        assertEquals("sms", codeRequired.channel)
+    }
+
+    @Test
+    fun resetPasswordMethodSelectionRejectsMethodNotOfferedByServer() = runTest {
+        val state = AuthMethodSelectionRequiredStateV2(
+            continuationState = createContinuationState(),
+            authMethods = listOf(AuthMethod("email-1", "oob", "a***@example.com", "email")),
+            config = NativeAuthPublicClientApplicationConfiguration()
+        )
+
+        val result = state.selectAuthMethod(
+            AuthMethod("sms-1", "sms", "+X XXX XXX 34", "sms")
+        )
+
+        assertTrue(result is NativeAuthErrorV2)
+        assertEquals(ErrorTypes.INVALID_STATE, (result as NativeAuthErrorV2).errorType)
+    }
+
+    @Test
+    fun resetPasswordMethodSelectionRejectsUnsupportedChannel() = runTest {
+        val method = AuthMethod("voice-1", "oob", "+X XXX XXX 34", "voice")
+        val state = AuthMethodSelectionRequiredStateV2(
+            continuationState = createContinuationState(),
+            authMethods = listOf(method),
+            config = NativeAuthPublicClientApplicationConfiguration()
+        )
+
+        val result = state.selectAuthMethod(method)
+
+        assertTrue(result is NativeAuthErrorV2)
+        assertTrue((result as NativeAuthErrorV2).isNotImplemented())
+    }
+
+    @Test
+    fun resetPasswordMethodSelectionMapsErrors() = runTest {
+        val method = AuthMethod("sms-1", "sms", "+X XXX XXX 34", "sms")
+        val state = AuthMethodSelectionRequiredStateV2(
+            continuationState = createContinuationState(),
+            authMethods = listOf(method),
+            config = application.configuration as NativeAuthPublicClientApplicationConfiguration
+        )
+
+        enqueueResult(
+            NativeAuthV2CommandResult.NotImplemented(
+                correlationId,
+                "not_implemented",
+                "unsupported"
+            ),
+            NativeAuthV2SelectAuthMethodCommand::class
+        )
+        assertTrue((state.selectAuthMethod(method) as NativeAuthErrorV2).isNotImplemented())
+
+        enqueueResult(
+            INativeAuthCommandResult.Redirect(correlationId, "browser"),
+            NativeAuthV2SelectAuthMethodCommand::class
+        )
+        assertTrue((state.selectAuthMethod(method) as NativeAuthErrorV2).isBrowserRequired())
+
+        enqueueResult(apiError(), NativeAuthV2SelectAuthMethodCommand::class)
+        assertEquals(
+            errorCodes,
+            (state.selectAuthMethod(method) as NativeAuthErrorV2).errorCodes
+        )
+
+        every {
+            CommandDispatcher.submitSilentReturningFuture(
+                match { NativeAuthV2SelectAuthMethodCommand::class.java.isInstance(it) }
+            )
+        } throws IllegalStateException("dispatcher unavailable")
+        val clientError = state.selectAuthMethod(method) as NativeAuthErrorV2
+        assertEquals(ErrorTypes.CLIENT_EXCEPTION, clientError.errorType)
+        assertTrue(clientError.exception is IllegalStateException)
+    }
+
+    @Test
+    fun resetPasswordV2MappingsRejectUnsupportedCommonResultsAsInvalidState() = runBlocking {
+        enqueueResult(
+            NativeAuthV2CommandResult.AuthMethodSelectionRequired(
+                correlationId = correlationId,
+                continuationState = createContinuationState(),
+                authMethods = listOf(
+                    NativeAuthV2AuthMethod("email-1", "email", "a***@example.com"),
+                    NativeAuthV2AuthMethod("sms-1", "sms", "+X XXX XXX 34")
+                )
+            ),
+            NativeAuthV2ResetPasswordStartCommand::class
+        )
+        val methodRequired = application.resetPasswordV2(
+            NativeAuthResetPasswordParametersV2(username)
+        ) as NativeAuthResultV2.AuthMethodSelectionRequired
+        enqueueResult(
+            unsupportedResult<NativeAuthV2SelectAuthMethodCommandResult>(),
+            NativeAuthV2SelectAuthMethodCommand::class
+        )
+        assertEquals(
+            ErrorTypes.INVALID_STATE,
+            (methodRequired.nextState.selectAuthMethod(methodRequired.authMethods.first()) as NativeAuthErrorV2).errorType
+        )
+
+        enqueueResult(
+            unsupportedResult<NativeAuthV2ResetPasswordStartCommandResult>(),
+            NativeAuthV2ResetPasswordStartCommand::class
+        )
+        assertEquals(
+            ErrorTypes.INVALID_STATE,
+            (application.resetPasswordV2(NativeAuthResetPasswordParametersV2(username)) as NativeAuthErrorV2).errorType
+        )
+
+        val codeState = codeRequiredState()
+        enqueueResult(
+            unsupportedResult<NativeAuthV2ResetPasswordSubmitCodeCommandResult>(),
+            NativeAuthV2ResetPasswordSubmitCodeCommand::class
+        )
+        assertEquals(
+            ErrorTypes.INVALID_STATE,
+            (codeState.submitCode("123456") as NativeAuthErrorV2).errorType
+        )
+
+        enqueueResult(
+            unsupportedResult<NativeAuthV2ResendCodeCommandResult>(),
+            NativeAuthV2ResendCodeCommand::class
+        )
+        assertEquals(
+            ErrorTypes.INVALID_STATE,
+            (codeState.resendCode() as NativeAuthErrorV2).errorType
+        )
+
+        enqueueResult(
+            NativeAuthV2CommandResult.NewPasswordRequired(correlationId, createContinuationState()),
+            NativeAuthV2ResetPasswordSubmitCodeCommand::class
+        )
+        val passwordState =
+            (codeState.submitCode("123456") as NativeAuthResultV2.NewPasswordRequired).nextState
+        enqueueResult(
+            unsupportedResult<NativeAuthV2SubmitNewPasswordCommandResult>(),
+            NativeAuthV2SubmitNewPasswordCommand::class
+        )
+        assertEquals(
+            ErrorTypes.INVALID_STATE,
+            (passwordState.submitNewPassword("Password!".toCharArray()) as NativeAuthErrorV2).errorType
+        )
+
+        val signInState = signInAfterResetState()
+        enqueueResult(
+            unsupportedResult<NativeAuthV2SignInAfterResetPasswordCommandResult>(),
+            NativeAuthV2SignInAfterResetPasswordCommand::class
+        )
+        assertEquals(
+            ErrorTypes.INVALID_STATE,
+            (signInState.signIn() as NativeAuthErrorV2).errorType
+        )
+    }
+
+    @Test
+    fun resetPasswordV2PreservesServerErrorsAndCancellation() = runTest {
+        enqueueResult(
+            NativeAuthV2CommandResult.UserNotFound(
+                correlationId,
+                "invalidRequest",
+                "No account",
+                errorCodes,
+                subError = "userNotFound",
+                attributeValidationDetails = listOf(mapOf("code" to "diagnostic"))
+            ),
+            NativeAuthV2ResetPasswordStartCommand::class
+        )
+        val userNotFound = application.resetPasswordV2(NativeAuthResetPasswordParametersV2(username))
+        assertTrue(userNotFound is NativeAuthErrorV2)
+        assertEquals(errorCodes, (userNotFound as NativeAuthErrorV2).errorCodes)
+        assertTrue(userNotFound.isUserNotFound())
+        assertEquals("userNotFound", userNotFound.subError)
+        assertEquals(listOf(mapOf("code" to "diagnostic")), userNotFound.attributeValidationDetails)
+
+        enqueueResult(
+            INativeAuthCommandResult.APIError(
+                "api_error",
+                "API failed",
+                correlationId = correlationId,
+                errorCodes = errorCodes
+            ),
+            NativeAuthV2ResetPasswordStartCommand::class
+        )
+        val apiError = application.resetPasswordV2(NativeAuthResetPasswordParametersV2(username))
+        assertEquals(errorCodes, (apiError as NativeAuthErrorV2).errorCodes)
+
+        enqueueCancellation(NativeAuthV2ResetPasswordStartCommand::class)
+        assertCancellation {
+            application.resetPasswordV2(NativeAuthResetPasswordParametersV2(username))
+        }
+    }
+
+    @Test
+    fun resetPasswordBrowserFallbackPreservesEntryAndTokenErrors() = runTest {
+        val rawError = INativeAuthCommandResult.APIError(
+            error = "invalid_grant", errorDescription = "Use browser", correlationId = correlationId,
+            subError = "web_redirect_required", traceId = "trace", timestamp = "time",
+            errorCodes = errorCodes
+        )
+        enqueueResult(rawError, NativeAuthV2ResetPasswordStartCommand::class)
+        val entry = application.resetPasswordV2(NativeAuthResetPasswordParametersV2(username)) as NativeAuthErrorV2
+        val state = SignInAfterResetPasswordStateV2(
+            createContinuationState(), NativeAuthFlowScenarioV2.RESET_PASSWORD,
+            application.configuration as NativeAuthPublicClientApplicationConfiguration
+        )
+        enqueueResult(rawError, NativeAuthV2SignInAfterResetPasswordCommand::class)
+        val terminal = state.signIn() as NativeAuthErrorV2
+        for (error in listOf(entry, terminal)) {
+            assertTrue(error.isBrowserRequired())
+            assertEquals("invalid_grant", error.error)
+            assertEquals("web_redirect_required", error.subError)
+            assertEquals("Use browser", error.errorMessage)
+            assertEquals(correlationId, error.correlationId)
+            assertEquals(errorCodes, error.errorCodes)
+            assertEquals("trace", error.traceId)
+            assertEquals("time", error.timestamp)
+        }
+    }
+
+    @Test
+    fun resetPasswordV2RejectsBlankUsernameWithoutSubmittingResetCommand() = runTest {
+        enqueueResult(apiError(), NativeAuthV2ResetPasswordStartCommand::class)
+
+        listOf("", " ", "\t\n").forEach { blankUsername ->
+            val result = application.resetPasswordV2(
+                NativeAuthResetPasswordParametersV2(username = blankUsername)
+            )
+
+            assertTrue(result is NativeAuthErrorV2)
+            val error = result as NativeAuthErrorV2
+            assertTrue(error.isInvalidUsername())
+            assertEquals(NativeAuthFlowScenarioV2.RESET_PASSWORD, error.scenario)
+        }
+
+        verify(exactly = 0) {
+            CommandDispatcher.submitSilentReturningFuture(
+                match { NativeAuthV2ResetPasswordStartCommand::class.java.isInstance(it) }
+            )
+        }
+    }
+
+    @Test
+    fun resetPasswordV2SurfacesSignedInPreconditionAsResultToSuspendAndCallback() = runTest {
+        mockkObject(NativeAuthPublicClientApplication.Companion)
+        every {
+            NativeAuthPublicClientApplication.getCurrentAccountInternal(any())
+        } returns mockk<IAccount>()
+        try {
+            // The precondition must be surfaced through the V2 result contract, not thrown. This
+            // matches the V1 flows, whose guard sits inside the try/catch that converts it to an
+            // error result.
+            val suspendResult = application.resetPasswordV2(NativeAuthResetPasswordParametersV2(username))
+            assertTrue(suspendResult is NativeAuthErrorV2)
+            assertEquals(ErrorTypes.CLIENT_EXCEPTION, (suspendResult as NativeAuthErrorV2).errorType)
+            val suspendCause = suspendResult.exception
+            assertTrue(suspendCause is MsalClientException)
+            assertEquals("An account is already signed in.", suspendCause?.message)
+
+            val callbackResult = ResultFuture<NativeAuthResultV2>()
+            application.resetPasswordV2(
+                NativeAuthResetPasswordParametersV2(username),
+                object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
+                    override fun onResult(result: NativeAuthResultV2) {
+                        callbackResult.setResult(result)
+                    }
+
+                    override fun onError(exception: BaseException) {
+                        callbackResult.setException(
+                            IllegalStateException("Expected callback.onResult", exception)
+                        )
+                    }
+                }
+            )
+            val result = callbackResult.get(10, TimeUnit.SECONDS)
+            assertTrue(result is NativeAuthErrorV2)
+            assertEquals(ErrorTypes.CLIENT_EXCEPTION, (result as NativeAuthErrorV2).errorType)
+            val callbackCause = result.exception
+            assertTrue(callbackCause is MsalClientException)
+            assertEquals("An account is already signed in.", callbackCause?.message)
+        } finally {
+            unmockkObject(NativeAuthPublicClientApplication.Companion)
+        }
+    }
+
+    @Test
+    fun submitCodeAndResendCodeMapAllResultKinds() = runTest {
+        val state = codeRequiredState()
+
+        enqueueResult(
+            NativeAuthV2CommandResult.IncorrectCode(
+                correlationId,
+                "invalid_code",
+                "Wrong code",
+                subError,
+                errorCodes
+            ),
+            NativeAuthV2ResetPasswordSubmitCodeCommand::class
+        )
+        val incorrectCode = state.submitCode("123456") as NativeAuthErrorV2
+        assertTrue(incorrectCode.isInvalidCode())
+        assertEquals(errorCodes, incorrectCode.errorCodes)
+        assertEquals(subError, incorrectCode.subError)
+
+        enqueueResult(
+            NativeAuthV2CommandResult.NewPasswordRequired(correlationId, createContinuationState()),
+            NativeAuthV2ResetPasswordSubmitCodeCommand::class
+        )
+        assertTrue(state.submitCode("123456") is NativeAuthResultV2.NewPasswordRequired)
+
+        enqueueResult(
+            INativeAuthCommandResult.Redirect(correlationId, "browser"),
+            NativeAuthV2ResetPasswordSubmitCodeCommand::class
+        )
+        assertTrue((state.submitCode("123456") as NativeAuthErrorV2).isBrowserRequired())
+
+        enqueueResult(
+            NativeAuthV2CommandResult.NotImplemented(correlationId, "unsupported", "unsupported"),
+            NativeAuthV2ResetPasswordSubmitCodeCommand::class
+        )
+        assertTrue((state.submitCode("123456") as NativeAuthErrorV2).isNotImplemented())
+
+        enqueueResult(apiError(), NativeAuthV2ResetPasswordSubmitCodeCommand::class)
+        assertEquals(errorCodes, (state.submitCode("123456") as NativeAuthErrorV2).errorCodes)
+
+        enqueueResult(
+            NativeAuthV2CommandResult.Complete(correlationId, null, null, null),
+            NativeAuthV2ResetPasswordSubmitCodeCommand::class
+        )
+        assertTrue(state.submitCode("123456") is NativeAuthErrorV2)
+
+        enqueueResult(
+            NativeAuthV2CommandResult.CodeRequired(
+                correlationId,
+                createContinuationState(),
+                8,
+                "phone",
+                "sms"
+            ),
+            NativeAuthV2ResendCodeCommand::class
+        ) {
+            assertEquals(
+                PublicApiId.NATIVE_AUTH_V2_RESET_PASSWORD_RESEND_CODE,
+                it.publicApiId
+            )
+        }
+        val resent = state.resendCode() as NativeAuthResultV2.CodeRequired
+        assertEquals(8, resent.codeLength)
+        assertEquals("phone", resent.sentTo)
+
+        enqueueResult(apiError(), NativeAuthV2ResendCodeCommand::class)
+        assertEquals(errorCodes, (state.resendCode() as NativeAuthErrorV2).errorCodes)
+
+        enqueueResult(
+            INativeAuthCommandResult.Redirect(correlationId, "browser"),
+            NativeAuthV2ResendCodeCommand::class
+        )
+        assertTrue((state.resendCode() as NativeAuthErrorV2).isBrowserRequired())
+
+        enqueueResult(
+            NativeAuthV2CommandResult.NotImplemented(correlationId, "unsupported", "unsupported"),
+            NativeAuthV2ResendCodeCommand::class
+        )
+        assertTrue((state.resendCode() as NativeAuthErrorV2).isNotImplemented())
+
+        enqueueResult(
+            NativeAuthV2CommandResult.Complete(correlationId, null, null, null),
+            NativeAuthV2ResendCodeCommand::class
+        )
+        assertTrue(state.resendCode() is NativeAuthErrorV2)
+
+        enqueueCancellation(NativeAuthV2ResetPasswordSubmitCodeCommand::class)
+        assertCancellation { state.submitCode("123456") }
+        enqueueCancellation(NativeAuthV2ResendCodeCommand::class)
+        assertCancellation { state.resendCode() }
+    }
+
+    @Test
+    fun submitCodeSendsEmptyAndShortInputToServiceAndRemainsRetryable() = runTest {
+        val state = codeRequiredState()
+
+        listOf("", "1").forEach { code ->
+            var submittedCode: String? = null
+            enqueueResult(
+                NativeAuthV2CommandResult.IncorrectCode(correlationId, "invalidGrant", "invalid", "invalidOneTimeCode"),
+                NativeAuthV2ResetPasswordSubmitCodeCommand::class
+            ) { command ->
+                submittedCode = (command.parameters as com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitCodeCommandParameters).code
+            }
+            val error = state.submitCode(code) as NativeAuthErrorV2
+            assertTrue(error.isInvalidCode())
+            assertEquals(code, submittedCode)
+        }
+    }
+
+    @Test
+    fun codeOperationsWithoutContinuationStateReturnInvalidState() = runTest {
+        val state = CodeRequiredStateV2(
+            correlationId,
+            NativeAuthFlowScenarioV2.RESET_PASSWORD,
+            NativeAuthPublicClientApplicationConfiguration()
+        )
+
+        val submitError = state.submitCode("123456") as NativeAuthErrorV2
+        val resendError = state.resendCode() as NativeAuthErrorV2
+
+        assertEquals(ErrorTypes.INVALID_STATE, submitError.errorType)
+        assertEquals("The continuation state is unavailable. Restart the flow.", submitError.errorMessage)
+        assertEquals(ErrorTypes.INVALID_STATE, resendError.errorType)
+        assertEquals("The continuation state is unavailable. Restart the flow.", resendError.errorMessage)
+    }
+
+    @Test
+    fun codeOperationsRejectUnknownScenario() = runTest {
+        val scenario = NativeAuthFlowScenarioV2.UNKNOWN
+        val state = CodeRequiredStateV2(
+            createContinuationState(),
+            scenario,
+            NativeAuthPublicClientApplicationConfiguration()
+        )
+
+        val submitError = state.submitCode("123456") as NativeAuthErrorV2
+        val resendError = state.resendCode() as NativeAuthErrorV2
+
+        assertEquals(ErrorTypes.INVALID_STATE, submitError.errorType)
+        assertEquals(scenario, submitError.scenario)
+        assertEquals(ErrorTypes.INVALID_STATE, resendError.errorType)
+        assertEquals(scenario, resendError.scenario)
+    }
+
+    @Test
+    fun submitNewPasswordMapsAllResultKinds() = runTest {
+        val codeState = codeRequiredState()
+        enqueueResult(
+            NativeAuthV2CommandResult.NewPasswordRequired(correlationId, createContinuationState()),
+            NativeAuthV2ResetPasswordSubmitCodeCommand::class
+        )
+        val state =
+            (codeState.submitCode("123456") as NativeAuthResultV2.NewPasswordRequired).nextState
+
+        enqueueResult(
+            NativeAuthV2CommandResult.PasswordNotAccepted(
+                correlationId,
+                "invalid_password",
+                "Rejected",
+                subError,
+                errorCodes,
+                attributeValidationDetails = listOf(mapOf("attributeIds" to listOf("password")))
+            ),
+            NativeAuthV2SubmitNewPasswordCommand::class
+        )
+        val rejected = state.submitNewPassword("Password!".toCharArray()) as NativeAuthErrorV2
+        assertTrue(rejected.isInvalidPassword())
+        assertEquals(errorCodes, rejected.errorCodes)
+        assertEquals(subError, rejected.subError)
+        assertEquals(listOf(mapOf("attributeIds" to listOf("password"))), rejected.attributeValidationDetails)
+
+        enqueueResult(
+            NativeAuthV2CommandResult.PasswordResetFailed(correlationId, "reset_failed", "Failed"),
+            NativeAuthV2SubmitNewPasswordCommand::class
+        )
+        assertTrue(
+            (state.submitNewPassword("Password!".toCharArray()) as NativeAuthErrorV2)
+                .isPasswordResetFailed()
+        )
+
+        enqueueResult(
+            NativeAuthV2CommandResult.SignInAfterResetPasswordRequired(
+                correlationId,
+                createContinuationState()
+            ),
+            NativeAuthV2SubmitNewPasswordCommand::class
+        )
+        assertTrue(
+            state.submitNewPassword("Password!".toCharArray()) is
+                NativeAuthResultV2.SignInAfterResetPasswordRequired
+        )
+
+        enqueueResult(apiError(), NativeAuthV2SubmitNewPasswordCommand::class)
+        assertEquals(
+            errorCodes,
+            (state.submitNewPassword("Password!".toCharArray()) as NativeAuthErrorV2).errorCodes
+        )
+
+        enqueueResult(
+            INativeAuthCommandResult.Redirect(correlationId, "browser"),
+            NativeAuthV2SubmitNewPasswordCommand::class
+        )
+        assertTrue(
+            (state.submitNewPassword("Password!".toCharArray()) as NativeAuthErrorV2)
+                .isBrowserRequired()
+        )
+
+        enqueueResult(
+            NativeAuthV2CommandResult.NotImplemented(correlationId, "unsupported", "unsupported"),
+            NativeAuthV2SubmitNewPasswordCommand::class
+        )
+        assertTrue(
+            (state.submitNewPassword("Password!".toCharArray()) as NativeAuthErrorV2)
+                .isNotImplemented()
+        )
+
+        enqueueResult(
+            NativeAuthV2CommandResult.Complete(correlationId, null, null, null),
+            NativeAuthV2SubmitNewPasswordCommand::class
+        )
+        assertTrue(state.submitNewPassword("Password!".toCharArray()) is NativeAuthErrorV2)
+
+        enqueueCancellation(NativeAuthV2SubmitNewPasswordCommand::class)
+        assertCancellation {
+            state.submitNewPassword("Password!".toCharArray())
+        }
+    }
+
+    @Test
+    fun submitNewPasswordRejectsEmptyInputWithRetryableInvalidPasswordError() = runTest {
+        val codeState = codeRequiredState()
+        enqueueResult(
+            NativeAuthV2CommandResult.NewPasswordRequired(correlationId, createContinuationState()),
+            NativeAuthV2ResetPasswordSubmitCodeCommand::class
+        )
+        val state =
+            (codeState.submitCode("123456") as NativeAuthResultV2.NewPasswordRequired).nextState
+
+        val error = state.submitNewPassword(charArrayOf()) as NativeAuthErrorV2
+
+        assertTrue(error.isInvalidPassword())
+    }
+
+    /**
+     * Regression test for password cleanup ownership: the caller-provided array must be overwritten
+     * even when the request fails or is cancelled before Common's interactor starts processing,
+     * because Common's own clearing only runs once the interactor receives the request.
+     */
+    @Test
+    fun submitNewPasswordClearsCallerPasswordWhenItFailsBeforeCommonProcessesIt() = runBlocking {
+        val codeState = codeRequiredState()
+        enqueueResult(
+            NativeAuthV2CommandResult.NewPasswordRequired(correlationId, createContinuationState()),
+            NativeAuthV2ResetPasswordSubmitCodeCommand::class
+        )
+        val state =
+            (codeState.submitCode("123456") as NativeAuthResultV2.NewPasswordRequired).nextState
+
+        // Dispatcher submission fails before Common ever receives the request.
+        every {
+            CommandDispatcher.submitSilentReturningFuture(
+                match { NativeAuthV2SubmitNewPasswordCommand::class.java.isInstance(it) }
+            )
+        } throws IllegalStateException("dispatcher unavailable")
+        val dispatchFailurePassword = "Password!".toCharArray()
+        val error = state.submitNewPassword(dispatchFailurePassword) as NativeAuthErrorV2
+        assertEquals(ErrorTypes.CLIENT_EXCEPTION, error.errorType)
+        assertPasswordCleared(dispatchFailurePassword)
+
+        // Cancellation before Common starts processing.
+        enqueueCancellation(NativeAuthV2SubmitNewPasswordCommand::class)
+        val cancelledPassword = "Password!".toCharArray()
+        assertCancellation { state.submitNewPassword(cancelledPassword) }
+        assertPasswordCleared(cancelledPassword)
+
+        // Null-continuation fallback returns before any command parameters are created.
+        val notImplementedPassword = "Password!".toCharArray()
+        val notImplemented = NewPasswordRequiredStateV2(
+            correlationId,
+            NativeAuthFlowScenarioV2.RESET_PASSWORD,
+            NativeAuthPublicClientApplicationConfiguration()
+        ).submitNewPassword(notImplementedPassword)
+        assertTrue((notImplemented as NativeAuthErrorV2).isNotImplemented())
+        assertPasswordCleared(notImplementedPassword)
+    }
+
+    @Test
+    fun signInAfterResetMapsErrorsAndCancellation() = runBlocking {
+        val signInState = signInAfterResetState()
+
+        val localResult = mockk<ILocalAuthenticationResult>()
+        val authenticationResult = mockk<IAuthenticationResult>()
+        every { authenticationResult.account } returns mockk<IAccount>()
+        mockkStatic(AuthenticationResultAdapter::class)
+        try {
+            every { AuthenticationResultAdapter.adapt(localResult) } returns authenticationResult
+            enqueueResult(
+                NativeAuthV2CommandResult.Complete(correlationId, localResult, null, null),
+                NativeAuthV2SignInAfterResetPasswordCommand::class
+            )
+            val complete = signInState.signIn() as NativeAuthResultV2.Complete
+            assertEquals(correlationId, complete.resultValue.correlationId)
+        } finally {
+            unmockkStatic(AuthenticationResultAdapter::class)
+        }
+
+        enqueueResult(apiError(), NativeAuthV2SignInAfterResetPasswordCommand::class)
+        assertEquals(errorCodes, (signInState.signIn() as NativeAuthErrorV2).errorCodes)
+
+        enqueueResult(
+            INativeAuthCommandResult.Redirect(correlationId, "browser"),
+            NativeAuthV2SignInAfterResetPasswordCommand::class
+        )
+        assertTrue((signInState.signIn() as NativeAuthErrorV2).isBrowserRequired())
+
+        enqueueResult(
+            NativeAuthV2CommandResult.Complete(correlationId, null, null, null),
+            NativeAuthV2SignInAfterResetPasswordCommand::class
+        )
+        assertTrue(signInState.signIn() is NativeAuthErrorV2)
+
+        enqueueCancellation(NativeAuthV2SignInAfterResetPasswordCommand::class)
+        assertCancellation { signInState.signIn() }
+    }
+
+    @Test
+    fun v2SuspendCommandsCancelPendingCommandAndHttpSignal() = runBlocking {
+        val codeState = codeRequiredState()
+        val passwordState = NewPasswordRequiredStateV2(
+            createContinuationState(),
+            NativeAuthFlowScenarioV2.RESET_PASSWORD,
+            codeState.config
+        )
+        val signInState = SignInAfterResetPasswordStateV2(
+            createContinuationState(),
+            NativeAuthFlowScenarioV2.RESET_PASSWORD,
+            codeState.config
+        )
+        val methodState = AuthMethodSelectionRequiredStateV2(
+            createContinuationState(),
+            listOf(AuthMethod("sms-1", "sms", "+X XXX XXX 34", "sms")),
+            codeState.config
+        )
+
+        assertCommandWaitCancellation(NativeAuthV2ResetPasswordStartCommand::class) {
+            application.resetPasswordV2(NativeAuthResetPasswordParametersV2(username))
+        }
+        assertCommandWaitCancellation(NativeAuthV2SelectAuthMethodCommand::class) {
+            methodState.selectAuthMethod(methodState.authMethods.single())
+        }
+        assertCommandWaitCancellation(NativeAuthV2ResetPasswordSubmitCodeCommand::class) {
+            codeState.submitCode("123456")
+        }
+        assertCommandWaitCancellation(NativeAuthV2ResendCodeCommand::class) {
+            codeState.resendCode()
+        }
+        assertCommandWaitCancellation(NativeAuthV2SubmitNewPasswordCommand::class) {
+            passwordState.submitNewPassword("Password!".toCharArray())
+        }
+        assertCommandWaitCancellation(NativeAuthV2SignInAfterResetPasswordCommand::class) {
+            signInState.signIn()
+        }
+    }
+
+    @Test
+    fun signInV2RoutesExceptionToOnError() {
+        assertRoutesToOnError { future ->
+            application.signInV2(NativeAuthSignInParametersV2(username = username), throwingCallback(future))
+        }
+    }
+
+    @Test
+    fun signUpV2RoutesExceptionToOnError() {
+        assertRoutesToOnError { future ->
+            application.signUpV2(NativeAuthSignUpParametersV2(username = username), throwingCallback(future))
+        }
+    }
+
+    @Test
+    fun resetPasswordV2RoutesExceptionToOnError() {
+        assertRoutesToOnError { future ->
+            application.resetPasswordV2(NativeAuthResetPasswordParametersV2(username = username), throwingCallback(future))
+        }
+    }
+
+    /**
+     * Drives the error path of the application-level V2 callback overloads: when result delivery
+     * throws an [MsalException], the `catch` block must route it to the callback's `onError`. This
+     * covers the `catch`/`onError` branch of the callback overloads.
+     */
+    private fun assertRoutesToOnError(action: (ResultFuture<NativeAuthResultV2>) -> Unit) {
+        val future = ResultFuture<NativeAuthResultV2>()
+        action(future)
+        try {
+            future.get(30, TimeUnit.SECONDS)
+            fail("Expected the exception to be routed to onError")
+        } catch (e: ExecutionException) {
+            assertTrue(e.cause is MsalClientException)
+        }
+    }
+
+    private fun throwingCallback(future: ResultFuture<NativeAuthResultV2>): NativeAuthPublicClientApplication.NativeAuthV2Callback {
+        return object : NativeAuthPublicClientApplication.NativeAuthV2Callback {
+            override fun onResult(result: NativeAuthResultV2): Unit = throw MsalClientException("test_error", "boom")
+            override fun onError(exception: BaseException) = future.setException(exception)
+        }
+    }
+
+    @Test
+    fun flowStateStepsReturnNotImplemented() = runTest {
+        val config = NativeAuthPublicClientApplicationConfiguration()
+        val scenario = NativeAuthFlowScenarioV2.SIGN_IN
+        val attributes = com.microsoft.identity.nativeauth.UserAttributes.Builder().city("city").build()
+        val authMethod = com.microsoft.identity.nativeauth.AuthMethod("id", "oob", null, "email")
+
+        val codeRequired = CodeRequiredStateV2("correlation-id", scenario, config)
+        assertInvalidState(codeRequired.submitCode("1234"))
+        assertInvalidState(codeRequired.resendCode())
+
+        assertInvalidState(PasswordRequiredStateV2("correlation-id", scenario, config).submitPassword("password".toCharArray()))
+        assertNotImplemented(NewPasswordRequiredStateV2("correlation-id", scenario, config).submitNewPassword("password".toCharArray()))
+        assertNotImplemented(SignInAfterResetPasswordStateV2("correlation-id", scenario, config).signIn())
+        assertInvalidState(AttributesRequiredStateV2("correlation-id", scenario, config).submitAttributes(attributes))
+        assertInvalidState(MFARequiredStateV2("correlation-id", scenario, config).selectAuthMethod(authMethod))
+        assertInvalidState(
+            AuthMethodSelectionRequiredStateV2(
+                "correlation-id",
+                NativeAuthFlowScenarioV2.RESET_PASSWORD,
+                config
+            ).selectAuthMethod(authMethod)
+        )
+        assertInvalidState(MFAVerificationRequiredStateV2("correlation-id", scenario, config).submitChallenge("challenge"))
+        assertInvalidState(MFAVerificationRequiredStateV2("correlation-id", scenario, config).resendChallenge())
+        assertInvalidState(StrongAuthRegistrationRequiredStateV2("correlation-id", scenario, config).selectAuthMethod(authMethod))
+        assertInvalidState(StrongAuthVerificationRequiredStateV2("correlation-id", scenario, config).submitChallenge("challenge"))
+    }
+
+    @Test
+    fun signInAfterResetPasswordRequiredIsResult() {
+        val state = SignInAfterResetPasswordStateV2(
+            correlationId = "correlation-id",
+            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
+            config = NativeAuthPublicClientApplicationConfiguration()
+        )
+
+        val result = NativeAuthResultV2.SignInAfterResetPasswordRequired(
+            nextState = state,
+            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD
+        )
+
+        assertTrue(result is NativeAuthResultV2)
+        assertEquals("signInAfterResetPassword", exhaustiveWhen(result))
+    }
+
+    @Test
+    fun errorIsResultAndNotBrowserRequired() {
+        val error = NativeAuthErrorV2(
+            errorType = "not_implemented",
+            errorMessage = "This is not implemented yet",
+            correlationId = "correlation-id",
+            scenario = NativeAuthFlowScenarioV2.UNKNOWN
+        )
+        assertTrue(error is NativeAuthResultV2)
+        assertTrue(error.isNotImplemented())
+        assertFalse(error.isBrowserRequired())
+    }
+
+    private fun assertNotImplemented(
+        result: NativeAuthResultV2,
+        expectedScenario: NativeAuthFlowScenarioV2 = NativeAuthFlowScenarioV2.SIGN_IN
+    ): NativeAuthErrorV2 {
+        assertEquals(expectedScenario, result.scenario)
+        assertTrue(result is NativeAuthErrorV2)
+        val error = result as NativeAuthErrorV2
+        assertTrue(error.isNotImplemented())
+        return error
+    }
+
+    private fun assertInvalidState(result: NativeAuthResultV2) {
+        assertTrue(result is NativeAuthErrorV2)
+        assertEquals(ErrorTypes.INVALID_STATE, (result as NativeAuthErrorV2).errorType)
+    }
+
+    private suspend fun codeRequiredState(): CodeRequiredStateV2 {
+        enqueueResult(
+            NativeAuthV2CommandResult.CodeRequired(
+                correlationId,
+                createContinuationState(),
+                6,
+                "email",
+                "email"
+            ),
+            NativeAuthV2ResetPasswordStartCommand::class
+        )
+        return (application.resetPasswordV2(NativeAuthResetPasswordParametersV2(username)) as
+            NativeAuthResultV2.CodeRequired).nextState
+    }
+
+    @Test
+    fun resetPasswordContinuesAfterRestoringStatesAndReinitializingConfiguration() = runTest {
+        val codeState = restoreSavedStateAndReinitializeConfiguration(codeRequiredState())
+        enqueueResult(
+            NativeAuthV2CommandResult.NewPasswordRequired(correlationId, createContinuationState()),
+            NativeAuthV2ResetPasswordSubmitCodeCommand::class
+        )
+        val passwordState = restoreSavedStateAndReinitializeConfiguration(
+            (codeState.submitCode("123456") as NativeAuthResultV2.NewPasswordRequired).nextState
+        )
+        enqueueResult(
+            NativeAuthV2CommandResult.SignInAfterResetPasswordRequired(
+                correlationId,
+                createContinuationState()
+            ),
+            NativeAuthV2SubmitNewPasswordCommand::class
+        )
+        val signInState = restoreSavedStateAndReinitializeConfiguration(
+            (passwordState.submitNewPassword("Password!".toCharArray()) as
+                NativeAuthResultV2.SignInAfterResetPasswordRequired).nextState
+        )
+        val localResult = mockk<ILocalAuthenticationResult>()
+        val authenticationResult = mockk<IAuthenticationResult>()
+        every { authenticationResult.account } returns mockk<IAccount>()
+        mockkStatic(AuthenticationResultAdapter::class)
+        try {
+            every { AuthenticationResultAdapter.adapt(localResult) } returns authenticationResult
+            enqueueResult(
+                NativeAuthV2CommandResult.Complete(correlationId, localResult, null, null),
+                NativeAuthV2SignInAfterResetPasswordCommand::class
+            )
+            val result = signInState.signIn() as NativeAuthResultV2.Complete
+            assertEquals(correlationId, result.resultValue.correlationId)
+            assertEquals(NativeAuthFlowScenarioV2.RESET_PASSWORD, result.scenario)
+        } finally {
+            unmockkStatic(AuthenticationResultAdapter::class)
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private inline fun <reified T : NativeAuthBaseStateV2> restoreSavedStateAndReinitializeConfiguration(state: T): T {
+        val parcel = Parcel.obtain()
+        val restoredParcel = Parcel.obtain()
+        try {
+            val savedState = Bundle().apply { putParcelable("state", state) }
+            savedState.writeToParcel(parcel, 0)
+            val bytes = parcel.marshall()
+            restoredParcel.unmarshall(bytes, 0, bytes.size)
+            restoredParcel.setDataPosition(0)
+            val restoredState = Bundle.CREATOR.createFromParcel(restoredParcel).apply {
+                classLoader = T::class.java.classLoader
+            }
+            val restored = requireNotNull(restoredState.getParcelable<T>("state"))
+            // The existing configuration serialization excludes superclass fields, Context, and
+            // the token cache. Reinitialize those separately; the opaque continuation stays restored.
+            restored.config.mergeConfiguration(state.config)
+            restored.config.appContext = state.config.appContext
+            restored.config.oAuth2TokenCache = state.config.oAuth2TokenCache
+            return restored
+        } finally {
+            parcel.recycle()
+            restoredParcel.recycle()
+        }
+    }
+
+    private suspend fun signInAfterResetState(): SignInAfterResetPasswordStateV2 {
+        val codeState = codeRequiredState()
+        enqueueResult(
+            NativeAuthV2CommandResult.NewPasswordRequired(correlationId, createContinuationState()),
+            NativeAuthV2ResetPasswordSubmitCodeCommand::class
+        )
+        val passwordState =
+            (codeState.submitCode("123456") as NativeAuthResultV2.NewPasswordRequired).nextState
+        enqueueResult(
+            NativeAuthV2CommandResult.SignInAfterResetPasswordRequired(
+                correlationId,
+                createContinuationState()
+            ),
+            NativeAuthV2SubmitNewPasswordCommand::class
+        )
+        return (passwordState.submitNewPassword("Password!".toCharArray()) as
+            NativeAuthResultV2.SignInAfterResetPasswordRequired).nextState
+    }
+
+    private fun apiError() = INativeAuthCommandResult.APIError(
+        "api_error",
+        "API failed",
+        correlationId = correlationId,
+        errorCodes = errorCodes
+    )
+
+    private fun assertPasswordCleared(password: CharArray) {
+        assertTrue(
+            "The caller-provided password array was not overwritten",
+            password.all { it == '\u0000' }
+        )
+    }
+
+    private suspend fun assertCancellation(block: suspend () -> Unit) {
+        try {
+            block()
+            fail("Expected CancellationException")
+        } catch (_: CancellationException) {
+            // Expected.
+        }
+    }
+
+    private fun enqueueCancellation(commandClass: KClass<out BaseCommand<*>>) {
+        every {
+            CommandDispatcher.submitSilentReturningFuture(
+                match { commandClass.java.isInstance(it) }
+            )
+        } throws CancellationException("cancelled")
+    }
+
+    private inline fun <reified T : INativeAuthCommandResult> unsupportedResult(): T =
+        mockk<T>().also {
+            every { it.correlationId } returns correlationId
+            every { it.toString() } returns "UnsupportedCommonResult"
+            every { it.toUnsanitizedString() } returns "UnsupportedCommonResult"
+            every { it.containsPii() } returns false
+        }
+
+    private suspend fun assertCommandWaitCancellation(
+        commandClass: KClass<out BaseCommand<*>>,
+        block: suspend () -> Unit
+    ) {
+        val waitStarted = CountDownLatch(1)
+        val future = object : FinalizableResultFuture<CommandResult<Any>>() {
+            override fun get(): CommandResult<Any> {
+                waitStarted.countDown()
+                return super.get()
+            }
+        }
+        every {
+            CommandDispatcher.submitSilentReturningFuture(
+                match { commandClass.java.isInstance(it) }
+            )
+        } returns future
+
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        val job = scope.launch { block() }
+        assertTrue("Future.get() was not entered", waitStarted.await(10, TimeUnit.SECONDS))
+        job.cancel()
+        val completedPromptly = withTimeoutOrNull(1_000) {
+            job.join()
+            true
+        } ?: false
+        val signalCancelled = future.cancellationSignal.isCancelled
+
+        if (!completedPromptly) {
+            future.setResult(
+                CommandResult(
+                    ICommandResult.ResultStatus.COMPLETED,
+                    NativeAuthV2CommandResult.NotImplemented(
+                        correlationId,
+                        "cancelled",
+                        "cancelled"
+                    ) as Any,
+                    correlationId
+                )
+            )
+            job.join()
+        }
+        scope.cancel()
+
+        assertTrue("Coroutine remained blocked in Future.get()", completedPromptly)
+        assertTrue("HTTP cancellation signal was not cancelled", signalCancelled)
+    }
+
+    private fun enqueueResult(
+        result: INativeAuthCommandResult,
+        commandClass: KClass<out BaseCommand<*>>,
+        onCommand: (BaseCommand<*>) -> Unit = {}
+    ) {
+        val future = FinalizableResultFuture<CommandResult<Any>>()
+        future.setResult(
+            CommandResult(
+                ICommandResult.ResultStatus.COMPLETED,
+                result as Any,
+                result.correlationId
+            )
+        )
+        every {
+            CommandDispatcher.submitSilentReturningFuture(
+                match { commandClass.java.isInstance(it) }
+            )
+        } answers {
+            onCommand(firstArg())
+            future
+        }
+    }
+
+    private fun createContinuationState(): NativeAuthV2ContinuationState =
+        NativeAuthV2ContinuationStateTestFactory.create(correlationId)
+
+    @Suppress("unused")
+    private fun exhaustiveWhen(result: NativeAuthResultV2): String = when (result) {
+        is NativeAuthResultV2.Complete -> "complete"
+        is NativeAuthResultV2.CodeRequired -> "code"
+        is NativeAuthResultV2.AuthMethodSelectionRequired -> "resetPasswordMethod"
+        is NativeAuthResultV2.PasswordRequired -> "password"
+        is NativeAuthResultV2.NewPasswordRequired -> "newPassword"
+        is NativeAuthResultV2.SignInAfterResetPasswordRequired -> "signInAfterResetPassword"
+        is NativeAuthResultV2.AttributesRequired -> "attributes"
+        is NativeAuthResultV2.MFARequired -> "mfa"
+        is NativeAuthResultV2.MFAVerificationRequired -> "mfaVerification"
+        is NativeAuthResultV2.StrongAuthRegistrationRequired -> "strongAuthRegistration"
+        is NativeAuthResultV2.StrongAuthVerificationRequired -> "strongAuthVerification"
+        is NativeAuthErrorV2 -> "error"
+        else -> "unknown"
+    }
+
+    private companion object {
+        const val correlationId = "correlation-id"
+        const val subError = "sub-error"
+        val errorCodes = listOf(50001, 50002)
+    }
+}

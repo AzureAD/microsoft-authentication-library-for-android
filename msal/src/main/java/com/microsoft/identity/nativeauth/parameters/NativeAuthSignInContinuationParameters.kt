@@ -33,11 +33,13 @@ class NativeAuthSignInContinuationParameters {
     /**
      * Permissions you want included in the access token received.
      * Not all scopes are guaranteed to be included in the access token returned.
+     * For V2, null retains entry scopes; an explicit empty list requests only default OIDC scopes.
      */
     var scopes: List<String>? = null
 
     /**
-     *  The claims parameter that needs to be sent to the service.
+     * Claims sent to the service in V1. In V2, claims are retained locally for token/cache
+     * semantics, but the token exchange omits claims; supply service claims at flow entry.
      */
     var claimsRequest: ClaimsRequest? = null
 }

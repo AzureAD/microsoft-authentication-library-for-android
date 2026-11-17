@@ -6,9 +6,6 @@
 #              the AuthClientAndroidPipelines repo. gitProject: self checks out the PR commit, so this
 #              works as a Build Validation branch policy on the msal repo.
 name: $(date:yyyyMMdd)$(rev:.r)
-
-# PR validation is driven by a Build Validation branch policy in ADO, not by YAML triggers.
-pr: none
 trigger: none
 
 resources:

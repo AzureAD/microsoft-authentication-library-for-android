@@ -22,14 +22,33 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import com.microsoft.identity.client.configuration.AccountMode;
+import com.microsoft.identity.common.java.authorities.Authority;
+
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Mockito;
+
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.isBrokerRedirectUri;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 public class PublicClientApplicationConfigurationTest {
+
+    private static void setAuthorities(final PublicClientApplicationConfiguration config,
+                                       final List<Authority> authorities) throws Exception {
+        final Field field = PublicClientApplicationConfiguration.class.getDeclaredField("mAuthorities");
+        field.setAccessible(true);
+        field.set(config, authorities);
+    }
 
     @Test
     public void testRedirectUriValidationValid() {
@@ -74,5 +93,80 @@ public class PublicClientApplicationConfigurationTest {
         final PublicClientApplicationConfiguration config = new PublicClientApplicationConfiguration();
         config.setRedirectUri("null");
         config.validateConfiguration();
+    }
+
+    @Test
+    public void testGetDefaultAuthorityNullWhenNoAuthorities() {
+        assertNull(new PublicClientApplicationConfiguration().getDefaultAuthority());
+        assertFalse(new PublicClientApplicationConfiguration().isDefaultAuthorityConfigured());
+    }
+
+    @Test
+    public void testGetDefaultAuthorityReturnsSingleAuthority() throws Exception {
+        final PublicClientApplicationConfiguration config = new PublicClientApplicationConfiguration();
+        final Authority authority = Mockito.mock(Authority.class);
+        setAuthorities(config, Collections.singletonList(authority));
+
+        assertSame(authority, config.getDefaultAuthority());
+        assertTrue(config.isDefaultAuthorityConfigured());
+    }
+
+    @Test
+    public void testGetDefaultAuthorityReturnsMarkedDefaultWhenMultiple() throws Exception {
+        final PublicClientApplicationConfiguration config = new PublicClientApplicationConfiguration();
+        final Authority nonDefault = Mockito.mock(Authority.class);
+        final Authority markedDefault = Mockito.mock(Authority.class);
+        Mockito.when(nonDefault.getDefault()).thenReturn(false);
+        Mockito.when(markedDefault.getDefault()).thenReturn(true);
+        setAuthorities(config, Arrays.asList(nonDefault, markedDefault));
+
+        assertSame(markedDefault, config.getDefaultAuthority());
+        assertTrue(config.isDefaultAuthorityConfigured());
+    }
+
+    @Test
+    public void testGetDefaultAuthorityNullWhenMultipleAndNoneDefault() throws Exception {
+        final PublicClientApplicationConfiguration config = new PublicClientApplicationConfiguration();
+        final Authority first = Mockito.mock(Authority.class);
+        final Authority second = Mockito.mock(Authority.class);
+        Mockito.when(first.getDefault()).thenReturn(false);
+        Mockito.when(second.getDefault()).thenReturn(false);
+        setAuthorities(config, Arrays.asList(first, second));
+
+        assertNull(config.getDefaultAuthority());
+        assertFalse(config.isDefaultAuthorityConfigured());
+    }
+
+    @Test
+    public void testMergeConfigurationOverlaysNonNullValues() {
+        final PublicClientApplicationConfiguration base = new PublicClientApplicationConfiguration();
+        base.setRedirectUri("msauth://base/aaa");
+
+        final PublicClientApplicationConfiguration override = new PublicClientApplicationConfiguration();
+        override.setRedirectUri("msauth://override/bbb");
+        override.setAccountMode(AccountMode.SINGLE);
+        override.setPowerOptCheckEnabled(Boolean.TRUE);
+        override.setWebViewZoomEnabled(true);
+        override.setWebViewZoomControlsEnabled(true);
+
+        base.mergeConfiguration(override);
+
+        assertEquals("msauth://override/bbb", base.getRedirectUri());
+        assertEquals(AccountMode.SINGLE, base.getAccountMode());
+        assertTrue(base.isPowerOptCheckForEnabled());
+        assertTrue(base.isWebViewZoomEnabled());
+        assertTrue(base.isWebViewZoomControlsEnabled());
+    }
+
+    @Test
+    public void testMergeConfigurationKeepsBaseValuesWhenOverrideIsEmpty() {
+        final PublicClientApplicationConfiguration base = new PublicClientApplicationConfiguration();
+        base.setRedirectUri("msauth://base/aaa");
+        base.setAccountMode(AccountMode.SINGLE);
+
+        base.mergeConfiguration(new PublicClientApplicationConfiguration());
+
+        assertEquals("msauth://base/aaa", base.getRedirectUri());
+        assertEquals(AccountMode.SINGLE, base.getAccountMode());
     }
 }

@@ -1,26 +1,21 @@
 pluginManagement {
-     repositories {
-         // Keep ONLY the ADO feed here. Declaring the public repos (gradlePluginPortal/google/
-         // mavenCentral) breaks buildsystem plugin resolution in the 1ES pipelines: they can't
-         // reach the public repos, and the NewAndroid feed proxies google()/gradlePluginPortal()
-         // as upstreams anyway, so AGP still resolves. For a purely local build without feed
-         // access, temporarily uncomment the lines below.
-         //  mavenCentral()
-         //  google()
-         //  gradlePluginPortal()
-         maven {
-             name "vsts-maven-new-android"
-             url "https://identitydivision.pkgs.visualstudio.com/_packaging/NewAndroid/maven/v1"
-             credentials {
-                 username System.getenv("ENV_VSTS_MVN_CRED_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_CRED_USERNAME") : settings.ext.find("vstsUsername")
-                 password System.getenv("ENV_VSTS_MVN_CRED_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_CRED_ACCESSTOKEN") : settings.ext.find("vstsMavenAccessToken")
-             }
-         }
-     }
- }
-// msal's own projects that do NOT consume the common submodule source — always included
-// (their directories live in this repo, and :msal only references common in its `local` flavor,
-// which is guarded in msal/build.gradle).
+    repositories {
+        // Keep only the ADO feed enabled for product builds. Public repositories are blocked
+        // by network isolation. For a local build without feed access, temporarily uncomment:
+        // mavenCentral()
+        // google()
+        // gradlePluginPortal()
+        maven {
+            name "vsts-maven-new-android"
+            url "https://identitydivision.pkgs.visualstudio.com/_packaging/NewAndroid/maven/v1"
+            credentials {
+                username System.getenv("ENV_VSTS_MVN_CRED_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_CRED_USERNAME") : providers.gradleProperty("vstsUsername").getOrNull()
+                password System.getenv("ENV_VSTS_MVN_CRED_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_CRED_ACCESSTOKEN") : providers.gradleProperty("vstsMavenAccessToken").getOrNull()
+            }
+        }
+    }
+}
+// Common-source dependencies are guarded below so DIST builds also work without the submodule.
 include ':msal', ':package-inspector'
 
 // The projects below live in the `common` git submodule (checked out at msal/common).
