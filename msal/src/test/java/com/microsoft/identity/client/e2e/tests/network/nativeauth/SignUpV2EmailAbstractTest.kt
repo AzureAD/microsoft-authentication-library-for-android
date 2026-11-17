@@ -29,7 +29,7 @@ import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailSe
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.UserAttributes
 import com.microsoft.identity.nativeauth.parameters.NativeAuthGetAccessTokenParameters
-import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParametersV2
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
@@ -93,11 +93,9 @@ abstract class SignUpV2EmailAbstractTest : NativeAuthPublicClientApplicationAbst
     protected suspend fun startSignUp(
         application: INativeAuthPublicClientApplication,
         email: String,
-        password: CharArray? = null,
         attributes: UserAttributes? = null
     ): NativeAuthResultV2.CodeRequired {
-        val parameters = NativeAuthSignUpParameters(username = email)
-        parameters.password = password
+        val parameters = NativeAuthSignUpParametersV2(username = email)
         parameters.attributes = attributes
 
         val result = application.signUpV2(parameters)
@@ -106,6 +104,43 @@ abstract class SignUpV2EmailAbstractTest : NativeAuthPublicClientApplicationAbst
         assertEquals("email", codeRequired.channel.lowercase())
         assertTrue(codeRequired.codeLength > 0)
         return codeRequired
+    }
+
+    protected suspend fun submitSignUpPassword(
+        result: NativeAuthResultV2,
+        password: CharArray
+    ): NativeAuthResultV2 {
+        assertResult<NativeAuthResultV2.PasswordRequired>(result)
+        return (result as NativeAuthResultV2.PasswordRequired).nextState.submitPassword(password)
+    }
+
+    protected suspend fun signInExistingAccount(
+        result: NativeAuthResultV2,
+        email: String,
+        password: CharArray? = null
+    ): NativeAuthResultV2.Complete {
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, result.scenario)
+        val challenge = if (result is NativeAuthResultV2.AuthMethodSelectionRequired) {
+            val channel = if (password == null) "email" else "password"
+            val method = result.authMethods.single { it.challengeChannel == channel }
+            result.nextState.selectAuthMethod(method)
+        } else {
+            result
+        }
+        assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, challenge.scenario)
+        val signedIn = when (challenge) {
+            is NativeAuthResultV2.ExistingAccountCodeRequired ->
+                challenge.nextState.submitCode(tempEmailApi.retrieveCodeFromInbox(email))
+            is NativeAuthResultV2.ExistingAccountPasswordRequired -> {
+                assertNotNull(password)
+                challenge.nextState.submitPassword(requireNotNull(password))
+            }
+            else -> throw AssertionError("Expected an existing-account sign-in challenge")
+        }
+        assertResultType<NativeAuthResultV2.Complete>(signedIn)
+        val complete = signedIn as NativeAuthResultV2.Complete
+        assertAccountAndTokens(complete, email, NativeAuthFlowScenarioV2.SIGN_IN)
+        return complete
     }
 
     protected suspend fun completeSignInAfterSignUp(
@@ -119,9 +154,10 @@ abstract class SignUpV2EmailAbstractTest : NativeAuthPublicClientApplicationAbst
 
     protected suspend fun assertAccountAndTokens(
         result: NativeAuthResultV2.Complete,
-        email: String
+        email: String,
+        scenario: NativeAuthFlowScenarioV2 = NativeAuthFlowScenarioV2.SIGN_UP
     ) {
-        assertSignUpScenario(result)
+        assertEquals(scenario, result.scenario)
         val accountState = result.resultValue
         val account = accountState.getAccount()
         assertNotNull(account)

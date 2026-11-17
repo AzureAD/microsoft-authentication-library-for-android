@@ -26,17 +26,15 @@ import com.microsoft.identity.client.e2e.utils.NativeAuthRequestRecorder
 import com.microsoft.identity.client.e2e.utils.NativeAuthEndpointCategory
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
-import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
-import com.microsoft.identity.nativeauth.statemachine.errors.SignUpErrorV2
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParametersV2
+import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
-import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeErrorV2
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertTrue
-import org.junit.Ignore
 import org.junit.Test
 
 /**
@@ -103,8 +101,8 @@ class SignUpV2EmailOTPTest : SignUpV2EmailAbstractTest() {
 
                 val invalidResult = originalState.submitCode(INCORRECT_CODE)
                 assertSignUpScenario(invalidResult)
-                assertTrue(invalidResult is SubmitCodeErrorV2)
-                assertTrue((invalidResult as SubmitCodeErrorV2).isInvalidCode())
+                assertTrue(invalidResult is NativeAuthErrorV2)
+                assertTrue((invalidResult as NativeAuthErrorV2).isInvalidCode())
 
                 val validResult = originalState.submitCode(validOtp)
                 assertResult<NativeAuthResultV2.SignInAfterSignUpRequired>(validResult)
@@ -205,8 +203,8 @@ class SignUpV2EmailOTPTest : SignUpV2EmailAbstractTest() {
 
                 val invalidResult = secondState.submitCode(INCORRECT_CODE)
                 assertSignUpScenario(invalidResult)
-                assertTrue(invalidResult is SubmitCodeErrorV2)
-                assertTrue((invalidResult as SubmitCodeErrorV2).isInvalidCode())
+                assertTrue(invalidResult is NativeAuthErrorV2)
+                assertTrue((invalidResult as NativeAuthErrorV2).isInvalidCode())
 
                 val validResult = secondState.submitCode(secondOtp)
                 assertResult<NativeAuthResultV2.SignInAfterSignUpRequired>(validResult)
@@ -303,31 +301,23 @@ class SignUpV2EmailOTPTest : SignUpV2EmailAbstractTest() {
         }
     }
 
-    @Ignore(
-        "Expected V2 behavior is user-already-exists; disabled because a known server bug " +
-            "currently returns code-required."
-    )
     @Test
-    fun existingOtpAccountIsRejected() {
+    fun existingOtpAccountContinuesToSignIn() {
         application = createApplication()
 
         retryOperation(maxRetries = 1) {
             runBlocking {
                 val email = createAccount(application)
-                val result = application.signUpV2(NativeAuthSignUpParameters(email))
-
-                assertResult<SignUpErrorV2>(result)
-                assertTrue((result as SignUpErrorV2).isUserAlreadyExists())
+                tempEmailApi.markCheckpoint(email)
+                val result = application.signUpV2(NativeAuthSignUpParametersV2(email))
+                assertResult<GetAccountResult.NoAccountFound>(application.getCurrentAccount())
+                signInExistingAccount(result, email)
             }
         }
     }
 
-    @Ignore(
-        "Expected V2 behavior is user-already-exists; disabled because a known server bug " +
-            "currently returns code-required."
-    )
     @Test
-    fun existingPasswordAccountIsRejected() {
+    fun existingPasswordAccountContinuesToSignIn() {
         application = createApplication()
         val passwordApplication = createApplication(
             ConfigType.SIGN_UP_PASSWORD,
@@ -337,15 +327,15 @@ class SignUpV2EmailOTPTest : SignUpV2EmailAbstractTest() {
         retryOperation(maxRetries = 1) {
             runBlocking {
                 val password = newValidPassword()
-                val email = try {
-                    createAccount(passwordApplication, password)
+                try {
+                    val email = createAccount(passwordApplication, password)
+                    tempEmailApi.markCheckpoint(email)
+                    val result = application.signUpV2(NativeAuthSignUpParametersV2(email))
+                    assertResult<GetAccountResult.NoAccountFound>(application.getCurrentAccount())
+                    signInExistingAccount(result, email, password)
                 } finally {
                     password.fill('\u0000')
                 }
-                val result = application.signUpV2(NativeAuthSignUpParameters(email))
-
-                assertResult<SignUpErrorV2>(result)
-                assertTrue((result as SignUpErrorV2).isUserAlreadyExists())
             }
         }
     }
@@ -356,10 +346,11 @@ class SignUpV2EmailOTPTest : SignUpV2EmailAbstractTest() {
     ): String {
         val email = tempEmailApi.createRandomEmailAddress()
         tempEmailApi.markCheckpoint(email)
-        val codeRequired = startSignUp(application, email, password)
-        val completed = codeRequired.nextState.submitCode(
+        val codeRequired = startSignUp(application, email)
+        val verified = codeRequired.nextState.submitCode(
             tempEmailApi.retrieveCodeFromInbox(email)
         )
+        val completed = if (password == null) verified else submitSignUpPassword(verified, password)
         assertResult<NativeAuthResultV2.SignInAfterSignUpRequired>(completed)
         return email
     }

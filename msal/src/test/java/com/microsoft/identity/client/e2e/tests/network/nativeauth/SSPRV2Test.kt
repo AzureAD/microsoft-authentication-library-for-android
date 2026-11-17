@@ -27,12 +27,10 @@ import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.parameters.NativeAuthGetAccessTokenParameters
-import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters
-import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParametersV2
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParametersV2
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
-import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorV2
-import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeErrorV2
-import com.microsoft.identity.nativeauth.statemachine.errors.SubmitNewPasswordErrorV2
+import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
@@ -80,8 +78,8 @@ class SSPRV2Test : NativeAuthPublicClientApplicationAbstractTest() {
                 val email = createPasswordAccount()
                 val codeRequired = startReset(email)
                 val invalid = codeRequired.nextState.submitCode("1")
-                assertResult<SubmitCodeErrorV2>(invalid)
-                assertTrue((invalid as SubmitCodeErrorV2).isInvalidCode())
+                assertResult<NativeAuthErrorV2>(invalid)
+                assertTrue((invalid as NativeAuthErrorV2).isInvalidCode())
                 val passwordRequired = submitEmailCode(email, codeRequired)
                 submitNewPasswordAndSignIn(email, passwordRequired)
             }
@@ -100,8 +98,8 @@ class SSPRV2Test : NativeAuthPublicClientApplicationAbstractTest() {
                 } finally {
                     password.fill('\u0000')
                 }
-                assertResult<SubmitNewPasswordErrorV2>(result)
-                assertTrue((result as SubmitNewPasswordErrorV2).isInvalidPassword())
+                assertResult<NativeAuthErrorV2>(result)
+                assertTrue((result as NativeAuthErrorV2).isInvalidPassword())
             }
         }
     }
@@ -125,12 +123,12 @@ class SSPRV2Test : NativeAuthPublicClientApplicationAbstractTest() {
     fun unregisteredEmailIsUserNotFound() {
         runBlocking {
             val result = application.resetPasswordV2(
-                NativeAuthResetPasswordParameters(
+                NativeAuthResetPasswordParametersV2(
                     tempEmailApi.generateRandomUnregisteredEmailAddress()
                 )
             )
-            assertResult<ResetPasswordErrorV2>(result)
-            assertTrue((result as ResetPasswordErrorV2).isUserNotFound())
+            assertResult<NativeAuthErrorV2>(result)
+            assertTrue((result as NativeAuthErrorV2).isUserNotFound())
         }
     }
 
@@ -144,13 +142,15 @@ class SSPRV2Test : NativeAuthPublicClientApplicationAbstractTest() {
         tempEmailApi.markCheckpoint(email)
         val password = newPassword()
         try {
-            val parameters = NativeAuthSignUpParameters(email)
-            parameters.password = password
+            val parameters = NativeAuthSignUpParametersV2(email)
             val started = signUp.signUpV2(parameters)
             assertResultType<NativeAuthResultV2.CodeRequired>(started)
-            val completed = (started as NativeAuthResultV2.CodeRequired).nextState.submitCode(
+            val verified = (started as NativeAuthResultV2.CodeRequired).nextState.submitCode(
                 tempEmailApi.retrieveCodeFromInbox(email)
             )
+            assertResultType<NativeAuthResultV2.PasswordRequired>(verified)
+            val completed = (verified as NativeAuthResultV2.PasswordRequired)
+                .nextState.submitPassword(password)
             assertResultType<NativeAuthResultV2.SignInAfterSignUpRequired>(completed)
             assertResultType<GetAccountResult.NoAccountFound>(signUp.getCurrentAccount())
         } finally {
@@ -161,7 +161,7 @@ class SSPRV2Test : NativeAuthPublicClientApplicationAbstractTest() {
 
     private suspend fun startReset(email: String): NativeAuthResultV2.CodeRequired {
         tempEmailApi.markCheckpoint(email)
-        val started = application.resetPasswordV2(NativeAuthResetPasswordParameters(email))
+        val started = application.resetPasswordV2(NativeAuthResetPasswordParametersV2(email))
         assertResult<NativeAuthResultV2.CodeRequired>(started)
         val required = started as NativeAuthResultV2.CodeRequired
         assertEquals("email", required.channel.lowercase())
