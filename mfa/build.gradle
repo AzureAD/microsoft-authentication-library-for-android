@@ -13,7 +13,6 @@ android {
     defaultConfig {
         minSdk rootProject.ext.minSdkVersion
         targetSdk rootProject.ext.targetSdkVersion
-        consumerProguardFiles 'consumer-rules.pro'
     }
 
     compileOptions {
