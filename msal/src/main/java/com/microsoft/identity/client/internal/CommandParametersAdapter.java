@@ -608,7 +608,7 @@ public class CommandParametersAdapter {
      * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignInStartCommand}] of Native Auth using continuation token
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
-     * @param continuationToken continuation token
+     * @param continuationToken non-null continuation token
      * @param username email address of the user
      * @param correlationId correlation ID to use in the API request, taken from the previous API response in the flow
      * @param scopes scopes requested during sign in flow
@@ -619,7 +619,7 @@ public class CommandParametersAdapter {
     public static SignInWithContinuationTokenCommandParameters createSignInWithContinuationTokenCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
-            @Nullable final String continuationToken,
+            @NonNull final String continuationToken,
             @Nullable final String username,
             @NonNull final String correlationId,
             final List<String> scopes,

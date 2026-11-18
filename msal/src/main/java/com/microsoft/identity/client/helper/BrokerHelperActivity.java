@@ -21,7 +21,7 @@ import java.net.URLEncoder;
  */
 public class BrokerHelperActivity extends Activity {
 
-    private final String MANIFEST_TEMPLATE = "<activity android:name=\"com.microsoft.identity.client.BrowserTabActivity\">\n" +
+    private static final String MANIFEST_TEMPLATE = "<activity android:name=\"com.microsoft.identity.client.BrowserTabActivity\">\n" +
             "    <intent-filter>\n" +
             "        <action android:name=\"android.intent.action.VIEW\" />\n" +
             "        <category android:name=\"android.intent.category.DEFAULT\" />\n" +

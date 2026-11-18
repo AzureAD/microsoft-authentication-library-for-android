@@ -33,6 +33,10 @@ buildSystem {
     desugar = false
 }
 
+tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach {
+    reports.maybeCreate("xml").required.set(true)
+}
+
 def enableCodeCoverage = false
 
 if (project.hasProperty("codeCoverageEnabled")) {
@@ -485,7 +489,8 @@ afterEvaluate {
     }
 }
 
-tasks.whenTaskAdded { task ->
+// Eager task hooks realize SpotBugs before AGP has registered its javac tasks.
+tasks.configureEach { task ->
     if (task.name.contains('assemble')) {
         task.dependsOn 'pmd'
     }

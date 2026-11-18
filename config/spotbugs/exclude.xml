@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- Preserve existing shared-reference API behavior during the toolchain upgrade.
+         These are scoped compatibility baselines, not assertions that mutable ownership is safe.
+         Revisit ownership contracts before introducing defensive copies or immutable views. -->
+    <Match>
+        <Class name="com.microsoft.identity.client.Account" />
+        <Method name="getClaims" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.AcquireTokenParameters" />
+        <Method name="~^(getExtraQueryStringParameters|getExtraScopesToConsent)$" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.AcquireTokenParameters$Builder" />
+        <Method name="~^(withAuthorizationQueryStringParameters|withOtherScopesToAuthorize)$" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.PublicClientApplication" />
+        <Method name="getConfiguration" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.PublicClientApplicationConfiguration" />
+        <Method name="~^(getAuthorities|getBrowserSafeList|getHttpConfiguration|getOAuth2TokenCache|getTelemetryConfiguration)$" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.PublicClientApplicationConfiguration" />
+        <Method name="setOAuth2TokenCache" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.SignInParameters" />
+        <Method name="getScopes" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.SignInParameters" />
+        <Method name="setScopes" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.TokenParameters" />
+        <Method name="~^(getAccountRecord|getScopes)$" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.TokenParameters" />
+        <Method name="setAccountRecord" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.TokenParameters$Builder" />
+        <Method name="withScopes" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.claims.ClaimsRequest" />
+        <Method name="~^(getAccessTokenClaimsRequested|getIdTokenClaimsRequested|getUserInfoClaimsRequested)$" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.claims.RequestedClaim" />
+        <Method name="getAdditionalInformation" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.claims.RequestedClaim" />
+        <Method name="setAdditionalInformation" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation" />
+        <Method name="getValues" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation" />
+        <Method name="setValues" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.exception.MsalDeclinedScopeException" />
+        <Method name="~^(getDeclinedScopes|getGrantedScopes|getSilentParametersForGrantedScopes)$" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.exception.MsalDeclinedScopeException" />
+        <Method name="&lt;init&gt;" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.internal.AsyncResult" />
+        <Method name="getException" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.internal.AsyncResult" />
+        <Method name="&lt;init&gt;" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <!-- Returning the shared Logger is the purpose of getInstance(). -->
+    <Match>
+        <Class name="com.microsoft.identity.client.Logger" />
+        <Method name="getInstance" />
+        <Bug pattern="MS_EXPOSE_REP" />
+    </Match>
+
+    <!-- Defer local snapshots of nullable claims; do not suppress nullability checks elsewhere. -->
+    <Match>
+        <Class name="com.microsoft.identity.client.Account" />
+        <Method name="~^(getAuthority|getUsername)$" />
+        <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.TenantProfile" />
+        <Method name="getTenantId" />
+        <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE" />
+    </Match>
+    <Match>
+        <!-- Anonymous usernameMatcher implementation in PublicClientApplication. -->
+        <Class name="com.microsoft.identity.client.PublicClientApplication$23" />
+        <Method name="matches" />
+        <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.internal.CommandParametersAdapter" />
+        <Method name="getUsername" />
+        <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE" />
+    </Match>
+
+    <!-- Lombok emits defensive null checks in generated equals/hashCode for non-null fields. -->
+    <Match>
+        <Class name="com.microsoft.identity.client.SignInParameters" />
+        <Method name="~^(equals|hashCode)$" />
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE" />
+    </Match>
+
+    <!-- Preserve redirect-validation and malformed-account-cache recovery behavior. -->
+    <Match>
+        <Class name="com.microsoft.identity.client.PublicClientApplicationConfiguration" />
+        <Method name="hasSchemeAndAuthority" />
+        <Bug pattern="DCN_NULLPOINTER_EXCEPTION" />
+    </Match>
+    <Match>
+        <!-- GetCurrentAccountCommand callback in getCurrentAccountAsyncInternal. -->
+        <Class name="com.microsoft.identity.client.SingleAccountPublicClientApplication$1$1" />
+        <Method name="onTaskCompleted" />
+        <Bug pattern="DCN_NULLPOINTER_EXCEPTION" />
+    </Match>
+
+    <!-- Defer Logger constructor visibility and synchronization changes to a compatibility review. -->
+    <Match>
+        <Class name="com.microsoft.identity.client.Logger" />
+        <Method name="&lt;init&gt;" />
+        <Bug pattern="SING_SINGLETON_HAS_NONPRIVATE_CONSTRUCTOR" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.Logger" />
+        <Method name="~^(removeExternalLogger|setExternalLogger)$" />
+        <Bug pattern="USO_UNSAFE_METHOD_SYNCHRONIZATION" />
+    </Match>
+
+    <!-- Defer finalizer hardening; preserve constructor validation and subclassing compatibility. -->
+    <Match>
+        <Class name="com.microsoft.identity.client.MsalChromeCustomTabManager" />
+        <Method name="&lt;init&gt;" />
+        <Bug pattern="CT_CONSTRUCTOR_THROW" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.PublicClientApplication" />
+        <Method name="&lt;init&gt;" />
+        <Bug pattern="CT_CONSTRUCTOR_THROW" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.SignInParameters" />
+        <Method name="&lt;init&gt;" />
+        <Bug pattern="CT_CONSTRUCTOR_THROW" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.identity.client.exception.MsalUnsupportedBrokerException" />
+        <Method name="&lt;init&gt;" />
+        <Bug pattern="CT_CONSTRUCTOR_THROW" />
+    </Match>
+
+    <!-- Retain the existing Lombok null-check suppression for older analyzer compatibility. -->
+    <Match>
+        <Class name="com.microsoft.identity.client.exception.MsalUnsupportedBrokerException" />
+        <Method name="&lt;init&gt;" />
+        <Bug pattern="US_USELESS_SUPPRESSION_ON_METHOD" />
+    </Match>
+</FindBugsFilter>
