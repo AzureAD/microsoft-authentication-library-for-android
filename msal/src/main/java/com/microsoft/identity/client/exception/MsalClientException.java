@@ -55,13 +55,16 @@ import com.microsoft.identity.common.java.exception.ErrorStrings;
 public final class MsalClientException extends MsalException {
 
     /**
-     * The ID token's signed {@code xms_agvt} target receipt is missing, malformed, duplicated or
+     * The ID token's outcome-prefixed {@code xms_agvt} receipt is missing, malformed, duplicated or
      * does not exactly match explicit {@code target-*} properties requested for
      * {@code id_token.xms_agvs}. Target identity comparison ignores case, order and outcome sign;
      * a sign is still required on every receipt entry. This check does not authorize API access
      * or interpret age-assurance status, and access-token-only targets do not activate it.
      * A matching negative entry is a valid receipt, not adult authorization. Missing or invalid
      * receipts are rejected even when the returned age-assurance status is unknown (TU0).
+     * A mismatched cached ID token fails closed; this error does not trigger automatic token
+     * reacquisition or bypass validation. Recovery and broker compatibility require SDK-owner
+     * approval before rollout. This check does not partition the ID-token or refresh-token cache.
      */
     public static final String AGE_ASSURANCE_TARGET_MISMATCH =
             ClientException.AGE_ASSURANCE_TARGET_MISMATCH;
