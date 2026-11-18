@@ -21,7 +21,7 @@ import java.util.UUID
  * interaction-required failure when silent acquisition cannot meet the requirements.
  * @property correlationId Operation correlation ID to pass through token acquisition.
  */
-class TokenProviderParameters(
+class TokenProviderParameters @JvmOverloads constructor(
     val authorityUrl: String,
     scopes: List<String>,
     val claimsRequestJson: String? = null,

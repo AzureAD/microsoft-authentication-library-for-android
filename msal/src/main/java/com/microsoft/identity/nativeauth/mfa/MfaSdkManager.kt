@@ -163,6 +163,47 @@ class MfaSdkManager private constructor() {
     suspend fun deleteAuthMethod(registrationId: String, tokenProvider: TokenProvider): Unit =
         notImplemented()
 
+    /** Java variant of [updatePushRegistration]; completion follows [MfaCallback]'s background contract. */
+    fun updatePushRegistration(deviceToken: String, callback: MfaCallback<Void?>): MfaOperation =
+        launchMfaOperation(callback) { updatePushRegistration(deviceToken); null }
+
+    /** Java variant of [registerAuthMethod]; delegates to the same suspend operation. */
+    fun registerAuthMethod(
+        registrationParameters: MfaRegistrationParameters,
+        callback: MfaCallback<MfaRegistrationResult>
+    ): MfaOperation = launchMfaOperation(callback) { registerAuthMethod(registrationParameters) }
+
+    /** Java variant of [registeredAuthMethods]; delegates to the same suspend operation. */
+    fun registeredAuthMethods(callback: MfaCallback<List<MfaRegistrationResult>>): MfaOperation =
+        launchMfaOperation(callback) { registeredAuthMethods() }
+
+    /** Java variant of [handlePushNotification]; delegates to the same suspend operation. */
+    fun handlePushNotification(
+        payload: Map<String, String>,
+        callback: MfaCallback<List<MfaAuthSession>>
+    ): MfaOperation = launchMfaOperation(callback) { handlePushNotification(payload) }
+
+    /** Java variant of [pullPendingNotifications]; delegates to the same suspend operation. */
+    fun pullPendingNotifications(callback: MfaCallback<List<MfaAuthSession>>): MfaOperation =
+        launchMfaOperation(callback) { pullPendingNotifications() }
+
+    /** Java variant of [respond]; delegates to the same suspend operation. */
+    fun respond(
+        session: MfaAuthSession,
+        action: MfaAction,
+        callback: MfaCallback<MfaDecision>
+    ): MfaOperation = launchMfaOperation(callback) { respond(session, action) }
+
+    /**
+     * Java variant of [deleteAuthMethod]; delegates to the same suspend operation.
+     * Java hosts construct [tokenProvider] with [TokenProvider.from], without implementing Continuation.
+     */
+    fun deleteAuthMethod(
+        registrationId: String,
+        tokenProvider: TokenProvider,
+        callback: MfaCallback<Void?>
+    ): MfaOperation = launchMfaOperation(callback) { deleteAuthMethod(registrationId, tokenProvider); null }
+
     private suspend fun notImplemented(): Nothing {
         coroutineContext.ensureActive()
         throw MfaSdkException.create(

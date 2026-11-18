@@ -25,4 +25,15 @@ interface TokenProvider {
      * Never log the request or result. Throw instead of returning a partial or fabricated result.
      */
     suspend fun getAccessToken(parameters: TokenProviderParameters): TokenProviderResult
+
+    /** Factories for host implementations that do not use Kotlin coroutines. */
+    companion object {
+        /**
+         * Adapts a Java callback provider without acquiring a token until requested.
+         * Cancellation is forwarded even if it occurs before the provider returns its handle.
+         * Provider failures retain identity; late or duplicate completions are ignored.
+         */
+        @JvmStatic
+        fun from(provider: CallbackTokenProvider): TokenProvider = adaptTokenProvider(provider)
+    }
 }
