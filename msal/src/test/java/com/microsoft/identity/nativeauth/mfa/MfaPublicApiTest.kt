@@ -1,9 +1,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-package com.microsoft.identity.mfa
+package com.microsoft.identity.nativeauth.mfa
 
 import android.content.Context
+import com.microsoft.identity.client.tokenprovider.TokenProvider
 import java.util.UUID
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.CoroutineContext
@@ -25,10 +26,11 @@ class MfaPublicApiTest {
     fun `review operations fail without initializing Android or changing status`() = runBlocking {
         val context = mock(Context::class.java)
         val manager = MfaSdkManager.create(context)
+        val tokenProvider = mock(TokenProvider::class.java)
         val initialStatus = manager.status.value
         val correlationIds = mutableSetOf<String>()
 
-        for ((name, operation) in operations(manager)) {
+        for ((name, operation) in operations(manager, tokenProvider)) {
             val failure = runCatching { operation() }.exceptionOrNull()
             assertTrue("$name must fail with an MFA error", failure is MfaSdkException)
             val error = failure as MfaSdkException
@@ -41,7 +43,7 @@ class MfaPublicApiTest {
             assertEquals("$name must leave status untouched", initialStatus, manager.status.value)
         }
 
-        verifyNoInteractions(context)
+        verifyNoInteractions(context, tokenProvider)
     }
 
     @Test
@@ -66,7 +68,7 @@ class MfaPublicApiTest {
     @Test
     fun `cancelled operations preserve cancellation instead of reporting an SDK error`() {
         val manager = MfaSdkManager.create(mock(Context::class.java))
-        for ((name, operation) in operations(manager)) {
+        for ((name, operation) in operations(manager, mock(TokenProvider::class.java))) {
             val cancellation = CancellationException("Host cancellation")
             val job = Job().apply { cancel(cancellation) }
             var failure: Throwable? = null
@@ -90,7 +92,7 @@ class MfaPublicApiTest {
         val models = listOf(
             MfaRegistrationParameters.QrCode(sensitive),
             MfaRegistrationParameters.Activation(sensitive, sensitive),
-            MfaRegistrationResult(sensitive, sensitive),
+            MfaRegistrationResult(sensitive, sensitive, sensitive),
             MfaAuthSession.create(sensitive, sensitive, sensitive, sensitive, true),
             MfaAction.Approve(sensitive)
         )
@@ -100,7 +102,10 @@ class MfaPublicApiTest {
         }
     }
 
-    private fun operations(manager: MfaSdkManager): List<Pair<String, suspend () -> Any?>> {
+    private fun operations(
+        manager: MfaSdkManager,
+        tokenProvider: TokenProvider
+    ): List<Pair<String, suspend () -> Any?>> {
         val session = MfaAuthSession.create(
             guid = "session-id",
             registrationId = "registration-id",
@@ -123,7 +128,8 @@ class MfaPublicApiTest {
             "pullPendingNotifications" to { manager.pullPendingNotifications() },
             "respond number matching" to { manager.respond(session, MfaAction.Approve("42")) },
             "respond ordinary approval" to { manager.respond(session, MfaAction.Approve(null)) },
-            "respond denial" to { manager.respond(session, MfaAction.Deny) }
+            "respond denial" to { manager.respond(session, MfaAction.Deny) },
+            "deleteAuthMethod" to { manager.deleteAuthMethod("registration-id", tokenProvider) }
         )
     }
 }

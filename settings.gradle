@@ -17,7 +17,7 @@ pluginManagement {
 }
 include ':msal', ':common', ':keyvault', ':labapi', ':testutils', ':pop-benchmarker',
         ':package-inspector', ':msalautomationapp', ':uiautomationutilities', ':common4j',
-        ':LabApiUtilities', ':mfa'
+        ':LabApiUtilities'
 
 project(':common').projectDir = new File('common/common')
 project(':keyvault').projectDir = new File('common/keyvault')

@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-package com.microsoft.identity.mfa
+package com.microsoft.identity.nativeauth.mfa
 
 /**
  * SDK-created MFA failure shared by all manager operations, independent of Native Auth errors.
@@ -11,7 +11,7 @@ package com.microsoft.identity.mfa
  * rollback. Coroutine cancellation propagates separately and unchanged.
  *
  * Provider-owned errors, where applicable, propagate unchanged without SDK wrapping, classification
- * or logging. This error surface does not introduce an Android token-provider or deletion API.
+ * or logging. The host handles those errors around the consuming call, such as deleteAuthMethod.
  * SDK errors never embed raw underlying errors, responses, claims, notification payloads or credentials.
  *
  * @property errorMessage Optional bounded, sanitized SDK-controlled diagnostic, also exposed as

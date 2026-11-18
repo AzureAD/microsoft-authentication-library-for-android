@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-package com.microsoft.identity.mfa
+package com.microsoft.identity.nativeauth.mfa
 
 /** Enrollment progress, not an authentication decision or evidence of completed sign-in. */
 enum class MfaEnrollmentStage {

@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-package com.microsoft.identity.mfa
+package com.microsoft.identity.nativeauth.mfa
 
 /** Explicit user decision to submit through [MfaSdkManager.respond], not an acknowledged outcome. */
 sealed class MfaAction {

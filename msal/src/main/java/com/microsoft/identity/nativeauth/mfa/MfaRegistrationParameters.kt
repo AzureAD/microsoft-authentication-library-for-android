@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-package com.microsoft.identity.mfa
+package com.microsoft.identity.nativeauth.mfa
 
 /** Activation input for enrollment. Never log the input or its individual properties. */
 sealed class MfaRegistrationParameters {
