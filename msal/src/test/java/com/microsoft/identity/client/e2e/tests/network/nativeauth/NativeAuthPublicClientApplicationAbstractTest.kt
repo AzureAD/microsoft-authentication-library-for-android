@@ -42,6 +42,7 @@ import com.microsoft.identity.labapi.utilities.authentication.LabApiAuthenticati
 import com.microsoft.identity.labapi.utilities.client.LabClient
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.NativeAuthRequestInterceptor
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationParameters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -139,7 +140,12 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
             ?: throw IllegalStateException("Config not $secretValue")
     }
 
-    fun setupPCA(config: NativeAuthTestConfig.Config, challengeTypes: List<String>, capabilities: List<String>): INativeAuthPublicClientApplication {
+    fun setupPCA(
+        config: NativeAuthTestConfig.Config,
+        challengeTypes: List<String>,
+        capabilities: List<String>,
+        requestInterceptor: NativeAuthRequestInterceptor? = null
+    ): INativeAuthPublicClientApplication {
         return try {
             val parameters = NativeAuthPublicClientApplicationParameters(
                 config.clientId,
@@ -147,6 +153,7 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
                 challengeTypes
             )
             parameters.capabilities = capabilities
+            parameters.requestInterceptor = requestInterceptor
 
             PublicClientApplication.createNativeAuthPublicClientApplication(
                 context,
