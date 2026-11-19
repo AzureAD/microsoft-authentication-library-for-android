@@ -383,7 +383,7 @@ public class CommandParametersAdapter {
                 .capabilities(configuration.getCapabilities())
                 .userAttributes(userAttributes)
                 // Start of the flow, so there is no correlation ID to use from a previous API response.
-                // Set it to a default value.
+                // If default value is empty, generate a new UUID as correlationId.
                 .correlationId(DiagnosticContext.INSTANCE.getThreadCorrelationId())
                 .build();
     }
@@ -597,7 +597,7 @@ public class CommandParametersAdapter {
                 .claimsRequestJson(claimsRequestJson)
                 .scopes(scopes)
                 // Start of the flow, so there is no correlation ID to use from a previous API response.
-                // Set it to a default value.
+                // If default value is empty, generate a new UUID as correlationId.
                 .correlationId(DiagnosticContext.INSTANCE.getThreadCorrelationId())
                 .build();
 
@@ -942,7 +942,7 @@ public class CommandParametersAdapter {
                         .capabilities(configuration.getCapabilities())
                         .clientId(configuration.getClientId())
                         // Start of the flow, so there is no correlation ID to use from a previous API response.
-                        // Set it to a default value.
+                        // If default value is empty, generate a new UUID as correlationId.
                         .correlationId(DiagnosticContext.INSTANCE.getThreadCorrelationId())
                         .build();
 
