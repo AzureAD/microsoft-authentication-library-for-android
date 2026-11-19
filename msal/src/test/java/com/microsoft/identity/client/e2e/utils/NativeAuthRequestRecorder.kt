@@ -32,6 +32,7 @@ enum class NativeAuthEndpointCategory {
     CHALLENGE,
     VERIFY,
     RESEND,
+    ATTRIBUTES,
     TOKEN,
     OTHER
 }
@@ -53,19 +54,22 @@ class NativeAuthRequestRecorder : NativeAuthRequestInterceptor {
 
     private fun categorize(path: String): NativeAuthEndpointCategory {
         val normalized = path.lowercase()
+        val segments = normalized.split('/')
         return when {
             normalized.endsWith("/oauth2/v2.0/token") ->
                 NativeAuthEndpointCategory.TOKEN
-            normalized.contains("authorize") && normalized.contains("challenge") ->
+            "authorize-challenge" in segments || ("authorize" in segments && "challenge" in segments) ->
                 NativeAuthEndpointCategory.AUTHORIZE_CHALLENGE
-            normalized.contains("sign-up") || normalized.contains("signup") ->
-                NativeAuthEndpointCategory.SIGN_UP
-            normalized.contains("resend") ->
+            "resend" in segments ->
                 NativeAuthEndpointCategory.RESEND
-            normalized.contains("verify") ->
+            "verify" in segments ->
                 NativeAuthEndpointCategory.VERIFY
-            normalized.contains("challenge") ->
+            "challenge" in segments ->
                 NativeAuthEndpointCategory.CHALLENGE
+            "attributes" in segments || "submitattributes" in segments ->
+                NativeAuthEndpointCategory.ATTRIBUTES
+            "sign-up" in segments || "signup" in segments ->
+                NativeAuthEndpointCategory.SIGN_UP
             else ->
                 NativeAuthEndpointCategory.OTHER
         }

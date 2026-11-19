@@ -31,8 +31,10 @@ import com.microsoft.identity.nativeauth.UserAttributes
 import com.microsoft.identity.nativeauth.parameters.NativeAuthGetAccessTokenParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParametersV2
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
+import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
+import kotlinx.coroutines.delay
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -77,11 +79,9 @@ abstract class SignUpV2EmailAbstractTest : NativeAuthPublicClientApplicationAbst
 
     protected fun createApplication(
         configType: ConfigType,
-        expectedClientId: String,
         recorder: NativeAuthRequestRecorder? = null
     ): INativeAuthPublicClientApplication {
         val config = getConfig(configType)
-        assertEquals(expectedClientId, config.clientId)
         return setupPCA(
             config,
             listOf("password", "oob"),
@@ -112,6 +112,24 @@ abstract class SignUpV2EmailAbstractTest : NativeAuthPublicClientApplicationAbst
     ): NativeAuthResultV2 {
         assertResult<NativeAuthResultV2.PasswordRequired>(result)
         return (result as NativeAuthResultV2.PasswordRequired).nextState.submitPassword(password)
+    }
+
+    protected suspend fun startExistingAccountSignIn(
+        application: INativeAuthPublicClientApplication,
+        email: String
+    ): NativeAuthResultV2 {
+        // A newly created account may not be visible to the next request immediately.
+        for (attempt in 0..3) {
+            if (attempt > 0) {
+                delay(2_000L shl (attempt - 1))
+            }
+            tempEmailApi.markCheckpoint(email)
+            val result = application.signUpV2(NativeAuthSignUpParametersV2(email))
+            if (result is NativeAuthErrorV2 || result.scenario != NativeAuthFlowScenarioV2.SIGN_UP) {
+                return result
+            }
+        }
+        throw AssertionError("Account was not recognized after 4 sign-up attempts")
     }
 
     protected suspend fun signInExistingAccount(

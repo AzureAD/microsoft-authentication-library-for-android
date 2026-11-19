@@ -26,7 +26,6 @@ import com.microsoft.identity.client.e2e.utils.NativeAuthRequestRecorder
 import com.microsoft.identity.client.e2e.utils.NativeAuthEndpointCategory
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
-import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParametersV2
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
@@ -44,16 +43,10 @@ class SignUpV2EmailOTPTest : SignUpV2EmailAbstractTest() {
 
     private lateinit var application: INativeAuthPublicClientApplication
 
-    companion object {
-        private const val EMAIL_OTP_CLIENT_ID = "eb5a6da5-79fc-4d81-8d45-0ee1e8d4bd16"
-        private const val EMAIL_PASSWORD_CLIENT_ID = "456cf138-cb77-48e6-8a82-74f869d77e74"
-        private const val OTP_ATTRIBUTES_CLIENT_ID = "6a092e9d-3f70-4ea1-bf38-8a642d004271"
-    }
-
     private fun createApplication(
         recorder: NativeAuthRequestRecorder? = null
     ): INativeAuthPublicClientApplication =
-        createApplication(ConfigType.SIGN_UP_OTP, EMAIL_OTP_CLIENT_ID, recorder)
+        createApplication(ConfigType.SIGN_UP_OTP, recorder)
 
     @Test
     fun hero1a_signUpEmailOtpAndSignInAfterSignUp() {
@@ -248,10 +241,7 @@ class SignUpV2EmailOTPTest : SignUpV2EmailAbstractTest() {
 
     @Test
     fun otpAttributesSuppliedUpfront() {
-        val application = createApplication(
-            ConfigType.SIGN_UP_OTP_ATTRIBUTES,
-            OTP_ATTRIBUTES_CLIENT_ID
-        )
+        val application = createApplication(ConfigType.SIGN_UP_OTP_ATTRIBUTES)
 
         retryOperation(maxRetries = 1) {
             runBlocking {
@@ -275,10 +265,7 @@ class SignUpV2EmailOTPTest : SignUpV2EmailAbstractTest() {
 
     @Test
     fun otpAttributesSubmittedAfterVerification() {
-        val application = createApplication(
-            ConfigType.SIGN_UP_OTP_ATTRIBUTES,
-            OTP_ATTRIBUTES_CLIENT_ID
-        )
+        val application = createApplication(ConfigType.SIGN_UP_OTP_ATTRIBUTES)
 
         retryOperation(maxRetries = 1) {
             runBlocking {
@@ -308,8 +295,7 @@ class SignUpV2EmailOTPTest : SignUpV2EmailAbstractTest() {
         retryOperation(maxRetries = 1) {
             runBlocking {
                 val email = createAccount(application)
-                tempEmailApi.markCheckpoint(email)
-                val result = application.signUpV2(NativeAuthSignUpParametersV2(email))
+                val result = startExistingAccountSignIn(application, email)
                 assertResult<GetAccountResult.NoAccountFound>(application.getCurrentAccount())
                 signInExistingAccount(result, email)
             }
@@ -319,18 +305,14 @@ class SignUpV2EmailOTPTest : SignUpV2EmailAbstractTest() {
     @Test
     fun existingPasswordAccountContinuesToSignIn() {
         application = createApplication()
-        val passwordApplication = createApplication(
-            ConfigType.SIGN_UP_PASSWORD,
-            EMAIL_PASSWORD_CLIENT_ID
-        )
+        val passwordApplication = createApplication(ConfigType.SIGN_UP_PASSWORD)
 
         retryOperation(maxRetries = 1) {
             runBlocking {
                 val password = newValidPassword()
                 try {
                     val email = createAccount(passwordApplication, password)
-                    tempEmailApi.markCheckpoint(email)
-                    val result = application.signUpV2(NativeAuthSignUpParametersV2(email))
+                    val result = startExistingAccountSignIn(application, email)
                     assertResult<GetAccountResult.NoAccountFound>(application.getCurrentAccount())
                     signInExistingAccount(result, email, password)
                 } finally {

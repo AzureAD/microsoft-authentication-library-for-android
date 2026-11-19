@@ -26,13 +26,11 @@ import com.microsoft.identity.client.e2e.utils.NativeAuthEndpointCategory
 import com.microsoft.identity.client.e2e.utils.NativeAuthRequestRecorder
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
-import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParametersV2
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -44,15 +42,10 @@ class SignUpV2EmailPasswordTest : SignUpV2EmailAbstractTest() {
 
     private lateinit var application: INativeAuthPublicClientApplication
 
-    companion object {
-        private const val EMAIL_PASSWORD_CLIENT_ID = "456cf138-cb77-48e6-8a82-74f869d77e74"
-        private const val PASSWORD_ATTRIBUTES_CLIENT_ID = "dad09d10-2f54-4f88-88ff-768b7485983d"
-    }
-
     private fun createApplication(
         recorder: NativeAuthRequestRecorder? = null
     ): INativeAuthPublicClientApplication =
-        createApplication(ConfigType.SIGN_UP_PASSWORD, EMAIL_PASSWORD_CLIENT_ID, recorder)
+        createApplication(ConfigType.SIGN_UP_PASSWORD, recorder)
 
     @Test
     fun hero2a_passwordRequiredAndSignInAfterSignUp() {
@@ -103,11 +96,9 @@ class SignUpV2EmailPasswordTest : SignUpV2EmailAbstractTest() {
                     assertResult<NativeAuthResultV2.SignInAfterSignUpRequired>(submitPasswordResult)
 
                     val followUpCalls = recorder.callsAfter(beforeSubmitSnapshotSize)
-                    assertFalse(followUpCalls.isEmpty())
-                    assertFalse(followUpCalls.contains(NativeAuthEndpointCategory.AUTHORIZE_CHALLENGE))
                     assertEquals(
-                        0,
-                        followUpCalls.count { it == NativeAuthEndpointCategory.TOKEN }
+                        listOf(NativeAuthEndpointCategory.ATTRIBUTES),
+                        followUpCalls
                     )
 
                     val getAccountResult = application.getCurrentAccount()
@@ -186,10 +177,7 @@ class SignUpV2EmailPasswordTest : SignUpV2EmailAbstractTest() {
 
     @Test
     fun passwordAttributesSuppliedUpfront() {
-        val application = createApplication(
-            ConfigType.SIGN_UP_PASSWORD_ATTRIBUTES,
-            PASSWORD_ATTRIBUTES_CLIENT_ID
-        )
+        val application = createApplication(ConfigType.SIGN_UP_PASSWORD_ATTRIBUTES)
 
         retryOperation(maxRetries = 1) {
             runBlocking {
@@ -219,10 +207,7 @@ class SignUpV2EmailPasswordTest : SignUpV2EmailAbstractTest() {
 
     @Test
     fun passwordAttributesSubmittedAfterVerification() {
-        val application = createApplication(
-            ConfigType.SIGN_UP_PASSWORD_ATTRIBUTES,
-            PASSWORD_ATTRIBUTES_CLIENT_ID
-        )
+        val application = createApplication(ConfigType.SIGN_UP_PASSWORD_ATTRIBUTES)
 
         retryOperation(maxRetries = 1) {
             runBlocking {
@@ -299,9 +284,7 @@ class SignUpV2EmailPasswordTest : SignUpV2EmailAbstractTest() {
                     val completed = submitSignUpPassword(verified, password)
                     assertResult<NativeAuthResultV2.SignInAfterSignUpRequired>(completed)
 
-                    tempEmailApi.markCheckpoint(email)
-                    val duplicateParameters = NativeAuthSignUpParametersV2(email)
-                    val duplicate = application.signUpV2(duplicateParameters)
+                    val duplicate = startExistingAccountSignIn(application, email)
                     assertResult<GetAccountResult.NoAccountFound>(application.getCurrentAccount())
                     signInExistingAccount(duplicate, email, password)
                 } finally {

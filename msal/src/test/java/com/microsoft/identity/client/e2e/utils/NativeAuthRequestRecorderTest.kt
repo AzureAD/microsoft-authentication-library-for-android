@@ -60,6 +60,7 @@ class NativeAuthRequestRecorderTest {
                 "CHALLENGE",
                 "VERIFY",
                 "RESEND",
+                "ATTRIBUTES",
                 "TOKEN",
                 "OTHER"
             ),
@@ -96,5 +97,54 @@ class NativeAuthRequestRecorderTest {
         val submitCalls = recorder.callsAfter(snapshotSize)
         assertEquals(listOf(NativeAuthEndpointCategory.VERIFY), submitCalls)
         assertEquals(0, submitCalls.count { it == NativeAuthEndpointCategory.TOKEN })
+    }
+
+    @Test
+    fun specificActionsTakePriorityOverSignUpPrefixes() {
+        for (prefix in listOf("sign-up", "signup")) {
+            for ((action, expected) in mapOf(
+                "resend" to "RESEND",
+                "verify" to "VERIFY",
+                "challenge" to "CHALLENGE",
+                "attributes" to "ATTRIBUTES",
+                "submitAttributes" to "ATTRIBUTES"
+            )) {
+                val recorder = NativeAuthRequestRecorder()
+                recorder.additionalHeaders(URL("https://tenant/nativeauth/v2/$prefix/$action"))
+                assertEquals("$prefix/$action", expected, recorder.snapshot().single().name)
+            }
+        }
+    }
+
+    @Test
+    fun actionNamesMustMatchWholePathSegments() {
+        val recorder = NativeAuthRequestRecorder()
+        recorder.additionalHeaders(URL("https://tenant/signup/verify-status"))
+        recorder.additionalHeaders(URL("https://tenant/not-a-challenge"))
+        recorder.additionalHeaders(URL("https://tenant/signup/challenge?verify=resend"))
+
+        assertEquals(
+            listOf(
+                NativeAuthEndpointCategory.SIGN_UP,
+                NativeAuthEndpointCategory.OTHER,
+                NativeAuthEndpointCategory.CHALLENGE
+            ),
+            recorder.snapshot()
+        )
+    }
+
+    @Test
+    fun recognizesHyphenatedAuthorizeChallengeBeforeToken() {
+        val recorder = NativeAuthRequestRecorder()
+        recorder.additionalHeaders(URL("https://tenant/oauth2/v2.0/authorize-challenge"))
+        recorder.additionalHeaders(URL("https://tenant/oauth2/v2.0/token"))
+
+        assertEquals(
+            listOf(
+                NativeAuthEndpointCategory.AUTHORIZE_CHALLENGE,
+                NativeAuthEndpointCategory.TOKEN
+            ),
+            recorder.snapshot()
+        )
     }
 }
