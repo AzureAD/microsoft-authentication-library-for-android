@@ -25,6 +25,8 @@ package com.microsoft.identity.client.internal;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaim;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import org.junit.Test;
 
@@ -36,6 +38,24 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 public class CommandParametersAdapterTest {
+
+    @Test
+    public void testClientCapabilitiesMergePreservesAdditionalProperties() {
+        final String json = "{\"id_token\":{\"custom_claim\":{\"essential\":true,"
+                + "\"additionalProperties\":[\"property-one\"]}},"
+                + "\"access_token\":{\"custom_claim\":{\"essential\":false,\"value\":\"one\","
+                + "\"values\":[\"two\"],\"additionalProperties\":[\"property-two\"]}}}";
+        final ClaimsRequest result = CommandParametersAdapter.addClientCapabilitiesToClaimsRequest(
+                ClaimsRequest.getClaimsRequestFromJsonString(json), "cp1");
+        final JsonObject serialized = JsonParser.parseString(
+                ClaimsRequest.getJsonStringFromClaimsRequest(result)).getAsJsonObject();
+        final JsonObject original = JsonParser.parseString(json).getAsJsonObject();
+        assertEquals(original.get("id_token"), serialized.get("id_token"));
+        assertEquals(original.getAsJsonObject("access_token").get("custom_claim"),
+                serialized.getAsJsonObject("access_token").get("custom_claim"));
+        assertTrue(serialized.getAsJsonObject("access_token")
+                .has(CommandParametersAdapter.CLIENT_CAPABILITIES_CLAIM));
+    }
 
     @Test
     public void testAddClientCapabilitiesWithNullRequestAndNullCapabilitiesReturnsEmptyRequest() {
