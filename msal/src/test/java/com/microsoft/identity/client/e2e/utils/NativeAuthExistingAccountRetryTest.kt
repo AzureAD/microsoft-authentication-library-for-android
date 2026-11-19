@@ -38,6 +38,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Assert.fail
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -112,6 +113,7 @@ class NativeAuthExistingAccountRetryTest {
     private fun result(scenario: NativeAuthFlowScenarioV2): NativeAuthResultV2 =
         mockk { every { this@mockk.scenario } returns scenario }
 
+    @Ignore("Helper fixture, not a standalone test")
     private class Harness : SignUpV2EmailAbstractTest() {
         suspend fun start(application: INativeAuthPublicClientApplication, email: String) =
             startExistingAccountSignIn(application, email)
