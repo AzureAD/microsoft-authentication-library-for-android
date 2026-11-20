@@ -225,6 +225,14 @@ android {
 
     testOptions {
         unitTests.all {
+            useJUnit {
+                def scheduledCategory = 'com.microsoft.identity.client.e2e.categories.ScheduledNativeAuthE2E'
+                if (project.findProperty('scheduledNativeAuthE2e')?.toString()?.toBoolean()) {
+                    includeCategories scheduledCategory
+                } else {
+                    excludeCategories scheduledCategory
+                }
+            }
             if (!project.hasProperty('labtest')) {
                 // Disabling network based e2e tests if labtest not specified in build
                 // to turn on pass labtest as build param

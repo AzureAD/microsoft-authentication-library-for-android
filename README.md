@@ -429,6 +429,35 @@ We enthusiastically welcome contributions and feedback. You should [clone the re
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
+### JVM test selection
+
+Ordinary MSAL JVM test runs exclude network E2E tests unless `-Plabtest` is supplied.
+Even with `-Plabtest`, the following Native Auth v1 suites are reserved for dedicated
+weekly/monthly validation: `SSPRTest`, `SignInEmailOTPTest`, `SignInEmailPasswordTest`,
+`SignUpEmailOTPTest`, `SignUpEmailOTPAttributesTest`, `SignUpEmailPasswordTest`, and
+`SignUpEmailPasswordAttributesTest`.
+
+These suites have the JUnit4 category
+`com.microsoft.identity.client.e2e.categories.ScheduledNativeAuthE2E`. To run
+**only** this category, use both properties:
+
+```shell
+./gradlew :msal:testLocalDebugUnitTest -Plabtest -PscheduledNativeAuthE2e=true
+```
+
+An absent or false `scheduledNativeAuthE2e` excludes the category. A true value
+includes only the category; it does not bypass the independent `labtest` network
+gate or JUnit `@Ignore`. Existing eligibility for other AAD/B2C/guest/MRRT network
+tests, `GetTokenTests`, other untagged Native Auth tests, ordinary unit tests, and
+mocked E2E tests is unchanged in ordinary mode.
+
+**Coordinated rollout:** Dedicated scheduled jobs must retain `-Plabtest` and
+replace their seven `--tests` selectors with `-PscheduledNativeAuthE2e=true`.
+Deploy the category support and pipeline update together: old selectors cannot
+override the new default category exclusion, and old MSAL refs do not implement
+the new property. The companion pipeline must reject unsupported refs rather
+than silently running all network tests.
+
 ## Android Studio Build Requirement
 Please note that this project uses [Lombok](https://projectlombok.org/) internally and while using Android Studio you will need to install [Lombok Plugin](https://plugins.jetbrains.com/plugin/6317-lombok) to get the project to build successfully within Android Studio.
 
