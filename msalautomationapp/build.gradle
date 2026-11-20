@@ -1,5 +1,6 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
 
 def msalVersion = "5.10.0"
 
@@ -11,6 +12,14 @@ if (project.hasProperty("distMsalVersion")) {
 def copyOfLocalFlights = ""
 if (project.hasProperty("localFlights")) {
     copyOfLocalFlights = localFlights
+}
+
+// Built-in Kotlin (AGP 9): replaces the android { kotlinOptions { } } block that the
+// removed 'kotlin-android' plugin previously provided.
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_1_8
+    }
 }
 
 android {
@@ -26,9 +35,8 @@ android {
     }
     buildFeatures {
         buildConfig = true
-    }
-    kotlinOptions {
-        jvmTarget = "1.8"
+        // AGP 9 defaults resValues to off; the local/dist flavors define resValue(...) so opt in.
+        resValues = true
     }
     final String BROKER_HOST = "BrokerHost"
     final String BROKER_MICROSOFT_AUTHENTICATOR = "BrokerMicrosoftAuthenticator"

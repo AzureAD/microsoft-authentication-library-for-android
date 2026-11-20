@@ -26,10 +26,10 @@ Run commands from this repository's root, not from `msal/`, `common/`, or the
 parent android-complete checkout. The commands below use PowerShell on Windows;
 on macOS/Linux use `./gradlew` with equivalent JDK, SDK, and feed configuration.
 
-1. Use **JDK 17**, as configured in the
+1. Use **JDK 21**, as configured for upgraded-branch validation in the
    [MSAL PR pipeline](azure-pipelines/pull-request-validation/pr-msal.yml).
    Set `JAVA_HOME` for the current shell. Use the checked-in wrapper
-   (Gradle 8.11.1), not a globally installed Gradle; check `.\gradlew.bat --version`.
+   (Gradle 9.3.1 / AGP 9.1.1), not a globally installed Gradle; check `.\gradlew.bat --version`.
    Java 8 source/bytecode targets are not the required Gradle runtime.
 2. Initialize the pinned Common submodule in a fresh checkout:
 
@@ -40,9 +40,11 @@ on macOS/Linux use `./gradlew` with equivalent JDK, SDK, and feed configuration.
 
    Inspect existing submodule work before updating an established checkout.
    Do not use `--remote` or change the submodule pin merely to make a build pass.
-3. Install Android SDK platform 36 and the build tools required by
+3. Install Android SDK platform 37 and the build tools required by
    [version configuration](gradle/versions.gradle). Configure `ANDROID_HOME`
-   or an untracked root `local.properties` containing `sdk.dir`.
+   or an untracked root `local.properties` containing `sdk.dir`. The upgrade retains
+   targetSdk 36 and all existing minSdk values. Java/Kotlin bytecode remains at 1.8;
+   the library retains dev's Kotlin language/API 1.9 compatibility pin.
 4. Obtain Packaging Read access to the NewAndroid feed configured in
    [settings](settings.gradle) and [the root build](build.gradle).
    Provision `ENV_VSTS_MVN_CRED_USERNAME` and `ENV_VSTS_MVN_CRED_ACCESSTOKEN`
@@ -94,8 +96,46 @@ These match the build/report/lint tasks and SDK used by the
 [PR pipeline](azure-pipelines/pull-request-validation/pr-msal.yml).
 SpotBugs requires assembled outputs; its task name comes from
 [Common's template](common/azure-pipelines/templates/steps/spotbugs.yml).
+Do not count `spotbugsLocalDebug NO-SOURCE` as a pass. Keep the assembly hooks
+lazy with `tasks.configureEach`: `tasks.whenTaskAdded` eagerly realizes SpotBugs
+6.5.8 tasks before AGP 9 registers their javac tasks, leaving analysis inputs
+empty. Verify the SpotBugs task executes with nonempty compiled-class inputs;
+inspect its findings or an explicitly enabled report, not just the build status.
+XML reports are enabled for each SpotBugs variant under
+`msal/build/reports/spotbugs/`; confirm the report has analyzed classes.
+The [SpotBugs filter](config/spotbugs/exclude.xml) baselines reviewed findings by
+class, method, and detector to preserve existing API and recovery behavior.
+These deferred ownership, nullability, locking, and hardening findings are not
+proof of safety. Keep new exclusions equally scoped; do not disable detectors
+globally or copy another repository's baseline wholesale.
+The analyzer also emits missing Android/JSON class diagnostics that were present
+before the upgrade. A passing findings gate does not resolve that separate
+analysis-classpath completeness limitation.
 The coverage task depends on `testLocalDebugUnitTest` and fails if execution
 data is missing. Do not publish a missing-data report as successful coverage.
+The custom local/dist reports include AGP 9 built-in Kotlin outputs as well as
+javac outputs. Inspect the XML for Kotlin classes, not just a successful task.
+
+### Distribution and publication metadata
+
+Source builds do not validate published Common compatibility. Separately run:
+
+```powershell
+.\gradlew.bat :msal:assembleDistRelease :msal:generatePomFileForMsalPublication "-PdistCommonVersion=<published-common-version>"
+.\gradlew.bat :msal:jacocoDistTestReport :msal:assembleDistDebugAndroidTest "-PdistCommonVersion=<published-common-version>" "-PdistCommon4jVersion=<published-common4j-version>" -PcodeCoverageEnabled=true
+```
+
+These commands do not publish. Verify the generated POM has `aar` packaging and
+the intended Common dependency. DIST configuration/assembly must also work in
+a checkout without Common source; never move or overwrite a working submodule
+to test this while another build is using it. The standalone golden examples
+have their own legacy wrappers and consume published MSAL, not this source build;
+they are not evidence of SDK source validation. The root sample is
+`:testapps:testapp:assembleLocalDebug` (also test `assembleLocalRelease` for R8).
+`:package-inspector:assembleDebug` is independent of Common. The optional
+`:pop-benchmarker:assembleDebug` currently cannot select between Common's
+local/dist variants; report that separately rather than selecting a flavor or
+raising its minSdk as part of this upgrade.
 
 ### Network integration and UI-less E2E
 

@@ -76,7 +76,7 @@ class SignUpPasswordFragment : Fragment() {
         CoroutineScope(Dispatchers.Main).launch {
             try {
                 val password = CharArray(binding.passwordText.length());
-                binding.passwordText.text?.getChars(0, binding.passwordText.length(), password, 0);
+                (binding.passwordText.text as? android.text.GetChars)?.getChars(0, binding.passwordText.length(), password, 0);
 
                 val actionResult = currentState.submitPassword(password)
 

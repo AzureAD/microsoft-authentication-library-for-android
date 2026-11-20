@@ -1,10 +1,12 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+
 plugins {
-    id 'com.microsoft.identity.buildsystem' version '0.2.5'
+    id 'com.microsoft.identity.buildsystem' version '0.3.0'
     id 'com.android.library'
     id 'pmd'
     id 'checkstyle'
     id 'maven-publish'
-    id 'kotlin-android'
     id 'jacoco'
 
     // Test retries
@@ -16,8 +18,23 @@ apply from: 'versioning/version_tasks.gradle'
 
 group = 'com.microsoft.identity.client'
 
+// Built-in Kotlin (AGP 9): replaces the android { kotlinOptions { } } block that the
+// removed 'kotlin-android' plugin previously provided.
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_1_8
+        // Preserve dev's published Kotlin metadata compatibility.
+        languageVersion = KotlinVersion.KOTLIN_1_9
+        apiVersion = KotlinVersion.KOTLIN_1_9
+    }
+}
+
 buildSystem {
     desugar = false
+}
+
+tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach {
+    reports.maybeCreate("xml").required.set(true)
 }
 
 def enableCodeCoverage = false
@@ -73,7 +90,7 @@ def registerJacocoXmlReport = { String taskName, String variant ->
         ]
 
         def kotlinClasses = fileTree(
-                dir: "$buildDir/tmp/kotlin-classes/${variant}",
+                dir: "$buildDir/intermediates/built_in_kotlinc/${variant}/compile${variantCap}Kotlin/classes",
                 excludes: fileFilter
         )
 
@@ -130,7 +147,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode getAppVersionCode()
         versionName getAppVersionName()
-        project.archivesBaseName = "msal"
+        project.base.archivesName = "msal"
         project.version = android.defaultConfig.versionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -138,11 +155,8 @@ android {
         buildConfig = true
     }
 
-    kotlinOptions {
-        jvmTarget = "1.8"
-        // Pinned to 1.9 so published metadata stays readable by consumers still on Kotlin 1.8.
-        languageVersion = "1.9"
-        apiVersion = "1.9"
+    publishing {
+        singleVariant("distRelease") {}
     }
 
     buildTypes {
@@ -210,7 +224,7 @@ android {
 
     libraryVariants.all { variant ->
         variant.outputs.all {
-            def fileName = "${archivesBaseName}-${version}.aar"
+            def fileName = "${project.base.archivesName.get()}-${version}.aar"
             outputFileName = fileName
         }
     }
@@ -279,7 +293,7 @@ if (project.hasProperty("distCommonVersion")) {
 // Used for testfixtures
 def common4jVersion = "1.0.+"
 if (project.hasProperty("distCommon4jVersion")) {
-    distCommon4jVersion = project.distCommon4jVersion
+    common4jVersion = project.distCommon4jVersion
 }
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$rootProject.ext.kotlinVersion"
@@ -307,8 +321,13 @@ dependencies {
     testImplementation "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
     testImplementation ("org.robolectric:robolectric:$rootProject.ext.robolectricVersion")
     testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
-    testLocalImplementation project(':testutils')
-    testLocalImplementation project(':LabApiUtilities')
+    // The common-source projects are only on the build when the `common` submodule is checked out
+    // (see settings.gradle). Guard these `local`-flavor project deps so :msal still configures for
+    // DIST/publish builds that consume the PUBLISHED common artifacts instead.
+    if (findProject(':testutils') != null) {
+        testLocalImplementation project(':testutils')
+        testLocalImplementation project(':LabApiUtilities')
+    }
     testDistImplementation("com.microsoft.identity:testutils:0.0+") {
         exclude module: 'common'
         exclude group: 'com.microsoft.identity', module: 'LabApiUtilities'
@@ -334,15 +353,19 @@ dependencies {
     // instrumented tests; the org.gradle.test-retry plugin only covers JVM/Robolectric unit tests).
     // transitive = false keeps only the rule's classes and avoids dragging testutils' whole
     // transitive graph onto the androidTest classpath.
-    androidTestLocalImplementation(project(':testutils')) {
-        transitive = false
+    if (findProject(':testutils') != null) {
+        androidTestLocalImplementation(project(':testutils')) {
+            transitive = false
+        }
     }
     androidTestDistImplementation("com.microsoft.identity:testutils:0.0+") {
         transitive = false
     }
     // 'local' flavor dependencies
-    localApi(project(":common")) {
-        transitive = true
+    if (findProject(':common') != null) {
+        localApi(project(":common")) {
+            transitive = true
+        }
     }
 
     snapshotApi(group: 'com.microsoft.identity', name: 'common', version: commonVersion, changing: true)
@@ -351,7 +374,9 @@ dependencies {
         transitive = true
     }
 
-    testLocalImplementation(testFixtures(project(":common4j")))
+    if (findProject(':common4j') != null) {
+        testLocalImplementation(testFixtures(project(":common4j")))
+    }
     testDistImplementation(testFixtures("com.microsoft.identity:common4j:${common4jVersion}"))
 
     implementation "io.opentelemetry:opentelemetry-api:$rootProject.ext.openTelemetryVersion"
@@ -402,10 +427,10 @@ afterEvaluate {
     // to include the version number.
     tasks.named("assembleDistRelease").configure {
         if (project.findProperty("renameOutput")?.toString()?.toBoolean() == true) {
-            def buildFile = file("$buildDir/outputs/aar/${archivesBaseName}-dist-release.aar")
+            def buildFile = file("$buildDir/outputs/aar/${project.base.archivesName.get()}-dist-release.aar")
             println "Build file $buildFile"
             doLast {
-                def renamedFile = file("$buildDir/outputs/aar/${archivesBaseName}-${version}.aar")
+                def renamedFile = file("$buildDir/outputs/aar/${project.base.archivesName.get()}-${version}.aar")
                 println "Renaming build file $buildFile to '$renamedFile'"
                 if (!buildFile.renameTo(renamedFile)) {
                     println "Rename failed!"
@@ -416,7 +441,7 @@ afterEvaluate {
     publishing {
         publications {
             msal(MavenPublication) {
-                from components.findByName('distRelease')
+                from components.distRelease
                 groupId 'com.microsoft.identity.client'
                 artifactId 'msal'
                 //Edit the 'version' here for VSTS RC build
@@ -464,7 +489,8 @@ afterEvaluate {
     }
 }
 
-tasks.whenTaskAdded { task ->
+// Eager task hooks realize SpotBugs before AGP has registered its javac tasks.
+tasks.configureEach { task ->
     if (task.name.contains('assemble')) {
         task.dependsOn 'pmd'
     }

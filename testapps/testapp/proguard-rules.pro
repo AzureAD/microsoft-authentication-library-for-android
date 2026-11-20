@@ -30,3 +30,5 @@
 -dontwarn org.bouncycastle.openssl.PEMKeyPair
 -dontwarn org.bouncycastle.openssl.PEMParser
 -dontwarn org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter
+# Common excludes these compile-time annotations; WebKit's marker is not needed at runtime.
+-dontwarn org.jspecify.annotations.NullMarked
