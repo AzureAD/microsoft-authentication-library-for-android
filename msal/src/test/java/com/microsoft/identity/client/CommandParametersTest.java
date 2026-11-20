@@ -44,7 +44,7 @@ import com.microsoft.identity.common.java.constants.FidoConstants;
 import com.microsoft.identity.common.java.logging.DiagnosticContext;
 import com.microsoft.identity.common.java.logging.RequestContext;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2ResendCodeCommandParameters;
-import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SelectMFAMethodCommandParameters;
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SelectAuthMethodCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SignInAfterResetPasswordCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SignInAfterSignUpCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2SubmitAttributesCommandParameters;
@@ -712,7 +712,7 @@ public class CommandParametersTest {
         }
 
         @Test
-        public void testCreateNativeAuthV2SelectMFAMethodCommandParameters_CommandParamsContainsExpectedParams() throws ClientException {
+        public void testCreateNativeAuthV2SelectAuthMethodCommandParameters_CommandParamsContainsExpectedParams() throws ClientException {
             final NativeAuthPublicClientApplicationConfiguration configuration = getNativeAuthConfiguration(NATIVE_AUTH_CONFIG_FILE);
             final OAuth2TokenCache tokenCache = getCache();
             final String methodId = "email-1";
@@ -722,8 +722,8 @@ public class CommandParametersTest {
             final NativeAuthV2ContinuationState continuationState =
                     getNativeAuthV2ContinuationState(correlationId, scopes, claimsRequestJson);
 
-            final NativeAuthV2SelectMFAMethodCommandParameters commandParameters =
-                    CommandParametersAdapter.createNativeAuthV2SelectMFAMethodCommandParameters(
+            final NativeAuthV2SelectAuthMethodCommandParameters commandParameters =
+                    CommandParametersAdapter.createNativeAuthV2SelectAuthMethodCommandParameters(
                             configuration,
                             tokenCache,
                             methodId,
