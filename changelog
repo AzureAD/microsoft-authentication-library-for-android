@@ -6,6 +6,7 @@ vNext
 Version 0.045.3323-RC1
 ----------
 - [PATCH] Update common @0.045.3323-RC1
+- [MINOR] Preserve additionalProperties in typed claims requests (#2644)
 
 Version 8.7.0
 ----------
