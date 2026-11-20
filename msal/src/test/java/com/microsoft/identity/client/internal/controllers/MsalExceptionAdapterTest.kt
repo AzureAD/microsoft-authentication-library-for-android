@@ -41,4 +41,19 @@ class MsalExceptionAdapterTest {
         assertTrue(converted is MsalClientException)
         assertEquals(ErrorStrings.UNKNOWN_CALLER, converted.errorCode)
     }
+
+    @Test
+    fun ageAssuranceTargetMismatchRetainsDistinctClientError() {
+        val exception = ClientException(
+            ClientException.AGE_ASSURANCE_TARGET_MISMATCH,
+            "The ID token age-assurance targets do not match the requested targets."
+        )
+
+        val converted = MsalExceptionAdapter.msalExceptionFromBaseException(exception)
+
+        assertTrue(converted is MsalClientException)
+        assertEquals(MsalClientException.AGE_ASSURANCE_TARGET_MISMATCH, converted.errorCode)
+        assertEquals(exception.message, converted.message)
+        assertSame(exception, converted.cause)
+    }
 }
