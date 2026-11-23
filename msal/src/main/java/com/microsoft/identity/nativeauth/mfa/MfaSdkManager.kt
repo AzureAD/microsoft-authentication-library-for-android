@@ -77,8 +77,10 @@ class MfaSdkManager private constructor() {
      * without a service call; malformed or mismatched MFA input throws rather than appearing empty.
      *
      * Returned sessions support both approval and denial; unsupported policy fails retrieval.
-     * The host owns notification/background lifecycle and explicit user interaction. Delivery or a
-     * notification tap alone is not approval.
+     * For authentication pushes, put only `type`, `guid`, and `url` in a request-specific,
+     * explicit, immutable `PendingIntent`. On tap, pass those fields to this method on the current
+     * manager to retrieve that request if still pending, even after process death. Handle validation
+     * pushes only on delivery. Neither delivery nor a tap submits a decision.
      * @param payload FCM data map. Never log its contents.
      * @throws MfaSdkException Always a general not-implemented error in this review stub.
      */
@@ -110,7 +112,8 @@ class MfaSdkManager private constructor() {
      * Wrong-number continuation requires a confirmed service contract, not an assumed retry allowance.
      * Failed approval throws rather than returning [MfaDecision.DENIED]. An acknowledgment does not
      * mean sign-in completed or a token was issued.
-     * @param session Original object returned by this manager, not a reconstructed identifier.
+     * @param session Exact object returned by this manager, including one retrieved on tap.
+     * Do not persist or reconstruct it.
      * @param action Explicit user choice; never log a supplied matching number.
      * @throws MfaSdkException Always a general not-implemented error in this review stub.
      */
