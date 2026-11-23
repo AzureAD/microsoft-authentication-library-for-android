@@ -32,8 +32,6 @@ import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.NativeAuthV2ActivateCommandParameters
-import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
-import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2ResendCodeCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2StrongAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
@@ -66,7 +64,7 @@ class StrongAuthVerificationRequiredStateV2 internal constructor(
     scenario: NativeAuthFlowScenarioV2,
     config: NativeAuthPublicClientApplicationConfiguration,
     continuationState: NativeAuthV2ContinuationState? = null,
-    internal val selectedChannel: String? = null
+    internal val channel: String? = null
 ) : NativeAuthBaseStateV2(correlationId, scenario, config, continuationState) {
     private val TAG: String = StrongAuthVerificationRequiredStateV2::class.java.simpleName
 
@@ -75,12 +73,12 @@ class StrongAuthVerificationRequiredStateV2 internal constructor(
         scenario = NativeAuthFlowScenarioV2.valueOf(parcel.readString() ?: NativeAuthFlowScenarioV2.UNKNOWN.name),
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration,
         continuationState = parcel.serializable<NativeAuthV2ContinuationState>(),
-        selectedChannel = parcel.readString()
+        channel = parcel.readString()
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         super.writeToParcel(parcel, flags)
-        parcel.writeString(selectedChannel)
+        parcel.writeString(channel)
     }
 
     interface SubmitChallengeCallback : Callback<NativeAuthResultV2>
@@ -127,8 +125,7 @@ class StrongAuthVerificationRequiredStateV2 internal constructor(
                 val rawResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
                 ensureActive()
                 mapStrongAuthResult(
-                    rawResult.checkAndWrapCommandResultType<NativeAuthV2StrongAuthCommandResult>(),
-                    selectedChannel
+                    rawResult.checkAndWrapCommandResultType<NativeAuthV2StrongAuthCommandResult>()
                 )
             } catch (e: CancellationException) {
                 throw e
@@ -191,22 +188,8 @@ class StrongAuthVerificationRequiredStateV2 internal constructor(
                 ensureActive()
                 val rawResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
                 ensureActive()
-                when (val result = rawResult.checkAndWrapCommandResultType<NativeAuthV2ResendCodeCommandResult>()) {
-                    is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
-                        result.toRegistrationResult(scenario, config)
-                    is NativeAuthV2CommandResult.StrongAuthVerificationRequired ->
-                        mapStrongAuthResult(result, selectedChannel)
-                    is INativeAuthCommandResult.Redirect -> mapStrongAuthResult(result)
-                    is INativeAuthCommandResult.APIError -> mapStrongAuthResult(result)
-                    else -> {
-                        Logger.warnWithObject(TAG, result.correlationId, "JIT resend received unsupported result: ", result)
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.INVALID_STATE,
-                            errorMessage = "Strong-auth resend returned an unsupported result.",
-                            correlationId = result.correlationId, scenario = scenario
-                        )
-                    }
-                }
+                mapResult(rawResult.checkAndWrapCommandResultType<NativeAuthV2ResendCodeCommandResult>(),
+                    NativeAuthV2ResultOperation.ENROLL)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

@@ -23,8 +23,6 @@
 
 package com.microsoft.identity.nativeauth
 
-import com.microsoft.identity.nativeauth.statemachine.states.toRegistrationResult
-import com.microsoft.identity.nativeauth.statemachine.states.toExistingAccountResult
 
 import android.content.Context
 import com.microsoft.identity.client.AccountAdapter
@@ -50,7 +48,6 @@ import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
-import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2ResetPasswordStartCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SignInStartCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SignUpStartCommandResult
@@ -93,21 +90,17 @@ import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStart
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
-import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.mapNativeAuthV2Result
 import com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState
 import com.microsoft.identity.nativeauth.statemachine.states.Callback
 import com.microsoft.identity.nativeauth.statemachine.states.RegisterStrongAuthState
 import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState
-import com.microsoft.identity.nativeauth.statemachine.states.AuthMethodSelectionRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpPasswordRequiredState
-import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
-import com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2
-import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpStateV2
 import com.microsoft.identity.nativeauth.utils.getCancellable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CancellationException
@@ -650,137 +643,8 @@ class NativeAuthPublicClientApplication(
                 val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
                 ensureActive()
 
-                when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SignInStartCommandResult>()) {
-                    is NativeAuthV2CommandResult.AuthMethodSelectionRequired ->
-                        NativeAuthResultV2.AuthMethodSelectionRequired(
-                            AuthMethodSelectionRequiredStateV2(
-                                result.continuationState,
-                                result.authMethods.toListOfV2AuthMethods(),
-                                nativeAuthConfig,
-                                NativeAuthFlowScenarioV2.SIGN_IN
-                            )
-                        )
-                    is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
-                        result.toRegistrationResult(NativeAuthFlowScenarioV2.SIGN_IN, nativeAuthConfig)
-                    is NativeAuthV2CommandResult.Complete -> {
-                        val localAuthResult = result.authenticationResult
-                        if (localAuthResult != null) {
-                            NativeAuthResultV2.Complete(
-                                resultValue = AccountState.createFromAuthenticationResult(
-                                    authenticationResult = AuthenticationResultAdapter.adapt(localAuthResult),
-                                    correlationId = result.correlationId,
-                                    config = nativeAuthConfig
-                                ),
-                                scenario = NativeAuthFlowScenarioV2.SIGN_IN
-                            )
-                        } else {
-                            Logger.warn(TAG, result.correlationId, "V2 signIn Complete with no authentication result.")
-                            NativeAuthErrorV2(
-                                errorMessage = "Sign in completed but no authentication result was returned.",
-                                correlationId = result.correlationId,
-                                scenario = NativeAuthFlowScenarioV2.SIGN_IN
-                            )
-                        }
-                    }
-                    is NativeAuthV2CommandResult.CodeRequired -> {
-                        NativeAuthResultV2.CodeRequired(
-                            nextState = CodeRequiredStateV2(
-                                continuationState = result.continuationState,
-                                scenario = NativeAuthFlowScenarioV2.SIGN_IN,
-                                config = nativeAuthConfig
-                            ),
-                            scenario = NativeAuthFlowScenarioV2.SIGN_IN,
-                            codeLength = result.codeLength,
-                            sentTo = result.challengeTargetLabel,
-                            channel = result.challengeChannel
-                        )
-                    }
-                    is NativeAuthV2CommandResult.PasswordRequired -> {
-                        NativeAuthResultV2.PasswordRequired(
-                            nextState = PasswordRequiredStateV2(
-                                continuationState = result.continuationState,
-                                scenario = NativeAuthFlowScenarioV2.SIGN_IN,
-                                config = nativeAuthConfig
-                            ),
-                            scenario = NativeAuthFlowScenarioV2.SIGN_IN
-                        )
-                    }
-                    is NativeAuthV2CommandResult.UserNotFound -> {
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.USER_NOT_FOUND,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = NativeAuthFlowScenarioV2.SIGN_IN,
-                            traceId = result.traceId,
-                            timestamp = result.timestamp,
-                            errorCodes = result.errorCodes,
-                            subError = result.subError,
-                            attributeValidationDetails = result.attributeValidationDetails
-                        )
-                    }
-                    is INativeAuthCommandResult.InvalidUsername -> {
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.INVALID_USERNAME,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = NativeAuthFlowScenarioV2.SIGN_IN,
-                            traceId = result.traceId,
-                            timestamp = result.timestamp,
-                            errorCodes = result.errorCodes
-                        )
-                    }
-                    is NativeAuthV2CommandResult.NotImplemented -> {
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.NOT_IMPLEMENTED,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = NativeAuthFlowScenarioV2.SIGN_IN
-                        )
-                    }
-                    is INativeAuthCommandResult.Redirect -> {
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.BROWSER_REQUIRED,
-                            traceId = result.traceId,
-                            timestamp = result.timestamp,
-                            errorCodes = result.errorCodes,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = NativeAuthFlowScenarioV2.SIGN_IN
-                        )
-                    }
-                    is INativeAuthCommandResult.APIError -> {
-                        NativeAuthErrorV2(
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = NativeAuthFlowScenarioV2.SIGN_IN,
-                            traceId = result.traceId,
-                            timestamp = result.timestamp,
-                            errorCodes = result.errorCodes,
-                            exception = result.exception,
-                            subError = result.subError,
-                            attributeValidationDetails = result.attributeValidationDetails
-                        )
-                    }
-                    else -> {
-                        Logger.warnWithObject(
-                            TAG,
-                            result.correlationId,
-                            "V2 signIn received unsupported result: ",
-                            result
-                        )
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.INVALID_STATE,
-                            errorMessage = "V2 sign-in returned an unsupported result.",
-                            correlationId = result.correlationId,
-                            scenario = NativeAuthFlowScenarioV2.SIGN_IN
-                        )
-                    }
-                }
+                mapNativeAuthV2Result(rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SignInStartCommandResult>(),
+                    NativeAuthFlowScenarioV2.SIGN_IN, nativeAuthConfig)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -875,135 +739,8 @@ class NativeAuthPublicClientApplication(
                 val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
                 ensureActive()
 
-                when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SignUpStartCommandResult>()) {
-                    is NativeAuthV2CommandResult.AuthMethodSelectionRequired ->
-                        result.toExistingAccountResult(nativeAuthConfig)
-                    is NativeAuthV2CommandResult.ExistingAccountCodeRequired ->
-                        result.toExistingAccountResult(nativeAuthConfig)
-                    is NativeAuthV2CommandResult.ExistingAccountPasswordRequired ->
-                        result.toExistingAccountResult(nativeAuthConfig)
-                    is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
-                        result.toRegistrationResult(NativeAuthFlowScenarioV2.SIGN_UP, nativeAuthConfig)
-                    is NativeAuthV2CommandResult.CodeRequired -> {
-                        NativeAuthResultV2.CodeRequired(
-                            nextState = CodeRequiredStateV2(
-                                continuationState = result.continuationState,
-                                scenario = NativeAuthFlowScenarioV2.SIGN_UP,
-                                config = nativeAuthConfig
-                            ),
-                            scenario = NativeAuthFlowScenarioV2.SIGN_UP,
-                            codeLength = result.codeLength,
-                            sentTo = result.challengeTargetLabel,
-                            channel = result.challengeChannel
-                        )
-                    }
-                    is NativeAuthV2CommandResult.PasswordRequired -> {
-                        NativeAuthResultV2.PasswordRequired(
-                            nextState = PasswordRequiredStateV2(
-                                continuationState = result.continuationState,
-                                scenario = NativeAuthFlowScenarioV2.SIGN_UP,
-                                config = nativeAuthConfig
-                            ),
-                            scenario = NativeAuthFlowScenarioV2.SIGN_UP
-                        )
-                    }
-                    is NativeAuthV2CommandResult.AttributesRequired -> {
-                        NativeAuthResultV2.AttributesRequired(
-                            nextState = AttributesRequiredStateV2(
-                                continuationState = result.continuationState,
-                                scenario = NativeAuthFlowScenarioV2.SIGN_UP,
-                                config = nativeAuthConfig
-                            ),
-                            scenario = NativeAuthFlowScenarioV2.SIGN_UP,
-                            requiredAttributes = result.requiredAttributes.toListOfRequiredUserAttributeV2()
-                        )
-                    }
-                    is NativeAuthV2CommandResult.AttributesInvalid ->
-                        NativeAuthErrorV2.fromAttributeError(result, NativeAuthFlowScenarioV2.SIGN_UP)
-                    is NativeAuthV2CommandResult.UserAlreadyExists -> {
-                        NativeAuthErrorV2(
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = NativeAuthFlowScenarioV2.SIGN_UP,
-                            traceId = result.traceId,
-                            timestamp = result.timestamp,
-                            errorCodes = result.errorCodes,
-                            subError = result.subError,
-                            attributeValidationDetails = result.attributeValidationDetails
-                        )
-                    }
-                    is SignUpCommandResult.InvalidAttributes -> {
-                        NativeAuthErrorV2(
-                            errorType = SignUpErrorTypes.INVALID_ATTRIBUTES,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = NativeAuthFlowScenarioV2.SIGN_UP
-                        )
-                    }
-                    is INativeAuthCommandResult.InvalidUsername -> {
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.INVALID_USERNAME,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = NativeAuthFlowScenarioV2.SIGN_UP,
-                            traceId = result.traceId,
-                            timestamp = result.timestamp,
-                            errorCodes = result.errorCodes
-                        )
-                    }
-                    is NativeAuthV2CommandResult.NotImplemented -> {
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.NOT_IMPLEMENTED,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = NativeAuthFlowScenarioV2.SIGN_UP
-                        )
-                    }
-                    is INativeAuthCommandResult.Redirect -> {
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.BROWSER_REQUIRED,
-                            traceId = result.traceId,
-                            timestamp = result.timestamp,
-                            errorCodes = result.errorCodes,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = NativeAuthFlowScenarioV2.SIGN_UP
-                        )
-                    }
-                    is INativeAuthCommandResult.APIError -> {
-                        NativeAuthErrorV2(
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = NativeAuthFlowScenarioV2.SIGN_UP,
-                            traceId = result.traceId,
-                            timestamp = result.timestamp,
-                            errorCodes = result.errorCodes,
-                            exception = result.exception,
-                            subError = result.subError,
-                            attributeValidationDetails = result.attributeValidationDetails
-                        )
-                    }
-                    else -> {
-                        Logger.warnWithObject(
-                            TAG,
-                            result.correlationId,
-                            "V2 signUp received unsupported result: ",
-                            result
-                        )
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.INVALID_STATE,
-                            errorMessage = "V2 sign-up returned an unsupported result.",
-                            correlationId = result.correlationId,
-                            scenario = NativeAuthFlowScenarioV2.SIGN_UP
-                        )
-                    }
-                }
+                mapNativeAuthV2Result(rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SignUpStartCommandResult>(),
+                    NativeAuthFlowScenarioV2.SIGN_UP, nativeAuthConfig)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -1100,129 +837,8 @@ class NativeAuthPublicClientApplication(
                 val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
                 ensureActive()
 
-                when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2ResetPasswordStartCommandResult>()) {
-                    is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
-                        result.toRegistrationResult(NativeAuthFlowScenarioV2.RESET_PASSWORD, nativeAuthConfig)
-                    is NativeAuthV2CommandResult.CodeRequired -> {
-                        NativeAuthResultV2.CodeRequired(
-                            nextState = CodeRequiredStateV2(
-                                continuationState = result.continuationState,
-                                scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
-                                config = nativeAuthConfig
-                            ),
-                            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
-                            codeLength = result.codeLength,
-                            sentTo = result.challengeTargetLabel,
-                            channel = result.challengeChannel
-                        )
-                    }
-                    is NativeAuthV2CommandResult.AuthMethodSelectionRequired -> {
-                        NativeAuthResultV2.AuthMethodSelectionRequired(
-                            nextState = AuthMethodSelectionRequiredStateV2(
-                                continuationState = result.continuationState,
-                                authMethods = result.authMethods.toListOfV2AuthMethods(),
-                                config = nativeAuthConfig
-                            ),
-                            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD
-                        )
-                    }
-                    is NativeAuthV2CommandResult.Complete -> {
-                        val localAuthResult = result.authenticationResult
-                        if (localAuthResult != null) {
-                            val authenticationResult = AuthenticationResultAdapter.adapt(localAuthResult)
-                            NativeAuthResultV2.Complete(
-                                resultValue = AccountState.createFromAuthenticationResult(
-                                    authenticationResult = authenticationResult,
-                                    correlationId = result.correlationId,
-                                    config = nativeAuthConfig
-                                ),
-                                scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD
-                            )
-                        } else {
-                            Logger.warn(TAG, result.correlationId, "V2 resetPassword start Complete with no inline sign-in result.")
-                            NativeAuthErrorV2(
-                                errorMessage = "Password reset completed but no sign-in result was returned.",
-                                correlationId = result.correlationId,
-                                scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD
-                            )
-                        }
-                    }
-                    is NativeAuthV2CommandResult.UserNotFound -> {
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.USER_NOT_FOUND,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
-                            traceId = result.traceId,
-                            timestamp = result.timestamp,
-                            errorCodes = result.errorCodes,
-                            subError = result.subError,
-                            attributeValidationDetails = result.attributeValidationDetails
-                        )
-                    }
-                    is INativeAuthCommandResult.InvalidUsername -> {
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.INVALID_USERNAME,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
-                            traceId = result.traceId,
-                            timestamp = result.timestamp,
-                            errorCodes = result.errorCodes
-                        )
-                    }
-                    is NativeAuthV2CommandResult.NotImplemented -> {
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.NOT_IMPLEMENTED,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD
-                        )
-                    }
-                    is INativeAuthCommandResult.Redirect -> {
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.BROWSER_REQUIRED,
-                            traceId = result.traceId,
-                            timestamp = result.timestamp,
-                            errorCodes = result.errorCodes,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD
-                        )
-                    }
-                    is INativeAuthCommandResult.APIError -> {
-                        NativeAuthErrorV2(
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD,
-                            traceId = result.traceId,
-                            timestamp = result.timestamp,
-                            errorCodes = result.errorCodes,
-                            exception = result.exception,
-                            subError = result.subError,
-                            attributeValidationDetails = result.attributeValidationDetails
-                        )
-                    }
-                    else -> {
-                        Logger.warnWithObject(
-                            TAG,
-                            result.correlationId,
-                            "V2 resetPassword received unsupported result: ",
-                            result
-                        )
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.INVALID_STATE,
-                            errorMessage = "V2 reset password returned an unsupported result.",
-                            correlationId = result.correlationId,
-                            scenario = NativeAuthFlowScenarioV2.RESET_PASSWORD
-                        )
-                    }
-                }
+                mapNativeAuthV2Result(rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2ResetPasswordStartCommandResult>(),
+                    NativeAuthFlowScenarioV2.RESET_PASSWORD, nativeAuthConfig)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

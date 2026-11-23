@@ -31,8 +31,6 @@ import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
-import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
-import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SignInAfterSignUpCommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
@@ -175,55 +173,7 @@ class SignInAfterSignUpStateV2 internal constructor(
                 ensureActive()
                 val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
                 ensureActive()
-                when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SignInAfterSignUpCommandResult>()) {
-                    is NativeAuthV2CommandResult.Complete -> {
-                        mapCompleteResult(result)
-                    }
-                    is INativeAuthCommandResult.Redirect -> {
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.BROWSER_REQUIRED,
-                            traceId = result.traceId,
-                            timestamp = result.timestamp,
-                            errorCodes = result.errorCodes,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario
-                        )
-                    }
-                    is INativeAuthCommandResult.APIError -> {
-                        NativeAuthErrorV2(
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario,
-                            traceId = result.traceId,
-                            timestamp = result.timestamp,
-                            errorCodes = result.errorCodes,
-                            exception = result.exception,
-                            subError = result.subError,
-                            attributeValidationDetails = result.attributeValidationDetails
-                        )
-                    }
-                    is NativeAuthV2CommandResult.NotImplemented -> {
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.NOT_IMPLEMENTED,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario
-                        )
-                    }
-                    else -> {
-                        Logger.warnWithObject(TAG, result.correlationId, "V2 signInAfterSignUp received unsupported result: ", result)
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.INVALID_STATE,
-                            errorMessage = "V2 sign-in after sign-up returned an unsupported result.",
-                            correlationId = result.correlationId,
-                            scenario = scenario
-                        )
-                    }
-                }
+                mapResult(rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SignInAfterSignUpCommandResult>())
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

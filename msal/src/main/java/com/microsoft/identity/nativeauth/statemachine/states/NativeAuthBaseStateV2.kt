@@ -25,20 +25,13 @@ package com.microsoft.identity.nativeauth.statemachine.states
 
 import android.os.Parcel
 import android.os.Parcelable
-import com.microsoft.identity.client.AuthenticationResultAdapter
-import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
-import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2StrongAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
-import com.microsoft.identity.common.java.nativeauth.providers.v2.NativeAuthV2FlowScenario
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
-import com.microsoft.identity.nativeauth.toListOfV2AuthMethods
-import com.microsoft.identity.nativeauth.toListOfRequiredUserAttributeV2
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
-import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
 import com.microsoft.identity.nativeauth.utils.serializable
 
@@ -58,8 +51,6 @@ abstract class NativeAuthBaseStateV2 internal constructor(
     internal val continuationState: NativeAuthV2ContinuationState? = null
 ) : State, Parcelable {
 
-    private val TAG: String = NativeAuthBaseStateV2::class.java.simpleName
-
     protected fun notImplemented(): NativeAuthResultV2 = NativeAuthErrorV2(
         errorType = ErrorTypes.NOT_IMPLEMENTED,
         errorMessage = "This is not implemented yet",
@@ -74,107 +65,16 @@ abstract class NativeAuthBaseStateV2 internal constructor(
         scenario = scenario
     )
 
-    internal fun mapStrongAuthResult(
-        result: NativeAuthV2StrongAuthCommandResult,
-        selectedChannel: String? = null
-    ): NativeAuthResultV2 = when (result) {
-        is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
-            result.toRegistrationResult(scenario, config)
-        is NativeAuthV2CommandResult.StrongAuthVerificationRequired ->
-            if (selectedChannel == null) invalidState() else NativeAuthResultV2.StrongAuthVerificationRequired(
-                StrongAuthVerificationRequiredStateV2(
-                    result.correlationId, scenario, config, result.continuationState, selectedChannel
-                ), scenario, result.codeLength, result.challengeTargetLabel, selectedChannel
-            )
-        is NativeAuthV2CommandResult.Complete -> mapCompleteResult(result)
-        is NativeAuthV2CommandResult.AuthMethodSelectionRequired -> NativeAuthResultV2.AuthMethodSelectionRequired(
-            AuthMethodSelectionRequiredStateV2(
-                result.continuationState, result.authMethods.toListOfV2AuthMethods(), config, scenario
-            )
-        )
-        is NativeAuthV2CommandResult.NewPasswordRequired -> NativeAuthResultV2.NewPasswordRequired(
-            NewPasswordRequiredStateV2(result.continuationState, scenario, config), scenario
-        )
-        is NativeAuthV2CommandResult.SignInAfterResetPasswordRequired -> NativeAuthResultV2.SignInAfterResetPasswordRequired(
-            SignInAfterResetPasswordStateV2(result.continuationState, scenario, config), scenario
-        )
-        is NativeAuthV2CommandResult.SignInAfterSignUpRequired -> NativeAuthResultV2.SignInAfterSignUpRequired(
-            SignInAfterSignUpStateV2(result.continuationState, scenario, config), scenario
-        )
-        is NativeAuthV2CommandResult.PasswordRequired -> NativeAuthResultV2.PasswordRequired(
-            PasswordRequiredStateV2(result.continuationState, scenario, config), scenario
-        )
-        is NativeAuthV2CommandResult.AttributesRequired -> NativeAuthResultV2.AttributesRequired(
-            AttributesRequiredStateV2(result.continuationState, scenario, config), scenario,
-            result.requiredAttributes.toListOfRequiredUserAttributeV2()
-        )
-        is NativeAuthV2CommandResult.AttributesInvalid -> NativeAuthErrorV2.fromAttributeError(result, scenario)
-        is NativeAuthV2CommandResult.CodeRequired -> NativeAuthResultV2.CodeRequired(
-            CodeRequiredStateV2(result.continuationState, scenario, config), scenario,
-            result.codeLength, result.challengeTargetLabel, result.challengeChannel
-        )
-        is NativeAuthV2CommandResult.IncorrectCode -> NativeAuthErrorV2(
-            errorType = ErrorTypes.INVALID_CHALLENGE,
-            error = result.error, errorMessage = result.errorDescription,
-            correlationId = result.correlationId, scenario = scenario,
-            errorCodes = result.errorCodes, subError = result.subError,
-            traceId = result.traceId, timestamp = result.timestamp,
-            attributeValidationDetails = result.attributeValidationDetails
-        )
-        is NativeAuthV2CommandResult.UserAlreadyExists -> NativeAuthErrorV2(
-            error = result.error, errorMessage = result.errorDescription,
-            correlationId = result.correlationId, scenario = scenario,
-            errorCodes = result.errorCodes, subError = result.subError,
-            attributeValidationDetails = result.attributeValidationDetails,
-            traceId = result.traceId, timestamp = result.timestamp
-        )
-        is NativeAuthV2CommandResult.PasswordResetFailed -> NativeAuthErrorV2(
-            errorType = ResetPasswordErrorTypes.PASSWORD_RESET_FAILED,
-            error = result.error, errorMessage = result.errorDescription,
-            correlationId = result.correlationId, scenario = scenario
-        )
-        is INativeAuthCommandResult.Redirect -> NativeAuthErrorV2(
-            errorType = ErrorTypes.BROWSER_REQUIRED,
-            error = result.error, errorMessage = result.errorDescription,
-            correlationId = result.correlationId, scenario = scenario,
-            errorCodes = result.errorCodes, traceId = result.traceId, timestamp = result.timestamp
-        )
-        is INativeAuthCommandResult.APIError -> NativeAuthErrorV2(
-            errorType = if (result.error == "invalidGrant" && result.subError == "invalidOneTimeCode") {
-                ErrorTypes.INVALID_CHALLENGE
-            } else null,
-            error = result.error, errorMessage = result.errorDescription,
-            correlationId = result.correlationId, scenario = scenario,
-            errorCodes = result.errorCodes, subError = result.subError,
-            exception = result.exception, attributeValidationDetails = result.attributeValidationDetails,
-            traceId = result.traceId, timestamp = result.timestamp
-        )
-    }
+    internal fun mapResult(
+        result: com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2InteractionCommandResult,
+        operation: NativeAuthV2ResultOperation = NativeAuthV2ResultOperation.INTERACTION
+    ): NativeAuthResultV2 = mapNativeAuthV2Result(result, scenario, config, operation)
 
-    /**
-     * Maps a completed V2 command result to a [NativeAuthResultV2.Complete] when an inline
-     * sign-in result is present, otherwise to an API error carrying the flow [scenario].
-     */
-    protected fun mapCompleteResult(result: NativeAuthV2CommandResult.Complete): NativeAuthResultV2 {
-        val localAuthResult = result.authenticationResult
-        return if (localAuthResult != null) {
-            NativeAuthResultV2.Complete(
-                resultValue = AccountState.createFromAuthenticationResult(
-                    authenticationResult = AuthenticationResultAdapter.adapt(localAuthResult),
-                    correlationId = result.correlationId,
-                    config = config
-                ),
-                scenario = scenario
-            )
-        } else {
-            Logger.warn(TAG, result.correlationId, "V2 Complete result has no inline sign-in token; returning API error.")
-            NativeAuthErrorV2(
-                errorMessage = "Native Auth V2 flow completed but no authentication result was returned.",
-                correlationId = result.correlationId,
-                scenario = scenario
-            )
-        }
-    }
+    internal fun mapStrongAuthResult(
+        result: NativeAuthV2StrongAuthCommandResult
+    ): NativeAuthResultV2 = mapResult(result, NativeAuthV2ResultOperation.ENROLL)
+
+    protected fun mapCompleteResult(result: NativeAuthV2CommandResult.Complete): NativeAuthResultV2 = mapResult(result)
 
     /**
      * Writes correlationId, scenario, config, then continuationState. Each subclass's `Parcel`
@@ -191,34 +91,6 @@ abstract class NativeAuthBaseStateV2 internal constructor(
 
     override fun describeContents(): Int = 0
 }
-
-private fun NativeAuthV2ContinuationState.continuesExistingAccountSignIn(
-    originalScenario: NativeAuthFlowScenarioV2
-): Boolean = originalScenario == NativeAuthFlowScenarioV2.SIGN_UP &&
-    flowScenario() == NativeAuthV2FlowScenario.SIGN_IN
-
-/** Maps enrollment, preserving an existing-account transition from sign-up to sign-in. */
-internal fun NativeAuthV2CommandResult.StrongAuthRegistrationRequired.toRegistrationResult(
-    scenario: NativeAuthFlowScenarioV2,
-    config: NativeAuthPublicClientApplicationConfiguration
-): NativeAuthResultV2.StrongAuthRegistrationRequired {
-    val methods = authMethods.toListOfV2AuthMethods()
-    val resultScenario = if (continuationState.continuesExistingAccountSignIn(scenario)) {
-        NativeAuthFlowScenarioV2.SIGN_IN
-    } else scenario
-    val state = StrongAuthRegistrationRequiredStateV2(correlationId, resultScenario, config, continuationState, methods)
-    return NativeAuthResultV2.StrongAuthRegistrationRequired(state, resultScenario, state.authMethods)
-}
-
-/** Defers an existing-account challenge until the app selects a server-offered method. */
-internal fun NativeAuthV2CommandResult.AuthMethodSelectionRequired.toExistingAccountResult(
-    config: NativeAuthPublicClientApplicationConfiguration
-): NativeAuthResultV2.AuthMethodSelectionRequired = NativeAuthResultV2.AuthMethodSelectionRequired(
-    AuthMethodSelectionRequiredStateV2(
-        continuationState, authMethods.toListOfV2AuthMethods(), config, NativeAuthFlowScenarioV2.SIGN_IN,
-        existingAccountSignIn = true
-    )
-)
 
 /** Exposes the existing-account transition independently of normal sign-up code collection. */
 internal fun NativeAuthV2CommandResult.ExistingAccountCodeRequired.toExistingAccountResult(

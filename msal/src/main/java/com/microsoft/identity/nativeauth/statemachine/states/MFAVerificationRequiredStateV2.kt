@@ -31,8 +31,6 @@ import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
-import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
-import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2ResendCodeCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SubmitMFAChallengeCommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
@@ -143,86 +141,7 @@ class MFAVerificationRequiredStateV2 internal constructor(
                 ensureActive()
                 val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
                 ensureActive()
-                when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitMFAChallengeCommandResult>()) {
-                    is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
-                        result.toRegistrationResult(scenario, config)
-                    is NativeAuthV2CommandResult.NewPasswordRequired -> {
-                        NativeAuthResultV2.NewPasswordRequired(
-                            nextState = NewPasswordRequiredStateV2(result.continuationState, scenario, config),
-                            scenario = scenario
-                        )
-                    }
-                    is NativeAuthV2CommandResult.SignInAfterResetPasswordRequired -> {
-                        NativeAuthResultV2.SignInAfterResetPasswordRequired(
-                            nextState = SignInAfterResetPasswordStateV2(result.continuationState, scenario, config),
-                            scenario = scenario
-                        )
-                    }
-                    is NativeAuthV2CommandResult.Complete -> {
-                        mapCompleteResult(result)
-                    }
-                    is NativeAuthV2CommandResult.IncorrectCode -> {
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.INVALID_CHALLENGE,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario,
-                            traceId = result.traceId,
-                            timestamp = result.timestamp,
-                            errorCodes = result.errorCodes,
-                            subError = result.subError,
-                            attributeValidationDetails = result.attributeValidationDetails
-                        )
-                    }
-                    is NativeAuthV2CommandResult.NotImplemented -> {
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.NOT_IMPLEMENTED,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario
-                        )
-                    }
-                    is INativeAuthCommandResult.Redirect -> {
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.BROWSER_REQUIRED,
-                            traceId = result.traceId,
-                            timestamp = result.timestamp,
-                            errorCodes = result.errorCodes,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario
-                        )
-                    }
-                    is INativeAuthCommandResult.APIError -> {
-                        NativeAuthErrorV2(
-                            errorType = if (result.error == "invalidGrant" && result.subError == "invalidOneTimeCode") {
-                                ErrorTypes.INVALID_CHALLENGE
-                            } else null,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario,
-                            traceId = result.traceId,
-                            timestamp = result.timestamp,
-                            errorCodes = result.errorCodes,
-                            exception = result.exception,
-                            subError = result.subError,
-                            attributeValidationDetails = result.attributeValidationDetails
-                        )
-                    }
-                    else -> {
-                        Logger.warnWithObject(TAG, result.correlationId, "V2 submitChallenge received unsupported result: ", result)
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.INVALID_STATE,
-                            errorMessage = "V2 submit MFA challenge returned an unsupported result.",
-                            correlationId = result.correlationId,
-                            scenario = scenario
-                        )
-                    }
-                }
+                mapResult(rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitMFAChallengeCommandResult>(), NativeAuthV2ResultOperation.MFA)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -287,66 +206,7 @@ class MFAVerificationRequiredStateV2 internal constructor(
                 ensureActive()
                 val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
                 ensureActive()
-                when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2ResendCodeCommandResult>()) {
-                    is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
-                        result.toRegistrationResult(scenario, config)
-                    is NativeAuthV2CommandResult.CodeRequired -> {
-                        NativeAuthResultV2.MFAVerificationRequired(
-                            nextState = MFAVerificationRequiredStateV2(result.continuationState, scenario, config),
-                            scenario = scenario,
-                            codeLength = result.codeLength,
-                            sentTo = result.challengeTargetLabel,
-                            channel = result.challengeChannel
-                        )
-                    }
-                    is NativeAuthV2CommandResult.Complete -> {
-                        mapCompleteResult(result)
-                    }
-                    is NativeAuthV2CommandResult.NotImplemented -> {
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.NOT_IMPLEMENTED,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario
-                        )
-                    }
-                    is INativeAuthCommandResult.Redirect -> {
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.BROWSER_REQUIRED,
-                            traceId = result.traceId,
-                            timestamp = result.timestamp,
-                            errorCodes = result.errorCodes,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario
-                        )
-                    }
-                    is INativeAuthCommandResult.APIError -> {
-                        NativeAuthErrorV2(
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario,
-                            traceId = result.traceId,
-                            timestamp = result.timestamp,
-                            errorCodes = result.errorCodes,
-                            exception = result.exception,
-                            subError = result.subError,
-                            attributeValidationDetails = result.attributeValidationDetails
-                        )
-                    }
-                    else -> {
-                        Logger.warnWithObject(TAG, result.correlationId, "V2 resendChallenge received unsupported result: ", result)
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.INVALID_STATE,
-                            errorMessage = "V2 resend MFA challenge returned an unsupported result.",
-                            correlationId = result.correlationId,
-                            scenario = scenario
-                        )
-                    }
-                }
+                mapResult(rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2ResendCodeCommandResult>(), NativeAuthV2ResultOperation.MFA)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

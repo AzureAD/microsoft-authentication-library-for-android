@@ -30,10 +30,7 @@ import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
-import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
-import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SelectAuthMethodCommandResult
-import com.microsoft.identity.common.java.nativeauth.providers.responses.ApiErrorResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SelectAuthMethodCommand
@@ -161,90 +158,7 @@ class AuthMethodSelectionRequiredStateV2 internal constructor(
                     CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
                 ensureActive()
                 val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SelectAuthMethodCommandResult>()
-                when (result) {
-                    is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
-                        result.toRegistrationResult(scenario, config)
-                    is NativeAuthV2CommandResult.MFAVerificationRequired ->
-                        NativeAuthResultV2.MFAVerificationRequired(
-                            nextState = MFAVerificationRequiredStateV2(
-                                continuationState = result.continuationState,
-                                scenario = scenario,
-                                config = config
-                            ),
-                            scenario = scenario,
-                            codeLength = result.codeLength,
-                            sentTo = result.challengeTargetLabel,
-                            channel = result.challengeChannel
-                        )
-                    is NativeAuthV2CommandResult.ExistingAccountCodeRequired ->
-                        if (existingAccountSignIn) result.toExistingAccountResult(config) else {
-                            NativeAuthResultV2.CodeRequired(
-                                CodeRequiredStateV2(result.continuationState, scenario, config),
-                                scenario, result.codeLength, result.challengeTargetLabel, result.challengeChannel
-                            )
-                        }
-                    is NativeAuthV2CommandResult.ExistingAccountPasswordRequired ->
-                        if (existingAccountSignIn) result.toExistingAccountResult(config) else {
-                            NativeAuthResultV2.PasswordRequired(
-                                PasswordRequiredStateV2(result.continuationState, scenario, config), scenario
-                            )
-                        }
-                    is NativeAuthV2CommandResult.CodeRequired -> NativeAuthResultV2.CodeRequired(
-                        nextState = CodeRequiredStateV2(
-                            continuationState = result.continuationState,
-                            scenario = scenario,
-                            config = config
-                        ),
-                        scenario = scenario,
-                        codeLength = result.codeLength,
-                        sentTo = result.challengeTargetLabel,
-                        channel = result.challengeChannel
-                    )
-                    is NativeAuthV2CommandResult.NotImplemented -> NativeAuthErrorV2(
-                        errorType = ErrorTypes.NOT_IMPLEMENTED,
-                        error = result.error,
-                        errorMessage = result.errorDescription,
-                        correlationId = result.correlationId,
-                        scenario = scenario
-                    )
-                    is INativeAuthCommandResult.Redirect -> NativeAuthErrorV2(
-                        errorType = ErrorTypes.BROWSER_REQUIRED,
-                        traceId = result.traceId,
-                        timestamp = result.timestamp,
-                        errorCodes = result.errorCodes,
-                        error = result.error,
-                        errorMessage = result.errorDescription,
-                        correlationId = result.correlationId,
-                        scenario = scenario
-                    )
-                    is INativeAuthCommandResult.APIError -> NativeAuthErrorV2(
-                        errorType = if (result.error == ApiErrorResult.INVALID_STATE) ErrorTypes.INVALID_STATE else null,
-                        error = result.error,
-                        errorMessage = result.errorDescription,
-                        correlationId = result.correlationId,
-                        scenario = scenario,
-                        traceId = result.traceId,
-                        timestamp = result.timestamp,
-                        errorCodes = result.errorCodes,
-                        exception = result.exception,
-                        subError = result.subError,
-                        attributeValidationDetails = result.attributeValidationDetails
-                    )
-                    else -> {
-                        Logger.warnWithObject(
-                            TAG,
-                            result.correlationId,
-                            "V2 selectAuthMethod received unsupported result: ",
-                            result
-                        )
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.INVALID_STATE,
-                            errorMessage = "V2 authentication method selection returned an unsupported result.",
-                            correlationId = result.correlationId,
-                            scenario = scenario
-                        )
-                    }
-                }
+                mapResult(result, NativeAuthV2ResultOperation.INTERACTION)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

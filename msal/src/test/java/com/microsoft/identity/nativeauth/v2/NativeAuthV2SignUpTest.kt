@@ -1055,7 +1055,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     @Test
     fun existingAccountMethodSelection_resumesBothCredentialPaths() = runTest {
         val state = NativeAuthV2ContinuationStateTestFactory.create(
-            correlationId, scenario = NativeAuthV2FlowScenario.SIGN_IN)
+            correlationId, entryRelation = NativeAuthV2LinkRelation.SIGN_UP, scenario = NativeAuthV2FlowScenario.SIGN_IN)
         val methods = listOf(NativeAuthV2AuthMethod("email-id", "email", "***"),
             NativeAuthV2AuthMethod("password-id", "password", null))
         enqueueResult(NativeAuthV2CommandResult.AuthMethodSelectionRequired(
@@ -1099,7 +1099,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     @Test
     fun existingAccountMethodSelection_rejectsUnknownIdsAndPreservesErrorsAndCancellation() = runTest {
         val state = NativeAuthV2ContinuationStateTestFactory.create(
-            correlationId, scenario = NativeAuthV2FlowScenario.SIGN_IN)
+            correlationId, entryRelation = NativeAuthV2LinkRelation.SIGN_UP, scenario = NativeAuthV2FlowScenario.SIGN_IN)
         enqueueResult(NativeAuthV2CommandResult.AuthMethodSelectionRequired(correlationId, state,
             listOf(NativeAuthV2AuthMethod("email-id", "email", "***"), NativeAuthV2AuthMethod("password-id", "password", null))),
             NativeAuthV2SignUpStartCommand::class)
@@ -1153,7 +1153,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     @Test
     fun existingAccountCode_isDistinctResendsAndContinuesSignIn() = runTest {
         val state = NativeAuthV2ContinuationStateTestFactory.create(
-            correlationId, scenario = NativeAuthV2FlowScenario.SIGN_IN)
+            correlationId, entryRelation = NativeAuthV2LinkRelation.SIGN_UP, scenario = NativeAuthV2FlowScenario.SIGN_IN)
         enqueueResult(NativeAuthV2CommandResult.ExistingAccountCodeRequired(
             correlationId, state, 6, "***@contoso.com", "email"), NativeAuthV2SignUpStartCommand::class)
         val registration = application.signUpV2(signUpParameters())
@@ -1184,7 +1184,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     @Test
     fun existingAccountPassword_usesSignInCommandAndPreservesCallerBuffer() = runTest {
         val state = NativeAuthV2ContinuationStateTestFactory.create(
-            correlationId, scenario = NativeAuthV2FlowScenario.SIGN_IN)
+            correlationId, entryRelation = NativeAuthV2LinkRelation.SIGN_UP, scenario = NativeAuthV2FlowScenario.SIGN_IN)
         enqueueResult(NativeAuthV2CommandResult.ExistingAccountPasswordRequired(
             correlationId, state), NativeAuthV2SignUpStartCommand::class)
         val existing = application.signUpV2(signUpParameters())
@@ -1207,7 +1207,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     @Test
     fun existingAccountSuccessorsMapFromEverySignUpState() = runTest {
         val signin = NativeAuthV2ContinuationStateTestFactory.create(
-            correlationId, scenario = NativeAuthV2FlowScenario.SIGN_IN)
+            correlationId, entryRelation = NativeAuthV2LinkRelation.SIGN_UP, scenario = NativeAuthV2FlowScenario.SIGN_IN)
         for (result in listOf(
             NativeAuthV2CommandResult.AuthMethodSelectionRequired(correlationId, signin,
                 listOf(NativeAuthV2AuthMethod("email", "email", null), NativeAuthV2AuthMethod("password", "password", null))),
@@ -1238,7 +1238,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2FlowScenario.SIGN_UP to NativeAuthFlowScenarioV2.SIGN_UP
         )) {
             val continuation = NativeAuthV2ContinuationStateTestFactory.create(
-                correlationId, scenario = commonScenario)
+                correlationId, entryRelation = NativeAuthV2LinkRelation.SIGN_UP, scenario = commonScenario)
             val commandResult = NativeAuthV2CommandResult.StrongAuthRegistrationRequired(
                 correlationId, continuation, listOf(NativeAuthV2AuthMethod("email-id", "email", null)))
             val results = mutableListOf<NativeAuthResultV2>()
@@ -1262,7 +1262,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
                 assertEquals("email-id", registration.authMethods.single().id)
 
                 enqueueResult(NativeAuthV2CommandResult.StrongAuthVerificationRequired(
-                    correlationId, continuation, 6, "***@contoso.com"), NativeAuthV2EnrollCommand::class)
+                    correlationId, continuation, 6, "***@contoso.com", "email"), NativeAuthV2EnrollCommand::class)
                 val verification = registration.nextState.selectAuthMethod(
                     registration.authMethods.single(), "user@contoso.com"
                 ) as NativeAuthResultV2.StrongAuthVerificationRequired
@@ -1280,7 +1280,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
     @Test
     fun existingAccountStates_propagateCancellationAndCallbackResults() = runTest {
         val state = NativeAuthV2ContinuationStateTestFactory.create(
-            correlationId, scenario = NativeAuthV2FlowScenario.SIGN_IN)
+            correlationId, entryRelation = NativeAuthV2LinkRelation.SIGN_UP, scenario = NativeAuthV2FlowScenario.SIGN_IN)
         enqueueResult(NativeAuthV2CommandResult.ExistingAccountPasswordRequired(
             correlationId, state), NativeAuthV2SignUpStartCommand::class)
         val password = (application.signUpV2(signUpParameters()) as
@@ -1382,7 +1382,7 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
             NativeAuthV2SignUpStartCommand::class)
         val registration = application.signUpV2(signUpParameters()) as NativeAuthResultV2.StrongAuthRegistrationRequired
         enqueueResult(NativeAuthV2CommandResult.StrongAuthVerificationRequired(
-            correlationId, collection, 6, "***"), NativeAuthV2EnrollCommand::class)
+            correlationId, collection, 6, "***", "email"), NativeAuthV2EnrollCommand::class)
         val verification = registration.nextState.selectAuthMethod(registration.authMethods.single(), "user@contoso.com")
             as NativeAuthResultV2.StrongAuthVerificationRequired
         return listOf(
@@ -1440,11 +1440,11 @@ class NativeAuthV2SignUpTest : PublicClientApplicationAbstractTest() {
         }
 
     private fun createContinuationState(): NativeAuthV2ContinuationState =
-        NativeAuthV2ContinuationStateTestFactory.create(
+        NativeAuthV2ContinuationStateTestFactory.passwordCollection(NativeAuthV2ContinuationStateTestFactory.create(
             correlationId = correlationId,
             entryRelation = NativeAuthV2LinkRelation.SIGN_UP,
             scenario = NativeAuthV2FlowScenario.SIGN_UP
-        )
+        ))
 
     private companion object {
         const val correlationId = "correlation-id"

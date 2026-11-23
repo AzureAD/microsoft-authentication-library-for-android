@@ -143,8 +143,7 @@ class StrongAuthRegistrationRequiredStateV2 internal constructor(
                 val rawResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
                 ensureActive()
                 mapStrongAuthResult(
-                    rawResult.checkAndWrapCommandResultType<NativeAuthV2StrongAuthCommandResult>(),
-                    offered.challengeChannel
+                    rawResult.checkAndWrapCommandResultType<NativeAuthV2StrongAuthCommandResult>()
                 )
             } catch (e: CancellationException) {
                 throw e

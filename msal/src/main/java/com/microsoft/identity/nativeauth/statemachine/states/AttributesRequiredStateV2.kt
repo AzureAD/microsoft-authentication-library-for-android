@@ -31,10 +31,7 @@ import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
-import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
-import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SubmitAttributesCommandResult
-import com.microsoft.identity.common.java.nativeauth.controllers.results.SignUpCommandResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SubmitAttributesCommand
@@ -45,9 +42,7 @@ import com.microsoft.identity.nativeauth.UserAttributes
 import com.microsoft.identity.nativeauth.statemachine.NativeAuthFlowScenarioV2
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.NativeAuthErrorV2
-import com.microsoft.identity.nativeauth.statemachine.errors.SignUpErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.results.NativeAuthResultV2
-import com.microsoft.identity.nativeauth.toListOfRequiredUserAttributeV2
 import com.microsoft.identity.nativeauth.toMap
 import com.microsoft.identity.nativeauth.utils.getCancellable
 import com.microsoft.identity.nativeauth.utils.serializable
@@ -91,8 +86,8 @@ class AttributesRequiredStateV2 internal constructor(
     /**
      * Submits the requested account attributes.
      *
-     * The attribute names `email` and `password` are reserved and must not be included.
-     * Supply them through the dedicated parameters and states exposed by the sign-up flow.
+     * In sign-up, `email` and `password` are reserved for the dedicated credential states.
+     * Other originating flows can submit the attributes requested by the current server prompt.
      *
      * @param attributes account attributes requested by the sign-up flow.
      * @param callback callback that receives the result.
@@ -116,8 +111,8 @@ class AttributesRequiredStateV2 internal constructor(
     /**
      * Submits the requested account attributes.
      *
-     * The attribute names `email` and `password` are reserved and must not be included.
-     * Supply them through the dedicated parameters and states exposed by the sign-up flow.
+     * In sign-up, `email` and `password` are reserved for the dedicated credential states.
+     * Other originating flows can submit the attributes requested by the current server prompt.
      *
      * @param attributes account attributes requested by the sign-up flow.
      * @return the next flow step, or [NativeAuthErrorV2] for rejected attributes. Use
@@ -147,112 +142,7 @@ class AttributesRequiredStateV2 internal constructor(
                 ensureActive()
                 val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
                 ensureActive()
-                when (val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitAttributesCommandResult>()) {
-                    is NativeAuthV2CommandResult.AuthMethodSelectionRequired ->
-                        result.toExistingAccountResult(config)
-                    is NativeAuthV2CommandResult.ExistingAccountCodeRequired ->
-                        result.toExistingAccountResult(config)
-                    is NativeAuthV2CommandResult.ExistingAccountPasswordRequired ->
-                        result.toExistingAccountResult(config)
-                    is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
-                        result.toRegistrationResult(scenario, config)
-                    is NativeAuthV2CommandResult.CodeRequired -> {
-                        NativeAuthResultV2.CodeRequired(
-                            nextState = CodeRequiredStateV2(result.continuationState, scenario, config),
-                            scenario = scenario,
-                            codeLength = result.codeLength,
-                            sentTo = result.challengeTargetLabel,
-                            channel = result.challengeChannel
-                        )
-                    }
-                    is NativeAuthV2CommandResult.PasswordRequired -> {
-                        NativeAuthResultV2.PasswordRequired(
-                            nextState = PasswordRequiredStateV2(result.continuationState, scenario, config),
-                            scenario = scenario
-                        )
-                    }
-                    is NativeAuthV2CommandResult.AttributesRequired -> {
-                        NativeAuthResultV2.AttributesRequired(
-                            nextState = AttributesRequiredStateV2(result.continuationState, scenario, config),
-                            scenario = scenario,
-                            requiredAttributes = result.requiredAttributes.toListOfRequiredUserAttributeV2()
-                        )
-                    }
-                    is NativeAuthV2CommandResult.AttributesInvalid ->
-                        NativeAuthErrorV2.fromAttributeError(result, scenario)
-                    is NativeAuthV2CommandResult.SignInAfterSignUpRequired -> {
-                        NativeAuthResultV2.SignInAfterSignUpRequired(
-                            nextState = SignInAfterSignUpStateV2(result.continuationState, scenario, config),
-                            scenario = scenario
-                        )
-                    }
-                    is NativeAuthV2CommandResult.UserAlreadyExists -> {
-                        NativeAuthErrorV2(
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario,
-                            traceId = result.traceId,
-                            timestamp = result.timestamp,
-                            errorCodes = result.errorCodes,
-                            subError = result.subError,
-                            attributeValidationDetails = result.attributeValidationDetails
-                        )
-                    }
-                    is SignUpCommandResult.InvalidAttributes -> {
-                        NativeAuthErrorV2(
-                            errorType = SignUpErrorTypes.INVALID_ATTRIBUTES,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario
-                        )
-                    }
-                    is NativeAuthV2CommandResult.NotImplemented -> {
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.NOT_IMPLEMENTED,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario
-                        )
-                    }
-                    is INativeAuthCommandResult.Redirect -> {
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.BROWSER_REQUIRED,
-                            traceId = result.traceId,
-                            timestamp = result.timestamp,
-                            errorCodes = result.errorCodes,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario
-                        )
-                    }
-                    is INativeAuthCommandResult.APIError -> {
-                        NativeAuthErrorV2(
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            scenario = scenario,
-                            traceId = result.traceId,
-                            timestamp = result.timestamp,
-                            errorCodes = result.errorCodes,
-                            exception = result.exception,
-                            subError = result.subError,
-                            attributeValidationDetails = result.attributeValidationDetails
-                        )
-                    }
-                    else -> {
-                        Logger.warnWithObject(TAG, result.correlationId, "V2 submitAttributes received unsupported result: ", result)
-                        NativeAuthErrorV2(
-                            errorType = ErrorTypes.INVALID_STATE,
-                            errorMessage = "V2 submit attributes returned an unsupported result.",
-                            correlationId = result.correlationId,
-                            scenario = scenario
-                        )
-                    }
-                }
+                mapResult(rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SubmitAttributesCommandResult>(), NativeAuthV2ResultOperation.SUBMIT_ATTRIBUTES)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

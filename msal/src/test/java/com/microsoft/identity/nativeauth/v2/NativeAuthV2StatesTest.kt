@@ -27,6 +27,10 @@ import android.os.Parcelable
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.common.java.exception.BaseException
+import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
+import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2AuthMethod
+import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2RequiredAttribute
+import com.microsoft.identity.common.java.nativeauth.providers.v2.NativeAuthV2FlowScenario
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationStateTestFactory
 import com.microsoft.identity.common.java.util.ResultFuture
@@ -45,6 +49,8 @@ import com.microsoft.identity.nativeauth.statemachine.states.ExistingAccountPass
 import com.microsoft.identity.nativeauth.statemachine.states.AuthMethodSelectionRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.NativeAuthBaseStateV2
+import com.microsoft.identity.nativeauth.statemachine.states.NativeAuthV2ResultOperation
+import com.microsoft.identity.nativeauth.statemachine.states.mapNativeAuthV2Result
 import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterResetPasswordStateV2
@@ -75,6 +81,59 @@ class NativeAuthV2StatesTest {
     private val config = NativeAuthPublicClientApplicationConfiguration().apply {
         dc = "parcel-dc"
         setChallengeTypes(listOf("password", "oob"))
+    }
+
+    @Test
+    fun sharedMapperAcceptsEveryPromptAcrossSubmissionContextsAndOrigins() {
+        for (origin in listOf(NativeAuthFlowScenarioV2.SIGN_IN, NativeAuthFlowScenarioV2.SIGN_UP, NativeAuthFlowScenarioV2.RESET_PASSWORD)) {
+            val state = NativeAuthV2ContinuationStateTestFactory.create(correlationId,
+                scenario = NativeAuthV2FlowScenario.valueOf(origin.name))
+            val methods = listOf(NativeAuthV2AuthMethod("email-id", "email", "masked"))
+            val outcomes = listOf(
+                NativeAuthV2CommandResult.CodeRequired(correlationId, state, 6, "masked", "email") to NativeAuthResultV2.CodeRequired::class.java,
+                NativeAuthV2CommandResult.PasswordRequired(correlationId, state) to NativeAuthResultV2.PasswordRequired::class.java,
+                NativeAuthV2CommandResult.NewPasswordRequired(correlationId, state) to NativeAuthResultV2.NewPasswordRequired::class.java,
+                NativeAuthV2CommandResult.AttributesRequired(correlationId, state, listOf(NativeAuthV2RequiredAttribute("city", "string", true))) to NativeAuthResultV2.AttributesRequired::class.java,
+                NativeAuthV2CommandResult.AuthMethodSelectionRequired(correlationId, state, methods) to NativeAuthResultV2.AuthMethodSelectionRequired::class.java,
+                NativeAuthV2CommandResult.StrongAuthRegistrationRequired(correlationId, state, methods) to NativeAuthResultV2.StrongAuthRegistrationRequired::class.java,
+                NativeAuthV2CommandResult.StrongAuthVerificationRequired(correlationId, state, 6, "masked", "email") to NativeAuthResultV2.StrongAuthVerificationRequired::class.java,
+                NativeAuthV2CommandResult.MFAVerificationRequired(correlationId, state, 6, "masked", "sms") to NativeAuthResultV2.MFAVerificationRequired::class.java
+            )
+            for (operation in NativeAuthV2ResultOperation.values()) {
+                for ((outcome, expected) in outcomes) {
+                    val result = mapNativeAuthV2Result(outcome, origin, config, operation)
+                    assertTrue("$origin/$operation/${outcome.javaClass.simpleName}", expected.isInstance(result))
+                    assertEquals(origin, result.scenario)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun activationRequiresATruthfulChannelWithoutInventingDefaults() {
+        val state = createContinuationState()
+        fun map(channel: String?) = mapNativeAuthV2Result(
+            NativeAuthV2CommandResult.StrongAuthVerificationRequired(correlationId, state, 6, "masked", channel),
+            scenario, config)
+        assertEquals(ErrorTypes.INVALID_STATE, (map(null) as NativeAuthErrorV2).errorType)
+        assertEquals("sms", (map("sms") as NativeAuthResultV2.StrongAuthVerificationRequired).channel)
+        assertEquals("email", (map("EMAIL") as NativeAuthResultV2.StrongAuthVerificationRequired).channel)
+        assertEquals(ErrorTypes.INVALID_STATE, (map("phone") as NativeAuthErrorV2).errorType)
+        assertEquals(ErrorTypes.INVALID_STATE, (map("voice") as NativeAuthErrorV2).errorType)
+    }
+
+    @Test
+    fun sharedMapperPreservesCodeErrorClassificationBySubmissionContext() {
+        val error = NativeAuthV2CommandResult.IncorrectCode(correlationId, "invalidGrant", "Retry",
+            "invalidOneTimeCode", listOf(42), "trace", "time")
+        for (operation in NativeAuthV2ResultOperation.values()) {
+            val mapped = mapNativeAuthV2Result(error, scenario, config, operation) as NativeAuthErrorV2
+            assertEquals(if (operation == NativeAuthV2ResultOperation.MFA || operation == NativeAuthV2ResultOperation.ENROLL)
+                ErrorTypes.INVALID_CHALLENGE else ErrorTypes.INVALID_CODE, mapped.errorType)
+            assertEquals(listOf(42), mapped.errorCodes)
+            assertEquals("trace", mapped.traceId)
+            assertEquals("time", mapped.timestamp)
+        }
     }
 
     @Test
