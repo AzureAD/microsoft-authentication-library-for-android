@@ -34,6 +34,8 @@ class MfaPublicApiTest {
     @Test
     fun `public value models do not expose generated copy or destructuring methods`() {
         for (type in listOf(
+            MfaRegistrationParameters.QrCode::class.java,
+            MfaRegistrationParameters.Activation::class.java,
             MfaRegistrationResult::class.java,
             MfaAction.Approve::class.java
         )) {
@@ -47,6 +49,17 @@ class MfaPublicApiTest {
     @Test
     fun `public value models compare every field and retain value hashing`() {
         val cases = listOf(
+            listOf(
+                MfaRegistrationParameters.QrCode("text"),
+                MfaRegistrationParameters.QrCode("text"),
+                MfaRegistrationParameters.QrCode("other")
+            ),
+            listOf(
+                MfaRegistrationParameters.Activation("code", "url"),
+                MfaRegistrationParameters.Activation("code", "url"),
+                MfaRegistrationParameters.Activation("other", "url"),
+                MfaRegistrationParameters.Activation("code", "other")
+            ),
             listOf(
                 MfaRegistrationResult("registration", "Account", "user"),
                 MfaRegistrationResult("registration", "Account", "user"),
