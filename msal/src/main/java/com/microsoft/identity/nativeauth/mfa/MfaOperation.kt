@@ -18,7 +18,7 @@ fun interface MfaOperation {
      *
      * Cancellation does not undo remote mutations. Required
      * consistency cleanup finishes before cancellation is reported; a cleanup timeout is not success
-     * and must retain recovery state. This API-only draft has no remote mutations or cleanup.
+     * and must retain recovery state.
      *
      * The suspend operation's outcome is committed after it finishes, including required cleanup,
      * before leaving its work context. A returned success or non-cancellation failure wins even if

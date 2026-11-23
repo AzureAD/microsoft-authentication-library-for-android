@@ -12,7 +12,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import org.mockito.Mockito.mock
 
 class MfaJavaInteropTest {
     @get:Rule
@@ -32,7 +31,10 @@ class MfaJavaInteropTest {
                             AtomicReference<Throwable> failure, AtomicInteger calls) {
                         return new MfaCallback<T>() {
                             public void onSuccess(T value) {
-                                failure.set(new AssertionError("API-only stub unexpectedly succeeded"));
+                                if (Thread.currentThread() == caller) {
+                                    failure.set(new AssertionError("Inline callback"));
+                                }
+                                calls.incrementAndGet();
                                 completed.countDown();
                             }
                             public void onError(Exception error) {
@@ -88,7 +90,7 @@ class MfaJavaInteropTest {
         URLClassLoader(arrayOf(temporaryFolder.root.toURI().toURL()), javaClass.classLoader).use { loader ->
             loader.loadClass("JavaMfaConsumer")
                 .getMethod("exercise", MfaSdkManager::class.java, MfaAuthSession::class.java)
-                .invoke(null, MfaSdkManager.create(mock(Context::class.java)),
+                .invoke(null, MfaTestFixture().manager(),
                     MfaAuthSession.create("session", "registration", "Account", "user", false))
         }
     }

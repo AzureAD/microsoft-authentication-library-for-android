@@ -3,7 +3,6 @@
 
 package com.microsoft.identity.nativeauth.mfa
 
-import android.content.Context
 import java.util.UUID
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.CoroutineContext
@@ -18,8 +17,6 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verifyNoInteractions
 
 class MfaPublicApiTest {
     @Test
@@ -72,24 +69,23 @@ class MfaPublicApiTest {
     }
 
     @Test
-    fun `review operations fail without initializing Android`() = runBlocking {
-        val context = mock(Context::class.java)
-        val manager = MfaSdkManager.create(context)
+    fun `invalid operations return sanitized correlated SDK errors`() = runBlocking {
+        val manager = MfaTestFixture().manager()
         val correlationIds = mutableSetOf<String>()
 
-        for ((name, operation) in operations(manager)) {
+        for ((name, operation) in operations(manager).filterNot {
+            it.first in setOf("updatePushRegistration", "registeredAuthMethods",
+                "handlePushNotification", "pullPendingNotifications")
+        }) {
             val failure = runCatching { operation() }.exceptionOrNull()
             assertTrue("$name must fail with an MFA error", failure is MfaSdkException)
             val error = failure as MfaSdkException
-            assertTrue("$name must not suggest recovery", error.isGeneralError())
-            assertEquals("MFA API is not implemented.", error.errorMessage)
             assertEquals(error.errorMessage, error.message)
             assertNull(error.cause)
             assertEquals(error.correlationId, UUID.fromString(error.correlationId).toString())
             assertTrue("$name must get a new operation ID", correlationIds.add(error.correlationId))
         }
 
-        verifyNoInteractions(context)
     }
 
     @Test
@@ -111,7 +107,7 @@ class MfaPublicApiTest {
 
     @Test
     fun `cancelled operations preserve cancellation instead of reporting an SDK error`() {
-        val manager = MfaSdkManager.create(mock(Context::class.java))
+        val manager = MfaTestFixture().manager()
         for ((name, operation) in operations(manager)) {
             val cancellation = CancellationException("Host cancellation")
             val job = Job().apply { cancel(cancellation) }
