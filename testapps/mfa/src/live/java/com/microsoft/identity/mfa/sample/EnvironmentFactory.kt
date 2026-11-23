@@ -28,7 +28,9 @@ private class LiveEnvironment(private val context: Context) : SampleMfaEnvironme
     override val manager = MfaSdkManager.create(context, enableExperimentalService = true,
         policyProfile = MfaPolicyProfile.valueOf(BuildConfig.MFA_POLICY_PROFILE))
     override val modeLabel = "LIVE — experimental service; authorized test setup only\n" +
-        "Policy profile: ${BuildConfig.MFA_POLICY_PROFILE}"
+        "Policy profile: ${BuildConfig.MFA_POLICY_PROFILE}" +
+        if (BuildConfig.MFA_AUTHENTICATOR_COMPATIBILITY)
+            "\nAUTHENTICATOR COMPATIBILITY PoC — not Microsoft Authenticator. Dedicated clean test device only." else ""
     override val setup = MutableStateFlow(SampleSetup.STARTING)
     private val initialization = Mutex()
 

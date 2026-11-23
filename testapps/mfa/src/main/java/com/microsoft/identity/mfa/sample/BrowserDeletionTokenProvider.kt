@@ -32,10 +32,9 @@ internal class BrowserDeletionTokenProvider private constructor(
 
     override suspend fun acquireToken(request: MfaDeletionTokenRequest): MfaDeletionToken =
         withContext(Dispatchers.Main.immediate) {
-            val authority = pca.configuration.defaultAuthority.authorityURL.toString().trimEnd('/')
-            if (!authority.equals(request.authority, true)) {
-                throw MfaDeletionException(MfaDeletionError.CONFIGURATION_REQUIRED)
-            }
+            val authority = deletionAcquisitionAuthority(
+                pca.configuration.defaultAuthority.authorityURL.toString(), request.authority,
+                BuildConfig.MFA_AUTHENTICATOR_COMPATIBILITY)
             val claims = ClaimsRequest.getClaimsRequestFromJsonString(request.claims)
             acquireDeletionToken(request.allowsInteraction, {
                 checkpoint("SILENT_ACQUISITION")
@@ -116,7 +115,8 @@ internal class BrowserDeletionTokenProvider private constructor(
                 val hashes = signatures.map { Base64.encodeToString(
                     MessageDigest.getInstance("SHA-1").digest(it.toByteArray()), Base64.NO_WRAP) }.toSet()
                 val json = context.resources.openRawResource(resource).bufferedReader().use { it.readText() }
-                deletionConfigurationProblem(json, context.packageName, hashes)
+                deletionConfigurationProblem(json, context.packageName, hashes,
+                    BuildConfig.MFA_AUTHENTICATOR_COMPATIBILITY)
             }
             if (problem != null) return null to "DELETION SETUP REQUIRED: $problem"
             return try {

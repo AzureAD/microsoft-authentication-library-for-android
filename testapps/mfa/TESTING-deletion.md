@@ -10,16 +10,118 @@ cache, remove other registrations, or undo a completed MFA approval.
 
 ## What this build can and cannot demonstrate
 
-The sample starts without local configuration and explains what is missing.
+An unconfigured source checkout starts with setup-required diagnostics.
 Compilation and JVM tests do **not** establish live tenant/service compatibility.
-The default package is `com.microsoft.identity.mfa.sample.live`, minimum Android
-version **7.0 / API 24**, target API 35, compile API 36.
+The default independent package is `com.microsoft.identity.mfa.sample.live`.
+The explicitly authorized compatibility build below uses `com.azure.authenticator`.
+Both require Android **7.0 / API 24**, target API 35, compile API 36.
 
 There are no fault-injection menus or token-validation bypasses in the APK.
 The tables explicitly distinguish **DEVICE** tests from deterministic **JVM**
 tests. Do not intercept real tokens to manufacture test errors.
 
-## Local configuration (never commit these files)
+## Authorized Android Authenticator compatibility build
+
+Use this opt-in profile only for an explicitly authorized compatibility investigation.
+It is **not Microsoft Authenticator** and does not implement its complete security
+or account-management behavior. It uses the verified Android public-client ID
+`4813382a-8fa7-425e-ab75-3b753aab3abb`, package `com.azure.authenticator`,
+and documented **development**, not production, signing identity:
+
+- Certificate SHA-1: `3758dd71b6e7283af42da15996a7615e09b696e1`
+- Redirect: `msauth://com.azure.authenticator/N1jdcbbnKDr0LaFZlqdhXgm2luE%3D`
+
+The compatibility artifact was built with matching local Firebase and OAuth files
+already bundled. It is no longer the unconfigured independent-package APK.
+There is **no runtime configuration editor**; configuration changes require rebuild.
+Development-signature/redirect matching is verified locally, not a guarantee that
+tenant policy, consent, enrollment or Graph will accept the experiment.
+
+### Reproduce the configuration and build
+
+1. Obtain authorized access to the documented Android development signing setup.
+   Reference that existing development keystore; do not copy or seek production keys.
+   Supply `MFA_SAMPLE_DEVELOPMENT_KEYSTORE`, `MFA_SAMPLE_DEVELOPMENT_STORE_PASSWORD`,
+   `MFA_SAMPLE_DEVELOPMENT_KEY_ALIAS`, and `MFA_SAMPLE_DEVELOPMENT_KEY_PASSWORD`
+   through your approved local environment. The normal machine-generated debug key
+   does **not** match this redirect. Never commit key material or passwords.
+2. Put the authorized Firebase client JSON for this package at
+   `testapps\mfa\src\live\google-services.json`. For this local build, the existing
+   file was checked against the canonical Android Firebase app/project/sender and
+   reused unchanged. It remains ignored; it is not distributed with source.
+3. Put this browser-only public-client configuration in the ignored
+   `testapps\mfa\src\live\res\raw\auth_config.json`:
+
+   ```json
+   {
+     "client_id": "4813382a-8fa7-425e-ab75-3b753aab3abb",
+     "redirect_uri": "msauth://com.azure.authenticator/N1jdcbbnKDr0LaFZlqdhXgm2luE%3D",
+     "account_mode": "MULTIPLE",
+     "authorization_user_agent": "BROWSER",
+     "broker_redirect_uri_registered": false,
+     "multiple_clouds_supported": false,
+     "environment": "Production",
+     "authorities": [{
+       "type": "AAD",
+       "audience": { "type": "AzureADMultipleOrgs" },
+       "default": true
+     }],
+     "logging": { "pii_enabled": false, "logcat_enabled": false }
+   }
+   ```
+
+   The organizations authority permits workforce tenants, but **each acquisition
+   targets the stored registration's tenant GUID**. Returned tenant/profile/object
+   identity is still independently checked. Personal accounts and sovereign clouds
+   are outside this PoC. Broker dispatch is deliberately disabled to avoid invoking
+   the same-package app as its own broker; no Native Auth sign-out is performed.
+4. With JDK 17, the signing environment above and approved feed credentials:
+
+   ```powershell
+   .\gradlew.bat -PmfaSampleAuthenticatorCompatibility=true `
+     :testapps:mfa:testLiveDebugUnitTest --tests '*Deletion*Test' `
+     :testapps:mfa:assembleLiveDebug :testapps:mfa:lintLiveDebug
+   ```
+
+   This explicitly selects the `AUTHENTICATOR` approval-policy profile and distinct
+   PoC app label. Missing signing variables fail the build; incompatible OAuth
+   configuration/signature disables deletion. The credential-precedence helper
+   below can be used with this same `-P` flag if needed.
+
+### Install only on a dedicated clean test device
+
+Do **not** install over, uninstall, clear, or migrate a real Authenticator installation.
+Use a dedicated device/emulator without `com.azure.authenticator` in **any** user/profile.
+The PoC uses its own MFA storage file and adds no credential migration, but it shares
+the package identity; existing private package data must not be exposed to it.
+Do not use `adb install -r` to bypass this clean-device requirement.
+
+After separately authorizing installation on that clean device:
+
+```powershell
+$apk = (Resolve-Path .\testapps\mfa\build\outputs\apk\live\debug\mfa-live-debug.apk).Path
+adb devices
+adb shell pm list users
+# Repeat for EVERY listed user/profile ID; stop if any reports this package.
+adb shell pm list packages --user 0 com.azure.authenticator
+adb install $apk
+adb shell am start -n com.azure.authenticator/com.microsoft.identity.mfa.sample.MainActivity
+```
+
+Expect the **AUTHENTICATOR COMPATIBILITY PoC** warning, `DELETION CONFIGURED`,
+and eventually Firebase `TOKEN_ACQUIRED`. Keep Google Play services and a supported
+Custom Tabs browser enabled; on Android 13+ use **Allow visible notifications**.
+Then follow the standard deletion procedure and DEVICE table below.
+Use only fresh, authorized disposable activation inputs and retain another working
+factor. Actual push routing, supported approval policy, essential `ngcmfa` step-up
+and delegated Graph `UserAuthenticationMethod.ReadWrite` authorization still need
+device/service verification. No registration changes or consent grants are performed
+by the build. This compatibility APK has not been installed or live-tested here.
+
+## Independent package: local configuration (never commit these files)
+
+This alternative is the default source-checkout profile, **not the compatibility APK
+described above**. Do not combine its package/signature with compatibility config.
 
 ### Push/enrollment
 
@@ -92,7 +194,7 @@ tests. Do not intercept real tokens to manufacture test errors.
    Configuration success is local validation only; consent, service authorization
    and Graph operation support have not yet been proven.
 
-## Build, install and launch
+## Independent package: build, install and launch
 
 Run from the MSAL worktree root with JDK 17, Android SDK and approved package-feed
 credentials. Preserve its pinned Common submodule. Do not modify feeds or paste
@@ -193,12 +295,15 @@ Always verify remote state independently before retrying.
 
 ## Deterministic JVM scenarios (no service/account required)
 
-Run from the worktree root:
+Run from the worktree root. For the configured compatibility checkout, keep the
+authorized development signing environment and pass the compatibility flag:
 
 ```powershell
-.\gradlew.bat :mfa:testLocalDebugUnitTest --tests '*MfaDeletionTest'
-.\gradlew.bat :testapps:mfa:testLiveDebugUnitTest --tests '*Deletion*Test'
+.\gradlew.bat -PmfaSampleAuthenticatorCompatibility=true :mfa:testLocalDebugUnitTest --tests '*MfaDeletionTest'
+.\gradlew.bat -PmfaSampleAuthenticatorCompatibility=true :testapps:mfa:testLiveDebugUnitTest --tests '*Deletion*Test'
 ```
+
+Omit that flag for an independent-package checkout with matching independent config.
 
 Read pass/fail and individual cases in:
 `mfa\build\reports\tests\testLocalDebugUnitTest\index.html` and

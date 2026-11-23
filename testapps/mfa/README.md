@@ -15,6 +15,15 @@ No MFA API is being added to an already released MSAL binary.
 | Variant | Default application ID | Behavior |
 | --- | --- | --- |
 | Live Debug | `com.microsoft.identity.mfa.sample.live` | Explicitly opts into the experimental service; real Firebase token and service-confirmed enrollment and decisions |
+| Live Debug, explicitly authorized compatibility profile | `com.azure.authenticator` | `-PmfaSampleAuthenticatorCompatibility=true`; verified Android public client/development redirect, local matching Firebase, browser-only deletion and `AUTHENTICATOR` policy |
+
+The compatibility profile is **not Microsoft Authenticator**. It requires the
+documented authorized **development** signing environment and a dedicated clean
+device with no Authenticator installation in any profile. Never overwrite a real
+Authenticator or use production signing material. See the
+[exact compatibility setup, build and install procedure](TESTING-deletion.md#authorized-android-authenticator-compatibility-build).
+The local compatibility APK bundles approved local configuration; source does not.
+Service/tenant authorization and live behavior remain separate verification steps.
 
 The namespace is `com.microsoft.identity.mfa.sample`. The sample is live-only and
 uses `project(':mfa')`, selecting the library's `local` flavor. Sample release variants
@@ -133,7 +142,9 @@ or diagnostic output. A supported policy is not proof the service accepted a dec
    The placeholder is not an approved identity. Use only an identity explicitly
    provisioned for this experiment, with matching Firebase package configuration
    and authorized signing. Do not copy or impersonate Authenticator's identity,
-   Firebase project, or signing material. The override affects the Live application ID.
+   Firebase project, or signing material without explicit authorization. The
+   separately authorized compatibility profile above is opt-in and accepts only
+   its documented development identity. The override affects the Live application ID.
 4. Install Live on a dedicated test device with Google Play services. Open it and
    use **Allow visible notifications** on Android 13+ if desired. On earlier
    Android versions, or if notifications/channels were disabled in system

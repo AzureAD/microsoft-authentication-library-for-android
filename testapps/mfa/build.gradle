@@ -14,8 +14,16 @@ buildscript {
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
-def policyProfile = project.findProperty('mfaSamplePolicyProfile') ?: 'CONSERVATIVE'
-def liveApplicationId = project.findProperty('mfaSampleApplicationId') ?: 'com.microsoft.identity.mfa.sample.live'
+def authenticatorCompatibility = project.findProperty('mfaSampleAuthenticatorCompatibility')?.toString() == 'true'
+def policyProfile = project.findProperty('mfaSamplePolicyProfile') ?: (authenticatorCompatibility ? 'AUTHENTICATOR' : 'CONSERVATIVE')
+def liveApplicationId = project.findProperty('mfaSampleApplicationId') ?: (authenticatorCompatibility ? 'com.azure.authenticator' : 'com.microsoft.identity.mfa.sample.live')
+if (authenticatorCompatibility && (liveApplicationId != 'com.azure.authenticator' || policyProfile != 'AUTHENTICATOR')) {
+    throw new GradleException('Authenticator compatibility requires its authorized package and policy profile.')
+}
+if (authenticatorCompatibility && ['MFA_SAMPLE_DEVELOPMENT_KEYSTORE', 'MFA_SAMPLE_DEVELOPMENT_STORE_PASSWORD',
+        'MFA_SAMPLE_DEVELOPMENT_KEY_ALIAS', 'MFA_SAMPLE_DEVELOPMENT_KEY_PASSWORD'].any { !System.getenv(it) }) {
+    throw new GradleException('Supply the authorized development signing configuration through MFA_SAMPLE_DEVELOPMENT_* environment variables. Never use production keys.')
+}
 def oauthConfig = file('src/live/res/raw/auth_config.json')
 def redirectPath = '/unconfigured'
 if (oauthConfig.exists()) {
@@ -54,6 +62,21 @@ android {
         versionName '0.1.0-poc'
         missingDimensionStrategy 'main', 'local'
     }
+    signingConfigs {
+        if (authenticatorCompatibility) {
+            compatibilityDevelopment {
+                storeFile file(System.getenv('MFA_SAMPLE_DEVELOPMENT_KEYSTORE'))
+                storePassword System.getenv('MFA_SAMPLE_DEVELOPMENT_STORE_PASSWORD')
+                keyAlias System.getenv('MFA_SAMPLE_DEVELOPMENT_KEY_ALIAS')
+                keyPassword System.getenv('MFA_SAMPLE_DEVELOPMENT_KEY_PASSWORD')
+            }
+        }
+    }
+    buildTypes {
+        debug {
+            if (authenticatorCompatibility) signingConfig = signingConfigs.compatibilityDevelopment
+        }
+    }
     flavorDimensions 'mode'
     productFlavors {
         live {
@@ -61,7 +84,8 @@ android {
             applicationId liveApplicationId
             manifestPlaceholders = [mfaRedirectHost: liveApplicationId, mfaRedirectPath: redirectPath]
             buildConfigField 'String', 'MFA_POLICY_PROFILE', "\"$policyProfile\""
-            resValue 'string', 'app_name', 'MFA PoC - Live'
+            buildConfigField 'boolean', 'MFA_AUTHENTICATOR_COMPATIBILITY', authenticatorCompatibility.toString()
+            resValue 'string', 'app_name', authenticatorCompatibility ? 'MFA PoC - Authenticator compatibility' : 'MFA PoC - Live'
         }
     }
     compileOptions {
