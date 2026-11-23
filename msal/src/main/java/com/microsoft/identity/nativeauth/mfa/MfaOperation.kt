@@ -20,9 +20,12 @@ fun interface MfaOperation {
      * consistency cleanup finishes before cancellation is reported; a cleanup timeout is not success
      * and must retain recovery state. This API-only draft has no remote mutations or cleanup.
      *
-     * Cancellation competes with committing the result after the suspend operation finishes,
-     * including required cleanup. Once committed, cancellation is a no-op even if callback delivery
-     * is queued. Cancelling never cancels the mechanism delivering that terminal callback.
+     * The suspend operation's outcome is committed after it finishes, including required cleanup,
+     * before leaving its work context. A returned success or non-cancellation failure wins even if
+     * cancellation was requested earlier. Only cancellation exceptions attributable to this request
+     * are reported as that request; unrelated cancellations retain their identity. Once committed,
+     * cancellation is a no-op even if callback delivery is queued. Cancelling never cancels the
+     * mechanism delivering that terminal callback.
      */
     fun cancel()
 }
@@ -36,35 +39,50 @@ internal fun <T> launchMfaOperation(
     val scope = CoroutineScope(context)
     val work = Job()
     val lock = Any()
-    var committed = false
+    var outcome: Result<T>? = null
     var cancellation: CancellationException? = null
+
+    fun commit(result: Result<T>) {
+        synchronized(lock) {
+            if (outcome == null) {
+                val exception = result.exceptionOrNull()
+                val request = cancellation
+                outcome = if (exception is CancellationException && request != null &&
+                    (exception === request || exception.cause === request)
+                ) {
+                    Result.failure(request)
+                } else {
+                    result
+                }
+            }
+        }
+    }
+
     scope.launch {
-        val result = try {
+        try {
             withContext(work) {
-                // Carry failures as values across coroutine boundaries to preserve exception identity.
-                try {
+                val result = try {
                     Result.success(block())
                 } catch (exception: Exception) {
                     Result.failure<T>(exception)
                 }
+                // Commit before cancelled context completion can replace the actual outcome.
+                commit(result)
             }
         } catch (exception: Exception) {
-            Result.failure<T>(exception)
+            commit(Result.failure(exception))
         } finally {
             work.complete()
         }
-        val outcome = synchronized(lock) {
-            committed = true
-            cancellation?.let { Result.failure<T>(it) } ?: result
-        }
+        val result = checkNotNull(synchronized(lock) { outcome })
         // Delivery is independent of the cancellable work, and outside its exception boundary.
         scope.launch {
-            outcome.fold(callback::onSuccess) { callback.onError(it as Exception) }
+            result.fold(callback::onSuccess) { callback.onError(it as Exception) }
         }
     }
     return MfaOperation {
         val request = synchronized(lock) {
-            if (committed || cancellation != null) null
+            if (outcome != null || cancellation != null) null
             else CancellationException("MFA operation cancelled.").also { cancellation = it }
         }
         if (request != null) work.cancel(request)

@@ -11,7 +11,9 @@ package com.microsoft.identity.nativeauth.mfa
  * updates to the main thread. Process termination and fatal runtime errors are outside this guarantee.
  *
  * SDK failures use [MfaSdkException].
- * Cancellation through [MfaOperation.cancel] reports a [java.util.concurrent.CancellationException].
+ * Cancellation through [MfaOperation.cancel] reports a [java.util.concurrent.CancellationException]
+ * when the operation cooperates by throwing it. A returned success or non-cancellation failure,
+ * including a cleanup failure, is not replaced by a cancellation request.
  * Exceptions thrown by application callbacks are not caught and sent to [onError].
  */
 interface MfaCallback<T> {
