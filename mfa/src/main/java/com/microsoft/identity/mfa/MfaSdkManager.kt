@@ -51,6 +51,9 @@ class MfaSdkManager internal constructor(
     private var validationBusy = false
     private var validationSignal: CompletableDeferred<Unit>? = null
     private val sessions = HashMap<String, Session>()
+    private val deletions = com.microsoft.identity.mfa.internal.MfaDeletionController(
+        mutex, { load() }, { commit(it) },
+        { id -> sessions.entries.removeAll { it.value.account.id == id } })
     private val mutableStatus = MutableStateFlow(MfaSdkStatus(MfaEnrollmentStage.IDLE, false, false))
 
     /** Safe enrollment and push-setup status. Restoration occurs on the first suspend operation. */
@@ -180,10 +183,31 @@ class MfaSdkManager internal constructor(
         return mutex.withLock { load().accounts.map { it.display() } }
     }
 
+    /**
+     * Deletes only a stored registration after validated host token acquisition and Graph 204/404.
+     * Approvals remain available during acquisition. Once DELETE is dispatched, cancellation
+     * waits for the bounded request and cleanup; it never rolls back a committed outcome.
+     * A LOCAL_CLEANUP_REQUIRED failure can be retried without reacquisition in this process.
+     */
+    suspend fun deleteRegistration(
+        registrationId: String,
+        provider: MfaDeletionTokenProvider,
+        allowsInteraction: Boolean = false,
+        progress: (MfaDeletionStage) -> Unit = {}
+    ) {
+        enabled()
+        deletions.delete(registrationId, provider, allowsInteraction, progress)
+    }
+
+    /** Removes stale host challenge views after confirmed remote deletion, including cleanup failure. */
+    suspend fun isSessionActive(session: MfaAuthSession): Boolean = mutex.withLock {
+        sessions[session.guid]?.publicValue === session
+    }
+
     /** Performs one explicit pull; absence of work is distinct from a transport/service failure. */
     suspend fun pullPendingNotifications(): List<MfaAuthSession> {
         enabled()
-        val accounts = mutex.withLock { load().accounts }
+        val accounts = mutex.withLock { load().accounts.filterNot { deletions.isRemotelyDeleted(it.id) } }
         val found = ArrayList<MfaAuthSession>()
         for (account in accounts) {
             val endpoint = routedEndpoint(account)
@@ -413,6 +437,7 @@ class MfaSdkManager internal constructor(
             requireMfa(id !in latest.submitted, MfaErrorCode.INVALID_SESSION)
             sessions[id]?.let { return@withLock it.publicValue }
             requireMfa(latest.accounts.any { it.id == account.id }, MfaErrorCode.UNKNOWN_ACCOUNT)
+            requireMfa(!deletions.isRemotelyDeleted(account.id), MfaErrorCode.UNKNOWN_ACCOUNT)
             commit(latest.copy(accounts = latest.accounts.map { if (it.id == account.id) updated else it }))
             sessions[id] = Session(public, updated, endpoint, supported)
             public
@@ -421,6 +446,13 @@ class MfaSdkManager internal constructor(
 
     private suspend fun respond(value: MfaAuthSession, approve: Boolean, number: String): MfaDecision {
         enabled()
+        val accountId = mutex.withLock {
+            sessions[value.guid]?.account?.id ?: fail(MfaErrorCode.INVALID_SESSION)
+        }
+        return deletions.respond(accountId) { respondUnderGate(value, approve, number) }
+    }
+
+    private suspend fun respondUnderGate(value: MfaAuthSession, approve: Boolean, number: String): MfaDecision {
         val session = mutex.withLock {
             val state = load()
             val session = sessions[value.guid] ?: fail(MfaErrorCode.INVALID_SESSION)

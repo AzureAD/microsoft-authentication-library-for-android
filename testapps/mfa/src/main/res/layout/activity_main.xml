@@ -38,6 +38,14 @@
             android:text="@string/no_accounts" android:saveEnabled="false" />
         <Button android:id="@+id/refresh" android:layout_width="match_parent" android:layout_height="wrap_content"
             android:text="@string/refresh" />
+        <TextView android:id="@+id/deletionStatus" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:accessibilityLiveRegion="polite" android:text="@string/deletion_setup" />
+        <CheckBox android:id="@+id/deletionInteractive" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/deletion_allow_interactive" android:checked="true" />
+        <Button android:id="@+id/deleteRegistration" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/deletion_choose" />
+        <Button android:id="@+id/cancelDeletion" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/deletion_cancel" />
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
             android:paddingTop="16dp" android:text="@string/add_title" android:textSize="20sp" android:textStyle="bold" />
         <EditText android:id="@+id/qrInput" android:layout_width="match_parent" android:layout_height="wrap_content"

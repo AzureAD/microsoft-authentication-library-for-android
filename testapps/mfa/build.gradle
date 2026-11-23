@@ -16,6 +16,24 @@ apply plugin: 'kotlin-android'
 
 def policyProfile = project.findProperty('mfaSamplePolicyProfile') ?: 'CONSERVATIVE'
 def liveApplicationId = project.findProperty('mfaSampleApplicationId') ?: 'com.microsoft.identity.mfa.sample.live'
+def oauthConfig = file('src/live/res/raw/auth_config.json')
+def redirectPath = '/unconfigured'
+if (oauthConfig.exists()) {
+    try {
+        def config = new groovy.json.JsonSlurper().parse(oauthConfig)
+        if (config.containsKey('client_secret')) {
+            throw new GradleException('The deletion sample is a public client; remove client_secret before packaging.')
+        }
+        def redirect = new URI(config.redirect_uri as String)
+        if (redirect.scheme == 'msauth' && redirect.host == liveApplicationId) {
+            redirectPath = redirect.path
+        }
+    } catch (GradleException invalidConfiguration) {
+        throw invalidConfiguration
+    } catch (Exception ignored) {
+        // Runtime setup diagnostics keep an unconfigured APK usable for enrollment.
+    }
+}
 if (!(policyProfile in ['CONSERVATIVE', 'AUTHENTICATOR']) ||
         (policyProfile == 'AUTHENTICATOR' && liveApplicationId != 'com.azure.authenticator')) {
     throw new GradleException('MFA policy profile must be CONSERVATIVE, or AUTHENTICATOR with its explicitly authorized application ID.')
@@ -41,6 +59,7 @@ android {
         live {
             dimension 'mode'
             applicationId liveApplicationId
+            manifestPlaceholders = [mfaRedirectHost: liveApplicationId, mfaRedirectPath: redirectPath]
             buildConfigField 'String', 'MFA_POLICY_PROFILE', "\"$policyProfile\""
             resValue 'string', 'app_name', 'MFA PoC - Live'
         }
@@ -64,11 +83,14 @@ androidComponents {
 
 dependencies {
     implementation project(':mfa')
+    implementation project(':msal')
+    implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$rootProject.ext.lifecycleKtxVersion"
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:$rootProject.ext.lifecycleKtxVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.ext.kotlinXCoroutinesVersion"
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$rootProject.ext.kotlinXCoroutinesVersion"
     liveImplementation platform('com.google.firebase:firebase-bom:35.0.2')
     liveImplementation 'com.google.firebase:firebase-messaging'
 }

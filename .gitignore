@@ -27,3 +27,5 @@ integration_tests.properties
 # Local MFA PoC service configuration.
 /testapps/mfa/src/live/google-services.json
 /testapps/mfa/google-services.json
+# Local OAuth registration for the deletion sample; never commit real configuration.
+testapps/mfa/src/live/res/raw/auth_config.json

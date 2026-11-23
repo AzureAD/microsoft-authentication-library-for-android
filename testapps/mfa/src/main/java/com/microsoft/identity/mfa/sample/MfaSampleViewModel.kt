@@ -39,8 +39,21 @@ class MfaSampleViewModel(application: Application) : AndroidViewModel(applicatio
     internal val accounts: StateFlow<List<MfaRegistrationResult>> = mutableAccounts
     private val mutableBusy = app.operationBusy
     internal val busy: StateFlow<Boolean> = mutableBusy
+    internal val deletionBusy: StateFlow<Boolean> = app.deletionBusy
+    internal val deletionStatus: StateFlow<String> = app.deletionStatus
+    internal val deletionRoute: StateFlow<String> = app.deletionRoute
+    internal val deletionProvider get() = app.deletionProvider
 
     init {
+        viewModelScope.launch {
+            deletionBusy.collect { active ->
+                if (!active) {
+                    try { mutableAccounts.value = environment.manager.registeredAuthMethods() }
+                    catch (error: CancellationException) { throw error }
+                    catch (error: Exception) { app.reportFailure(error) }
+                }
+            }
+        }
         viewModelScope.launch {
             try {
                 mutableAccounts.value = environment.manager.registeredAuthMethods()
@@ -65,7 +78,7 @@ class MfaSampleViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    private fun pushRegistrationReady(): Boolean = !busy.value &&
+    private fun pushRegistrationReady(): Boolean = !busy.value && !deletionBusy.value &&
         environment.setup.value == SampleSetup.TOKEN_ACQUIRED &&
         status.value.tokenReady && !status.value.tokenChangeBlocked
 
@@ -182,6 +195,18 @@ class MfaSampleViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     internal fun retrySetup() = app.retrySetup()
+
+    internal fun deleteRegistration(id: String, allowsInteraction: Boolean) =
+        app.deleteRegistration(id, allowsInteraction)
+
+    internal fun cancelDeletion() = app.cancelDeletion()
+
+    internal suspend fun pollDeletionChallenges() {
+        if (!deletionBusy.value || busy.value) return
+        try { app.mergeSessions(environment.manager.pullPendingNotifications()) }
+        catch (error: CancellationException) { throw error }
+        catch (_: Exception) { /* Push delivery and manual refresh remain available. */ }
+    }
 
     private fun operation(block: suspend () -> Unit) {
         if (mutableBusy.value) return

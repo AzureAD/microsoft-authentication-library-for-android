@@ -90,6 +90,21 @@ class MainActivity : AppCompatActivity() {
             model.handoff.clear()
         }
         binding.refresh.setOnClickListener { model.refresh() }
+        binding.deleteRegistration.setOnClickListener {
+            val accounts = model.accounts.value
+            AlertDialog.Builder(this).setTitle(R.string.deletion_choose)
+                .setItems(accounts.map { getString(R.string.deletion_registration_label,
+                    it.accountName.take(160), it.registrationId.takeLast(8)) }.toTypedArray()) { _, index ->
+                    AlertDialog.Builder(this).setTitle(R.string.deletion_confirm)
+                        .setMessage(R.string.deletion_warning)
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .setPositiveButton(R.string.deletion_confirm) { _, _ ->
+                            model.deletionProvider?.attach(this)
+                            model.deleteRegistration(accounts[index].registrationId, binding.deletionInteractive.isChecked)
+                        }.show()
+                }.setNegativeButton(android.R.string.cancel, null).show()
+        }
+        binding.cancelDeletion.setOnClickListener { model.cancelDeletion() }
         binding.retrySetup.setOnClickListener { model.retrySetup() }
         binding.requestPermission.setOnClickListener {
             if (Build.VERSION.SDK_INT >= 33) {
@@ -109,6 +124,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (::model.isInitialized) {
+            model.deletionProvider?.attach(this)
             showPermissionStatus()
             if (model.embeddedPageOpen && embeddedPage == null) {
                 model.handoff.location.value?.let(::openSetup)
@@ -151,6 +167,27 @@ class MainActivity : AppCompatActivity() {
                     model.accounts.collect { accounts ->
                         binding.accounts.text = if (accounts.isEmpty()) getString(R.string.no_accounts)
                         else accounts.joinToString("\n") { it.accountName.take(160) }
+                        updateButtons()
+                    }
+                }
+                launch {
+                    model.deletionStatus.collect {
+                        binding.deletionStatus.text = getString(R.string.deletion_status_format,
+                            it, model.deletionRoute.value)
+                        updateButtons()
+                    }
+                }
+                launch {
+                    model.deletionRoute.collect {
+                        binding.deletionStatus.text = getString(R.string.deletion_status_format,
+                            model.deletionStatus.value, it)
+                    }
+                }
+                launch { model.deletionBusy.collect { updateButtons() } }
+                launch {
+                    while (true) {
+                        model.pollDeletionChallenges()
+                        kotlinx.coroutines.delay(3_000)
                     }
                 }
                 launch { model.sessions.collect { renderSessions(it) } }
@@ -185,6 +222,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateButtons() {
         val available = !model.busy.value
+        binding.deleteRegistration.isEnabled = available && !model.deletionBusy.value &&
+            model.deletionProvider != null && model.accounts.value.isNotEmpty()
+        binding.cancelDeletion.isEnabled = model.deletionBusy.value
+        binding.deletionInteractive.isEnabled = !model.deletionBusy.value
         binding.registerQr.isEnabled = model.registrationReady() && model.handoff.requests.canPrepare()
         binding.registerManual.isEnabled = binding.registerQr.isEnabled
         binding.openEmbeddedSetup.isEnabled = model.pageRegistrationReady() && model.handoff.requests.canPrepare()
@@ -462,6 +503,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        model.deletionProvider?.detach(this)
+        if (isFinishing) model.cancelDeletion()
         portalApproval?.dismiss()
         portalUi.dispose()
         portalPage?.dispose()

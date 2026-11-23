@@ -2,6 +2,14 @@
 <!-- Copyright (c) Microsoft Corporation. All rights reserved.
      Licensed under the MIT License. -->
 <resources>
+    <string name="deletion_setup">DELETION SETUP CHECKING</string>
+    <string name="deletion_allow_interactive">Allow browser interaction if silent acquisition requires it</string>
+    <string name="deletion_choose">Delete registration…</string>
+    <string name="deletion_cancel">Cancel deletion (does not undo a sent DELETE)</string>
+    <string name="deletion_warning">Only delete a throwaway registration you own. First verify another working sign-in method. This permanently removes the remote method; other registrations and sign-in sessions are retained.</string>
+    <string name="deletion_confirm">Delete selected registration</string>
+    <string name="deletion_status_format">%1$s\nAcquisition: %2$s</string>
+    <string name="deletion_registration_label">%1$s — %2$s</string>
     <string name="sample_title">Experimental MFA sample</string>
     <string name="foreground_warning">Foreground PoC only. Keep this app open during enrollment. Push/background completion is not guaranteed; refresh to recover pending sign-ins.</string>
     <string name="retry_setup">Retry push setup</string>

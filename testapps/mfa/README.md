@@ -4,8 +4,11 @@
 
 A dedicated, debug-only Android XML/ViewModel sample for the separate experimental
 `:mfa` library. It demonstrates work/school activation enrollment, restored
-accounts, pending sign-ins, number matching, approval, and denial. It does **not**
-use MSAL OAuth login, a public-client application, or a client ID. The optional
+accounts, pending sign-ins, number matching, approval, denial, and registration deletion.
+Enrollment does **not** use MSAL OAuth login or a client ID. Deletion uses an
+explicitly configured standard MSAL browser public-client application. See
+[deletion setup and exact test steps](TESTING-deletion.md), including deterministic
+error/cancellation tests and live-service limitations. The optional
 real-page demos below let the user sign in normally in Chrome or a separate WebView.
 No MFA API is being added to an already released MSAL binary.
 

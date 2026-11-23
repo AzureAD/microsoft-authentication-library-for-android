@@ -7,12 +7,19 @@ import com.microsoft.identity.mfa.MfaAuthSession
 import com.microsoft.identity.mfa.MfaEnrollmentHandoff
 import com.microsoft.identity.mfa.MfaHandoffIntentAdapter
 import com.microsoft.identity.mfa.MfaSdkException
+import com.microsoft.identity.mfa.MfaDeletionError
+import com.microsoft.identity.mfa.MfaDeletionException
+import com.microsoft.identity.mfa.MfaDeletionStage
 import com.microsoft.identity.mfa.poc.MfaPocDiagnostics
 import com.microsoft.identity.mfa.poc.MfaPocDiagnostics.Event
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -27,6 +34,12 @@ class MfaSampleApplication : Application() {
     private val callbackScope = CoroutineScope(applicationJob + Dispatchers.Main.immediate)
     internal val operationScope = CoroutineScope(applicationJob + Dispatchers.Main.immediate)
     internal val operationBusy = MutableStateFlow(false)
+    internal val deletionBusy = MutableStateFlow(false)
+    internal val deletionStatus = MutableStateFlow("DELETION SETUP CHECKING")
+    internal val deletionRoute = MutableStateFlow("NOT_STARTED")
+    internal var deletionProvider: BrowserDeletionTokenProvider? = null
+        private set
+    private var deletionJob: Job? = null
     internal lateinit var handoff: LiveSetupHandoff
         private set
     internal lateinit var portalHandoff: MfaEnrollmentHandoff
@@ -48,6 +61,55 @@ class MfaSampleApplication : Application() {
         portalIntentAdapter = MfaHandoffIntentAdapter(portalHandoff, "mfa-poc-live://activate")
         environment.prepareNotifications()
         retrySetup()
+        callbackScope.launch {
+            try {
+                val (provider, message) = BrowserDeletionTokenProvider.create(this@MfaSampleApplication)
+                deletionProvider = provider
+                deletionStatus.value = message
+            } catch (_: Exception) {
+                deletionStatus.value = "DELETION SETUP REQUIRED: unable to read local OAuth configuration."
+            }
+        }
+    }
+
+    internal fun deleteRegistration(id: String, allowsInteraction: Boolean) {
+        val provider = deletionProvider ?: return
+        if (deletionBusy.value || operationBusy.value) return
+        deletionBusy.value = true
+        deletionStatus.value = "ACQUIRING_TOKEN"
+        var committed = false
+        deletionRoute.value = "NOT_STARTED"
+        provider.checkpoint = { deletionRoute.value = it }
+        deletionJob = operationScope.launch {
+            try {
+                withTimeout(300_000) {
+                    environment.manager.deleteRegistration(id, provider, allowsInteraction) { stage ->
+                        if (stage == MfaDeletionStage.SUCCEEDED || stage == MfaDeletionStage.LOCAL_CLEANUP_REQUIRED) {
+                            committed = true
+                        }
+                        deletionStatus.value = stage.name
+                    }
+                }
+            } catch (_: CancellationException) {
+                if (!committed) deletionStatus.value =
+                    "CANCELLED — local registration retained; if DELETE was sent, verify remote state before retry."
+            } catch (error: MfaDeletionException) {
+                deletionStatus.value = error.code.name + (error.httpStatus?.let { " (HTTP $it)" } ?: "")
+            } catch (_: Exception) {
+                if (!committed) deletionStatus.value = "DELETE_FAILED — registration retained."
+            } finally {
+                withContext(NonCancellable) {
+                    mutableSessions.value = mutableSessions.value.filter {
+                        environment.manager.isSessionActive(it)
+                    }
+                }
+                deletionBusy.value = false
+            }
+        }
+    }
+
+    internal fun cancelDeletion() {
+        deletionJob?.cancel()
     }
 
     internal fun retrySetup() = callback {
