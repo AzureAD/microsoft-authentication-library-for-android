@@ -23,6 +23,13 @@ import org.mockito.Mockito.verifyNoInteractions
 
 class MfaPublicApiTest {
     @Test
+    fun `UI and service callers get the same manager`() {
+        val uiContext = mock(android.app.Activity::class.java)
+        val serviceContext = mock(android.app.Service::class.java)
+        assertSame(MfaSdkManager.getInstance(uiContext), MfaSdkManager.getInstance(serviceContext))
+    }
+
+    @Test
     fun `manager API does not expose kotlinx coroutine types`() {
         for (method in MfaSdkManager::class.java.methods) {
             val signatureTypes = method.parameterTypes.toList() + method.returnType
@@ -87,7 +94,7 @@ class MfaPublicApiTest {
     @Test
     fun `review operations fail without initializing Android`() = runBlocking {
         val context = mock(Context::class.java)
-        val manager = MfaSdkManager.create(context)
+        val manager = MfaSdkManager.getInstance(context)
         val correlationIds = mutableSetOf<String>()
 
         for ((name, operation) in operations(manager)) {
@@ -124,7 +131,7 @@ class MfaPublicApiTest {
 
     @Test
     fun `cancelled operations preserve cancellation instead of reporting an SDK error`() {
-        val manager = MfaSdkManager.create(mock(Context::class.java))
+        val manager = MfaSdkManager.getInstance(mock(Context::class.java))
         for ((name, operation) in operations(manager)) {
             val cancellation = CancellationException("Host cancellation")
             val job = Job().apply { cancel(cancellation) }

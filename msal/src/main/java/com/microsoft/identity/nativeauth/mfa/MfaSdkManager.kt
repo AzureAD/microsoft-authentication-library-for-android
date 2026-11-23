@@ -18,7 +18,7 @@ import kotlinx.coroutines.ensureActive
  *
  * SDK-originated errors use the same five classifiers across operations. Cancellation remains
  * separate; neither failure nor cancellation implies rollback or permission to replay a mutation.
- * Retain one manager for enrollment, push callbacks and session operations.
+ * Use [getInstance] from both UI and push-service components in the same process.
  */
 @Suppress("UNUSED_PARAMETER")
 class MfaSdkManager private constructor() {
@@ -158,11 +158,15 @@ class MfaSdkManager private constructor() {
 
     /** Factory for the hosting application's manager. */
     companion object {
+        private val instance = MfaSdkManager()
+
         /**
-         * Creates an API-review manager without initializing services or retaining [context].
-         * @param context Hosting Android application context; unused by this review stub.
+         * Returns the same manager to all callers in the current app process, including concurrent
+         * callers. Separate processes do not share it, and process death discards in-memory state.
+         * @param context Any host app context, including an Activity or Service. This API-review
+         * stub retains no context and initializes no services.
          */
         @JvmStatic
-        fun create(context: Context): MfaSdkManager = MfaSdkManager()
+        fun getInstance(context: Context): MfaSdkManager = instance
     }
 }
