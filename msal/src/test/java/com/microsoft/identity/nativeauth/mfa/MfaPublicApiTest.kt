@@ -23,10 +23,18 @@ import org.mockito.Mockito.verifyNoInteractions
 
 class MfaPublicApiTest {
     @Test
+    fun `manager API does not expose kotlinx coroutine types`() {
+        for (method in MfaSdkManager::class.java.methods) {
+            val signatureTypes = method.parameterTypes.toList() + method.returnType
+            assertFalse("$method exposes a coroutine implementation type",
+                signatureTypes.any { it.name.startsWith("kotlinx.coroutines.") })
+        }
+    }
+
+    @Test
     fun `public value models do not expose generated copy or destructuring methods`() {
         for (type in listOf(
             MfaRegistrationResult::class.java,
-            MfaSdkStatus::class.java,
             MfaAction.Approve::class.java
         )) {
             val generatedMethods = type.declaredMethods.map { it.name }.filter {
@@ -46,13 +54,6 @@ class MfaPublicApiTest {
                 MfaRegistrationResult("registration", "Other", "user"),
                 MfaRegistrationResult("registration", "Account", "other")
             ),
-            listOf(
-                MfaSdkStatus(MfaEnrollmentStage.IDLE, false, false),
-                MfaSdkStatus(MfaEnrollmentStage.IDLE, false, false),
-                MfaSdkStatus(MfaEnrollmentStage.ACTIVATING, false, false),
-                MfaSdkStatus(MfaEnrollmentStage.IDLE, true, false),
-                MfaSdkStatus(MfaEnrollmentStage.IDLE, false, true)
-            ),
             listOf(MfaAction.Approve(), MfaAction.Approve(null), MfaAction.Approve("42")),
             listOf(MfaAction.Approve("42"), MfaAction.Approve("42"), MfaAction.Approve("24"))
         )
@@ -71,10 +72,9 @@ class MfaPublicApiTest {
     }
 
     @Test
-    fun `review operations fail without initializing Android or changing status`() = runBlocking {
+    fun `review operations fail without initializing Android`() = runBlocking {
         val context = mock(Context::class.java)
         val manager = MfaSdkManager.create(context)
-        val initialStatus = manager.status.value
         val correlationIds = mutableSetOf<String>()
 
         for ((name, operation) in operations(manager)) {
@@ -87,7 +87,6 @@ class MfaPublicApiTest {
             assertNull(error.cause)
             assertEquals(error.correlationId, UUID.fromString(error.correlationId).toString())
             assertTrue("$name must get a new operation ID", correlationIds.add(error.correlationId))
-            assertEquals("$name must leave status untouched", initialStatus, manager.status.value)
         }
 
         verifyNoInteractions(context)

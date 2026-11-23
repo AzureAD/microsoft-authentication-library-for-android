@@ -7,9 +7,6 @@ import android.content.Context
 import java.util.UUID
 import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * Proposed API for registering MFA accounts and responding to sign-in requests.
@@ -25,13 +22,6 @@ import kotlinx.coroutines.flow.asStateFlow
  */
 @Suppress("UNUSED_PARAMETER")
 class MfaSdkManager private constructor() {
-    /**
-     * Read-only setup status. This review stub remains IDLE with both flags false, even after calls.
-     * It does not read stored registrations or report real enrollment/push-token readiness.
-     */
-    val status: StateFlow<MfaSdkStatus> =
-        MutableStateFlow(MfaSdkStatus(MfaEnrollmentStage.IDLE, false, false)).asStateFlow()
-
     /**
      * Supplies the current raw FCM token without requesting notification permission or enrolling.
      *

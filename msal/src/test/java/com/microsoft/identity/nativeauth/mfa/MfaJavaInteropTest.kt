@@ -7,7 +7,6 @@ import android.content.Context
 import java.io.File
 import java.net.URLClassLoader
 import java.util.concurrent.TimeUnit
-import kotlinx.coroutines.flow.StateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -71,7 +70,7 @@ class MfaJavaInteropTest {
                     }
                 }
             """.trimIndent())
-        val classpath = listOf(MfaSdkManager::class.java, Unit::class.java, Context::class.java, StateFlow::class.java)
+        val classpath = listOf(MfaSdkManager::class.java, Unit::class.java, Context::class.java)
             .map { File(it.protectionDomain.codeSource.location.toURI()).path }
             .joinToString(File.pathSeparator)
         val compilerName = if (System.getProperty("os.name").startsWith("Windows")) "javac.exe" else "javac"
