@@ -16,7 +16,7 @@ fun interface MfaOperation {
     /**
      * Requests cooperative cancellation. Thread-safe, idempotent and non-blocking.
      *
-     * Cancellation does not undo remote mutations or guarantee that provider UI closes. Required
+     * Cancellation does not undo remote mutations. Required
      * consistency cleanup finishes before cancellation is reported; a cleanup timeout is not success
      * and must retain recovery state. This API-only draft has no remote mutations or cleanup.
      *

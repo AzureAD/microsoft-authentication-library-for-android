@@ -4,23 +4,11 @@
 package com.microsoft.identity.nativeauth.mfa
 
 import android.content.Context
-import com.microsoft.identity.client.tokenprovider.CallbackTokenProvider
-import com.microsoft.identity.client.tokenprovider.TokenProviderParameters
-import com.microsoft.identity.client.tokenprovider.TokenProviderResult
-import com.microsoft.identity.client.tokenprovider.adaptTokenProvider
 import java.io.File
 import java.net.URLClassLoader
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicReference
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.runCurrent
-import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -31,26 +19,16 @@ class MfaJavaInteropTest {
     @get:Rule
     val temporaryFolder = TemporaryFolder()
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `Java consumer invokes all seven APIs without Continuation or Kotlin Unit`() {
+    fun `Java consumer invokes all six APIs without Continuation or Kotlin Unit`() {
         val source = temporaryFolder.newFile("JavaMfaConsumer.java")
         source.writeText("""
                 import com.microsoft.identity.nativeauth.mfa.*;
-                import com.microsoft.identity.client.tokenprovider.*;
                 import java.util.*;
                 import java.util.concurrent.*;
                 import java.util.concurrent.atomic.*;
 
                 public class JavaMfaConsumer {
-                    public static CallbackTokenProvider providerWithoutCancellation(
-                            AtomicReference<CallbackTokenProvider.Callback> completion) {
-                        return (parameters, callback) -> {
-                            completion.set(callback);
-                            return null;
-                        };
-                    }
-
                     private static <T> MfaCallback<T> callback(Thread caller, CountDownLatch completed,
                             AtomicReference<Throwable> failure, AtomicInteger calls) {
                         return new MfaCallback<T>() {
@@ -70,14 +48,9 @@ class MfaJavaInteropTest {
 
                     public static void exercise(MfaSdkManager manager, MfaAuthSession session) throws Exception {
                         Thread caller = Thread.currentThread();
-                        CountDownLatch completed = new CountDownLatch(7);
+                        CountDownLatch completed = new CountDownLatch(6);
                         AtomicReference<Throwable> failure = new AtomicReference<>();
                         AtomicInteger calls = new AtomicInteger();
-                        TokenProviderParameters parameters = new TokenProviderParameters(
-                            "https://example.invalid/tenant", Collections.singletonList("scope"));
-                        TokenProvider provider = TokenProvider.from((request, completion) -> {
-                            throw new AssertionError("Stub must not acquire tokens");
-                        });
                         MfaCallback<Void> noResult = callback(caller, completed, failure, calls);
                         MfaCallback<List<MfaAuthSession>> sessions = callback(caller, completed, failure, calls);
                         MfaCallback<List<MfaRegistrationResult>> registrations =
@@ -91,11 +64,10 @@ class MfaJavaInteropTest {
                         manager.pullPendingNotifications(sessions);
                         manager.respond(session, new MfaAction.Approve(),
                             callback(caller, completed, failure, calls));
-                        manager.deleteAuthMethod("registration", provider, noResult);
                         if (!completed.await(5, TimeUnit.SECONDS)) throw new AssertionError("Missing callback");
                         operation.cancel();
                         if (failure.get() != null) throw new AssertionError(failure.get());
-                        if (calls.get() != 7) throw new AssertionError("Duplicate completion");
+                        if (calls.get() != 6) throw new AssertionError("Duplicate completion");
                     }
                 }
             """.trimIndent())
@@ -119,24 +91,6 @@ class MfaJavaInteropTest {
                 .getMethod("exercise", MfaSdkManager::class.java, MfaAuthSession::class.java)
                 .invoke(null, MfaSdkManager.create(mock(Context::class.java)),
                     MfaAuthSession.create("session", "registration", "Account", "user", false))
-            runTest {
-                val completion = AtomicReference<CallbackTokenProvider.Callback>()
-                val javaProvider = loader.loadClass("JavaMfaConsumer")
-                    .getMethod("providerWithoutCancellation", AtomicReference::class.java)
-                    .invoke(null, completion) as CallbackTokenProvider
-                val provider = adaptTokenProvider(javaProvider, StandardTestDispatcher(testScheduler))
-                val waiting = async {
-                    provider.getAccessToken(TokenProviderParameters("https://example.invalid", listOf("scope")))
-                }
-                runCurrent()
-                assertFalse(waiting.isCompleted)
-                val result = TokenProviderResult(
-                    "token", null, listOf("scope"), "tenant", "object",
-                    "https://example.invalid", "Bearer"
-                )
-                completion.get().onSuccess(result)
-                assertSame(result, waiting.await())
-            }
         }
     }
 }

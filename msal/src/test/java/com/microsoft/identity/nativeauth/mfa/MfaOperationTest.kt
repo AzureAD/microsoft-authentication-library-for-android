@@ -75,11 +75,10 @@ class MfaOperationTest {
     }
 
     @Test
-    fun `SDK provider and provider cancellation failures retain identity`() {
+    fun `SDK and coroutine cancellation failures retain identity`() {
         val failures = listOf(
             MfaSdkException.create(MfaErrorType.GENERAL_ERROR, "SDK failure", "correlation"),
-            Exception("Host failure"),
-            CancellationException("Provider sign-in dismissed")
+            CancellationException("Operation cancelled")
         )
         for (failure in failures) {
             outcomes.clear()

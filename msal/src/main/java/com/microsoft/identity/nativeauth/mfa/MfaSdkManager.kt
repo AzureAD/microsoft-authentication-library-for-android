@@ -4,7 +4,6 @@
 package com.microsoft.identity.nativeauth.mfa
 
 import android.content.Context
-import com.microsoft.identity.client.tokenprovider.TokenProvider
 import java.util.UUID
 import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.ensureActive
@@ -15,15 +14,13 @@ import kotlinx.coroutines.flow.asStateFlow
 /**
  * Proposed API for registering MFA accounts and responding to sign-in requests.
  *
- * API review only: all seven operations throw [MfaSdkException] with
+ * API review only: all six operations throw [MfaSdkException] with
  * [MfaSdkException.isGeneralError] and "MFA API is not implemented." An already-cancelled coroutine
  * instead propagates its cancellation unchanged. No networking, storage, parsing, push handling,
  * token acquisition or UI is implemented. Method documentation describes the intended contract.
  *
- * SDK-originated errors use the same six classifiers across operations. Cancellation remains
+ * SDK-originated errors use the same five classifiers across operations. Cancellation remains
  * separate; neither failure nor cancellation implies rollback or permission to replay a mutation.
- * Token-provider errors are host-owned and propagate unchanged in the intended contract;
- * this review stub never invokes a provider.
  * Retain one manager for enrollment, push callbacks and session operations.
  */
 @Suppress("UNUSED_PARAMETER")
@@ -129,40 +126,6 @@ class MfaSdkManager private constructor() {
      */
     suspend fun respond(session: MfaAuthSession, action: MfaAction): MfaDecision = notImplemented()
 
-    /**
-     * Deletes a registered authentication method through Microsoft Graph and then cleans up locally.
-     *
-     * Intended behavior: support commercial-cloud registrations. Ask [tokenProvider] for a delegated
-     * Graph token with UserAuthenticationMethod.ReadWrite and essential ngcmfa claims for the stored
-     * account and authority; Graph enforces recent strong authentication. The provider owns native
-     * or browser-based acquisition, UI dispatch and fallback. If acquisition throws, propagate that
-     * exact error without wrapping, classification or logging, and do not send a Graph DELETE.
-     *
-     * Validate the successfully returned tenant/object identity, authority host, expiry, Bearer
-     * scheme and Graph permission before deletion. A login hint is not identity proof. SDK-detected
-     * identity mismatch uses [MfaSdkException.isUserSignedInWithMismatchedAccount]; other invalid
-     * returned data uses [MfaSdkException.isGeneralError]. Do not decode or store the access token.
-     *
-     * Only HTTP 204 or 404 permits removal of local registration/credentials and invalidation of
-     * associated sessions. Other responses throw and retain local data. Transport failure or
-     * cancellation may leave the remote outcome unknown; a caller-initiated retry can reconcile a
-     * remotely deleted method through 404. There is no automatic retry or local-only removal.
-     * After confirmed remote success, keep sessions invalidated and finish cleanup despite
-     * cancellation. If local persistence fails, a retry on the same manager finishes pending cleanup
-     * without another token acquisition or Graph request.
-     *
-     * Retrieval and decisions remain available while token acquisition is pending. A target decision
-     * still submitting prevents deletion; once DELETE is submitted, block decisions for that
-     * registration until deletion finishes. Reject conflicting enrollment, token reconciliation or
-     * deletion without automatic retry. Preserve other registrations, push-token state, replay records
-     * and the host's OAuth cache.
-     * @param registrationId Identifier returned by enrollment or local listing, not a user/app ID.
-     * @param tokenProvider Reusable feature-neutral provider; never invoked by this review stub.
-     * @throws MfaSdkException Always a general not-implemented error in this review stub.
-     */
-    suspend fun deleteAuthMethod(registrationId: String, tokenProvider: TokenProvider): Unit =
-        notImplemented()
-
     /** Java variant of [updatePushRegistration]; completion follows [MfaCallback]'s background contract. */
     fun updatePushRegistration(deviceToken: String, callback: MfaCallback<Void?>): MfaOperation =
         launchMfaOperation(callback) { updatePushRegistration(deviceToken); null }
@@ -193,16 +156,6 @@ class MfaSdkManager private constructor() {
         action: MfaAction,
         callback: MfaCallback<MfaDecision>
     ): MfaOperation = launchMfaOperation(callback) { respond(session, action) }
-
-    /**
-     * Java variant of [deleteAuthMethod]; delegates to the same suspend operation.
-     * Java hosts construct [tokenProvider] with [TokenProvider.from], without implementing Continuation.
-     */
-    fun deleteAuthMethod(
-        registrationId: String,
-        tokenProvider: TokenProvider,
-        callback: MfaCallback<Void?>
-    ): MfaOperation = launchMfaOperation(callback) { deleteAuthMethod(registrationId, tokenProvider); null }
 
     private suspend fun notImplemented(): Nothing {
         coroutineContext.ensureActive()

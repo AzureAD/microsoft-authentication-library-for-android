@@ -10,8 +10,6 @@ package com.microsoft.identity.nativeauth.mfa
  * codes. Recovery does not automatically authorize replay; failure or cancellation does not prove
  * rollback. Coroutine cancellation propagates separately and unchanged.
  *
- * Provider-owned errors, where applicable, propagate unchanged without SDK wrapping, classification
- * or logging. The host handles those errors around the consuming call, such as deleteAuthMethod.
  * SDK errors never embed raw underlying errors, responses, claims, notification payloads or credentials.
  *
  * @property errorMessage Optional bounded, sanitized SDK-controlled diagnostic, also exposed as
@@ -50,17 +48,9 @@ class MfaSdkException private constructor(
     fun isInvalidCode(): Boolean = type == MfaErrorType.INVALID_CODE
 
     /**
-     * The SDK detects a mismatched identity in a successfully returned token-provider result.
-     * Request sign-in with the expected registered account. Provider-thrown mismatches propagate
-     * unchanged; internal notification/account-association failures are general errors.
-     */
-    fun isUserSignedInWithMismatchedAccount(): Boolean =
-        type == MfaErrorType.USER_SIGNED_IN_WITH_MISMATCHED_ACCOUNT
-
-    /**
      * No supported application recovery is established. End the operation and record safe diagnostics.
      * Includes protocol, storage, configuration, busy/partial-write and uncertain-outcome failures,
-     * unclassified service errors and invalid returned provider data, but not provider-thrown errors.
+     * unclassified service errors and internal notification/account-association failures.
      * Do not automatically retry; this classification does not establish permanent failure.
      */
     fun isGeneralError(): Boolean = type == MfaErrorType.GENERAL_ERROR
@@ -80,6 +70,5 @@ internal enum class MfaErrorType {
     REGISTRATION_NOT_FOUND,
     INVALID_CHALLENGE,
     INVALID_CODE,
-    USER_SIGNED_IN_WITH_MISMATCHED_ACCOUNT,
     GENERAL_ERROR
 }

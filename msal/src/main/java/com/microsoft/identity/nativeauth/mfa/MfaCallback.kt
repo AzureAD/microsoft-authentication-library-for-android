@@ -10,10 +10,9 @@ package com.microsoft.identity.nativeauth.mfa
  * initiating stack. No specific worker thread or ordering across operations is promised. Move UI
  * updates to the main thread. Process termination and fatal runtime errors are outside this guarantee.
  *
- * SDK failures use [MfaSdkException]; provider failures retain their original exception object.
+ * SDK failures use [MfaSdkException].
  * Cancellation through [MfaOperation.cancel] reports a [java.util.concurrent.CancellationException].
- * A provider's own sign-in cancellation instead retains its original exception when it wins
- * completion. Exceptions thrown by application callbacks are not caught and sent to [onError].
+ * Exceptions thrown by application callbacks are not caught and sent to [onError].
  */
 interface MfaCallback<T> {
     /** Receives the result, or null for operations with no result (`MfaCallback<Void>` in Java). */
