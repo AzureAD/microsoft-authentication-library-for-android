@@ -59,9 +59,13 @@ public final class MsalClientException extends MsalException {
      * does not exactly match explicit {@code target-*} properties requested for
      * {@code id_token.xms_agvs}. Target identity comparison ignores case, order and outcome sign;
      * a sign is still required on every receipt entry. This check does not authorize API access
-     * or interpret age-assurance status, and access-token-only targets do not activate it.
-     * A matching negative entry is a valid receipt, not adult authorization. Missing or invalid
-     * receipts are rejected even when the returned age-assurance status is unknown (TU0).
+     * or interpret age-assurance status. Access-token-only targets do not add expected ID-token
+     * targets. Without explicit ID-token targets, an absent ID token is allowed; a present token
+     * must have no receipt, an empty string receipt, or exactly one signed "all" identity.
+     * JSON null, wrong types, duplicates, named targets and malformed receipts are rejected.
+     * Explicit "target-all" still requires a signed "all" receipt, not an empty or absent receipt.
+     * A matching negative entry is a valid receipt, not adult authorization. These rules also
+     * apply when the returned age-assurance status is unknown (TU0).
      * A mismatched cached ID token fails closed; this error does not trigger automatic token
      * reacquisition or bypass validation. Recovery and broker compatibility require SDK-owner
      * approval before rollout. This check does not partition the ID-token or refresh-token cache.
