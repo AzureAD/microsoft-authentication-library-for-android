@@ -29,8 +29,25 @@ enum class MfaEnrollmentStage {
  * @property tokenReady Whether a push token is available for enrollment.
  * @property tokenChangeBlocked Whether a push-token change is currently blocked.
  */
-data class MfaSdkStatus(
+class MfaSdkStatus(
     val enrollmentStage: MfaEnrollmentStage,
     val tokenReady: Boolean,
     val tokenChangeBlocked: Boolean
-)
+) {
+    override fun equals(other: Any?): Boolean =
+        other is MfaSdkStatus &&
+            enrollmentStage == other.enrollmentStage &&
+            tokenReady == other.tokenReady &&
+            tokenChangeBlocked == other.tokenChangeBlocked
+
+    override fun hashCode(): Int {
+        var result = enrollmentStage.hashCode()
+        result = 31 * result + tokenReady.hashCode()
+        result = 31 * result + tokenChangeBlocked.hashCode()
+        return result
+    }
+
+    override fun toString(): String =
+        "MfaSdkStatus(enrollmentStage=$enrollmentStage, tokenReady=$tokenReady, " +
+            "tokenChangeBlocked=$tokenChangeBlocked)"
+}

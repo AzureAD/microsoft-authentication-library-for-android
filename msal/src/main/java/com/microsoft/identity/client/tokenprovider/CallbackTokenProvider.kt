@@ -16,16 +16,20 @@ import kotlinx.coroutines.withContext
  *
  * The SDK invokes this provider on a background dispatcher. Move interactive UI work to the main
  * thread and honor [TokenProviderParameters.allowsInteraction]. Return promptly with a cancellation
- * handle; complete on any thread, including synchronously. The adapter resumes SDK work on its
- * background dispatcher and ignores duplicate or late completions after cancellation.
+ * handle, or null if acquisition cannot be cancelled; complete on any thread, including synchronously.
+ * The adapter resumes SDK work on its background dispatcher and ignores duplicate or late completions
+ * after cancellation.
  */
 fun interface CallbackTokenProvider {
     /**
      * Acquires a token under the same requirements as [TokenProvider.getAccessToken].
      * Thrown exceptions and [Callback.onError] preserve exception identity. Never log token data.
+     * @return A best-effort cancellation handle, or null when cancellation is unsupported.
+     * A null handle does not complete acquisition; the provider must still invoke [Callback].
+     * SDK cancellation ignores subsequent callbacks even when there is no handle.
      */
     @Throws(Exception::class)
-    fun getAccessToken(parameters: TokenProviderParameters, callback: Callback): Cancellation
+    fun getAccessToken(parameters: TokenProviderParameters, callback: Callback): Cancellation?
 
     /** Terminal result of host-owned acquisition; the first completion wins. */
     interface Callback {
@@ -74,7 +78,7 @@ internal fun adaptTokenProvider(
                     try {
                         val returned = provider.getAccessToken(parameters, callback)
                         // Cancellation may precede publication of the provider's handle.
-                        if (!handle.compareAndSet(null, returned)) returned.cancel()
+                        if (!handle.compareAndSet(null, returned)) returned?.cancel()
                     } catch (exception: Exception) {
                         callback.onError(exception)
                     }

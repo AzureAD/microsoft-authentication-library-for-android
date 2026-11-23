@@ -14,6 +14,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
@@ -22,6 +23,54 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.verifyNoInteractions
 
 class MfaPublicApiTest {
+    @Test
+    fun `public value models do not expose generated copy or destructuring methods`() {
+        for (type in listOf(
+            MfaRegistrationResult::class.java,
+            MfaSdkStatus::class.java,
+            MfaAction.Approve::class.java
+        )) {
+            val generatedMethods = type.declaredMethods.map { it.name }.filter {
+                it == "copy" || it == "copy\$default" || it.matches(Regex("component\\d+"))
+            }
+            assertTrue("${type.simpleName} exposes $generatedMethods", generatedMethods.isEmpty())
+        }
+    }
+
+    @Test
+    fun `public value models compare every field and retain value hashing`() {
+        val cases = listOf(
+            listOf(
+                MfaRegistrationResult("registration", "Account", "user"),
+                MfaRegistrationResult("registration", "Account", "user"),
+                MfaRegistrationResult("other", "Account", "user"),
+                MfaRegistrationResult("registration", "Other", "user"),
+                MfaRegistrationResult("registration", "Account", "other")
+            ),
+            listOf(
+                MfaSdkStatus(MfaEnrollmentStage.IDLE, false, false),
+                MfaSdkStatus(MfaEnrollmentStage.IDLE, false, false),
+                MfaSdkStatus(MfaEnrollmentStage.ACTIVATING, false, false),
+                MfaSdkStatus(MfaEnrollmentStage.IDLE, true, false),
+                MfaSdkStatus(MfaEnrollmentStage.IDLE, false, true)
+            ),
+            listOf(MfaAction.Approve(), MfaAction.Approve(null), MfaAction.Approve("42")),
+            listOf(MfaAction.Approve("42"), MfaAction.Approve("42"), MfaAction.Approve("24"))
+        )
+        for (values in cases) {
+            val original = values[0]
+            val equivalent = values[1]
+            assertEquals(original, original)
+            assertEquals(original, equivalent)
+            assertEquals(equivalent, original)
+            assertEquals(original.hashCode(), equivalent.hashCode())
+            assertTrue(hashSetOf(original).contains(equivalent))
+            assertNotEquals(original, null)
+            assertNotEquals(original, Any())
+            values.drop(2).forEach { assertNotEquals(original, it) }
+        }
+    }
+
     @Test
     fun `review operations fail without initializing Android or changing status`() = runBlocking {
         val context = mock(Context::class.java)

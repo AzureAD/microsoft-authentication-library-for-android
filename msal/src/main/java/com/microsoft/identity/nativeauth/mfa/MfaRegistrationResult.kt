@@ -14,11 +14,24 @@ package com.microsoft.identity.nativeauth.mfa
  * @property username Full username stored with the registration, available for enrollment results
  * and local account listing even when no authentication session exists. Do not log it.
  */
-data class MfaRegistrationResult(
+class MfaRegistrationResult(
     val registrationId: String,
     val accountName: String,
     val username: String
 ) {
+    override fun equals(other: Any?): Boolean =
+        other is MfaRegistrationResult &&
+            registrationId == other.registrationId &&
+            accountName == other.accountName &&
+            username == other.username
+
+    override fun hashCode(): Int {
+        var result = registrationId.hashCode()
+        result = 31 * result + accountName.hashCode()
+        result = 31 * result + username.hashCode()
+        return result
+    }
+
     /** Omits registration identifiers and account information. */
     override fun toString(): String = "MfaRegistrationResult(<redacted>)"
 }

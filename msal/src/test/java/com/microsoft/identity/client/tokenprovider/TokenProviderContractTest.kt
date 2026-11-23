@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
@@ -25,6 +26,50 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TokenProviderContractTest {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `provider without cancellation handle completes asynchronously`() = runTest {
+        lateinit var completion: CallbackTokenProvider.Callback
+        val provider = adaptTokenProvider(CallbackTokenProvider { _, callback ->
+            completion = callback
+            null
+        }, StandardTestDispatcher(testScheduler))
+        val waiting = async { provider.getAccessToken(parameters()) }
+        runCurrent()
+        assertFalse(waiting.isCompleted)
+        val result = tokenResult()
+        completion.onSuccess(result)
+        completion.onError(Exception("Late error"))
+        completion.onSuccess(tokenResult())
+        assertSame(result, waiting.await())
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `provider without cancellation handle ignores callbacks after cancellation during or after startup`() = runTest {
+        for (cancelDuringStartup in listOf(true, false)) {
+            lateinit var completion: CallbackTokenProvider.Callback
+            lateinit var waiting: Deferred<TokenProviderResult>
+            var resumed = false
+            val provider = adaptTokenProvider(CallbackTokenProvider { _, callback ->
+                completion = callback
+                if (cancelDuringStartup) waiting.cancel()
+                null
+            }, StandardTestDispatcher(testScheduler))
+            waiting = async {
+                provider.getAccessToken(parameters()).also { resumed = true }
+            }
+            runCurrent()
+            waiting.cancel()
+            runCurrent()
+            completion.onSuccess(tokenResult())
+            completion.onError(Exception("Late error"))
+            runCurrent()
+            assertTrue(waiting.isCancelled)
+            assertFalse(resumed)
+        }
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `cancellation reaches a published provider handle and late callbacks cannot resume SDK work`() = runTest {
@@ -73,7 +118,7 @@ class TokenProviderContractTest {
                 val provider = TokenProvider.from { _, callback ->
                     if (throwsDirectly) throw error
                     callback.onError(error)
-                    CallbackTokenProvider.Cancellation { }
+                    null
                 }
                 assertSame(error, runCatching { provider.getAccessToken(parameters()) }.exceptionOrNull())
             }

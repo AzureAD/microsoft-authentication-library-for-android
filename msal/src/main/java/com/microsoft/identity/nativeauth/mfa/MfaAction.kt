@@ -10,7 +10,11 @@ sealed class MfaAction {
      * @property number User-entered matching number, or null only for permitted ordinary approval.
      * Missing or malformed required input must not downgrade number matching. Never log this value.
      */
-    data class Approve @JvmOverloads constructor(val number: String? = null) : MfaAction() {
+    class Approve @JvmOverloads constructor(val number: String? = null) : MfaAction() {
+        override fun equals(other: Any?): Boolean = other is Approve && number == other.number
+
+        override fun hashCode(): Int = number?.hashCode() ?: 0
+
         /** Omits the entered matching number. */
         override fun toString(): String = "Approve(<redacted>)"
     }
