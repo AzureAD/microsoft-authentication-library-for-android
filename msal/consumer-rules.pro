@@ -52,3 +52,6 @@
 -keepclassmembers class * {
   @com.google.gson.annotations.SerializedName <fields>;
 }
+# MFA's encrypted state uses explicitly named Gson fields, never public models.
+-keep class com.microsoft.identity.nativeauth.mfa.internal.MfaStoredState { *; }
+-keep class com.microsoft.identity.nativeauth.mfa.internal.MfaStoredState$* { *; }

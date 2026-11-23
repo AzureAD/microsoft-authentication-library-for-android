@@ -289,6 +289,9 @@ dependencies {
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
     implementation "androidx.browser:browser:$rootProject.ext.browserVersion"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
+    implementation "com.squareup.okhttp3:okhttp:$rootProject.ext.okhttp3Version"
+    testImplementation "com.squareup.okhttp3:mockwebserver:$rootProject.ext.okhttp3Version"
+    implementation "com.google.protobuf:protobuf-javalite:3.25.5"
     implementation ("com.nimbusds:nimbus-jose-jwt:$rootProject.ext.nimbusVersion") {
         exclude module: 'asm'
     }
