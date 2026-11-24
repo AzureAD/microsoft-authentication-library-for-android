@@ -51,6 +51,11 @@ class RequestClaimAdditionalInformationSerializer implements JsonSerializer<Requ
             info.add(RequestedClaimAdditionalInformation.SerializedNames.VALUES, valuesArray);
         }
 
+        if (src.getAdditionalProperties() != null) {
+            info.add(RequestedClaimAdditionalInformation.SerializedNames.ADDITIONAL_PROPERTIES,
+                    context.serialize(src.getAdditionalProperties()));
+        }
+
         return info;
     }
 }
