@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+@file:OptIn(ExperimentalMfaApi::class)
+
 package com.microsoft.identity.nativeauth.mfa
 
 import java.util.ArrayDeque

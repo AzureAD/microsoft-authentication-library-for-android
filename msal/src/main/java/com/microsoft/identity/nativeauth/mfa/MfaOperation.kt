@@ -13,7 +13,13 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/** Java cancellation control for one callback-based MFA operation, without exposing a coroutine Job. */
+/**
+ * Java cancellation control for one callback-based MFA operation, without exposing a coroutine Job.
+ *
+ * Warning: This API is experimental. It may be changed in the future without notice.
+ * Do not use in production applications.
+ */
+@ExperimentalMfaApi
 fun interface MfaOperation {
     /**
      * Requests cooperative cancellation. Thread-safe, idempotent and non-blocking.

@@ -15,7 +15,11 @@ package com.microsoft.identity.nativeauth.mfa
  * when the operation cooperates by throwing it. A returned success or non-cancellation failure,
  * including a cleanup failure, is not replaced by a cancellation request.
  * Exceptions thrown by application callbacks are not caught and sent to [onError].
+ *
+ * Warning: This API is experimental. It may be changed in the future without notice.
+ * Do not use in production applications.
  */
+@ExperimentalMfaApi
 interface MfaCallback<T> {
     /** Receives the result, or null for operations with no result (`MfaCallback<Void>` in Java). */
     fun onSuccess(result: T)

@@ -19,8 +19,12 @@ import kotlinx.coroutines.ensureActive
  * SDK-originated errors use the same five classifiers across operations. Cancellation remains
  * separate; neither failure nor cancellation implies rollback or permission to replay a mutation.
  * Use [getInstance] from both UI and push-service components in the same process.
+ *
+ * Warning: This API is experimental. It may be changed in the future without notice.
+ * Do not use in production applications.
  */
 @Suppress("UNUSED_PARAMETER")
+@ExperimentalMfaApi
 class MfaSdkManager private constructor() {
     /**
      * Supplies the current raw FCM token without requesting notification permission or enrolling.
@@ -34,6 +38,9 @@ class MfaSdkManager private constructor() {
      * remaining work without rolling back completed accounts; the latest token may already be stored.
      * Uncertain submitted updates require service-defined recovery, not automatic replay or a promise
      * of resumability after process restart.
+     *
+     * Warning: This API is experimental. It may be changed in the future without notice.
+     * Do not use in production applications.
      * @param deviceToken Opaque raw FCM token. Never log it.
      * @throws MfaSdkException Always a general not-implemented error in this review stub.
      */
@@ -51,6 +58,9 @@ class MfaSdkManager private constructor() {
      * confirmation responses and local-save failures may leave an activated remote method.
      * No automatic retry, reconciliation, compensating deletion or durable enrollment resumption
      * is promised. A new enrollment attempt is not recovery of a previous uncertain attempt.
+     *
+     * Warning: This API is experimental. It may be changed in the future without notice.
+     * Do not use in production applications.
      * @param registrationParameters Activation material. Never log it.
      * @throws MfaSdkException Always a general not-implemented error in this review stub.
      */
@@ -63,6 +73,9 @@ class MfaSdkManager private constructor() {
      *
      * Intended behavior: return an empty list when none exist and exclude pending enrollment.
      * Listing does not detect server-side removal or prove current validity.
+     *
+     * Warning: This API is experimental. It may be changed in the future without notice.
+     * Do not use in production applications.
      * @throws MfaSdkException Always a general not-implemented error in this review stub.
      */
     suspend fun registeredAuthMethods(): List<MfaRegistrationResult> = notImplemented()
@@ -82,6 +95,9 @@ class MfaSdkManager private constructor() {
      * On tap, pass that map unchanged to this method on the current
      * manager to retrieve that request if still pending, even after process death. Handle validation
      * pushes only on delivery. Neither delivery nor a tap submits a decision.
+     *
+     * Warning: This API is experimental. It may be changed in the future without notice.
+     * Do not use in production applications.
      * @param payload FCM data on delivery or SDK-issued notification data on tap. Never log it.
      * @throws MfaSdkException Always a general not-implemented error in this review stub.
      */
@@ -95,6 +111,9 @@ class MfaSdkManager private constructor() {
      * unsupported policy throws instead of returning misleading empty or partial results.
      * Every returned session supports approval and denial, subject to current service validation.
      * Retain the original session for [respond]; the host owns presentation.
+     *
+     * Warning: This API is experimental. It may be changed in the future without notice.
+     * Do not use in production applications.
      * @throws MfaSdkException Always a general not-implemented error in this review stub.
      */
     suspend fun pullPendingNotifications(): List<MfaAuthSession> = notImplemented()
@@ -113,6 +132,9 @@ class MfaSdkManager private constructor() {
      * Wrong-number continuation requires a confirmed service contract, not an assumed retry allowance.
      * Failed approval throws rather than returning [MfaDecision.DENIED]. An acknowledgment does not
      * mean sign-in completed or a token was issued.
+     *
+     * Warning: This API is experimental. It may be changed in the future without notice.
+     * Do not use in production applications.
      * @param session Exact object returned by this manager, including one retrieved on tap.
      * Do not persist or reconstruct it.
      * @param action Explicit user choice; never log a supplied matching number.
@@ -120,31 +142,61 @@ class MfaSdkManager private constructor() {
      */
     suspend fun respond(session: MfaAuthSession, action: MfaAction): MfaDecision = notImplemented()
 
-    /** Java variant of [updatePushRegistration]; completion follows [MfaCallback]'s background contract. */
+    /**
+     * Java variant of [updatePushRegistration]; completion follows [MfaCallback]'s background contract.
+     *
+     * Warning: This API is experimental. It may be changed in the future without notice.
+     * Do not use in production applications.
+     */
     fun updatePushRegistration(deviceToken: String, callback: MfaCallback<Void?>): MfaOperation =
         launchMfaOperation(callback) { updatePushRegistration(deviceToken); null }
 
-    /** Java variant of [registerAuthMethod]; delegates to the same suspend operation. */
+    /**
+     * Java variant of [registerAuthMethod]; delegates to the same suspend operation.
+     *
+     * Warning: This API is experimental. It may be changed in the future without notice.
+     * Do not use in production applications.
+     */
     fun registerAuthMethod(
         registrationParameters: MfaRegistrationParameters,
         callback: MfaCallback<MfaRegistrationResult>
     ): MfaOperation = launchMfaOperation(callback) { registerAuthMethod(registrationParameters) }
 
-    /** Java variant of [registeredAuthMethods]; delegates to the same suspend operation. */
+    /**
+     * Java variant of [registeredAuthMethods]; delegates to the same suspend operation.
+     *
+     * Warning: This API is experimental. It may be changed in the future without notice.
+     * Do not use in production applications.
+     */
     fun registeredAuthMethods(callback: MfaCallback<List<MfaRegistrationResult>>): MfaOperation =
         launchMfaOperation(callback) { registeredAuthMethods() }
 
-    /** Java variant of [handlePushNotification]; delegates to the same suspend operation. */
+    /**
+     * Java variant of [handlePushNotification]; delegates to the same suspend operation.
+     *
+     * Warning: This API is experimental. It may be changed in the future without notice.
+     * Do not use in production applications.
+     */
     fun handlePushNotification(
         payload: Map<String, String>,
         callback: MfaCallback<List<MfaAuthSession>>
     ): MfaOperation = launchMfaOperation(callback) { handlePushNotification(payload) }
 
-    /** Java variant of [pullPendingNotifications]; delegates to the same suspend operation. */
+    /**
+     * Java variant of [pullPendingNotifications]; delegates to the same suspend operation.
+     *
+     * Warning: This API is experimental. It may be changed in the future without notice.
+     * Do not use in production applications.
+     */
     fun pullPendingNotifications(callback: MfaCallback<List<MfaAuthSession>>): MfaOperation =
         launchMfaOperation(callback) { pullPendingNotifications() }
 
-    /** Java variant of [respond]; delegates to the same suspend operation. */
+    /**
+     * Java variant of [respond]; delegates to the same suspend operation.
+     *
+     * Warning: This API is experimental. It may be changed in the future without notice.
+     * Do not use in production applications.
+     */
     fun respond(
         session: MfaAuthSession,
         action: MfaAction,
@@ -167,6 +219,9 @@ class MfaSdkManager private constructor() {
         /**
          * Returns the same manager to all callers in the current app process, including concurrent
          * callers. Separate processes do not share it, and process death discards in-memory state.
+         *
+         * Warning: This API is experimental. It may be changed in the future without notice.
+         * Do not use in production applications.
          * @param context Any host app context, including an Activity or Service. This API-review
          * stub retains no context and initializes no services.
          */

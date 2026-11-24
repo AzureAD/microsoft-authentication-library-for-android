@@ -12,11 +12,15 @@ package com.microsoft.identity.nativeauth.mfa
  *
  * SDK errors never embed raw underlying errors, responses, claims, notification payloads or credentials.
  *
+ *
+ * Warning: This API is experimental. It may be changed in the future without notice.
+ * Do not use in production applications.
  * @property errorMessage Optional bounded, sanitized SDK-controlled diagnostic, also exposed as
  * the inherited [message]. Do not parse it for control flow.
  * @property correlationId SDK-generated operation correlation ID, including for local failures.
  * Not a server-generated error field or an authentication-session GUID.
  */
+@ExperimentalMfaApi
 class MfaSdkException private constructor(
     private val type: MfaErrorType,
     val errorMessage: String?,

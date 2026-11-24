@@ -11,6 +11,9 @@ import java.util.Collections
  * Every returned session supports approval and denial, subject to service validation and session
  * validity. Unsupported policy fails retrieval rather than producing a partially actionable session.
  * The expected matching number is never exposed.
+ *
+ * Warning: This API is experimental. It may be changed in the future without notice.
+ * Do not use in production applications.
  * @property guid Service-issued sign-in request identifier, not sufficient to reconstruct a session.
  * @property registrationId SDK-validated identifier linking this session to [MfaRegistrationResult].
  * Use this linkage instead of matching account names; it does not replace [guid].
@@ -19,6 +22,7 @@ import java.util.Collections
  * @property requiresNumberMatching Whether approval requires a user-entered number. False permits
  * ordinary approval only when authoritative policy and the backend support it.
  */
+@ExperimentalMfaApi
 class MfaAuthSession private constructor(
     val guid: String,
     val registrationId: String,
