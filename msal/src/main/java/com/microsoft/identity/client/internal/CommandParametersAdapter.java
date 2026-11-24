@@ -1300,7 +1300,7 @@ public class CommandParametersAdapter {
                         .challengeType(configuration.getChallengeTypes())
                         .requestInterceptor(configuration.getRequestInterceptor())
                         .continuationState(continuationState)
-                        .scopes(Collections.emptyList())
+                        .scopes(null)
                         .claimsRequestJson(null)
                         .correlationId(continuationState.getCorrelationId())
                         .build();
@@ -1486,7 +1486,7 @@ public class CommandParametersAdapter {
                         .challengeType(configuration.getChallengeTypes())
                         .requestInterceptor(configuration.getRequestInterceptor())
                         .continuationState(continuationState)
-                        .scopes(Collections.emptyList())
+                        .scopes(null)
                         .claimsRequestJson(null)
                         .clientId(configuration.getClientId())
                         .correlationId(continuationState.getCorrelationId())

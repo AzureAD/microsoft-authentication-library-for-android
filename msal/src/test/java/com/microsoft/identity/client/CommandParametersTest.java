@@ -858,7 +858,7 @@ public class CommandParametersTest {
                 );
 
         Assert.assertSame(continuationState, commandParameters.continuationState);
-        Assert.assertEquals(Collections.emptyList(), commandParameters.scopes);
+        Assert.assertNull(commandParameters.scopes);
         Assert.assertNull(commandParameters.claimsRequestJson);
         Assert.assertEquals(configuration.getChallengeTypes(), commandParameters.challengeType);
         Assert.assertEquals(correlationId, commandParameters.getCorrelationId());
@@ -883,7 +883,7 @@ public class CommandParametersTest {
                         continuationState
                 );
 
-        Assert.assertEquals(Collections.emptyList(), commandParameters.scopes);
+        Assert.assertNull(commandParameters.scopes);
         Assert.assertNull(commandParameters.claimsRequestJson);
         Assert.assertSame(continuationState, commandParameters.continuationState);
         Assert.assertEquals(correlationId, commandParameters.getCorrelationId());
@@ -973,7 +973,7 @@ public class CommandParametersTest {
                         continuationState
                 );
 
-        Assert.assertEquals(Collections.emptyList(), commandParameters.scopes);
+        Assert.assertNull(commandParameters.scopes);
         Assert.assertNull(commandParameters.claimsRequestJson);
         Assert.assertSame(continuationState, commandParameters.continuationState);
         Assert.assertEquals(correlationId, commandParameters.getCorrelationId());

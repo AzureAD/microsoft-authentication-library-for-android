@@ -991,7 +991,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
     }
 
     @Test
-    fun signInAfterResetPasswordPassesEmptyScopesAndNoClaimsForBothOverloads() = runTest {
+    fun signInAfterResetPasswordDoesNotOverrideRetainedScopesOrClaimsForBothOverloads() = runTest {
         for (scopes in listOf(emptyList(), listOf("User.Read", "offline_access"))) {
             for (claims in listOf(null, """{"access_token":{"xms_cc":{"values":["cp1"]}}}""")) {
                 val state = NativeAuthV2ContinuationStateTestFactory.create(
@@ -1006,7 +1006,7 @@ class NativeAuthV2InterfaceKotlinTest : PublicClientApplicationAbstractTest() {
                 ) { command ->
                     val parameters = command.parameters as NativeAuthV2SignInAfterResetPasswordCommandParameters
                     assertSame(state, parameters.continuationState)
-                    assertEquals(emptyList<String>(), parameters.scopes)
+                    assertEquals(null, parameters.scopes)
                     assertEquals(null, parameters.claimsRequestJson)
                     assertEquals(correlationId, parameters.correlationId)
                 }
