@@ -142,6 +142,26 @@ class MfaOperationTest {
     }
 
     @Test
+    fun `nested cancellation after suspension delivers the original request`() {
+        var request: Throwable? = null
+        val operation = launchMfaOperation(callback, dispatcher) {
+            currentCoroutineContext().job.invokeOnCompletion { request = it }
+            try {
+                awaitCancellation()
+            } catch (exception: CancellationException) {
+                // Two wrappers exercise the recovered-exception case even when recovery is disabled.
+                val inner = CancellationException("Inner cancellation").also { it.initCause(exception) }
+                throw CancellationException("Outer cancellation").also { it.initCause(inner) }
+            }
+        }
+        dispatcher.runAll()
+        operation.cancel()
+        dispatcher.runAll()
+        assertTrue(request is CancellationException)
+        assertSame(request, outcomes.single())
+    }
+
+    @Test
     fun `only cancellation exceptions wrapping the request are normalized`() {
         for (wrapAsCancellation in listOf(false, true)) {
             outcomes.clear()

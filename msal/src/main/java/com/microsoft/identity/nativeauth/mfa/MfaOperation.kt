@@ -3,6 +3,8 @@
 
 package com.microsoft.identity.nativeauth.mfa
 
+import java.util.Collections
+import java.util.IdentityHashMap
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -30,6 +32,16 @@ fun interface MfaOperation {
     fun cancel()
 }
 
+private fun CancellationException.wrapsRequest(request: CancellationException): Boolean {
+    val seen = Collections.newSetFromMap(IdentityHashMap<CancellationException, Boolean>())
+    var current: Throwable? = this
+    while (current is CancellationException && seen.add(current)) {
+        if (current === request) return true
+        current = current.cause
+    }
+    return false
+}
+
 @JvmSynthetic
 internal fun <T> launchMfaOperation(
     callback: MfaCallback<T>,
@@ -48,7 +60,7 @@ internal fun <T> launchMfaOperation(
                 val exception = result.exceptionOrNull()
                 val request = cancellation
                 outcome = if (exception is CancellationException && request != null &&
-                    (exception === request || exception.cause === request)
+                    exception.wrapsRequest(request)
                 ) {
                     Result.failure(request)
                 } else {
