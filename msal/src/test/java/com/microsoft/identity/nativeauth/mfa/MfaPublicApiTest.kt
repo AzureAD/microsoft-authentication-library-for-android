@@ -157,12 +157,23 @@ class MfaPublicApiTest {
             MfaRegistrationParameters.QrCode(sensitive),
             MfaRegistrationParameters.Activation(sensitive, sensitive),
             MfaRegistrationResult(sensitive, sensitive, sensitive),
-            MfaAuthSession.create(sensitive, sensitive, sensitive, sensitive, true),
+            MfaAuthSession.create(sensitive, sensitive, sensitive, sensitive, true, mapOf("opaque" to sensitive)),
             MfaAction.Approve(sensitive)
         )
 
         for (model in models) {
             assertFalse("${model.javaClass.simpleName} must redact its values", model.toString().contains(sensitive))
+        }
+    }
+
+    @Test
+    fun `notification data is an immutable snapshot`() {
+        val data = mutableMapOf("opaque" to "original")
+        val session = MfaAuthSession.create("id", "registration", "account", "user", false, data)
+        data.clear()
+        assertEquals(mapOf("opaque" to "original"), session.notificationData)
+        org.junit.Assert.assertThrows(UnsupportedOperationException::class.java) {
+            (session.notificationData as MutableMap).clear()
         }
     }
 
@@ -174,7 +185,8 @@ class MfaPublicApiTest {
             registrationId = "registration-id",
             accountName = "Account display",
             username = "user@example.invalid",
-            requiresNumberMatching = true
+            requiresNumberMatching = true,
+            notificationData = emptyMap()
         )
         return listOf(
             "updatePushRegistration" to { manager.updatePushRegistration("opaque-fcm-token") },

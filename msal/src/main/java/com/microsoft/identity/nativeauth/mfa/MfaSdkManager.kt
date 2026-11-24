@@ -77,11 +77,12 @@ class MfaSdkManager private constructor() {
      * without a service call; malformed or mismatched MFA input throws rather than appearing empty.
      *
      * Returned sessions support both approval and denial; unsupported policy fails retrieval.
-     * For authentication pushes, put only `type`, `guid`, and `url` in a request-specific,
-     * explicit, immutable `PendingIntent`. On tap, pass those fields to this method on the current
+     * On delivery, pass the FCM data map. For each returned session, copy its entire
+     * [MfaAuthSession.notificationData] into a request-specific, explicit, immutable `PendingIntent`.
+     * On tap, pass that map unchanged to this method on the current
      * manager to retrieve that request if still pending, even after process death. Handle validation
      * pushes only on delivery. Neither delivery nor a tap submits a decision.
-     * @param payload FCM data map. Never log its contents.
+     * @param payload FCM data on delivery or SDK-issued notification data on tap. Never log it.
      * @throws MfaSdkException Always a general not-implemented error in this review stub.
      */
     suspend fun handlePushNotification(payload: Map<String, String>): List<MfaAuthSession> =

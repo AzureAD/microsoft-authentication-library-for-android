@@ -3,6 +3,8 @@
 
 package com.microsoft.identity.nativeauth.mfa
 
+import java.util.Collections
+
 /**
  * SDK-issued sign-in request. Pass this original object to the manager that returned it.
  *
@@ -22,8 +24,12 @@ class MfaAuthSession private constructor(
     val registrationId: String,
     val accountName: String,
     val username: String,
-    val requiresNumberMatching: Boolean
+    val requiresNumberMatching: Boolean,
+    notificationData: Map<String, String>
 ) {
+    /** Immutable SDK snapshot for notification taps. Copy it unchanged; never log its contents. */
+    val notificationData: Map<String, String> = Collections.unmodifiableMap(HashMap(notificationData))
+
     /** Omits session identifiers and account information. */
     override fun toString(): String = "MfaAuthSession(<redacted>)"
 
@@ -34,9 +40,10 @@ class MfaAuthSession private constructor(
             registrationId: String,
             accountName: String,
             username: String,
-            requiresNumberMatching: Boolean
+            requiresNumberMatching: Boolean,
+            notificationData: Map<String, String>
         ): MfaAuthSession = MfaAuthSession(
-            guid, registrationId, accountName, username, requiresNumberMatching
+            guid, registrationId, accountName, username, requiresNumberMatching, notificationData
         )
     }
 }

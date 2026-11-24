@@ -89,7 +89,7 @@ class MfaJavaInteropTest {
             loader.loadClass("JavaMfaConsumer")
                 .getMethod("exercise", MfaSdkManager::class.java, MfaAuthSession::class.java)
                 .invoke(null, MfaSdkManager.getInstance(mock(Context::class.java)),
-                    MfaAuthSession.create("session", "registration", "Account", "user", false))
+                    MfaAuthSession.create("session", "registration", "Account", "user", false, emptyMap()))
         }
     }
 }
