@@ -55,13 +55,21 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class AwaitingMFAState(
+class AwaitingMFAState internal constructor(
     override val continuationToken: String,
     override val correlationId: String,
     private val scopes: List<String>?,
-    private val config: NativeAuthPublicClientApplicationConfiguration
+    private val config: NativeAuthPublicClientApplicationConfiguration,
+    private val requestContext: NativeAuthV1RequestContext?
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     private val TAG: String = AwaitingMFAState::class.java.simpleName
+
+    constructor(
+        continuationToken: String,
+        correlationId: String,
+        scopes: List<String>?,
+        config: NativeAuthPublicClientApplicationConfiguration
+    ) : this(continuationToken, correlationId, scopes, config, null)
 
     /**
      * RequestChallengeCallback receives the result for requestChallenge() in MFA flows in native authentication.
@@ -98,6 +106,14 @@ class AwaitingMFAState(
      * @return The result of the request challenge action.
      */
     suspend fun requestChallenge(authMethod: AuthMethod): MFARequiredResult {
+        if (requestContext == null) {
+            return MFARequestChallengeError(
+                errorType = ErrorTypes.INVALID_STATE,
+                error = ErrorTypes.INVALID_STATE,
+                errorMessage = NativeAuthV1RequestContext.RESTART_MESSAGE,
+                correlationId = correlationId
+            )
+        }
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
@@ -131,7 +147,8 @@ class AwaitingMFAState(
                                 continuationToken = result.continuationToken,
                                 correlationId = result.correlationId,
                                 scopes = scopes,
-                                config = config
+                                config = config,
+                                requestContext = requestContext
                             ),
                             codeLength = result.codeLength,
                             sentTo = result.challengeTargetLabel,
@@ -210,13 +227,21 @@ class AwaitingMFAState(
     }
 }
 
-class MFARequiredState(
+class MFARequiredState internal constructor(
     override val continuationToken: String,
     override val correlationId: String,
     private val scopes: List<String>?,
-    private val config: NativeAuthPublicClientApplicationConfiguration
+    private val config: NativeAuthPublicClientApplicationConfiguration,
+    private val requestContext: NativeAuthV1RequestContext?
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     private val TAG: String = MFARequiredState::class.java.simpleName
+
+    constructor(
+        continuationToken: String,
+        correlationId: String,
+        scopes: List<String>?,
+        config: NativeAuthPublicClientApplicationConfiguration
+    ) : this(continuationToken, correlationId, scopes, config, null)
 
     /**
      * RequestChallengeCallback receives the result for requestChallenge() in MFA flows in native authentication.
@@ -254,6 +279,14 @@ class MFARequiredState(
      * @return The result of the request challenge action.
      */
     suspend fun requestChallenge(authMethod: AuthMethod): MFARequiredResult {
+        if (requestContext == null) {
+            return MFARequestChallengeError(
+                errorType = ErrorTypes.INVALID_STATE,
+                error = ErrorTypes.INVALID_STATE,
+                errorMessage = NativeAuthV1RequestContext.RESTART_MESSAGE,
+                correlationId = correlationId
+            )
+        }
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
@@ -288,7 +321,8 @@ class MFARequiredState(
                                 continuationToken = result.continuationToken,
                                 correlationId = result.correlationId,
                                 scopes = scopes,
-                                config = config
+                                config = config,
+                                requestContext = requestContext
                             ),
                             codeLength = result.codeLength,
                             sentTo = result.challengeTargetLabel,
@@ -372,6 +406,14 @@ class MFARequiredState(
      * @return The result of the submit challenge action.
      */
     suspend fun submitChallenge(challenge: String): MFASubmitChallengeResult {
+        if (requestContext == null) {
+            return MFASubmitChallengeError(
+                errorType = ErrorTypes.INVALID_STATE,
+                error = ErrorTypes.INVALID_STATE,
+                errorMessage = NativeAuthV1RequestContext.RESTART_MESSAGE,
+                correlationId = correlationId
+            )
+        }
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
@@ -387,7 +429,9 @@ class MFARequiredState(
                     correlationId,
                     continuationToken,
                     scopes
-                )
+                ).toBuilder()
+                    .claimsRequestJson(requestContext.claimsRequestJson)
+                    .build()
 
                 val command = MFASubmitChallengeCommand(
                     parameters = params,

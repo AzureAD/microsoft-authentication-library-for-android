@@ -37,12 +37,27 @@ import kotlinx.coroutines.withContext
 /**
  * BaseState is the base class for JIT state that needs to challenge auth method.
  */
-abstract class BaseJITSubmitChallengeState(
+abstract class BaseJITSubmitChallengeState internal constructor(
     override val continuationToken: String,
     override val correlationId: String,
-    private val config: NativeAuthPublicClientApplicationConfiguration
+    private val config: NativeAuthPublicClientApplicationConfiguration,
+    internal val requestContext: NativeAuthV1RequestContext?
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
+    constructor(
+        continuationToken: String,
+        correlationId: String,
+        config: NativeAuthPublicClientApplicationConfiguration
+    ) : this(continuationToken, correlationId, config, null)
+
     suspend fun internalChallengeAuthMethod(parameters: NativeAuthChallengeAuthMethodParameters, tag: String): RegisterStrongAuthChallengeResult {
+        if (requestContext == null) {
+            return RegisterStrongAuthChallengeError(
+                errorType = ErrorTypes.INVALID_STATE,
+                error = ErrorTypes.INVALID_STATE,
+                errorMessage = NativeAuthV1RequestContext.RESTART_MESSAGE,
+                correlationId = correlationId
+            )
+        }
         if (parameters.verificationContact.isBlank()) {
             return RegisterStrongAuthChallengeError(
                 errorType = ErrorTypes.INVALID_INPUT,
@@ -60,7 +75,9 @@ abstract class BaseJITSubmitChallengeState(
                 parameters.authMethod.challengeType,
                 correlationId,
                 continuationToken,
-            )
+            ).toBuilder()
+                .claimsRequestJson(requestContext.claimsRequestJson)
+                .build()
         val command = JITChallengeAuthMethodCommand(
             parameters = params,
             controller = NativeAuthMsalController(),
@@ -123,7 +140,8 @@ abstract class BaseJITSubmitChallengeState(
                             nextState = RegisterStrongAuthVerificationRequiredState(
                                 continuationToken = result.continuationToken,
                                 correlationId = result.correlationId,
-                                config = config
+                                config = config,
+                                requestContext = requestContext
                             ),
                             codeLength = result.codeLength,
                             sentTo = result.challengeTargetLabel,
@@ -149,12 +167,19 @@ abstract class BaseJITSubmitChallengeState(
     }
 }
 
-class RegisterStrongAuthState(
+class RegisterStrongAuthState internal constructor(
     override val continuationToken: String,
     override val correlationId: String,
-    private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseJITSubmitChallengeState(continuationToken = continuationToken, correlationId = correlationId, config = config), State, Parcelable {
+    private val config: NativeAuthPublicClientApplicationConfiguration,
+    requestContext: NativeAuthV1RequestContext?
+) : BaseJITSubmitChallengeState(continuationToken = continuationToken, correlationId = correlationId, config = config, requestContext = requestContext), State, Parcelable {
     private val TAG: String = RegisterStrongAuthState::class.java.simpleName
+
+    constructor(
+        continuationToken: String,
+        correlationId: String,
+        config: NativeAuthPublicClientApplicationConfiguration
+    ) : this(continuationToken, correlationId, config, null)
 
     /**
      * ChallengeAuthMethodCallback receives the result for challengeAuthMethod() in strong authentication method registration flows in native authentication.
@@ -229,13 +254,20 @@ class RegisterStrongAuthState(
     }
 }
 
-class RegisterStrongAuthVerificationRequiredState(
+class RegisterStrongAuthVerificationRequiredState internal constructor(
     override val continuationToken: String,
     override val correlationId: String,
-    private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseJITSubmitChallengeState(continuationToken = continuationToken, correlationId = correlationId, config = config) {
+    private val config: NativeAuthPublicClientApplicationConfiguration,
+    requestContext: NativeAuthV1RequestContext?
+) : BaseJITSubmitChallengeState(continuationToken = continuationToken, correlationId = correlationId, config = config, requestContext = requestContext) {
 
     private val TAG: String = RegisterStrongAuthVerificationRequiredState::class.java.simpleName
+
+    constructor(
+        continuationToken: String,
+        correlationId: String,
+        config: NativeAuthPublicClientApplicationConfiguration
+    ) : this(continuationToken, correlationId, config, null)
 
     /**
      * SubmitChallengeCallback receives the result for submitChallenge() in strong authentication method registration flows in native authentication.
@@ -272,6 +304,14 @@ class RegisterStrongAuthVerificationRequiredState(
      * @return The results of the submit challenge action.
      */
     suspend fun submitChallenge(challenge: String): RegisterStrongAuthSubmitChallengeResult {
+        if (requestContext == null) {
+            return RegisterStrongAuthSubmitChallengeError(
+                errorType = ErrorTypes.INVALID_STATE,
+                error = ErrorTypes.INVALID_STATE,
+                errorMessage = NativeAuthV1RequestContext.RESTART_MESSAGE,
+                correlationId = correlationId
+            )
+        }
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
@@ -296,7 +336,9 @@ class RegisterStrongAuthVerificationRequiredState(
                 challenge,
                 correlationId,
                 continuationToken
-            )
+            ).toBuilder()
+                .claimsRequestJson(requestContext.claimsRequestJson)
+                .build()
         val command = JITSubmitChallengeCommand(
             parameters = params,
             controller = NativeAuthMsalController(),
