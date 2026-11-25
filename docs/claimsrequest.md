@@ -14,6 +14,22 @@ MSAL provides objects for creating, searializing and deserializing claims reques
 
 ![Claims Request Parameter](https://www.lucidchart.com/publicSegments/view/99a5cbfd-7b04-4693-bb11-52bb506c6932/image.png)
 
+## Native Auth V1 MFA and registration state
+
+V1 sign-in keeps the original claims request through in-memory MFA and strong-authentication
+registration (JIT), including retries and rechallenges. A captured request with no claims
+is different from a state whose original request is unknown.
+
+The existing Parcelable format is unchanged and does **not** persist that request context.
+After a real Parcel roundtrip, both previously saved and newly saved MFA/JIT states therefore
+return `invalid_state` when used, even if the original request had no claims. The same applies
+to MFA/JIT states created directly through their public constructors without request provenance.
+The app must discard the state and explicitly restart sign-in with the intended claims;
+the SDK does not retry automatically or silently continue without them.
+
+This change does not add saved-state migration or client-configuration rebinding. It does not
+change the code/password/continuation Parcel formats or Native Auth V2.
+
 ## Links to Code
 
 ### Classes

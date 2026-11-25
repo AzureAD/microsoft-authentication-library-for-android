@@ -211,7 +211,8 @@ class SignInCodeRequiredState internal constructor(
                                 continuationToken = result.continuationToken,
                                 correlationId = result.correlationId,
                                 scopes = scopes,
-                                config = config
+                                config = config,
+                                requestContext = NativeAuthV1RequestContext(claimsRequestJson)
                             ),
                             authMethods = result.authMethods.toListOfAuthMethods()
                         )
@@ -221,7 +222,8 @@ class SignInCodeRequiredState internal constructor(
                             nextState = RegisterStrongAuthState(
                                 continuationToken = result.continuationToken,
                                 correlationId = result.correlationId,
-                                config = config
+                                config = config,
+                                requestContext = NativeAuthV1RequestContext(claimsRequestJson)
                             ),
                             authMethods = result.authMethods.toListOfAuthMethods()
                         )
@@ -479,7 +481,8 @@ class SignInPasswordRequiredState(
                                     continuationToken = result.continuationToken,
                                     correlationId = result.correlationId,
                                     scopes = scopes,
-                                    config = config
+                                    config = config,
+                                    requestContext = NativeAuthV1RequestContext(claimsRequestJson)
                                 ),
                                 authMethods = result.authMethods.toListOfAuthMethods()
                             )
@@ -489,7 +492,8 @@ class SignInPasswordRequiredState(
                                 nextState = RegisterStrongAuthState(
                                     continuationToken = result.continuationToken,
                                     correlationId = result.correlationId,
-                                    config = config
+                                    config = config,
+                                    requestContext = NativeAuthV1RequestContext(claimsRequestJson)
                                 ),
                                 authMethods = result.authMethods.toListOfAuthMethods()
                             )
@@ -736,6 +740,7 @@ class SignInContinuationState(
                         parameters.claimsRequest
                     )
 
+                val requestContext = NativeAuthV1RequestContext(commandParameters.claimsRequestJson)
                 val command = SignInWithContinuationTokenCommand(
                     commandParameters,
                     NativeAuthMsalController(),
@@ -762,7 +767,8 @@ class SignInContinuationState(
                             nextState = RegisterStrongAuthState(
                                 continuationToken = result.continuationToken,
                                 correlationId = result.correlationId,
-                                config = config
+                                config = config,
+                                requestContext = requestContext
                             ),
                             authMethods = result.authMethods.toListOfAuthMethods()
                         )
@@ -773,7 +779,8 @@ class SignInContinuationState(
                                 continuationToken = result.continuationToken,
                                 correlationId = result.correlationId,
                                 scopes = parameters.scopes,
-                                config = config
+                                config = config,
+                                requestContext = requestContext
                             ),
                             authMethods = result.authMethods.toListOfAuthMethods()
                         )

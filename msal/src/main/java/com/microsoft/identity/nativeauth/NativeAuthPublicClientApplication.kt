@@ -95,6 +95,7 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
 import com.microsoft.identity.nativeauth.statemachine.states.AttributesRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState
+import com.microsoft.identity.nativeauth.statemachine.states.NativeAuthV1RequestContext
 import com.microsoft.identity.nativeauth.statemachine.states.Callback
 import com.microsoft.identity.nativeauth.statemachine.states.RegisterStrongAuthState
 import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState
@@ -1379,6 +1380,7 @@ class NativeAuthPublicClientApplication(
                         claimsRequest
                     )
 
+                val requestContext = NativeAuthV1RequestContext(params.claimsRequestJson)
                 val command = SignInStartCommand(
                     params,
                     NativeAuthMsalController(),
@@ -1514,7 +1516,8 @@ class NativeAuthPublicClientApplication(
                                     continuationToken = result.continuationToken,
                                     correlationId = result.correlationId,
                                     scopes = scopes,
-                                    config = nativeAuthConfig
+                                    config = nativeAuthConfig,
+                                    requestContext = requestContext
                                 ),
                                 authMethods = result.authMethods.toListOfAuthMethods()
                             )
@@ -1525,7 +1528,8 @@ class NativeAuthPublicClientApplication(
                                 nextState = RegisterStrongAuthState(
                                     continuationToken = result.continuationToken,
                                     correlationId = result.correlationId,
-                                    config = nativeAuthConfig
+                                    config = nativeAuthConfig,
+                                    requestContext = requestContext
                                 ),
                                 authMethods = result.authMethods.toListOfAuthMethods()
                             )
