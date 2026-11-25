@@ -3,6 +3,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 vNext
 ----------
 - [MINOR] Enforce Common's ID-token regulatory-target receipt contract for requests without explicit targets: only missing/empty receipts or one signed "all" are accepted; no-ID-token flows remain supported. Explicit "target-all" requires a signed "all". Invalid receipts surface as age_assurance_target_mismatch without automatic recovery or eviction.
+- [PATCH] Remove Native Auth V2 sign-in parameter overloads after sign-up and password reset.
 - [PATCH] Remove experimental API warnings from Native Auth V2 public client entry points. (AB#3830932) (#2654).
 
 Version 8.7.0
