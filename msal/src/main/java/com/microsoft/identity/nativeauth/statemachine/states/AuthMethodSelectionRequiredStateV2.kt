@@ -33,7 +33,7 @@ import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2CommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.NativeAuthV2SelectAuthMethodCommandResult
-import com.microsoft.identity.common.java.nativeauth.providers.NativeAuthConstants
+import com.microsoft.identity.common.java.nativeauth.providers.responses.ApiErrorResult
 import com.microsoft.identity.common.java.nativeauth.providers.responses.v2.NativeAuthV2ContinuationState
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
 import com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SelectAuthMethodCommand
@@ -55,7 +55,8 @@ import kotlinx.coroutines.withContext
 import java.util.Collections
 
 /**
- * Selects a first-factor method for sign-in, password reset, or an existing account found during sign-up.
+ * Selects an authentication method for sign-in, password reset, or an existing account found during sign-up,
+ * including multi-factor authentication.
  *
  * No challenge is sent until the app explicitly selects one of [authMethods].
  */
@@ -134,10 +135,6 @@ class AuthMethodSelectionRequiredStateV2 internal constructor(
             methodName = "${TAG}.selectAuthMethod(method: AuthMethod)"
         )
         val state = continuationState ?: return invalidState()
-        if (scenario != NativeAuthFlowScenarioV2.RESET_PASSWORD && scenario != NativeAuthFlowScenarioV2.SIGN_IN) {
-            Logger.warn(TAG, correlationId, "Unsupported flow for authentication method selection.")
-            return invalidState()
-        }
         val offeredMethod = authMethods.firstOrNull { it.id == method.id }
             ?: return NativeAuthErrorV2(
                 errorType = ErrorTypes.INVALID_STATE,
@@ -146,34 +143,14 @@ class AuthMethodSelectionRequiredStateV2 internal constructor(
                 scenario = scenario
             )
 
-        if (!offeredMethod.challengeChannel.equals(
-                NativeAuthConstants.ChallengeChannel.EMAIL,
-                ignoreCase = true
-            ) &&
-            !offeredMethod.challengeChannel.equals(
-                if (scenario == NativeAuthFlowScenarioV2.RESET_PASSWORD) {
-                    NativeAuthConstants.ChallengeChannel.SMS
-                } else "password",
-                ignoreCase = true
-            )
-        ) {
-            return NativeAuthErrorV2(
-                errorType = ErrorTypes.NOT_IMPLEMENTED,
-                errorMessage = "The authentication method is not supported for this flow.",
-                correlationId = correlationId,
-                scenario = scenario
-            )
-        }
-
         return withContext(Dispatchers.IO) {
             try {
-                val parameters =
-                    CommandParametersAdapter.createNativeAuthV2SelectAuthMethodCommandParameters(
-                        config,
-                        config.oAuth2TokenCache,
-                        offeredMethod.id,
-                        state
-                    )
+                val parameters = CommandParametersAdapter.createNativeAuthV2SelectAuthMethodCommandParameters(
+                    config,
+                    config.oAuth2TokenCache,
+                    offeredMethod.id,
+                    state
+                )
                 val command = NativeAuthV2SelectAuthMethodCommand(
                     parameters,
                     NativeAuthV2FlowController(),
@@ -184,21 +161,21 @@ class AuthMethodSelectionRequiredStateV2 internal constructor(
                     CommandDispatcher.submitSilentReturningFuture(command).getCancellable()
                 ensureActive()
                 val result = rawCommandResult.checkAndWrapCommandResultType<NativeAuthV2SelectAuthMethodCommandResult>()
-                if ((result is NativeAuthV2CommandResult.ExistingAccountCodeRequired &&
-                        !offeredMethod.challengeChannel.equals(NativeAuthConstants.ChallengeChannel.EMAIL, true)) ||
-                    (result is NativeAuthV2CommandResult.ExistingAccountPasswordRequired &&
-                        !offeredMethod.challengeChannel.equals("password", true))) {
-                    Logger.warn(TAG, correlationId, "Challenge does not match the selected authentication method.")
-                    return@withContext NativeAuthErrorV2(
-                        errorType = ErrorTypes.INVALID_STATE,
-                        errorMessage = "The server challenge does not match the selected authentication method.",
-                        correlationId = result.correlationId,
-                        scenario = scenario
-                    )
-                }
                 when (result) {
                     is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
                         result.toRegistrationResult(scenario, config)
+                    is NativeAuthV2CommandResult.MFAVerificationRequired ->
+                        NativeAuthResultV2.MFAVerificationRequired(
+                            nextState = MFAVerificationRequiredStateV2(
+                                continuationState = result.continuationState,
+                                scenario = scenario,
+                                config = config
+                            ),
+                            scenario = scenario,
+                            codeLength = result.codeLength,
+                            sentTo = result.challengeTargetLabel,
+                            channel = result.challengeChannel
+                        )
                     is NativeAuthV2CommandResult.ExistingAccountCodeRequired ->
                         if (existingAccountSignIn) result.toExistingAccountResult(config) else {
                             NativeAuthResultV2.CodeRequired(
@@ -241,6 +218,7 @@ class AuthMethodSelectionRequiredStateV2 internal constructor(
                         scenario = scenario
                     )
                     is INativeAuthCommandResult.APIError -> NativeAuthErrorV2(
+                        errorType = if (result.error == ApiErrorResult.INVALID_STATE) ErrorTypes.INVALID_STATE else null,
                         error = result.error,
                         errorMessage = result.errorDescription,
                         correlationId = result.correlationId,

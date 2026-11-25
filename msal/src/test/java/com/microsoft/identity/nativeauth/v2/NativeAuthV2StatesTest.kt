@@ -43,7 +43,6 @@ import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.ExistingAccountCodeRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.ExistingAccountPasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.AuthMethodSelectionRequiredStateV2
-import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.NativeAuthBaseStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2
@@ -198,6 +197,7 @@ class NativeAuthV2StatesTest {
             AuthMethodSelectionRequiredStateV2.CREATOR)
         assertEquals(methods, selection.authMethods)
         assertTrue(selection.existingAccountSignIn)
+        assertFalse(selection.continuationState?.isMultiFactorAuthentication() == true)
         assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, selection.scenario)
         assertEquals(existing.flowScenario(), selection.continuationState?.flowScenario())
         assertEquals(NativeAuthFlowScenarioV2.SIGN_IN, code.scenario)
@@ -221,8 +221,8 @@ class NativeAuthV2StatesTest {
             AttributesRequiredStateV2.CREATOR
         )
         assertParcelRoundTrip(
-            MFARequiredStateV2(correlationId, scenario, config),
-            MFARequiredStateV2.CREATOR
+            AuthMethodSelectionRequiredStateV2(correlationId, scenario, config),
+            AuthMethodSelectionRequiredStateV2.CREATOR
         )
         val restoredResetPasswordMethodState = assertParcelRoundTrip(
             AuthMethodSelectionRequiredStateV2(
@@ -304,8 +304,10 @@ class NativeAuthV2StatesTest {
 
         val methods = listOf(AuthMethod("sms-1", "sms", "+X XXX XXX 34", "sms"))
         val restoredMfa = assertParcelRoundTrip(
-            MFARequiredStateV2(continuationState, methods, scenario, config),
-            MFARequiredStateV2.CREATOR
+            AuthMethodSelectionRequiredStateV2(
+                NativeAuthV2ContinuationStateTestFactory.multiFactor(continuationState), methods, config, scenario
+            ),
+            AuthMethodSelectionRequiredStateV2.CREATOR
         )
         val restoredResetPasswordMethods = assertParcelRoundTrip(
             AuthMethodSelectionRequiredStateV2(continuationState, methods, config),
@@ -315,6 +317,9 @@ class NativeAuthV2StatesTest {
             assertEquals(listOf("scope"), restored.continuationState?.scopesForTokenRequest())
         }
         assertEquals(methods, restoredMfa.authMethods)
+        assertTrue(restoredMfa.continuationState?.isMultiFactorAuthentication() == true)
+        assertFalse(restoredMfa.existingAccountSignIn)
+        assertFalse(restoredResetPasswordMethods.continuationState?.isMultiFactorAuthentication() == true)
         assertEquals(methods, restoredResetPasswordMethods.authMethods)
     }
 
@@ -420,12 +425,12 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
-    fun testMFARequiredStateCallbackReturnsInvalidState() {
+    fun testMfaAuthMethodSelectionCallbackReturnsInvalidState() {
         val authMethod = AuthMethod("id", "oob", null, "email")
         assertCallbackInvalidState { future ->
-            MFARequiredStateV2(correlationId, scenario, config).selectAuthMethod(
+            AuthMethodSelectionRequiredStateV2(correlationId, scenario, config).selectAuthMethod(
                 authMethod,
-                callback = object : MFARequiredStateV2.SelectAuthMethodCallback {
+                callback = object : AuthMethodSelectionRequiredStateV2.SelectAuthMethodCallback {
                     override fun onResult(result: NativeAuthResultV2) = future.setResult(result)
                     override fun onError(exception: BaseException) = future.setException(exception)
                 }
@@ -434,9 +439,9 @@ class NativeAuthV2StatesTest {
     }
 
     @Test
-    fun testMFARequiredStateDefensivelyCopiesAuthMethods() {
+    fun testMfaAuthMethodSelectionDefensivelyCopiesAuthMethods() {
         val source = mutableListOf(AuthMethod("id", "oob", null, "email"))
-        val state = MFARequiredStateV2(
+        val state = AuthMethodSelectionRequiredStateV2(
             correlationId,
             scenario,
             config,
@@ -550,10 +555,9 @@ class NativeAuthV2StatesTest {
         }
         val authMethod = AuthMethod("id", "oob", null, "email")
         assertCallbackRoutesToOnError { future, thrown ->
-            MFARequiredStateV2(correlationId, scenario, config).selectAuthMethod(
+            AuthMethodSelectionRequiredStateV2(correlationId, scenario, config).selectAuthMethod(
                 authMethod,
-                null,
-                object : MFARequiredStateV2.SelectAuthMethodCallback {
+                object : AuthMethodSelectionRequiredStateV2.SelectAuthMethodCallback {
                     override fun onResult(result: NativeAuthResultV2): Unit = throw thrown
                     override fun onError(exception: BaseException) = future.setException(exception)
                 }

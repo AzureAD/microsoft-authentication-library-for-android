@@ -167,18 +167,11 @@ class CodeRequiredStateV2 internal constructor(
             is NativeAuthV2CommandResult.StrongAuthRegistrationRequired ->
                 result.toRegistrationResult(scenario, config)
             is NativeAuthV2CommandResult.Complete -> mapCompleteResult(result)
-            is NativeAuthV2CommandResult.MFARequired -> {
-                val authMethods = result.authMethods.toListOfV2AuthMethods()
-                NativeAuthResultV2.MFARequired(
-                    nextState = MFARequiredStateV2(
-                        continuationState = result.continuationState,
-                        authMethods = authMethods,
-                        scenario = scenario,
-                        config = config
-                    ),
-                    scenario = scenario
+            is NativeAuthV2CommandResult.AuthMethodSelectionRequired -> NativeAuthResultV2.AuthMethodSelectionRequired(
+                AuthMethodSelectionRequiredStateV2(
+                    result.continuationState, result.authMethods.toListOfV2AuthMethods(), config, scenario
                 )
-            }
+            )
             is NativeAuthV2CommandResult.IncorrectCode,
             is INativeAuthCommandResult.Redirect,
             is INativeAuthCommandResult.APIError -> mapSubmitCodeError(result)
