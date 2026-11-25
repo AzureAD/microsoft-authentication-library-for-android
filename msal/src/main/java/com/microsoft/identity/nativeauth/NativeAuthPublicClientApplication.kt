@@ -107,7 +107,6 @@ import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesReq
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpPasswordRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
-import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpStateV2
 import com.microsoft.identity.nativeauth.utils.getCancellable
@@ -727,18 +726,6 @@ class NativeAuthPublicClientApplication(
                         NativeAuthResultV2.PasswordRequired(
                             nextState = PasswordRequiredStateV2(
                                 continuationState = result.continuationState,
-                                scenario = NativeAuthFlowScenarioV2.SIGN_IN,
-                                config = nativeAuthConfig
-                            ),
-                            scenario = NativeAuthFlowScenarioV2.SIGN_IN
-                        )
-                    }
-                    is NativeAuthV2CommandResult.MFARequired -> {
-                        val authMethods = result.authMethods.toListOfV2AuthMethods()
-                        NativeAuthResultV2.MFARequired(
-                            nextState = MFARequiredStateV2(
-                                continuationState = result.continuationState,
-                                authMethods = authMethods,
                                 scenario = NativeAuthFlowScenarioV2.SIGN_IN,
                                 config = nativeAuthConfig
                             ),
