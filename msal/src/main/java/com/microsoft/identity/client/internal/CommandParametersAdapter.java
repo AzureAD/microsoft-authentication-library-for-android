@@ -101,6 +101,7 @@ import com.microsoft.identity.common.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1266,20 +1267,14 @@ public class CommandParametersAdapter {
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param continuationState opaque continuation state from the completed sign-up flow
-     * @param scopes (Optional) scopes to request for the resulting access token
-     * @param claimsRequest (Optional) claims request to send with the token request
      * @return Command parameter object
      */
     public static NativeAuthV2SignInAfterSignUpCommandParameters createNativeAuthV2SignInAfterSignUpCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull final NativeAuthV2ContinuationState continuationState,
-            @Nullable final List<String> scopes,
-            @Nullable final ClaimsRequest claimsRequest) throws ClientException {
+            @NonNull final NativeAuthV2ContinuationState continuationState) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
-
-        final String claimsRequestJson = ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest);
 
         final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
                 AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
@@ -1304,8 +1299,8 @@ public class CommandParametersAdapter {
                         .challengeType(configuration.getChallengeTypes())
                         .requestInterceptor(configuration.getRequestInterceptor())
                         .continuationState(continuationState)
-                        .scopes(scopes)
-                        .claimsRequestJson(claimsRequestJson)
+                        .scopes(null)
+                        .claimsRequestJson(null)
                         .correlationId(continuationState.getCorrelationId())
                         .build();
 
@@ -1465,37 +1460,7 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final NativeAuthV2ContinuationState continuationState) throws ClientException {
-        return createNativeAuthV2SignInAfterResetPasswordCommandParameters(
-                configuration,
-                tokenCache,
-                continuationState,
-                null,
-                null
-        );
-    }
-
-    /**
-     * Creates command parameters for [[com.microsoft.identity.common.nativeauth.internal.commands.NativeAuthV2SignInAfterResetPasswordCommand]].
-     *
-     * The reset-password flow supplies no scopes or claims at its start, so this step is the sole
-     * source of both, matching MSAL iOS/macOS.
-     *
-     * @param configuration      PCA configuration
-     * @param tokenCache         token cache for storing results
-     * @param continuationState  the continuation state produced by the completed reset password flow
-     * @param scopes             (Optional) scopes to request for the resulting access token.
-     * @param claimsRequest      (Optional) claims request to send with the token request.
-     */
-    public static NativeAuthV2SignInAfterResetPasswordCommandParameters createNativeAuthV2SignInAfterResetPasswordCommandParameters(
-            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
-            @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull final NativeAuthV2ContinuationState continuationState,
-            @Nullable final List<String> scopes,
-            @Nullable final ClaimsRequest claimsRequest) throws ClientException {
-
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
-
-        final String claimsRequestJson = ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest);
 
         final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
                 AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
@@ -1520,8 +1485,8 @@ public class CommandParametersAdapter {
                         .challengeType(configuration.getChallengeTypes())
                         .requestInterceptor(configuration.getRequestInterceptor())
                         .continuationState(continuationState)
-                        .scopes(scopes)
-                        .claimsRequestJson(claimsRequestJson)
+                        .scopes(null)
+                        .claimsRequestJson(null)
                         .clientId(configuration.getClientId())
                         .correlationId(continuationState.getCorrelationId())
                         .build();
