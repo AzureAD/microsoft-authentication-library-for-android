@@ -34,7 +34,6 @@ import com.microsoft.identity.nativeauth.statemachine.states.CodeRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.ExistingAccountCodeRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.ExistingAccountPasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.AuthMethodSelectionRequiredStateV2
-import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.NewPasswordRequiredStateV2
 import com.microsoft.identity.nativeauth.statemachine.states.PasswordRequiredStateV2
@@ -105,7 +104,8 @@ interface NativeAuthResultV2 : Result {
     ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2
 
     /**
-     * Sign-in, password reset, or an existing account found during sign-up offers multiple supported methods.
+     * Sign-in, password reset, or an existing account found during sign-up requires authentication method
+     * selection, including for multi-factor authentication.
      * The app must select one before a challenge is sent.
      *
      * @param nextState the current state with follow-on methods.
@@ -179,23 +179,6 @@ interface NativeAuthResultV2 : Result {
         requiredAttributes: List<RequiredUserAttribute>
     ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2 {
         val requiredAttributes: List<RequiredUserAttribute> = Collections.unmodifiableList(ArrayList(requiredAttributes))
-    }
-
-    /**
-     * MFARequired Result, which indicates multi-factor authentication is required and the user must
-     * select an authentication method.
-     *
-     * @param nextState the current state with follow-on methods.
-     */
-    class MFARequired(
-        override val nextState: MFARequiredStateV2,
-        override val scenario: NativeAuthFlowScenarioV2
-    ) : Result.SuccessResult(nextState = nextState), NativeAuthResultV2 {
-        /**
-         * The authentication methods available to the user.
-         */
-        val authMethods: List<AuthMethod>
-            get() = nextState.authMethods
     }
 
     /**
