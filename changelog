@@ -2,6 +2,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+- [PATCH] Remove Native Auth V2 sign-in parameter overloads after sign-up and password reset.
 - [PATCH] Remove experimental API warnings from Native Auth V2 public client entry points. (AB#3830932) (#2654).
 
 Version 8.7.0
