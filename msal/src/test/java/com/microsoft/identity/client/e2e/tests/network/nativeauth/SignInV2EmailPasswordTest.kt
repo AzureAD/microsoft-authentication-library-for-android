@@ -154,9 +154,9 @@ class SignInV2EmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest(
                 assertResult<NativeAuthResultV2.PasswordRequired>(start)
                 val result = (start as NativeAuthResultV2.PasswordRequired)
                     .nextState.submitPassword(getSafePassword().toCharArray())
-                assertResult<NativeAuthResultV2.MFARequired>(result)
+                assertResult<NativeAuthResultV2.AuthMethodSelectionRequired>(result)
 
-                val mfaState = (result as NativeAuthResultV2.MFARequired).nextState
+                val mfaState = (result as NativeAuthResultV2.AuthMethodSelectionRequired).nextState
                 val emailMethod = result.authMethods.first { it.challengeChannel == "email" }
 
                 val challengeResult = mfaState.selectAuthMethod(emailMethod)
@@ -205,9 +205,9 @@ class SignInV2EmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest(
             assertResult<NativeAuthResultV2.PasswordRequired>(start)
             val result = (start as NativeAuthResultV2.PasswordRequired)
                 .nextState.submitPassword(getSafePassword().toCharArray())
-            assertResult<NativeAuthResultV2.MFARequired>(result)
+            assertResult<NativeAuthResultV2.AuthMethodSelectionRequired>(result)
 
-            val mfaState = (result as NativeAuthResultV2.MFARequired).nextState
+            val mfaState = (result as NativeAuthResultV2.AuthMethodSelectionRequired).nextState
             val stale = com.microsoft.identity.nativeauth.AuthMethod(
                 id = "not-offered",
                 challengeType = "oob",
