@@ -335,9 +335,13 @@ class NativeAuthPublicClientApplication(
             correlationId = null,
             methodName = "${TAG}.signIn(username: String, password: CharArray?, scopes: List<String>?, callback: SignInCallback)"
         )
+        val snapshot = snapshotSignInParameters(NativeAuthSignInParameters(username).apply {
+            this.password = password
+            this.scopes = scopes
+        })
         pcaScope.launch {
             try {
-                val result = internalSignIn(username, password, scopes, claimsRequest = null)
+                val result = internalSignIn(snapshot)
                 callback.onResult(result)
             } catch (e: MsalException) {
                 Logger.error(TAG, "Exception thrown in signIn", e)
@@ -348,6 +352,7 @@ class NativeAuthPublicClientApplication(
 
     /**
      * Sign in a user for a provided parameters; callback variant.
+     * Mutable inputs are copied before dispatch; later caller mutations do not affect this request.
      *
      * @param parameters parameters used for signIn operation.
      * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.SignInCallback] to receive the result.
@@ -359,9 +364,10 @@ class NativeAuthPublicClientApplication(
             correlationId = null,
             methodName = "${TAG}.signIn(parameters: NativeAuthSignInParameters, callback: SignInCallback)"
         )
+        val snapshot = snapshotSignInParameters(parameters)
         pcaScope.launch {
             try {
-                val result = internalSignIn(parameters.username, parameters.password, parameters.scopes, parameters.claimsRequest)
+                val result = internalSignIn(snapshot)
                 callback.onResult(result)
             } catch (e: MsalException) {
                 Logger.error(TAG, "Exception thrown in signIn", e)
@@ -390,11 +396,15 @@ class NativeAuthPublicClientApplication(
             correlationId = null,
             methodName = "${TAG}.signIn(username: String, password: CharArray?, scopes: List<String>?)"
         )
-        return internalSignIn(username, password, scopes, claimsRequest = null)
+        return internalSignIn(snapshotSignInParameters(NativeAuthSignInParameters(username).apply {
+            this.password = password
+            this.scopes = scopes
+        }))
     }
 
     /**
      * Sign in a user for a provided parameters; Kotlin coroutines variant.
+     * Mutable inputs are copied before switching coroutine context.
      *
      * @param parameters parameters used for signIn operation.
      * @return [com.microsoft.identity.nativeauth.statemachine.results.SignInResult] see detailed possible return state under the object.
@@ -406,7 +416,23 @@ class NativeAuthPublicClientApplication(
             correlationId = null,
             methodName = "${TAG}.signIn(parameters: NativeAuthSignInParameters)"
         )
-        return internalSignIn(parameters.username, parameters.password, parameters.scopes, parameters.claimsRequest)
+        return internalSignIn(snapshotSignInParameters(parameters))
+    }
+
+    private fun snapshotSignInParameters(parameters: NativeAuthSignInParameters): Result<NativeAuthSignInParameters> {
+        return try {
+            Result.success(NativeAuthSignInParameters(parameters.username).apply {
+                claimsRequest = parameters.claimsRequest?.let {
+                    ClaimsRequest.getClaimsRequestFromJsonString(ClaimsRequest.getJsonStringFromClaimsRequest(it))
+                }
+                scopes = parameters.scopes?.toList()
+                password = parameters.password?.copyOf()
+            })
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
 
@@ -1310,14 +1336,14 @@ class NativeAuthPublicClientApplication(
         return future
     }
 
-    private suspend fun internalSignIn(
-        username: String,
-        password: CharArray?,
-        scopes: List<String>?,
-        claimsRequest: ClaimsRequest?
-    ): SignInResult {
+    private suspend fun internalSignIn(snapshot: Result<NativeAuthSignInParameters>): SignInResult {
         return withContext(Dispatchers.IO) {
             try {
+                val parameters = snapshot.getOrThrow()
+                val username = parameters.username
+                val password = parameters.password
+                val scopes = parameters.scopes
+                val claimsRequest = parameters.claimsRequest
                 verifyNoUserIsSignedIn()
 
                 if (username.isBlank()) {
@@ -1514,6 +1540,8 @@ class NativeAuthPublicClientApplication(
                 } finally {
                     StringUtil.overwriteWithNull(params.password)
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 SignInError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,

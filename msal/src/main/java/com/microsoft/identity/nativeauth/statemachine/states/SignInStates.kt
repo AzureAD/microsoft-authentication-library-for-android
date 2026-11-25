@@ -26,6 +26,7 @@ package com.microsoft.identity.nativeauth.statemachine.states
 import android.os.Parcel
 import android.os.Parcelable
 import com.microsoft.identity.client.AuthenticationResultAdapter
+import com.microsoft.identity.client.claims.ClaimsRequest
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
@@ -61,6 +62,7 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitPasswo
 import com.microsoft.identity.nativeauth.toListOfAuthMethods
 import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -612,9 +614,10 @@ class SignInContinuationState(
         )
         val params = NativeAuthSignInContinuationParameters()
         params.scopes = scopes
+        val snapshot = snapshotSignInParameters(params)
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
-                val result = internalSignIn(params)
+                val result = internalSignIn(snapshot)
                 callback.onResult(result)
             } catch (e: MsalException) {
                 Logger.error(TAG, "Exception thrown in signIn", e)
@@ -625,6 +628,7 @@ class SignInContinuationState(
 
     /**
      * Submits the sign-in-continuation verification code to the server for a provided parameters; callback variant.
+     * Mutable inputs are copied before dispatch; later caller mutations do not affect this request.
      *
      * @param parameters parameters used for sign-in-continuation operation.
      * @param callback [com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState.SignInContinuationCallback] to receive the result on.
@@ -637,9 +641,10 @@ class SignInContinuationState(
             methodName = "${TAG}.signIn(parameters: NativeAuthSignInContinuationParameters, callback: SignInContinuationCallback)"
         )
 
+        val snapshot = snapshotSignInParameters(parameters)
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
-                val result = internalSignIn(parameters)
+                val result = internalSignIn(snapshot)
                 callback.onResult(result)
             } catch (e: MsalException) {
                 Logger.error(TAG, "Exception thrown in signIn", e)
@@ -663,7 +668,7 @@ class SignInContinuationState(
         )
         val params = NativeAuthSignInContinuationParameters()
         params.scopes = scopes
-        return internalSignIn(params)
+        return internalSignIn(snapshotSignInParameters(params))
     }
 
     /**
@@ -679,12 +684,28 @@ class SignInContinuationState(
             correlationId = correlationId,
             methodName = "${TAG}.signIn(parameters: NativeAuthSignInContinuationParameters)"
         )
-        return internalSignIn(parameters)
+        return internalSignIn(snapshotSignInParameters(parameters))
     }
 
-    private suspend fun internalSignIn(parameters: NativeAuthSignInContinuationParameters): SignInResult {
+    private fun snapshotSignInParameters(parameters: NativeAuthSignInContinuationParameters): Result<NativeAuthSignInContinuationParameters> {
+        return try {
+            Result.success(NativeAuthSignInContinuationParameters().apply {
+                claimsRequest = parameters.claimsRequest?.let {
+                    ClaimsRequest.getClaimsRequestFromJsonString(ClaimsRequest.getJsonStringFromClaimsRequest(it))
+                }
+                scopes = parameters.scopes?.toList()
+            })
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    private suspend fun internalSignIn(snapshot: Result<NativeAuthSignInContinuationParameters>): SignInResult {
         return withContext(Dispatchers.IO) {
             try {
+                val parameters = snapshot.getOrThrow()
                 LogSession.logMethodCall(
                     tag = TAG,
                     correlationId = correlationId,
@@ -782,6 +803,8 @@ class SignInContinuationState(
                         )
                     }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 SignInContinuationError(
                     errorMessage = "MSAL client exception occurred in signIn.",
