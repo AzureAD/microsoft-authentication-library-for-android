@@ -55,6 +55,14 @@ import com.microsoft.identity.common.java.exception.ErrorStrings;
 public final class MsalClientException extends MsalException {
 
     /**
+     * The ID-token {@code xms_agvt} receipt is malformed or does not match the request.
+     * Cached receipts are also validated. No automatic token reacquisition occurs.
+     * Do not remove requested targets to bypass validation.
+     */
+    public static final String AGE_ASSURANCE_TARGET_MISMATCH =
+            ClientException.AGE_ASSURANCE_TARGET_MISMATCH;
+
+    /**
      * The parameter provided by the user is invalid.
      * */
     public static final String INVALID_PARAMETER = "invalid_parameter";

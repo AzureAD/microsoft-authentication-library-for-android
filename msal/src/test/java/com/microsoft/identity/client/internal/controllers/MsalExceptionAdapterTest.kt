@@ -8,9 +8,13 @@ import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.common.java.exception.ArgumentException
 import com.microsoft.identity.common.java.exception.ClientException
 import com.microsoft.identity.common.java.exception.ErrorStrings
+import com.microsoft.identity.common.java.providers.oauth2.AgeAssuranceTargetValidator
+import com.nimbusds.jwt.JWTClaimsSet
+import com.nimbusds.jwt.PlainJWT
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Test
 
 class MsalExceptionAdapterTest {
@@ -40,5 +44,47 @@ class MsalExceptionAdapterTest {
 
         assertTrue(converted is MsalClientException)
         assertEquals(ErrorStrings.UNKNOWN_CALLER, converted.errorCode)
+    }
+
+    @Test
+    fun ageAssuranceTargetMismatchRetainsDistinctClientError() {
+        val exception = ClientException(
+            ClientException.AGE_ASSURANCE_TARGET_MISMATCH,
+            "The ID token age-assurance targets do not match the requested targets."
+        )
+
+        val converted = MsalExceptionAdapter.msalExceptionFromBaseException(exception)
+
+        assertTrue(converted is MsalClientException)
+        assertEquals(MsalClientException.AGE_ASSURANCE_TARGET_MISMATCH, converted.errorCode)
+        assertEquals(exception.message, converted.message)
+        assertSame(exception, converted.cause)
+    }
+
+    @Test
+    fun unsolicitedNamedReceiptMapsToDistinctClientError() {
+        val idToken = PlainJWT(JWTClaimsSet.Builder()
+            .claim("xms_agvs", 0).claim("xms_agvt", "+mc").build()).serialize()
+        for (claims in listOf(null, "{}", """{"id_token":{"xms_agvs":{"additionalProperties":[]}}}""")) {
+            try {
+                AgeAssuranceTargetValidator.validate(claims, idToken)
+                fail("An unsolicited named receipt must fail")
+            } catch (exception: ClientException) {
+                val converted = MsalExceptionAdapter.msalExceptionFromBaseException(exception)
+                assertTrue(converted is MsalClientException)
+                assertEquals(MsalClientException.AGE_ASSURANCE_TARGET_MISMATCH, converted.errorCode)
+                assertSame(exception, converted.cause)
+            }
+        }
+    }
+
+    @Test
+    fun untargetedDefaultsAndNoIdTokenRemainAccepted() {
+        AgeAssuranceTargetValidator.validate(null, null)
+        for (receipt in listOf(null, "", "+all", "-ALL")) {
+            val idToken = PlainJWT(JWTClaimsSet.Builder()
+                .claim("xms_agvs", 0).claim("xms_agvt", receipt).build()).serialize()
+            AgeAssuranceTargetValidator.validate(null, idToken)
+        }
     }
 }
