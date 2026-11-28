@@ -23,6 +23,118 @@ import org.junit.Test
 
 class MfaSasIntegrationTest {
     @Test
+    fun `push lookup survives an unrelated failed account check but pull still fails`() = runBlocking {
+        val fixture = MfaTestFixture()
+        val store = registeredStore()
+        store.state = store.state.copy(accounts = listOf(account("unavailable").copy(dosPreventer = "other"), account()))
+        fixture.intercept = { op, fields ->
+            if (op == "PhoneAppCheckForAuthentication" && fields.value("dosPreventer") == "other")
+                MfaWireResponse(503, byteArrayOf()) else null
+        }
+        val manager = fixture.manager(store)
+        assertEquals(GUID, manager.handlePushNotification(auth()).single().guid)
+        assertTrue(error { manager.pullPendingNotifications() }.isGeneralError())
+    }
+
+    @Test
+    fun `late session fetch does not restore stale missing routing metadata`() = runBlocking {
+        val fixture = MfaTestFixture()
+        val store = registeredStore()
+        val manager = fixture.manager(store)
+        val entered = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        val otherGuid = "11111111-1111-4111-8111-111111111112"
+        fixture.intercept = { op, fields ->
+            if (op == "PhoneAppAuthentication" && fields.child("phoneAppContext").value("guid") == GUID) {
+                entered.complete(Unit)
+                release.await()
+            }
+            null
+        }
+        val delayed = async { manager.handlePushNotification(auth()) }
+        withTimeout(5_000) { entered.await() }
+        try {
+            fixture.responseFields = { _, fields -> fields.filterNot { it.name == "guid" } +
+                listOf(MfaXml("guid", otherGuid), MfaXml("routingHint", "updated")) }
+            manager.handlePushNotification(auth() + ("guid" to otherGuid))
+        } finally {
+            fixture.responseFields = { _, fields -> fields }
+            release.complete(Unit)
+        }
+        delayed.await()
+        assertEquals("updated", store.state.accounts.single().routingHint)
+    }
+
+    @Test
+    fun `unknown rotation is not success even for the old token`() = runBlocking {
+        val store = registeredStore()
+        store.state = store.state.copy(blockedTokenUpdates = setOf(account().id))
+        val fixture = MfaTestFixture()
+        assertTrue(error { fixture.manager(store).updatePushRegistration(TOKEN) }.isGeneralError())
+        assertTrue(fixture.requests.isEmpty())
+    }
+
+    @Test
+    fun `enrollment at capacity does not start activation or consume a guard`() = runBlocking {
+        val store = registeredStore()
+        store.state = store.state.copy(accounts = (1..100).map { account("method-$it") })
+        val fixture = MfaTestFixture()
+        assertTrue(error { fixture.manager(store, timeout = 20).registerAuthMethod(registration()) }.isGeneralError())
+        assertTrue(fixture.requests.isEmpty())
+        assertTrue(store.state.enrollments.isEmpty())
+    }
+
+    @Test
+    fun `authority aliases give the same enrollment guard`() {
+        fun digest(url: String) = MfaActivationParser.parse(MfaRegistrationParameters.Activation("code", url)).digest
+        assertEquals(digest("https://$HOST/path"), digest("https://${HOST.uppercase()}:443/path"))
+    }
+
+    @Test
+    fun `absolute polling URL retains its path and query`() {
+        val url = "https://$HOST/custom?route=1"
+        assertEquals(url, MfaEndpointPolicy.notification(url).toString())
+        assertTrue(runCatching { MfaEndpointPolicy.notification("http://$HOST/custom") }.isFailure)
+    }
+
+    @Test
+    fun `confirmed completion survives cancellation of rotation waiter`() = runBlocking {
+        val fixture = MfaTestFixture()
+        val store = registeredStore()
+        val manager = fixture.manager(store)
+        val release = CompletableDeferred<Unit>()
+        fixture.intercept = { operation, _ ->
+            if (operation == "phoneAppCompleteDeviceTokenChangeV2Request") release.await()
+            null
+        }
+        val waiter = async { manager.updatePushRegistration(NEW_TOKEN) }
+        fixture.await("phoneAppStartDeviceTokenChangeV2Request")
+        val push = async { runCatching { manager.handlePushNotification(validation(true)) } }
+        fixture.await("phoneAppCompleteDeviceTokenChangeV2Request")
+        waiter.cancelAndJoin()
+        release.complete(Unit)
+        push.await().getOrThrow()
+        assertEquals(NEW_TOKEN, store.state.accounts.single().token)
+        assertTrue(store.state.blockedTokenUpdates.isEmpty())
+    }
+
+    @Test
+    fun `cancelling validation handler does not cancel its independent waiter`() = runBlocking {
+        val fixture = MfaTestFixture()
+        val manager = fixture.manager(registeredStore())
+        fixture.intercept = { operation, _ ->
+            if (operation == "phoneAppCompleteDeviceTokenChangeV2Request") CompletableDeferred<Unit>().await()
+            null
+        }
+        val waiter = async { runCatching { manager.updatePushRegistration(NEW_TOKEN) } }
+        fixture.await("phoneAppStartDeviceTokenChangeV2Request")
+        val push = async { manager.handlePushNotification(validation(true)) }
+        fixture.await("phoneAppCompleteDeviceTokenChangeV2Request")
+        push.cancelAndJoin()
+        assertTrue(waiter.await().exceptionOrNull() is MfaSdkException)
+    }
+
+    @Test
     fun `empty store and unrelated push make no service calls`() = runBlocking {
         val fixture = MfaTestFixture()
         val store = MemoryMfaStore()
@@ -341,8 +453,10 @@ class MfaSasIntegrationTest {
         manager.handlePushNotification(validation(true))
         fixture.await("phoneAppStartDeviceTokenChangeV2Request")
         fixture.fetchedAccount = second
-        fixture.completionAccountResult = "Rejected"
         assertTrue(error { manager.handlePushNotification(validation(true)) }.isGeneralError())
+        fixture.completionAccountResult = "Rejected"
+        assertTrue(error { manager.handlePushNotification(validation(true) + ("guid" to
+            "11111111-1111-4111-8111-111111111112")) }.isGeneralError())
         assertTrue(withTimeout(5_000) { update.await() }.exceptionOrNull() is MfaSdkException)
         assertEquals(listOf(NEW_TOKEN, TOKEN, NEW_TOKEN), store.state.accounts.map { it.token })
         assertEquals(setOf(second.id), store.state.blockedTokenUpdates)

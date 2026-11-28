@@ -37,7 +37,9 @@ class MfaSdkManager private constructor(engineProvider: () -> MfaEngine) {
      * Success requires validation and local persistence for every affected account. Failure stops
      * remaining work without rolling back completed accounts; the latest token may already be stored.
      * Uncertain submitted updates require service-defined recovery, not automatic replay or a promise
-     * of resumability after process restart.
+     * of resumability after process restart. Supplying the old token does not resolve an uncertain
+     * update. A validation handler already in flight can persist a confirmed update after its
+     * initiating caller has stopped waiting.
      * @param deviceToken Opaque raw FCM token. Never log it.
      * @throws MfaSdkException If validation, rotation or persistence fails.
      */

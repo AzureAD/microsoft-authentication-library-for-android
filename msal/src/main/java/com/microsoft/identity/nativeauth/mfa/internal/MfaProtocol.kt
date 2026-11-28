@@ -57,7 +57,7 @@ internal object MfaEndpointPolicy {
     fun notification(relativeEndpoint: String): URI {
         requireMfa(relativeEndpoint.isNotEmpty() && relativeEndpoint.none { it == '\\' || it.isISOControl() },
             MfaErrorCode.UNTRUSTED_ENDPOINT)
-        val supplied = service("https://$relativeEndpoint")
+        val supplied = service(if (relativeEndpoint.startsWith("https://")) relativeEndpoint else "https://$relativeEndpoint")
         // A host-only legacy hint needs /pad; explicit service paths and queries are authoritative.
         return if (supplied.path.isNullOrEmpty() || supplied.path == "/") {
             service("https://${supplied.rawAuthority}/pad" +
@@ -67,7 +67,12 @@ internal object MfaEndpointPolicy {
 }
 
 internal class MfaActivation(val code: String, val endpoint: URI) {
-    val digest: String get() = MfaProof.digest("$code\u0000$endpoint")
+    val legacyDigest: String get() = MfaProof.digest("$code\u0000$endpoint")
+    val digest: String get() {
+        val canonical = "https://${endpoint.host.lowercase(Locale.ROOT)}${endpoint.rawPath}" +
+            (endpoint.rawQuery?.let { "?$it" } ?: "")
+        return MfaProof.digest("$code\u0000$canonical")
+    }
 }
 
 internal object MfaActivationParser {

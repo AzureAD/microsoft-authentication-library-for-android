@@ -11,6 +11,7 @@ import com.microsoft.identity.nativeauth.mfa.MfaRegistrationResult
 import java.net.URI
 import java.util.Locale
 import java.util.UUID
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.currentCoroutineContext
@@ -39,19 +40,20 @@ internal class MfaEngine(
         val accounts = mutex.withLock {
             requireMfa(pending == null, MfaErrorCode.OPERATION_IN_PROGRESS)
             val state = load()
+            requireMfa(state.blockedTokenUpdates.isEmpty(), MfaErrorCode.OUTCOME_UNKNOWN)
             commit(state.copy(token = token))
             updating = true
             state.accounts.filter { it.token != token }
         }
+        val validationGuids = mutableSetOf<String>()
         try {
             for (account in accounts) {
                 currentCoroutineContext().ensureActive()
                 val operation = mutex.withLock {
                     val state = load()
-                    requireMfa(account.id !in state.blockedTokenUpdates, MfaErrorCode.OUTCOME_UNKNOWN)
                     // This guard survives a lost response, cancellation or process death.
                     commit(state.copy(blockedTokenUpdates = state.blockedTokenUpdates + account.id))
-                    Pending(token, MfaEndpointPolicy.service(account.endpoint), account).also { pending = it }
+                    Pending(token, MfaEndpointPolicy.service(account.endpoint), account, validationGuids).also { pending = it }
                 }
                 try {
                     val response = client.phoneApp("phoneAppStartDeviceTokenChangeV2Request",
@@ -61,16 +63,13 @@ internal class MfaEngine(
                             MfaXml("notificationType", "FCM")
                         ), account.headers())
                     numericSuccess(response, "deviceTokenChangeResult", "1")
-                    awaitValidation(operation)
                     withContext(NonCancellable) {
                         mutex.withLock {
-                            val state = load()
-                            requireMfa(pending === operation)
-                            commit(state.copy(accounts = state.accounts.map {
-                                if (it.id == account.id) it.copy(token = token, previousToken = it.token) else it
-                            }, blockedTokenUpdates = state.blockedTokenUpdates - account.id))
+                            operation.startConfirmed = true
+                            if (operation.completionConfirmed) persistRotation(operation, account)
                         }
                     }
+                    awaitValidation(operation)
                 } finally {
                     clearPending(operation)
                 }
@@ -86,7 +85,9 @@ internal class MfaEngine(
             requireMfa(pending == null && !updating, MfaErrorCode.OPERATION_IN_PROGRESS)
             val state = load()
             val token = state.token ?: fail(MfaErrorCode.MISSING_PUSH_REGISTRATION)
-            requireMfa(activation.digest !in state.enrollments, MfaErrorCode.OUTCOME_UNKNOWN)
+            requireMfa(state.accounts.size < MfaStoredState.MAX_ACCOUNTS, MfaErrorCode.STORAGE_FAILURE)
+            requireMfa(activation.digest !in state.enrollments && activation.legacyDigest !in state.enrollments,
+                MfaErrorCode.OUTCOME_UNKNOWN)
             commit(state.copy(enrollments = state.enrollments + activation.digest))
             Pending(token, activation.endpoint).also { pending = it }
         }
@@ -147,10 +148,17 @@ internal class MfaEngine(
             load().accounts.filter { URI(it.endpoint).host == endpoint.host }
         }
         requireMfa(candidates.isNotEmpty(), MfaErrorCode.UNKNOWN_ACCOUNT)
-        return if (candidates.size == 1) listOf(fetch(guid, endpoint, candidates.single(), "").publicValue)
-        else pull(candidates).filter { it.guid == guid }.also {
-            requireMfa(it.size == 1, MfaErrorCode.INVALID_NOTIFICATION)
+        if (candidates.size == 1) return listOf(fetch(guid, endpoint, candidates.single(), "").publicValue)
+        var firstFailure: MfaProtocolException? = null
+        for (account in candidates) {
+            try {
+                pull(listOf(account)).singleOrNull { it.guid == guid }?.let { return listOf(it) }
+            } catch (error: MfaProtocolException) {
+                if (error.code == MfaErrorCode.STORAGE_FAILURE) throw error
+                if (firstFailure == null) firstFailure = error
+            }
         }
+        throw firstFailure ?: MfaProtocolException(MfaErrorCode.INVALID_NOTIFICATION)
     }
 
     private suspend fun validatePush(guid: String, endpoint: URI, payload: Map<String, String>) {
@@ -166,6 +174,7 @@ internal class MfaEngine(
                 requireMfa(payload["tenantId"] == p.account.tenantId &&
                     payload["oathCounter"]?.toLongOrNull()?.let { it >= 0 } == true,
                     MfaErrorCode.INVALID_NOTIFICATION)
+                requireMfa(p.validationGuids.add(guid), MfaErrorCode.INVALID_NOTIFICATION)
             }
             p.attempted = true
             p
@@ -204,14 +213,35 @@ internal class MfaEngine(
             withContext(NonCancellable) {
                 mutex.withLock {
                     load()
-                    requireMfa(pending === operation, MfaErrorCode.INVALID_NOTIFICATION)
+                    if (account != null && operation.startConfirmed) {
+                        // The handler may outlive its waiter. The durable guard still owns this account.
+                        persistRotation(operation, account)
+                    } else {
+                        requireMfa(pending === operation, MfaErrorCode.INVALID_NOTIFICATION)
+                    }
+                    operation.completionConfirmed = true
                     operation.result.complete(response to endpoint)
                 }
             }
+        } catch (error: CancellationException) {
+            operation.result.completeExceptionally(MfaProtocolException(MfaErrorCode.OUTCOME_UNKNOWN))
+            throw error
         } catch (error: Exception) {
             operation.result.completeExceptionally(error)
             throw error
         }
+    }
+
+    // Called under mutex once both acknowledgments have arrived, in either order.
+    private suspend fun persistRotation(operation: Pending, account: MfaStoredState.Account) {
+        val state = load()
+        val current = state.accounts.singleOrNull { it.id == account.id }
+        requireMfa(current != null && account.id in state.blockedTokenUpdates &&
+            current.token == account.token && current.objectId == account.objectId &&
+            current.tenantId == account.tenantId && state.token == operation.token, MfaErrorCode.OUTCOME_UNKNOWN)
+        commit(state.copy(accounts = state.accounts.map {
+            if (it.id == account.id) it.copy(previousToken = it.token, token = operation.token) else it
+        }, blockedTokenUpdates = state.blockedTokenUpdates - account.id))
     }
 
     suspend fun pull(): List<MfaAuthSession> = pull(mutex.withLock { load().accounts })
@@ -281,11 +311,6 @@ internal class MfaEngine(
             MfaErrorCode.UNSUPPORTED_POLICY)
         // No authoritative ordinary-approval capability exists in the supported wire contract.
         requireMfa(number, MfaErrorCode.UNSUPPORTED_POLICY)
-        val updated = expected.copy(endpoint = endpoint.toString(),
-            replicationScope = optional("replicationScope") ?: expected.replicationScope,
-            routingHint = optional("routingHint") ?: expected.routingHint,
-            countryCode = optional("countryCode") ?: expected.countryCode,
-            dosPreventer = optional("dosPreventer")?.takeIf { it.isNotBlank() } ?: expected.dosPreventer)
         return mutex.withLock {
             val state = load()
             requireMfa(id !in state.submitted, MfaErrorCode.INVALID_SESSION)
@@ -297,7 +322,11 @@ internal class MfaEngine(
                 MfaErrorCode.UNSUPPORTED_POLICY)
             // A concurrent token update owns token fields; metadata refresh must not overwrite them.
             val latestAccount = state.accounts.single { it.id == expected.id }
-            val merged = updated.copy(token = latestAccount.token, previousToken = latestAccount.previousToken)
+            val merged = latestAccount.copy(endpoint = endpoint.toString(),
+                replicationScope = optional("replicationScope") ?: latestAccount.replicationScope,
+                routingHint = optional("routingHint") ?: latestAccount.routingHint,
+                countryCode = optional("countryCode") ?: latestAccount.countryCode,
+                dosPreventer = optional("dosPreventer")?.takeIf { it.isNotBlank() } ?: latestAccount.dosPreventer)
             commit(state.copy(accounts = state.accounts.map { if (it.id == expected.id) merged else it }))
             Session(existing?.publicValue ?: MfaAuthSession.create(
                 id, expected.id, expected.name, expected.username, number), merged, endpoint).also { sessions[id] = it }
@@ -321,6 +350,7 @@ internal class MfaEngine(
             val state = load()
             requireMfa(value.guid !in state.submitted, MfaErrorCode.INVALID_SESSION)
             commit(state.copy(submitted = state.submitted + value.guid))
+            sessions.remove(value.guid)
         }
         val approve = action is MfaAction.Approve
         val fields = listOf(
@@ -387,6 +417,9 @@ internal class MfaEngine(
         val token: String,
         val endpoint: URI,
         val account: MfaStoredState.Account? = null,
+        val validationGuids: MutableSet<String> = mutableSetOf(),
+        var startConfirmed: Boolean = false,
+        var completionConfirmed: Boolean = false,
         var attempted: Boolean = false,
         val result: CompletableDeferred<Pair<MfaXml, URI>> = CompletableDeferred()
     )

@@ -14,6 +14,7 @@ internal data class MfaStoredState(
     @SerializedName("enrollments") val enrollments: Set<String> = emptySet(),
     @SerializedName("blockedTokenUpdates") val blockedTokenUpdates: Set<String> = emptySet()
 ) {
+    companion object { const val MAX_ACCOUNTS = 100 }
     override fun toString(): String = "MfaStoredState(<redacted>)"
 
     data class Account(
@@ -40,7 +41,7 @@ internal data class MfaStoredState(
     }
 
     fun validate() {
-        requireMfa(version == 1 && accounts.size <= 100 && submitted.size <= 100_000 &&
+        requireMfa(version == 1 && accounts.size <= MAX_ACCOUNTS && submitted.size <= 100_000 &&
             enrollments.size <= 100_000, MfaErrorCode.STORAGE_FAILURE)
         requireMfa(token == null || token.isNotBlank() && token.length <= 4096,
             MfaErrorCode.STORAGE_FAILURE)
